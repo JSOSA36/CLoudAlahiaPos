@@ -1,0 +1,98 @@
+/* ===============================
+   HEADER
+================================ */
+ion-toolbar {
+  --min-height: 56px;
+}
+
+/* ===============================
+   LISTA DE PERFILES
+================================ */
+ion-item {
+  --padding-start: 16px;
+  --inner-padding-end: 8px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  --background: var(--ion-color-step-50);
+}
+
+/* Nombre del perfil */
+ion-item h2 {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ion-text-color);
+}
+
+/* Descripción */
+ion-item p {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+/* ===============================
+   BADGE ESTADO
+================================ */
+ion-badge {
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* ===============================
+   BOTONES DE ACCIÓN
+================================ */
+ion-button {
+  --border-radius: 10px;
+}
+
+ion-button[fill="clear"] {
+  --padding-start: 6px;
+  --padding-end: 6px;
+}
+
+/* ===============================
+   MODAL PERFIL
+================================ */
+ion-modal {
+  --border-radius: 18px;
+}
+
+ion-modal::part(content) {
+  max-height: 90%;
+}
+
+/* ===============================
+   FORMULARIO
+================================ */
+ion-item {
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-label {
+  font-size: 0.75rem;
+}
+
+/* ===============================
+   CHECKBOX MÓDULOS
+================================ */
+ion-checkbox {
+  --size: 18px;
+  --checkbox-background-checked: var(--ion-color-primary);
+  margin-right: 12px;
+}
+
+/* ===============================
+   SEPARADORES
+================================ */
+ion-divider {
+  margin: 16px 0;
+}
+
+/* ===============================
+   RESPONSIVE (TABLET / DESKTOP)
+================================ */
+@media (min-width: 768px) {
+  ion-modal::part(content) {
+    width: 600px;
+  }
+}

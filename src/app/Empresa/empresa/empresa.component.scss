@@ -1,0 +1,150 @@
+/* Fondo general */
+.app-background {
+  --background: linear-gradient(135deg, #1976d2, #42a5f5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+
+/* Header */
+
+.header-gradient {
+  --background: linear-gradient(135deg, #1565c0, #42a5f5);
+  --color: #fff;
+  font-weight: bold;
+  text-align: center;
+}
+
+
+/* Zona del logo */
+
+.header-logo {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  padding: 20px 0;
+  text-align: center;
+}
+
+.header-logo ion-avatar {
+  width: 90px;
+  height: 90px;
+  border: 3px solid #fff;
+  margin: auto;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+}
+
+.logo-btn {
+  margin-top: 6px;
+  margin-bottom: 10px;
+  height: 34px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+
+/* Card central */
+
+.gradient-card {
+  width: 95%;
+  max-width: 1100px;
+
+  margin: 15px auto;
+
+  border-radius: 16px;
+
+  background: linear-gradient(145deg,#bbdefb,#64b5f6);
+
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+
+  color: #0d47a1;
+}
+
+
+/* Grid spacing */
+
+.empresa-grid ion-row {
+  margin-bottom: 6px;
+}
+
+.empresa-grid ion-col {
+  padding: 6px;
+}
+
+
+/* Inputs compactos */
+
+.compact-item {
+
+  --background: rgba(255,255,255,.92);
+  --color:#0d47a1;
+
+  --placeholder-color:#607d8b;
+  --highlight-color-focused:#1976d2;
+
+  border-radius:10px;
+
+  margin-bottom:6px;
+
+  --min-height:44px;
+
+  border: 2px solid #f7c948; /* borde amarillo */
+
+}
+
+.compact-item ion-icon{
+  color:#1976d2;
+}
+
+
+/* Select */
+
+.select-item ion-select{
+  font-size:14px;
+  color:#1976d2;
+}
+
+
+/* Botones */
+
+.btn-compact{
+  margin-top:10px;
+  height:44px;
+  font-size:14px;
+  font-weight:bold;
+  border-radius:10px;
+}
+
+.btn-gradient{
+  --background:linear-gradient(135deg,#42a5f5,#1e88e5);
+  --color:white;
+
+  font-weight:bold;
+
+  border-radius:10px;
+
+  height:44px;
+}
+
+
+/* Select ancho completo */
+
+ion-select{
+  max-width:100%!important;
+  white-space:normal!important;
+  text-overflow:unset!important;
+  overflow:visible!important;
+  font-size:14px;
+}
+
+
+/* Label select */
+
+ion-item.select-item ion-label{
+  flex:0 0 120px;
+  margin-right:8px;
+
+  color:#0d47a1;
+
+  font-weight:500;
+}

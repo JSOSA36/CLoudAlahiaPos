@@ -1,0 +1,537 @@
+/* ===== CONTENEDOR GENERAL ===== */
+
+/* ⭐ HACER ESPACIO ABAJO PARA EL FOOTER */
+
+.dashboard-container{
+  padding:16px;
+  padding-bottom:95px;   /* 🔥 clave */
+  background: linear-gradient(180deg,#f7f9ff,#eef2fb);
+  min-height:100%;
+  min-width: 100%;
+}
+
+
+/* ⭐ FOOTER REALMENTE FIJO */
+
+.footer-financiero{
+  position: fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:999;
+  background: transparent;
+  border:none;
+}
+
+
+/* ⭐ CAJA VISUAL */
+
+.footer-box{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+
+  padding:10px 12px;
+
+  background:white;
+  box-shadow:0 -8px 25px rgba(0,0,0,.18);
+
+  border-top-left-radius:20px;
+  border-top-right-radius:20px;
+}
+
+
+/* ⭐ ITEMS */
+
+.item-footer{
+  flex:1;
+  text-align:center;
+  padding:8px;
+  border-radius:12px;
+
+  display:flex;
+  flex-direction:column;
+  font-size:12px;
+  font-weight:600;
+}
+
+.item-footer strong{
+  font-size:18px;
+  margin-top:2px;
+}
+
+
+/* ⭐ COLORES */
+
+.item-footer.consumo{
+  background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
+  color:#7a4a00;
+}
+
+.item-footer.comision{
+  background: linear-gradient(135deg,#55efc4,#00b894);
+  color:#003c2d;
+}
+
+.item-footer.neto{
+  background: linear-gradient(135deg,#74b9ff,#0984e3);
+  color:white;
+}
+
+/* ⭐ NETO NEGATIVO IMPACTO */
+
+.item-footer.neto.negativo{
+  background: linear-gradient(135deg,#ff7675,#d63031);
+  animation: vibrar .35s linear infinite;
+}
+
+@keyframes vibrar{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-2px)}
+  50%{transform:translateX(2px)}
+  75%{transform:translateX(-2px)}
+  100%{transform:translateX(0)}
+}
+
+/* ===== CARD BASE ===== */
+
+.card-main {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 2px solid #e4ecff;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.08),
+    0 2px 8px rgba(0,0,0,.05);
+  transition: .25s;
+}
+
+.card-main:hover{
+  border-color:#3b82f6;
+  transform: translateY(-2px);
+}
+
+/* ===== TITULO ===== */
+
+.card-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+/* ===== SELECT LAVADOR ===== */
+
+.select-lavador {
+  --background: #f0f4ff;
+  border-radius: 14px;
+  border: 2px solid #dbe6ff;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.05);
+  margin-bottom: 14px;
+  padding-left:6px;
+}
+
+.select-lavador:hover{
+  border-color:#3b82f6;
+}
+
+/* ===== INPUTS ===== */
+
+.input-box {
+  --background: #f5f7fd;
+  border-radius: 14px;
+  border: 2px solid #e6ebff;
+  margin-bottom: 12px;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.04);
+}
+
+/* ===== BOTON REGISTRAR ===== */
+
+.btn-registrar {
+  margin-top: 14px;
+  height: 52px;
+  font-weight: 700;
+  border-radius: 16px;
+  --background: linear-gradient(135deg,#2563eb,#3b82f6);
+  --box-shadow: 0 10px 18px rgba(37,99,235,.35);
+  letter-spacing:.5px;
+}
+
+/* ===== LISTADO ===== */
+
+.lista-consumos {
+  margin-top: 12px;
+}
+
+.item-consumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid #edf1ff;
+}
+
+.concepto {
+  font-weight: 600;
+  color: #374151;
+}
+
+.monto {
+  background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #6b4e00;
+  font-size: 13px;
+}
+
+/* ===== PANEL TOTAL ===== */
+
+.panel-total {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,#fff5d7,#ffeaa7);
+  text-align: center;
+  border:2px solid #ffeaa7;
+}
+
+.total-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.total-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #92400e;
+}
+
+/* ===== PANEL COMISION ===== */
+
+.panel-comision {
+  margin-top: 12px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,#ecfdf5,#bbf7d0);
+  text-align: center;
+  border:2px solid #86efac;
+}
+
+.comision-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #065f46;
+}
+
+/* ===== PANEL NETO ===== */
+
+.panel-neto {
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  text-align: center;
+  box-shadow: 0 14px 30px rgba(29,78,216,.45);
+}
+
+.neto-label {
+  font-size: 15px;
+  color: #dbeafe;
+}
+
+.neto-value {
+  font-size: 30px;
+  font-weight: 900;
+  color: white;
+  letter-spacing:.5px;
+}
+
+/* ===== BOTON HISTORIAL ===== */
+
+.btn-historial {
+  margin-top: 18px;
+  border-radius: 16px;
+  height: 48px;
+  font-weight: 700;
+  --background: linear-gradient(135deg,#6c5ce7,#341f97);
+}
+
+/* ===== LOADING ===== */
+
+.loading-container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:140px;
+}
+
+/* ===== TABLET ===== */
+
+@media (min-width:768px){
+  .dashboard-container{
+    max-width:520px;
+    margin:auto;
+  }
+}
+/* ===== CONTENEDOR GENERAL ===== */
+
+.dashboard-container {
+  padding: 16px;
+  background: linear-gradient(180deg,#f7f9ff,#eef2fb);
+  min-height: 100%;
+}
+
+/* ===== CARD BASE ===== */
+
+.card-main {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 2px solid #e4ecff;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.08),
+    0 2px 8px rgba(0,0,0,.05);
+  transition: .25s;
+}
+
+.card-main:hover{
+  border-color:#3b82f6;
+  transform: translateY(-2px);
+}
+
+/* ===== TITULO ===== */
+
+.card-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+/* ===== SELECT LAVADOR ===== */
+
+.select-lavador {
+  --background: #f0f4ff;
+  border-radius: 14px;
+  border: 2px solid #dbe6ff;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.05);
+  margin-bottom: 14px;
+  padding-left:6px;
+}
+
+.select-lavador:hover{
+  border-color:#3b82f6;
+}
+
+/* ===== INPUTS ===== */
+
+.input-box {
+  --background: #f5f7fd;
+  border-radius: 14px;
+  border: 2px solid #e6ebff;
+  margin-bottom: 12px;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.04);
+}
+
+/* ===== BOTON REGISTRAR ===== */
+
+.btn-registrar {
+  margin-top: 14px;
+  height: 52px;
+  font-weight: 700;
+  border-radius: 16px;
+  --background: linear-gradient(135deg,#2563eb,#3b82f6);
+  --box-shadow: 0 10px 18px rgba(37,99,235,.35);
+  letter-spacing:.5px;
+}
+
+/* ===== LISTADO ===== */
+
+.lista-consumos {
+  margin-top: 12px;
+}
+
+.item-consumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid #edf1ff;
+}
+
+.concepto {
+  font-weight: 600;
+  color: #374151;
+}
+
+.monto {
+  background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #6b4e00;
+  font-size: 13px;
+}
+
+/* ===== PANEL TOTAL ===== */
+
+.panel-total {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,#fff5d7,#ffeaa7);
+  text-align: center;
+  border:2px solid #ffeaa7;
+}
+
+.total-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.total-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #92400e;
+}
+
+/* ===== PANEL COMISION ===== */
+
+.panel-comision {
+  margin-top: 12px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,#ecfdf5,#bbf7d0);
+  text-align: center;
+  border:2px solid #86efac;
+}
+
+.comision-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #065f46;
+}
+
+/* ===== PANEL NETO ===== */
+
+.panel-neto {
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  text-align: center;
+  box-shadow: 0 14px 30px rgba(29,78,216,.45);
+}
+
+.neto-label {
+  font-size: 15px;
+  color: #dbeafe;
+}
+
+.neto-value {
+  font-size: 30px;
+  font-weight: 900;
+  color: white;
+  letter-spacing:.5px;
+}
+
+/* ===== BOTON HISTORIAL ===== */
+
+.btn-historial {
+  margin-top: 18px;
+  border-radius: 16px;
+  height: 48px;
+  font-weight: 700;
+  --background: linear-gradient(135deg,#6c5ce7,#341f97);
+}
+
+/* ===== LOADING ===== */
+
+.loading-container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:140px;
+}
+
+/* ===== TABLET ===== */
+
+@media (min-width:768px){
+  .dashboard-container{
+    max-width:520px;
+    margin:auto;
+  }
+}
+.footer-financiero {
+
+  --background: transparent;
+  border: none;
+
+}
+
+.footer-box {
+
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+
+  padding: 10px 12px;
+  background: white;
+
+  box-shadow: 0 -6px 18px rgba(0,0,0,.12);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+
+}
+
+.item-footer {
+
+  flex: 1;
+  text-align: center;
+
+  padding: 8px;
+  border-radius: 12px;
+
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+
+}
+
+.item-footer strong {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+/* colores */
+
+.consumo {
+  background: linear-gradient(135deg,#ffeaa7,#fdcb6e);
+  color: #6b3e00;
+}
+
+.comision {
+  background: linear-gradient(135deg,#55efc4,#00b894);
+  color: #003c2d;
+}
+
+.neto {
+  background: linear-gradient(135deg,#74b9ff,#0984e3);
+  color: white;
+}
+
+/* ⭐ si debe dinero */
+
+.neto.negativo {
+  background: linear-gradient(135deg,#ff7675,#d63031);
+}
+.modal-consumo {
+
+  --height: 55%;
+  --border-radius: 24px;
+  --box-shadow: 0 -20px 40px rgba(0,0,0,.25);
+
+}

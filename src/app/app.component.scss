@@ -1,0 +1,155 @@
+/* 🔹 Ajuste de fondo del menú */
+ion-menu ion-content {
+  --background: var(--ion-item-background, var(--ion-background-color, #fff));
+}
+
+/* 🔹 Header del menú */
+.menu-header {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: linear-gradient(
+    135deg,
+    #2F80ED,
+    #174A70
+  );
+
+  padding: 16px 0 12px;
+  text-align: center;
+  color: #ffffff;
+
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+
+}
+
+/* 🔹 Logo dentro del menú */
+.menu-logo {
+
+  width: 70px;
+  height: 70px;
+  margin-bottom: 6px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #2F80ED,
+    #174A70
+  );
+
+  border: 3px solid #F2C94C;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+.menu-logo img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+/* 🔹 Títulos */
+.menu-title h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+}
+
+.empresa-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 4px 0 0;
+  color: #ffeb3b; /* Amarillo para resaltar empresa */
+}
+
+.usuario-info {
+  font-size: 0.9rem;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 🔹 Lista del menú */
+ion-menu ion-list {
+  padding-top: 8px; /* menos espacio arriba */
+}
+
+.menu-item {
+  border-radius: 8px;
+  margin: 4px 8px;
+  --background: transparent;
+}
+
+.menu-item:hover {
+
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-warning);
+
+}
+
+.menu-icon {
+  margin-right: 12px;
+  color: var(--ion-color-primary);
+}
+.menu-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* ✅ centra horizontal */
+  justify-content: center; /* ✅ centra vertical dentro del header */
+  padding: 12px 0 10px;  /* menos padding para no dejar espacio muerto */
+  text-align: center;
+}
+
+
+
+.menu-title h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  line-height: 1.2;
+}
+.menu-header {
+  background: var(--ion-color-primary);
+  color: white;
+  text-align: center;
+  padding: 20px 10px;
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+}
+
+.menu-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+.menu-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.empresa-nombre {
+  margin: 2px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffd966; /* ✅ amarillo/dorado para destacar */
+}
+
+.usuario-info {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}

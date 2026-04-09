@@ -1,0 +1,114 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">
+      {{ usuario ? 'Editar Usuario' : 'Crear Usuario' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form [formGroup]="form">
+
+    <!-- ========================= -->
+    <!-- EMPLEADO -->
+    <!-- ========================= -->
+    <ion-item *ngIf="empleados.length">
+  <ion-label>Empleado</ion-label>
+  <ion-select
+    formControlName="idEmpleados"
+    interface="popover"
+    placeholder="Seleccione un empleado"
+    [compareWith]="compareById">
+
+    <ion-select-option
+      *ngFor="let e of empleados"
+      [value]="e.idEmpleados">
+      {{ e.nombre }}
+    </ion-select-option>
+
+  </ion-select>
+</ion-item>
+
+
+    <!-- ========================= -->
+    <!-- CORREO -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label position="floating">Correo</ion-label>
+      <ion-input type="email" formControlName="correo"></ion-input>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- PASSWORD -->
+    <!-- ========================= -->
+    <ion-item *ngIf="!usuario">
+      <ion-label position="floating">Contraseña</ion-label>
+      <ion-input type="password" formControlName="password"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="usuario">
+      <ion-label position="floating">
+        Nueva contraseña (opcional)
+      </ion-label>
+      <ion-input type="password" formControlName="password"></ion-input>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- PERFIL -->
+    <!-- ========================= -->
+    <ion-item *ngIf="perfiles.length">
+  <ion-label>Perfil</ion-label>
+  <ion-select
+    formControlName="idPerfil"
+    interface="popover"
+    placeholder="Seleccione un perfil"
+    [compareWith]="compareById">
+
+    <ion-select-option
+      *ngFor="let p of perfiles"
+      [value]="p.idPerfil">
+      {{ p.nombre }}
+    </ion-select-option>
+
+  </ion-select>
+</ion-item>
+
+
+    <!-- ========================= -->
+    <!-- ESTADO -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label>Activo</ion-label>
+      <ion-toggle formControlName="activo"></ion-toggle>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- BOTONES -->
+    <!-- ========================= -->
+    <ion-button
+      expand="block"
+      color="success"
+      [disabled]="form.invalid"
+      (click)="guardar()">
+
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      {{ usuario ? 'Actualizar Usuario' : 'Crear Usuario' }}
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      color="medium"
+      (click)="cerrar()">
+
+      <ion-icon name="close-outline" slot="start"></ion-icon>
+      Cancelar
+    </ion-button>
+
+  </form>
+
+</ion-content>

@@ -1,0 +1,60 @@
+  
+    <div>
+      <h1>Que Deseas Hacer?</h1>
+
+      <ion-list lines="none">
+        <ion-item id="open-modal"  style="margin-left: 15px; margin-right: 15px; border-radius: 15px; margin-bottom: 10px;" button="true" color="primary" detail="false">
+          <ion-icon style="color: white;" name="clipboard-outline"></ion-icon>
+          <ion-label>Agregar         Cuenta</ion-label>
+        </ion-item>
+       
+        <ion-item (click)="ValidateCuentas()"  style="margin-left: 15px; margin-right: 15px; border-radius: 15px;margin-bottom: 10px;" button="true" color="primary" detail="false">
+          <ion-icon  style="color: white;" name="qr-code-outline"></ion-icon>
+          <ion-label>Liberar Mesa</ion-label>
+        </ion-item>
+        <ion-item (click)=" MostrarCuentas()"  style="margin-left: 15px; margin-right: 15px; border-radius: 15px;margin-bottom: 10px;" button="true" color="primary" detail="false">
+          <ion-icon  style="color: white;" name="newspaper-outline"></ion-icon>
+          <ion-label>Mostrar Cuentas</ion-label>
+        </ion-item>
+        <!--
+        <ion-item (click)=" MostrarCuentas()"  style="margin-left: 15px; margin-right: 15px; border-radius: 15px;margin-bottom: 10px;" button="true" color="primary" detail="false">
+          <ion-icon  style="color: white;" name="print-outline"></ion-icon>
+          <ion-label>Imprimir Cuentas</ion-label>
+        </ion-item>
+      -->
+        
+      </ion-list>
+    </div>
+    <ion-modal trigger="open-modal">
+      <ng-template>
+      <ion-card>
+    
+        <ion-card-header color="primary">
+          <ion-card-title class="ion-text-center">Ingrese el Nombre del Cliente</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item>
+           
+              <ion-label color="secondary" position="floating">Nombre</ion-label>
+              <ion-input [ngModelOptions]="{standalone: true}"   [(ngModel)]="NombreCliente" required></ion-input>
+              <ion-icon color="secondary" name="person" slot="end"></ion-icon>
+      
+              
+          
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+    
+      <ion-row>
+        <ion-col>
+          <ion-button (click)="cancel()" color="danger" expand="block">Cancelar</ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button (click)=" CallCategorias()" expand="block">Aceptar</ion-button>
+        </ion-col>
+      </ion-row>
+    </ng-template>
+    </ion-modal>
+
+   
+   

@@ -1,0 +1,236 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-searchbar
+      color="primary"
+      placeholder="Buscar producto..."
+      [(ngModel)]="filtro"
+      (ionInput)="aplicarFiltros()"
+      debounce="300">
+    </ion-searchbar>
+
+  </ion-toolbar>
+
+  <!-- 🧭 Filtro por Área -->
+  <ion-item>
+    <ion-icon name="filter-outline" slot="start"></ion-icon>
+
+    <ion-select
+      placeholder="Filtrar por área"
+      interface="popover"
+      [value]="selectedAreaId === null ? 'all' : selectedAreaId.toString()"
+      (ionChange)="onAreaChange($any($event).detail.value)">
+
+      <ion-select-option value="all">Todas</ion-select-option>
+
+      <ion-select-option
+        *ngFor="let a of areas"
+        [value]="a.idArea.toString()">
+        {{ a.nombre }}
+      </ion-select-option>
+
+    </ion-select>
+  </ion-item>
+</ion-header>
+
+<ion-content>
+
+  <!-- 📱 VISTA MOBILE -->
+  <div class="mobile-view">
+    <ion-list>
+
+      <ion-card
+        *ngFor="let producto of productosFiltrados | slice:0:itemsToShow"
+        class="producto-card">
+
+        <ion-item lines="none">
+
+          <ion-avatar slot="start" class="producto-avatar">
+            <img *ngIf="!producto.imagen1" src="./assets/botella.png">
+            <img *ngIf="producto.imagen1" [src]="producto.imagen1">
+          </ion-avatar>
+
+          <ion-label class="producto-info">
+
+            <h2>{{ producto.nombre }}</h2>
+
+            <p class="producto-precio">
+              Precio: {{ producto.precioVenta | currency }}
+            </p>
+
+            <p class="producto-extra">
+              Código Barra: {{ producto.codigoBarra || 'N/A' }}
+            </p>
+
+            <p class="producto-extra">
+              ITBIS:
+              <span
+                [class.badge-success]="producto.itbis"
+                [class.badge-danger]="!producto.itbis">
+                {{ producto.itbis ? 'Sí' : 'No' }}
+              </span>
+            </p>
+
+            <p class="producto-stock">
+              <span class="badge-servicio" *ngIf="producto.esServicio">
+                🚿 Servicio CarWash
+              </span>
+
+              <span class="badge-producto" *ngIf="!producto.esServicio">
+                📦 Producto
+              </span>
+            </p>
+
+          </ion-label>
+
+          <div class="acciones-mobile">
+
+            <ion-button
+              (click)="openModal(producto)"
+              color="primary"
+              size="small"
+              fill="solid">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              (click)="eliminarProducto(producto)"
+              color="danger"
+              size="small"
+              fill="solid">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+
+          </div>
+
+        </ion-item>
+
+      </ion-card>
+
+    </ion-list>
+  </div>
+
+  <!-- 💻 VISTA DESKTOP -->
+  <div class="desktop-view">
+    <div class="tabla-wrapper">
+
+      <ion-grid class="tabla-productos">
+
+        <ion-row class="header-row">
+          <ion-col size="1">Img</ion-col>
+          <ion-col size="3">Producto</ion-col>
+          <ion-col size="1.5">Precio</ion-col>
+          <ion-col size="2">CódigoBarra</ion-col>
+          <ion-col size="1">ITBIS</ion-col>
+          <ion-col size="1">Stock</ion-col>
+          <ion-col size="1.5">Tipo / Servicio</ion-col>
+          <ion-col size="1">Acciones</ion-col>
+        </ion-row>
+
+        <ion-row
+          *ngFor="let producto of productosFiltrados | slice:0:itemsToShow"
+          class="data-row">
+
+          <ion-col size="1" class="cell-center">
+            <img *ngIf="!producto.imagen1"
+                 src="./assets/botella.png"
+                 class="table-img">
+
+            <img *ngIf="producto.imagen1"
+                 [src]="producto.imagen1"
+                 class="table-img">
+          </ion-col>
+
+          <ion-col size="3" class="nombre-cell">
+            {{ producto.nombre }}
+          </ion-col>
+
+          <ion-col size="1.5" class="precio-cell">
+            {{ producto.precioVenta | currency }}
+          </ion-col>
+
+          <ion-col size="2" class="codigo-cell">
+            {{ producto.codigoBarra || 'N/A' }}
+          </ion-col>
+
+          <ion-col size="1" class="cell-center">
+            <span class="badge"
+                  [class.badge-success]="producto.itbis"
+                  [class.badge-danger]="!producto.itbis">
+              {{ producto.itbis ? 'Sí' : 'No' }}
+            </span>
+          </ion-col>
+
+          <ion-col size="1" class="cell-center">
+            {{ producto.controlarStock ? (producto.cantidad || 0) : '-' }}
+          </ion-col>
+
+          <ion-col size="1.5" class="cell-center">
+
+            <span class="badge-servicio" *ngIf="producto.esServicio">
+              Servicio
+            </span>
+
+            <span class="badge-producto" *ngIf="!producto.esServicio">
+              Producto
+            </span>
+
+          </ion-col>
+
+          <ion-col size="1" class="acciones-cell">
+
+            <ion-button
+              size="small"
+              color="primary"
+              fill="solid"
+              (click)="openModal(producto)">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              size="small"
+              color="danger"
+              fill="solid"
+              (click)="eliminarProducto(producto)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+
+          </ion-col>
+
+        </ion-row>
+
+      </ion-grid>
+
+    </div>
+  </div>
+
+  <!-- Infinite scroll -->
+  <ion-infinite-scroll
+    threshold="100px"
+    (ionInfinite)="loadMore($event)"
+    [disabled]="itemsToShow >= productosFiltrados.length">
+
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Cargando más productos...">
+    </ion-infinite-scroll-content>
+
+  </ion-infinite-scroll>
+
+  <!-- FAB -->
+  <ion-fab
+    (click)="openModal(null)"
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed">
+
+    <ion-fab-button color="primary">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab>
+
+</ion-content>

@@ -1,0 +1,209 @@
+<ion-header>
+  <ion-toolbar class="header-gradient">
+    <ion-buttons slot="start" *ngIf="empresa?.idEmpresa">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Datos de la Empresa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="app-background">
+
+  <ion-card class="gradient-card">
+
+    <ion-card-header>
+      <div class="header-logo">
+        <ion-avatar class="logo-float">
+          <ion-img [src]="form.get('logo')?.value || 'assets/img/default-logo.png'"></ion-img>
+        </ion-avatar>
+
+        <ion-button
+          size="small"
+          
+          color="warning"
+          (click)="fileInput.click()"
+          class="logo-btn">
+          <ion-icon name="image-outline" slot="start"></ion-icon>
+          Cambiar Logo
+        </ion-button>
+
+        <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form [formGroup]="form">
+
+        <ion-grid class="empresa-grid">
+
+          <!-- DATOS GENERALES -->
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="business-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Nombre Comercial</ion-label>
+                <ion-input formControlName="nombreComercial"></ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="location-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Dirección</ion-label>
+                <ion-input formControlName="direccion"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="call-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Teléfono</ion-label>
+                <ion-input formControlName="telefono"></ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="mail-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Correo Electrónico</ion-label>
+                <ion-input type="email" formControlName="correElectronico"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="12">
+              <ion-item class="compact-item">
+                <ion-icon name="color-palette-outline" slot="start"></ion-icon>
+                <ion-label position="stacked">Color de títulos</ion-label>
+                <ion-segment formControlName="titleColor">
+                  <ion-segment-button value="#000000">
+                    <ion-label>Negro</ion-label>
+                  </ion-segment-button>
+                  <ion-segment-button value="#FFFFFF">
+                    <ion-label>Blanco</ion-label>
+                  </ion-segment-button>
+                </ion-segment>
+              </ion-item>
+            </ion-col>
+
+          
+          </ion-row>
+
+          <!-- SMTP -->
+          <ion-row class="ion-margin-top">
+            <ion-col size="12">
+              <ion-item lines="none" class="section-item">
+                <ion-icon name="mail-open-outline" slot="start"></ion-icon>
+                <ion-label>
+                  <h3>Configuración de Correo (SMTP)</h3>
+                  <p>Se utiliza para enviar notificaciones y confirmaciones</p>
+                </ion-label>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="mail-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Correo remitente</ion-label>
+                <ion-input formControlName="correoSMTP"></ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="key-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Contraseña de aplicación</ion-label>
+                <ion-input
+                  type="password"
+                  formControlName="passwordSMTP"
+                  placeholder="App Password de Gmail">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="server-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Servidor SMTP</ion-label>
+                <ion-input formControlName="servidorSMTP"></ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="swap-vertical-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Puerto</ion-label>
+                <ion-input type="number" formControlName="puertoSMTP"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+                <ion-label>Usar SSL</ion-label>
+                <ion-toggle formControlName="usaSSL"></ion-toggle>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item class="compact-item">
+                <ion-icon name="person-outline" slot="start"></ion-icon>
+                <ion-label position="floating">Nombre del remitente</ion-label>
+                <ion-input formControlName="nombreRemitente"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <!-- PLAN -->
+          <ion-row >
+            <ion-col size="12">
+              <ion-item lines="none" class="section-item">
+                <ion-icon name="pricetag-outline" slot="start"></ion-icon>
+                <ion-label>
+                  <h3>Plan Demo</h3>
+                  <p>Gratis por 15 días (asignado automáticamente)</p>
+                </ion-label>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <!-- BOTONES -->
+          <ion-row >
+            <ion-col size="12" size-md="6">
+              <ion-button
+                expand="block"
+                color="warning"
+                class="btn-compact"
+                (click)="obtenerUbicacion()">
+                <ion-icon name="locate-outline" slot="start"></ion-icon>
+                Obtener ubicación actual
+              </ion-button>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-button
+                expand="block"
+                class="btn-gradient"
+                (click)="guardar()">
+                <ion-icon name="save-outline" slot="start"></ion-icon>
+                Guardar cambios
+              </ion-button>
+            </ion-col>
+          </ion-row>
+
+        </ion-grid>
+
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

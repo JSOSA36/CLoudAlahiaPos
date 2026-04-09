@@ -1,0 +1,92 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">
+      {{ empleado ? 'Editar Empleado' : 'Nuevo Empleado' }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form [formGroup]="form">
+
+    <!-- ========================= -->
+    <!-- NOMBRE -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label position="floating">Nombre del empleado *</ion-label>
+      <ion-input formControlName="nombre"></ion-input>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- OCUPACIÓN / ROL -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label>Ocupación *</ion-label>
+      <ion-select
+        formControlName="rol"
+        interface="action-sheet"
+        placeholder="Seleccione una ocupación">
+
+        <ion-select-option value="Peluquera">Peluquera</ion-select-option>
+        <ion-select-option value="Barbero">Barbero</ion-select-option>
+        <ion-select-option value="Manicurista">Manicurista</ion-select-option>
+        <ion-select-option value="Estilista">Estilista</ion-select-option>
+        <ion-select-option value="Colorista">Colorista</ion-select-option>
+        <ion-select-option value="Masajista">Masajista</ion-select-option>
+        <ion-select-option value="Esteticista">Esteticista</ion-select-option>
+         <ion-select-option value="Recepcionista">Recepcionista</ion-select-option>
+        <ion-select-option value="Cajero">Cajero</ion-select-option>
+        <ion-select-option value="Administrador">Administrador</ion-select-option>
+
+      </ion-select>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- CELULAR -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label position="floating">Celular</ion-label>
+      <ion-input
+        type="tel"
+        formControlName="celular">
+      </ion-input>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- DIRECCIÓN -->
+    <!-- ========================= -->
+    <ion-item>
+      <ion-label position="floating">Dirección</ion-label>
+      <ion-input formControlName="direccion"></ion-input>
+    </ion-item>
+
+    <!-- ========================= -->
+    <!-- BOTONES -->
+    <!-- ========================= -->
+    <ion-button
+      expand="block"
+      color="success"
+      style="margin-top: 20px"
+      (click)="guardar()">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      {{ empleado ? 'Actualizar Empleado' : 'Guardar Empleado' }}
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      color="medium"
+      (click)="cerrar()">
+      <ion-icon name="close-outline" slot="start"></ion-icon>
+      Cancelar
+    </ion-button>
+
+  </form>
+
+</ion-content>

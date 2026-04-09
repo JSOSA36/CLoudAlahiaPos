@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding ion-text-center">
+
+  <!-- 🔥 ICONO + MENSAJE -->
+  <ion-icon [name]="icon" size="large" color="warning"></ion-icon>
+  <h2 class="modal-title">{{ title }}</h2>
+  <p class="modal-message">{{ message }}</p>
+
+  <!-- 🔥 CARD CAMBIAR PLAN -->
+  <div class="plan-card" *ngIf="mostrarCambioPlan">
+
+  <!-- 🔵 HEADER AZUL -->
+  <div class="plan-header-card">
+    <ion-icon name="card-outline"></ion-icon>
+    <span>Cambiar Plan</span>
+  </div>
+
+  <!-- 🔽 CONTENIDO -->
+  <div class="plan-body">
+
+    <p class="plan-actual">
+      Plan actual: <strong>{{ planActualNombre }}</strong>
+    </p>
+
+    <ion-radio-group [(ngModel)]="planSeleccionado">
+
+     <div 
+  class="plan-item" 
+  *ngFor="let plan of planes"
+  [class.selected]="planSeleccionado === plan.idPlan"
+  (click)="planSeleccionado = plan.idPlan"
+>
+
+  <div class="plan-grid">
+
+    <!-- 🔹 COLUMNA RADIO -->
+    <div class="plan-radio">
+      <ion-radio [value]="plan.idPlan"></ion-radio>
+    </div>
+
+    <!-- 🔹 COLUMNA CONTENIDO -->
+    <div class="plan-content">
+      
+      <div class="plan-title">
+        <strong>
+          <b>
+        {{ plan.nombre }} -
+        <span class="precio">USD${{ plan.precioUSD | number:'1.0-0' }}</span>
+        </b>
+        </strong>
+      </div>
+
+      <div >
+        <strong>
+          <b>Facturación hasta RD${{ plan.limiteFacturacion | number:'1.0-0' }} mensual</b></strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+    </ion-radio-group>
+
+    
+
+  </div>
+
+</div>
+
+  <div class="nota-plan">
+  <span class="icono">💡</span>
+  <div class="texto">
+    Actualiza tu plan ahora y continúa sin interrupciones.<br>
+    Pagarás en tu próximo ciclo, no ahora.
+  </div>
+</div>
+
+<ion-button expand="block" color="success" (click)="cambiarPlan()">
+  Cambiar Plan
+</ion-button>
+
+</ion-content>

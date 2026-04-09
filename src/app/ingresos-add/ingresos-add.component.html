@@ -1,0 +1,82 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">
+      💵 Registrar Ingreso
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title style="color: var(--ion-color-primary); font-weight: 700;">
+        Información del Ingreso
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <!-- Descripción -->
+      <ion-item>
+        <ion-label position="floating">Descripción</ion-label>
+        <ion-input [(ngModel)]="ingreso.descripcion" placeholder="Ej: Pago de arrendamiento"></ion-input>
+      </ion-item>
+
+      <!-- Categoría -->
+      <ion-item>
+        <ion-label position="stacked">Categoría</ion-label>
+        <ion-select [(ngModel)]="ingreso.categoria" interface="popover">
+          <ion-select-option *ngFor="let c of categorias" [value]="c">{{ c }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Monto -->
+      <ion-item>
+        <ion-label position="floating">Monto (RD$)</ion-label>
+        <ion-input type="number" [(ngModel)]="ingreso.monto" min="0"></ion-input>
+      </ion-item>
+
+      <!-- Forma de Pago -->
+      <ion-item>
+        <ion-label position="stacked">Forma de Pago</ion-label>
+        <ion-select [(ngModel)]="ingreso.formaPago" interface="popover">
+          <ion-select-option *ngFor="let f of formasPago" [value]="f">{{ f }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Referencia -->
+      <ion-item>
+        <ion-label position="floating">Referencia / Comprobante</ion-label>
+        <ion-input [(ngModel)]="ingreso.referencia"></ion-input>
+      </ion-item>
+
+      <!-- Nota -->
+      <ion-item>
+        <ion-label position="floating">Nota (opcional)</ion-label>
+        <ion-textarea [(ngModel)]="ingreso.nota" auto-grow="true"></ion-textarea>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Botón Guardar -->
+  <ion-button expand="block" color="success" shape="round" (click)="guardarIngreso()" [disabled]="cargando">
+    <ion-icon slot="start" name="save-outline"></ion-icon>
+    {{ cargando ? 'Guardando...' : 'Registrar Ingreso' }}
+  </ion-button>
+
+</ion-content>
+
+<style>
+ion-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+ion-button {
+  margin-top: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+</style>

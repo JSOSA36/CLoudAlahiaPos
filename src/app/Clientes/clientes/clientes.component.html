@@ -1,0 +1,252 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+
+      <ion-button
+        class="btn-cerrar-modal"
+        (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+
+      <ion-menu-button></ion-menu-button>
+
+    </ion-buttons>
+
+   
+
+    <ion-searchbar color="primary"
+      placeholder="Buscar cliente..."
+      [(ngModel)]="filtro"
+      (ionInput)="filtrarClientes()"
+      debounce="300">
+    </ion-searchbar>
+
+  </ion-toolbar>
+
+ 
+
+
+  <!-- BUSCADOR -->
+
+  
+
+</ion-header>
+
+
+
+<ion-content>
+
+  <!-- ======================
+       MOBILE VIEW
+  ======================= -->
+
+  <div class="mobile-view">
+
+    <ion-card
+      *ngFor="let cliente of clientesFiltrados"
+      class="cliente-card">
+
+      <ion-item lines="none">
+
+        <ion-avatar slot="start" class="cliente-avatar">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </ion-avatar>
+
+        <ion-label>
+
+          <strong class="cliente-info">
+            {{ cliente.nombreComercial }}
+          </strong>
+
+          <p class="cliente-telefono">
+            📞 {{ cliente.telefono || cliente.celular }}
+          </p>
+
+          <p class="cliente-email">
+            ✉️ {{ cliente.email }}
+          </p>
+
+          <p class="cliente-direccion">
+            🏠 {{ cliente.direccion }}
+          </p>
+
+          <p class="cliente-fecha">
+            🎂
+            {{ cliente.fechaNacimiento
+            ? (cliente.fechaNacimiento | date:'dd/MM/yyyy')
+            : '—' }}
+          </p>
+
+        </ion-label>
+
+
+        <!-- ACCIONES -->
+
+        <ng-container *ngIf="!isModalSeleccion">
+
+          <ion-button
+            (click)="openModal(cliente)"
+            color="primary"
+            size="small"
+            slot="end">
+
+            <ion-icon name="pencil-outline"></ion-icon>
+
+          </ion-button>
+
+          <ion-button
+            (click)="eliminarCliente(cliente)"
+            color="danger"
+            size="small"
+            slot="end">
+
+            <ion-icon name="trash-outline"></ion-icon>
+
+          </ion-button>
+
+        </ng-container>
+
+
+        <ng-container *ngIf="isModalSeleccion">
+
+          <ion-button
+            color="success"
+            size="small"
+            slot="end"
+            (click)="seleccionarCliente(cliente)">
+
+            <ion-icon name="checkmark-outline"></ion-icon>
+
+          </ion-button>
+
+        </ng-container>
+
+      </ion-item>
+
+    </ion-card>
+
+  </div>
+
+
+
+  <!-- ======================
+       DESKTOP VIEW
+  ======================= -->
+
+  <div class="desktop-view tabla-clientes">
+
+    <!-- HEADER -->
+
+    <ion-row class="header-row">
+
+      <ion-col size="3">Cliente</ion-col>
+      <ion-col size="2">Teléfono</ion-col>
+      <ion-col size="2">Email</ion-col>
+      <ion-col size="2">Dirección</ion-col>
+      <ion-col size="1">Nacimiento</ion-col>
+      <ion-col size="1">RNC</ion-col>
+      <ion-col size="1">Acciones</ion-col>
+
+    </ion-row>
+
+
+
+    <!-- FILAS -->
+
+    <ion-row
+      class="data-row"
+      *ngFor="let cliente of clientesFiltrados">
+
+      <ion-col size="3" class="col-nombre">
+        {{ cliente.nombreComercial }}
+      </ion-col>
+
+      <ion-col size="2" class="col-telefono">
+        {{ cliente.telefono || cliente.celular }}
+      </ion-col>
+
+      <ion-col size="2" class="col-email">
+        {{ cliente.email }}
+      </ion-col>
+
+      <ion-col size="2" class="col-direccion">
+        {{ cliente.direccion }}
+      </ion-col>
+
+      <ion-col size="1" class="col-fecha">
+        {{ cliente.fechaNacimiento
+          ? (cliente.fechaNacimiento | date:'dd/MM/yyyy')
+          : '—' }}
+      </ion-col>
+
+      <ion-col size="1" class="col-rnc">
+        {{ cliente.cedulaRNC }}
+      </ion-col>
+
+
+      <!-- ACCIONES -->
+
+      <ion-col size="1">
+
+        <ng-container *ngIf="!isModalSeleccion">
+
+          <ion-button
+            size="small"
+            color="primary"
+            (click)="openModal(cliente)">
+
+            <ion-icon name="pencil-outline"></ion-icon>
+
+          </ion-button>
+
+          <ion-button
+            size="small"
+            color="danger"
+            (click)="eliminarCliente(cliente)">
+
+            <ion-icon name="trash-outline"></ion-icon>
+
+          </ion-button>
+
+        </ng-container>
+
+
+        <ng-container *ngIf="isModalSeleccion">
+
+          <ion-button
+            size="small"
+            color="success"
+            (click)="seleccionarCliente(cliente)">
+
+            <ion-icon name="checkmark-outline"></ion-icon>
+
+          </ion-button>
+
+        </ng-container>
+
+      </ion-col>
+
+    </ion-row>
+
+  </div>
+
+
+
+  <!-- FAB -->
+
+  <ion-fab
+    *ngIf="!isModalSeleccion"
+    (click)="openModal(null)"
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed">
+
+    <ion-fab-button color="primary">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab>
+
+</ion-content>

@@ -1,0 +1,37 @@
+/* Fondo suave con gradiente */
+.form-background {
+  --background: linear-gradient(135deg, #64b5f6, #42a5f5, #1e88e5);
+
+}
+
+/* Card estilo glass */
+.form-card {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  padding: 10px;
+  margin: 15px;
+}
+
+/* Título */
+ion-card-title {
+  font-weight: bold;
+  font-size: 20px;
+  color: var(--ion-color-primary);
+}
+
+/* Inputs */
+ion-item {
+  margin-bottom: 12px;
+  border-radius: 10px;
+}
+
+/* Botón guardar */
+.save-btn {
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  --background: linear-gradient(135deg, #2196f3, #1976d2, #0d47a1);
+  --background-hover: linear-gradient(135deg, #2196f3, #1976d2, #0d47a1);
+  //box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}

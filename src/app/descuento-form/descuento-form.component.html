@@ -1,0 +1,157 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      {{ modo === 'crear' ? 'Crear Descuento' : 'Editar Descuento' }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button class="cerrar-btn" (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form">
+
+    <!-- DATOS PRINCIPALES -->
+    <div class="section-card">
+
+      <ion-item>
+        <ion-label position="floating">Nombre del Evento</ion-label>
+        <ion-input formControlName="nombreEvento"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Descripción</ion-label>
+        <ion-textarea formControlName="descripcion"></ion-textarea>
+      </ion-item>
+
+      <ion-grid>
+        <ion-row>
+
+          <ion-col size="8">
+            <ion-item>
+              <ion-label>Tipo</ion-label>
+              <ion-select formControlName="tipoDescuento">
+                <ion-select-option value="PORCENTAJE">% Porcentaje</ion-select-option>
+                <ion-select-option value="MONTO">Monto Fijo</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="4">
+            <ion-item>
+              <ion-label position="floating">Valor</ion-label>
+              <ion-input type="number" formControlName="valor"></ion-input>
+            </ion-item>
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+
+      <ion-item lines="full">
+        <ion-label>Aplicar a todos los servicios</ion-label>
+        <ion-toggle formControlName="aplicaATodos"></ion-toggle>
+      </ion-item>
+
+    </div>
+
+    <!-- SERVICIOS (CON SCROLL) -->
+    <div *ngIf="!form.value.aplicaATodos" class="section-card scroll-card">
+      <div class="section-title">SERVICIOS</div>
+
+      <div class="item-row" *ngFor="let s of productos">
+        {{ s.descripcion }}
+        <ion-checkbox
+          [checked]="serviciosSeleccionados.includes(s.idProducto)"
+          (ionChange)="toggleServicio(s.idProducto)">
+        </ion-checkbox>
+      </div>
+    </div>
+
+    <!-- ÁREAS (CON SCROLL) -->
+    <div class="section-card scroll-card">
+      <div class="section-title">ÁREAS</div>
+
+      <div class="item-row" *ngFor="let a of areas">
+        {{ a.nombre }}
+        <ion-checkbox
+          [checked]="areasSeleccionadas.includes(a.idArea)"
+          (ionChange)="toggleArea(a.idArea)">
+        </ion-checkbox>
+      </div>
+    </div>
+
+    <!-- DÍAS -->
+    <div class="section-card">
+      <div class="section-title">DÍAS DE APLICACIÓN</div>
+
+      <div class="dias-container">
+        <div
+          *ngFor="let d of diasSemana"
+          class="dia-chip"
+          [class.selected]="form.value.diasSemana?.includes(d.id.toString())"
+          (click)="toggleDia(d.id)">
+          {{ d.nombre }}
+        </div>
+      </div>
+    </div>
+
+    <!-- FECHAS -->
+    <div class="section-card">
+      <div class="section-title">RANGO DE FECHAS</div>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="floating">Desde</ion-label>
+              <ion-input type="date" formControlName="fechaInicio"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="floating">Hasta</ion-label>
+              <ion-input type="date" formControlName="fechaFin"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- HORARIO -->
+    <div class="section-card">
+      <div class="section-title">HORARIO</div>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="floating">Hora Inicio</ion-label>
+              <ion-input type="time" formControlName="horaInicio"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="floating">Hora Fin</ion-label>
+              <ion-input type="time" formControlName="horaFin"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- ACTIVO -->
+    <ion-item>
+      <ion-label>Activo</ion-label>
+      <ion-toggle formControlName="activo"></ion-toggle>
+    </ion-item>
+
+    <ion-button expand="block" shape="round" color="success" (click)="guardar()">
+      Guardar
+    </ion-button>
+
+  </form>
+</ion-content>

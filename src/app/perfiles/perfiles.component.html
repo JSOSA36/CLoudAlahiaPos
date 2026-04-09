@@ -1,0 +1,169 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Perfiles</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModal()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Nuevo
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ============================
+       LISTA DE PERFILES
+  ============================= -->
+  <ion-list *ngIf="perfiles.length; else sinPerfiles">
+
+    <ion-item
+      *ngFor="let perfil of perfiles; trackBy: trackByPerfil">
+
+      <ion-label>
+        <h2>{{ perfil.nombre }}</h2>
+        <p *ngIf="perfil.descripcion">{{ perfil.descripcion }}</p>
+      </ion-label>
+
+      <!-- Estado -->
+      <ion-badge
+        slot="end"
+        [color]="perfil.activo ? 'success' : 'danger'">
+        {{ perfil.activo ? 'Activo' : 'Inactivo' }}
+      </ion-badge>
+
+      <!-- Acciones -->
+      <ion-buttons slot="end">
+
+        <!-- EDITAR -->
+        <ion-button
+          fill="clear"
+          color="primary"
+          (click)="editar(perfil)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+
+        <!-- ELIMINAR -->
+        <ion-button
+          fill="clear"
+          color="danger"
+          [disabled]="perfil.nombre === 'Administrador'"
+          (click)="eliminar(perfil)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+
+      </ion-buttons>
+    </ion-item>
+
+  </ion-list>
+
+  <!-- SIN PERFILES -->
+  <ng-template #sinPerfiles>
+    <ion-text color="medium">
+      <p class="ion-text-center ion-margin-top">
+        No hay perfiles registrados
+      </p>
+    </ion-text>
+  </ng-template>
+
+</ion-content>
+
+<!-- ============================
+     MODAL PERFIL
+============================= -->
+<ion-modal
+  [isOpen]="modalOpen"
+  (didDismiss)="cerrarModal()">
+
+  <ng-template>
+
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          {{ perfilEditando ? 'Editar Perfil' : 'Nuevo Perfil' }}
+        </ion-title>
+
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+
+      <!-- ============================
+           DATOS DEL PERFIL
+      ============================= -->
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input [(ngModel)]="form.nombre"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Descripción</ion-label>
+        <ion-textarea [(ngModel)]="form.descripcion"></ion-textarea>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>Activo</ion-label>
+        <ion-toggle [(ngModel)]="form.activo"></ion-toggle>
+      </ion-item>
+
+      <ion-divider class="ion-margin-vertical"></ion-divider>
+
+      <!-- ============================
+           MÓDULOS
+      ============================= -->
+      <ion-text color="medium">
+        <h6>Módulos permitidos</h6>
+      </ion-text>
+
+      <ion-list *ngIf="modulos.length; else sinModulos">
+
+        <ion-item
+          *ngFor="let modulo of modulos; trackBy: trackByModulo">
+
+          <!-- ✔️ CHECKBOX CORRECTO (IONIC WAY) -->
+        <ion-checkbox
+  slot="start"
+  [checked]="modulo.seleccionado"
+  (ionChange)="onModuloChange($event, modulo)">
+</ion-checkbox>
+
+          <ion-label>{{ modulo.nombre }}</ion-label>
+
+        </ion-item>
+
+      </ion-list>
+
+      <ng-template #sinModulos>
+        <ion-text color="medium">
+          <p class="ion-text-center ion-margin-top">
+            No hay módulos disponibles
+          </p>
+        </ion-text>
+      </ng-template>
+
+      <!-- ============================
+           GUARDAR
+      ============================= -->
+      <ion-button
+        expand="block"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="!puedeGuardar"
+        (click)="guardar()">
+
+        {{ cargando ? 'Guardando...' : 'Guardar Perfil' }}
+
+      </ion-button>
+
+    </ion-content>
+
+  </ng-template>
+</ion-modal>

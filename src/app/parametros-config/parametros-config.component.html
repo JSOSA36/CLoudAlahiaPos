@@ -1,0 +1,181 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Configuración de Parámetros</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- CONFIG SUPERIOR -->
+  <div class="top-config">
+    <ion-item>
+      <ion-label position="stacked">Empresa</ion-label>
+      <ion-input [(ngModel)]="idEmpresa" type="number"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Código POS</ion-label>
+      <ion-input [(ngModel)]="codigoPOS"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="medium" (click)="cargarParametros()">
+      Cargar parámetros
+    </ion-button>
+  </div>
+
+  <ion-spinner *ngIf="cargando" name="crescent" class="spinner-center"></ion-spinner>
+
+  <ng-container *ngIf="!cargando">
+
+    <ion-accordion-group>
+
+      <!-- PARAMETROS EMPRESA -->
+      <ion-accordion value="empresa">
+
+        <ion-item slot="header">
+          <ion-label><strong>Parámetros de Empresa</strong></ion-label>
+
+          <ion-button
+            size="small"
+            color="success"
+            slot="end"
+            (click)="agregarParametroEmpresa(); $event.stopPropagation()">
+            + Agregar
+          </ion-button>
+
+        </ion-item>
+
+        <div class="ion-padding" slot="content">
+
+          <ion-grid>
+            <ion-row>
+
+              <ion-col
+                size="12"
+                size-md="4"
+                *ngFor="let p of parametrosEmpresa; let i = index">
+
+                <ion-card class="param-card">
+
+                  <ion-card-header>
+                    <ion-card-title>{{p.clave || 'Nuevo parámetro'}}</ion-card-title>
+                  </ion-card-header>
+
+                  <ion-card-content>
+
+                    <ion-item>
+                      <ion-label position="stacked">Clave</ion-label>
+                      <ion-input [(ngModel)]="p.clave"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                      <ion-label position="stacked">Valor</ion-label>
+                      <ion-input [(ngModel)]="p.valor"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                      <ion-label position="stacked">Descripción</ion-label>
+                      <ion-input [(ngModel)]="p.descripcion"></ion-input>
+                    </ion-item>
+
+                    <ion-button
+                      color="danger"
+                      expand="block"
+                      size="small"
+                      (click)="eliminarParametroEmpresa(i)">
+                      Eliminar
+                    </ion-button>
+
+                  </ion-card-content>
+
+                </ion-card>
+
+              </ion-col>
+
+            </ion-row>
+          </ion-grid>
+
+        </div>
+
+      </ion-accordion>
+
+      <!-- PARAMETROS POS -->
+      <ion-accordion value="pos">
+
+        <ion-item slot="header">
+          <ion-label><strong>Parámetros del POS</strong></ion-label>
+
+          <ion-button
+            size="small"
+            color="success"
+            slot="end"
+            (click)="agregarParametroPOS(); $event.stopPropagation()">
+            + Agregar
+          </ion-button>
+
+        </ion-item>
+
+        <div class="ion-padding" slot="content">
+
+          <ion-grid>
+            <ion-row>
+
+              <ion-col
+                size="12"
+                size-md="4"
+                *ngFor="let p of parametrosPOS; let i = index">
+
+                <ion-card class="param-card">
+
+                  <ion-card-header>
+                    <ion-card-title>{{p.clave || 'Nuevo parámetro'}}</ion-card-title>
+                  </ion-card-header>
+
+                  <ion-card-content>
+
+                    <ion-item>
+                      <ion-label position="stacked">Clave</ion-label>
+                      <ion-input [(ngModel)]="p.clave"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                      <ion-label position="stacked">Valor</ion-label>
+                      <ion-input [(ngModel)]="p.valor"></ion-input>
+                    </ion-item>
+
+                    <ion-item>
+                      <ion-label position="stacked">Descripción</ion-label>
+                      <ion-input [(ngModel)]="p.descripcion"></ion-input>
+                    </ion-item>
+
+                    <ion-button
+                      color="danger"
+                      expand="block"
+                      size="small"
+                      (click)="eliminarParametroPOS(i)">
+                      Eliminar
+                    </ion-button>
+
+                  </ion-card-content>
+
+                </ion-card>
+
+              </ion-col>
+
+            </ion-row>
+          </ion-grid>
+
+        </div>
+
+      </ion-accordion>
+
+    </ion-accordion-group>
+
+    <!-- BOTON GUARDAR -->
+    <ion-button expand="block" color="primary" class="save-btn" (click)="confirmarGuardar()">
+      Guardar configuración
+    </ion-button>
+
+  </ng-container>
+
+</ion-content>

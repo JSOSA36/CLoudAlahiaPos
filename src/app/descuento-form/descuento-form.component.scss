@@ -1,0 +1,213 @@
+/* ================================
+   TITULOS y SUBTITULOS
+================================ */
+.subtitulo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 18px;
+  margin-bottom: 10px;
+  color: #0b66c3; /* Azul Alahia */
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+
+/* ================================
+   CHIPS (DÍAS DE SEMANA)
+================================ */
+.dias-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.dia-chip {
+  padding: 6px 16px;
+  border-radius: 16px;
+  background: #f1f3f5;
+  color: #333;
+  border: 1px solid #d0d0d0;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.18s ease-in-out;
+}
+
+.dia-chip.selected {
+  background: #0b66c3;
+  color: #fff;
+  border-color: #0b66c3;
+  box-shadow: 0 3px 10px rgba(11,102,195,0.35);
+}
+
+.dia-chip:hover {
+  transform: scale(1.05);
+}
+
+
+/* ================================
+   TARJETAS VISUALES
+================================ */
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+/* Cada ítem dentro de Servicios / Áreas */
+.item-row {
+  background: #f8faff;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  border: 1px solid #e5e9ef;
+  transition: 0.15s;
+}
+
+.item-row:hover {
+  background: #edf4ff;
+  border-color: #c4d9ff;
+}
+
+
+/* ================================
+   LISTA + ITEM
+================================ */
+ion-list {
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+ion-item {
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  --min-height: 48px;
+}
+
+
+/* ================================
+   CHECKBOX
+================================ */
+ion-checkbox {
+  transform: scale(1.25);
+  --size: 22px;
+}
+
+
+/* ================================
+   INPUTS
+================================ */
+ion-input,
+ion-textarea,
+ion-select {
+  font-size: 1rem;
+  --padding-start: 12px;
+}
+
+
+/* ================================
+   BOTONES
+================================ */
+ion-button[color="success"] {
+  margin-top: 22px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 180, 60, 0.4);
+  border-radius: 10px;
+}
+
+/* Botón de cerrar */
+.cerrar-btn {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+
+/* ================================
+   HEADER
+================================ */
+ion-header ion-toolbar {
+  --background: #0b66c3; 
+  --color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+
+/* ================================
+   EFECTO DE ENTRADA
+================================ */
+:host {
+  animation: fadeIn 0.22s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Tarjetas visuales (SERVICIOS, AREAS, FECHAS, HORARIO) */
+.section-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 14px;
+
+  /* Borde azul Alahia */
+  border: 1.7px solid rgba(11, 102, 195, 0.35);
+
+  /* Sombra alta calidad */
+  box-shadow: 0 4px 14px rgba(11, 102, 195, 0.18);
+
+  transition: 0.2s ease-in-out;
+}
+
+/* Efecto profesional al pasar el dedo/mouse */
+.section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(11, 102, 195, 0.28);
+}
+.section-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 14px;
+
+  /* Borde azul Alahia */
+  border: 1.7px solid rgba(11, 102, 195, 0.35);
+
+  /* Sombra premium */
+  box-shadow: 0 4px 14px rgba(11, 102, 195, 0.18);
+
+  transition: 0.2s ease-in-out;
+}
+
+.section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(11, 102, 195, 0.28);
+}
+.scroll-card {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.scroll-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-card::-webkit-scrollbar-thumb {
+  background: rgba(11, 102, 195, 0.35);
+  border-radius: 10px;
+}
+
+.scroll-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 102, 195, 0.6);
+}

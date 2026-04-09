@@ -1,0 +1,157 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Listado de Gastos</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- 📅 FILTRO DE FECHAS -->
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center">
+        <strong>Filtre por Fechas</strong>
+      </ion-card-title>
+    </ion-card-header>
+
+    <!-- Fecha inicio -->
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="iniciogastos">
+        <span slot="date-target">
+          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime
+          id="iniciogastos"
+          presentation="date"
+          [(ngModel)]="fechaInicio">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Fecha fin -->
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="fingastos">
+        <span slot="date-target">
+          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime
+          id="fingastos"
+          presentation="date"
+          [(ngModel)]="fechaFin">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <!-- Botón de búsqueda -->
+    <ion-button
+      (click)="aplicarFiltroFechas()"
+      shape="round"
+      color="warning"
+      expand="block">
+
+      <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
+      <p style="color: black;">Buscar</p>
+    </ion-button>
+  </ion-card>
+
+  <!-- 🔎 FILTRO GLOBAL POR TEXTO -->
+  <ion-searchbar
+    placeholder="Buscar gasto..."
+    [(ngModel)]="filtro"
+    (ionInput)="aplicarFiltroTexto()"
+    debounce="300"
+    show-clear-button="always">
+  </ion-searchbar>
+
+  <!-- GRID DE GASTOS -->
+  <ion-grid >
+    <ion-row>
+
+      <ion-col
+       
+
+size="12"
+size-sm="6"
+size-md="4"
+size-lg="2.4"
+       
+        
+        *ngFor="let g of gastosFiltrados; trackBy: trackById">
+
+        <ion-card class="gasto-card">
+          <ion-card-header>
+            <ion-card-title class="ion-text-center">
+              {{ g.tipoGasto }} - {{ g.monto | currency }}
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <p>
+              <ion-icon name="cash-outline"></ion-icon>
+              <strong>Origen:</strong> {{ g.orien }}
+            </p>
+
+            <p>
+              <ion-icon name="document-text-outline"></ion-icon>
+              <strong>Detalle:</strong> {{ g.detalle || '—' }}
+            </p>
+
+            <p>
+              <ion-icon name="calendar-outline"></ion-icon>
+              <strong>Fecha:</strong> {{ g.fechaInseccion | date:'dd/MM/yyyy' }}
+            </p>
+
+            <div class="acciones">
+              <ion-button size="small" color="primary" (click)="editarGasto(g)">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Editar
+              </ion-button>
+
+              <ion-button size="small" color="danger" (click)="borrarGasto(g.idGasto)">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Eliminar
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+
+  <!-- Botón flotante -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="secondary" (click)="abrirModalNuevoGasto()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
+
+<!-- 📌 Footer con total -->
+<ion-footer>
+  <ion-toolbar color="light">
+    <ion-title class="ion-text-end">
+      Total:
+      <strong style="color: var(--ion-color-primary); font-size: 1.2rem;">
+        {{ totalGastos | currency }}
+      </strong>
+    </ion-title>
+  </ion-toolbar>
+</ion-footer>

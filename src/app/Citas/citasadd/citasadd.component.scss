@@ -1,0 +1,312 @@
+/* ===============================
+   FONDO GENERAL
+================================ */
+ion-content {
+  --background: #f4f5f8;
+}
+
+/* ===============================
+   ITEMS BASE
+================================ */
+ion-item {
+  --background: #fff;
+  --border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* ===============================
+   LABELS
+================================ */
+ion-label {
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
+
+/* ===============================
+   INPUTS
+================================ */
+ion-input,
+ion-textarea,
+ion-select,
+ion-datetime {
+  color: #000;
+}
+
+/* ===============================
+   BOTÓN PRINCIPAL
+================================ */
+ion-button {
+  --border-radius: 20px;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+/* ===============================
+   GRID HORAS
+================================ */
+.horas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+}
+
+/* ===============================
+   HORAS DISPONIBLES
+================================ */
+.hora-btn {
+  --background: transparent;
+  --color: #000;
+  --border-color: var(--ion-color-primary);
+  border-radius: 12px;
+  height: 40px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+/* 🔵 Hora seleccionada */
+.hora-btn.selected {
+  --background: var(--ion-color-primary);
+  --color: #fff;
+  --border-color: var(--ion-color-primary);
+}
+
+/* 🔒 Hora bloqueada */
+.hora-btn.bloqueada {
+  --background: #e0e0e0 !important;
+  --color: #7a7a7a !important;
+  --border-color: #ccc !important;
+  opacity: 0.6;
+}
+
+/* ===============================
+   INFO HORA SELECCIONADA
+================================ */
+.hora-seleccionada-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.hora-seleccionada-info strong {
+  color: var(--ion-color-primary);
+}
+
+/* ===============================
+   AUTOCOMPLETE SERVICIOS
+================================ */
+.servicio-wrapper {
+  position: relative;
+  z-index: 9999;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  margin-top: 4px;
+  z-index: 99999;
+}
+
+.autocomplete-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.autocomplete-item:hover {
+  background: #f0f4ff;
+}
+
+.precio {
+  color: var(--ion-color-primary);
+  font-weight: bold;
+}
+
+/* ===============================
+   VALIDACIÓN CLIENTE
+================================ */
+.cliente-encontrado {
+  --border-color: var(--ion-color-success);
+  --highlight-color-focused: var(--ion-color-success);
+  border-left: 4px solid var(--ion-color-success);
+}
+
+.cliente-no-encontrado {
+  --border-color: var(--ion-color-warning);
+  --highlight-color-focused: var(--ion-color-warning);
+}
+
+.nombre-invalido {
+  --border-color: var(--ion-color-danger);
+  --highlight-color-focused: var(--ion-color-danger);
+}
+
+.nombre-valido {
+  --border-color: var(--ion-color-success);
+  --highlight-color-focused: var(--ion-color-success);
+}
+
+/* ===============================
+   DETALLE SERVICIO
+================================ */
+.servicio-detalle {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.servicio-detalle strong {
+  color: var(--ion-color-primary);
+}
+
+/* ===============================
+   PANEL CALENDARIO
+================================ */
+.calendar-panel {
+  background: #f8f9fb;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.horas-panel {
+  margin-top: 10px;
+}
+
+.horas-title {
+  font-size: 14px;
+  color: #555;
+  margin: 10px 0;
+}
+
+/* ===============================
+   PREVIEW RECIBO
+================================ */
+.voucher-info {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+ion-card-content {
+  overflow: visible !important;
+}
+/* ===============================
+   HORAS DISPONIBLES
+================================ */
+.hora-btn::part(native) {
+  color: #000 !important;
+  border: 1px solid var(--ion-color-primary);
+}
+
+/* 🔵 seleccionada */
+.hora-btn.hora-activa::part(native) {
+  background: var(--ion-color-primary) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* 🔒 bloqueada */
+.hora-btn[disabled]::part(native) {
+  background: #e0e0e0 !important;
+  color: #7a7a7a !important;
+  border: 1px solid #ccc !important;
+  opacity: 0.6;
+}
+.calendar-datetime {
+  width: 100%;
+  max-width: 320px;
+  margin: auto;
+  border-radius: 14px;
+  background: #f8f9fb;
+  padding: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.hora-seleccionada-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.hora-seleccionada-info strong {
+  color: var(--ion-color-primary);
+}
+.correo-alerta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 16px 12px 16px;
+  padding: 6px 10px;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #856404;
+}
+
+.correo-alerta ion-icon {
+  font-size: 18px;
+  color: #ffc107;
+}
+.alerta-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 16px 12px 16px;
+  padding: 6px 10px;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #856404;
+}
+
+.alerta-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 16px 12px 16px;
+  padding: 6px 10px;
+  background: #e7f3ff;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0c5460;
+}
+
+.alerta-danger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 16px 12px 16px;
+  padding: 6px 10px;
+  background: #fdecea;
+  border-left: 4px solid #dc3545;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #721c24;
+}
+.hora-activa {
+  border: 2px solid var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  font-weight: 700;
+}

@@ -1,0 +1,157 @@
+.producto-card {
+  margin: 4px 0;
+  padding: 4px;
+}
+
+.producto-avatar {
+  width: 55px;
+  height: 55px;
+}
+
+.producto-info {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.producto-precio {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 2px 0;
+}
+
+.producto-stock {
+  font-size: 16px;
+  font-weight: 700;
+  color: #27ae60;
+  margin: 2px 0;
+}
+
+/* MOBILE por defecto */
+
+.desktop-view{
+  display:none;
+}
+
+.mobile-view{
+  display:block;
+}
+
+
+/* TABLET / PC */
+
+@media (min-width: 992px){
+
+  .desktop-view{
+    display:block;
+  }
+
+  .mobile-view{
+    display:none;
+  }
+
+}
+
+
+/* TABLA */
+
+.tabla-productos{
+  width:100%;
+  padding:10px;
+}
+
+
+.header-row{
+  font-weight:600;
+  background:#f4f6f9;
+  border-bottom:1px solid #ddd;
+  padding:10px 0;
+}
+
+
+.data-row{
+  align-items:center;
+  border-bottom:1px solid #eee;
+  padding:10px 0;
+}
+
+
+.data-row:hover{
+  background:#f9fafc;
+}
+
+
+/* imagen */
+
+.table-img{
+  width:40px;
+  height:40px;
+  border-radius:8px;
+  object-fit:cover;
+}
+
+
+/* cards mobile */
+
+.producto-card{
+  margin:8px;
+}
+
+.producto-precio{
+  font-weight:600;
+  color:#2c7be5;
+}
+
+.producto-stock{
+  font-size:13px;
+}
+.header-row {
+  background:#f7c948; /* amarillo */
+  color: #1f2937;
+  font-weight: 700;
+  border-bottom: 2px solid#f7c948;
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.data-row {
+  min-height: 72px;
+  align-items: center;
+
+  border-bottom: 1px solid #fde68a; /* amarillo suave */
+
+  padding: 6px 10px;
+  transition: background 0.2s ease;
+}
+.data-row:hover {
+  background: #fffbeb;
+}
+.data-row {
+  min-height: 72px;
+  align-items: center;
+
+  border-bottom: 1px solid #fde68a;
+  border-right: 3px solid#f7c948; /* línea amarilla derecha */
+  border-left: 3px solid#f7c948; /* línea amarilla derecha */
+
+  padding: 6px 10px;
+  transition: background 0.2s ease;
+}
+.badge-servicio{
+  background: linear-gradient(135deg,#2563eb,#3b82f6);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-producto{
+  background: #e5e7eb;
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}

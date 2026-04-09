@@ -1,0 +1,161 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">
+      Configuración de e-CF
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- 🔥 TABLA -->
+  <div class="card">
+
+    <table>
+      <thead>
+        <tr>
+          <th class="col-tipo">Tipo</th>
+          <th class="col-serie">Serie</th>
+          <th class="col-actual">Actual</th>
+          <th class="col-final">Final</th>
+          <th class="col-activo">Activo</th>
+          <th class="acciones-col">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let s of secuencias">
+          <td class="col-tipo">{{ s.tipoNCF }}</td>
+          <td class="col-serie">{{ s.serie }}</td>
+          <td class="col-actual">{{ s.secuenciaActual }}</td>
+          <td class="col-final">{{ s.secuenciaFinal }}</td>
+
+          <td class="col-activo">
+            <span [class.active]="s.activo" [class.inactive]="!s.activo">
+              {{ s.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+
+          <td class="acciones">
+
+            <!-- ✏️ Editar -->
+            <ion-button size="small" fill="solid" color="warning" (click)="edit(s)">
+              <ion-icon name="create-outline"></ion-icon>
+            </ion-button>
+
+            <!-- 🗑️ Eliminar -->
+            <ion-button size="small" fill="solid" color="danger" (click)="delete(s.idSecuencia)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <!-- 🔥 BOTÓN FLOTANTE -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="openModal()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- 🔥 MODAL -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()">
+
+    <ng-template>
+
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>
+            {{ secuencia.idSecuencia === 0 ? 'Nueva Secuencia' : 'Editar Secuencia' }}
+          </ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+
+        <div class="form-grid">
+
+          <!-- Tipo -->
+          <div class="full">
+            <label>Tipo de comprobante</label>
+
+            <select [(ngModel)]="secuencia.serie"
+                    (change)="onTipoChange($event)"
+                    class="input">
+              <option value="">Seleccione</option>
+              <option value="31">Factura de Crédito Fiscal Electrónica</option>
+              <option value="32">Factura de Consumo Electrónica</option>
+              <option value="33">Nota de Débito Electrónica</option>
+              <option value="34">Nota de Crédito Electrónica</option>
+              <option value="41">Comprobante Electrónico de Compras</option>
+              <option value="43">Gastos Menores</option>
+              <option value="44">Regímenes Especiales</option>
+              <option value="45">Gubernamental</option>
+              <option value="46">Exportaciones</option>
+              <option value="47">Pagos al Exterior</option>
+            </select>
+          </div>
+
+          <!-- Inicial -->
+          <div>
+            <label>Secuencia Inicial</label>
+            <input class="input" type="number"
+                   [(ngModel)]="secuencia.secuenciaActual">
+          </div>
+
+          <!-- Final -->
+          <div>
+            <label>Secuencia Final</label>
+            <input class="input" type="number"
+                   [(ngModel)]="secuencia.secuenciaFinal">
+          </div>
+
+          <!-- Fecha -->
+          <div>
+            <label>Fecha de vencimiento</label>
+            <input class="input" type="date"
+                   [(ngModel)]="secuencia.fechaVencimiento">
+          </div>
+
+          <!-- Stock -->
+          <div>
+            <label>Stock mínimo</label>
+            <input class="input" type="number"
+                   [(ngModel)]="secuencia.stockMinimo">
+          </div>
+
+          <!-- Activo -->
+          <div class="full check-container">
+            <label class="checkbox">
+              <input type="checkbox" [(ngModel)]="secuencia.activo">
+              Activo
+            </label>
+          </div>
+
+        </div>
+
+        <br>
+
+        <ion-button expand="block" color="primary" (click)="save()">
+          Guardar
+        </ion-button>
+
+      </ion-content>
+
+    </ng-template>
+
+  </ion-modal>
+
+</ion-content>

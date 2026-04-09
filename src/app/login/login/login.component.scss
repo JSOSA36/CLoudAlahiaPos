@@ -1,0 +1,194 @@
+ion-button {
+  --border-top-left-radius: 10px;
+  --border-top-right-radius: 20px;
+  --border-bottom-left-radius: 30px;
+  --border-bottom-right-radius: 40px;
+}
+.btn-register::part(native) {
+  color: #000000 !important;
+}
+
+/* Fondo con degradado azul */
+.login-background {
+  --background: linear-gradient(135deg, #2196f3, #1976d2, #0d47a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-register {
+  --ion-color-warning-contrast: #000000; // 👈 TEXTO NEGRO REAL
+}
+
+
+.input {
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+.card {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.input:focus {
+  border-color: #f4c542;
+  box-shadow: 0 0 8px rgba(244,197,66,0.5);
+}
+/* Logo */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+.logo-avatar {
+
+  background: linear-gradient(
+    135deg,
+    #2F80ED,
+    #174A70
+  ) !important;
+
+  border: 4px solid #F2C94C !important;
+
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.logo-avatar img {
+  width: 75%;
+  height: auto;
+}
+
+/* Card estilo glass */
+.login-card {
+  border-radius: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  margin: 20px auto;
+  width: 90%;
+  max-width: 400px;
+}
+
+/* Texto elegante */
+.title-text {
+  font-weight: bold;
+  font-size: 22px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+/* Inputs con glow */
+.input-item {
+  --min-height: 45px;
+  font-size: 14px;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+
+/* Label más pequeño */
+.input-item ion-label {
+  font-size: 13px;
+}
+
+/* Input text */
+.input-item ion-input {
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+/* Íconos más pequeños */
+.input-item ion-icon {
+  font-size: 18px;
+  color: #F2C94C !important;
+}
+
+/* Botón con gradiente azul */
+.login-btn {
+  margin-top: 25px;
+  font-weight: bold;
+  font-size: 16px;
+ --background: #F2C94C !important;
+  --background-hover: #d9b341 !important;
+  --color: #000 !important;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease-in-out;
+}
+.login-btn:hover {
+  transform: scale(1.03);
+  
+}
+
+/* ==================== MEDIA QUERIES ==================== */
+
+/* 📱 Móviles pequeños (≤ 480px) */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 15px;
+    border-radius: 15px;
+    width: 95%;
+  }
+
+  .logo-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .input-item {
+    --min-height: 40px;
+    font-size: 13px;
+  }
+
+  .login-btn {
+    font-size: 14px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+}
+
+/* 📲 Tablets (481px – 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .login-card {
+    width: 80%;
+    max-width: 450px;
+  }
+
+  .logo-avatar {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* 💻 Desktop (≥ 769px) */
+@media (min-width: 769px) {
+  .login-card {
+    width: 400px;
+  }
+
+  .logo-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .input-item {
+    --min-height: 50px;
+    font-size: 15px;
+  }
+
+  .login-btn {
+    font-size: 16px;
+  }
+}
+.btn-planes{
+  --background: #111827 !important;
+ 
+  --color:#facc15;
+}

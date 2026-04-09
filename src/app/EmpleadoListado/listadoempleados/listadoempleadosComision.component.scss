@@ -1,0 +1,85 @@
+.accordion-card {
+  margin-bottom: 12px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(25, 118, 210, 0.15);
+}
+
+.accordion-header {
+  align-items: center;
+  transition: background 0.3s;
+  border-bottom: 1px solid rgba(25, 118, 210, 0.15);
+}
+
+.accordion-header:hover {
+  background: #f0f7ff;
+}
+
+.nombre-empleado {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1e3a8a;
+}
+
+.areas-count {
+  font-size: 13px;
+  margin: 2px 0 0 0;
+  color: #6b7280;
+}
+
+.has-areas {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.icon-servicio {
+  font-size: 22px;
+  color: var(--ion-color-primary);
+  margin-right: 8px;
+}
+
+.comision-item {
+  background: #f9fbff;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-left: 4px solid var(--ion-color-primary);
+  border-radius: 10px;
+  margin: 6px 0;
+  padding: 6px 10px;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.08);
+}
+
+.comision-item h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #1e40af;
+}
+
+.comision-item p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: #555;
+}
+
+.no-comisiones {
+  text-align: center;
+  color: #888;
+  padding: 12px;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+}
+
+ion-button[fill="clear"] {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin-left: 6px;
+
+  fa-icon {
+    font-size: 16px;
+  }
+}

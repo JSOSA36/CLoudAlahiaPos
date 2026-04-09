@@ -1,0 +1,137 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Asignar Comisiones por Área</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Empleado -->
+  <ion-card>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Empleado</ion-label>
+        <ion-input [value]="empleadoNombre" readonly></ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Configuración Comisión -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Configuración de Comisión</ion-card-title>
+      <ion-card-subtitle>Seleccione tipo y valor</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <!-- Tipo -->
+      <ion-item>
+        <ion-label>Tipo Comisión</ion-label>
+
+        <ion-segment [(ngModel)]="tipoGlobal">
+          <ion-segment-button value="PORCIENTO">
+            %
+          </ion-segment-button>
+
+          <ion-segment-button value="MONTO">
+            RD$
+          </ion-segment-button>
+        </ion-segment>
+      </ion-item>
+
+      <!-- Global -->
+      <ion-item>
+        <ion-label position="floating">
+          {{ tipoGlobal === 'PORCIENTO'
+              ? 'Porcentaje Global'
+              : 'Monto Global' }}
+        </ion-label>
+
+        <ion-input
+          type="number"
+          [(ngModel)]="valorGlobal">
+        </ion-input>
+      </ion-item>
+
+      <ion-button expand="block"
+                  color="primary"
+                  (click)="aplicarValorGlobal()">
+        APLICAR A ÁREAS SELECCIONADAS
+      </ion-button>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Áreas -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Comisiones por Área</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <!-- seleccionar todas -->
+      <ion-item>
+        <ion-checkbox
+          slot="start"
+          [checked]="areasSeleccionadas.size === areas.length"
+          (ionChange)="onToggleSeleccionarTodas($event)">
+        </ion-checkbox>
+
+        <ion-label><strong>Seleccionar todas</strong></ion-label>
+      </ion-item>
+
+      <!-- lista -->
+      <ion-list>
+        <ion-item *ngFor="let area of areas">
+
+          <ion-checkbox
+            slot="start"
+            [checked]="areasSeleccionadas.has(area.idArea)"
+            (ionChange)="onToggleArea(area.idArea,$event)">
+          </ion-checkbox>
+
+          <ion-label>{{ area.nombre }}</ion-label>
+
+          <!-- 🔥 INPUT DINÁMICO CORRECTO -->
+          <ion-input
+            type="number"
+            [placeholder]="tipoGlobal === 'PORCIENTO' ? '%' : 'RD$'"
+            [ngModel]="tipoGlobal === 'PORCIENTO'
+                ? porcientos[area.idArea]
+                : montos[area.idArea]"
+            (ngModelChange)="
+                tipoGlobal === 'PORCIENTO'
+                  ? porcientos[area.idArea]=$event
+                  : montos[area.idArea]=$event"
+            [disabled]="!areasSeleccionadas.has(area.idArea)"
+            class="ion-text-right">
+          </ion-input>
+
+        </ion-item>
+      </ion-list>
+
+      <!-- acciones -->
+      <ion-button expand="block"
+                  color="success"
+                  (click)="guardarCambios()">
+        GUARDAR COMISIONES
+      </ion-button>
+
+      <ion-button expand="block"
+                  color="medium"
+                  (click)="cerrar()">
+        CANCELAR
+      </ion-button>
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

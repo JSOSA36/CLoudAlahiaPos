@@ -1,0 +1,41 @@
+import { clientes } from "./clientes";
+import { facturadetalles } from "./facturadetalles";
+
+export class facturaheader
+{
+    idFacturaHeader:number=0;
+    plazo:string="";
+    tipoFactura:string="";
+    moneda:string="";
+    idEmpleados:number=0;
+    idMoso:number=0;
+    idMesa:number=0;
+    idTipoDocumentos:number=0;
+    nCF:string="";
+    formaPago:string="";
+    nombreCuenta:string=""
+    iDCliente:number=0;
+    efectivo:number=0;
+    montoPropina:number=0;
+    subTotal:number=0;
+    montoTarjeta:number=0;
+    cambio:number=0;
+    total:number=0;
+    totalItbis:number=0;
+    totalDescuento:number=0;
+    idEmpresa:number=0;
+    estaCancelada:boolean=false;
+    estaCerrada :boolean=false;
+    nota:string="";
+    fechaBencimiento:Date=new Date();
+    estado:string="";
+    pagado:number=0;
+    pendiente:number=0;
+    hora:string="";
+    Estado_Orden:string="";
+    ajustadoInventario:boolean=false;
+    facturaDetalles:facturadetalles[]=[];
+    
+   
+    
+}

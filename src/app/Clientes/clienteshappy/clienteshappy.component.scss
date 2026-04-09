@@ -1,0 +1,142 @@
+.happy-card {
+  position: relative;
+  border-radius: 16px;
+  background:
+    linear-gradient(90deg,
+      rgba(var(--ion-color-primary-rgb, 56,128,255), 0.06),
+      rgba(var(--ion-color-success-rgb, 16,185,129), 0.04));
+  border: 1px solid rgba(var(--ion-color-primary-rgb, 56,128,255), 0.20);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  transition: transform .18s ease, box-shadow .18s ease;
+
+  /* Acento lateral */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    border-radius: 16px 0 0 16px;
+    background: linear-gradient(180deg,
+      var(--ion-color-primary),
+      var(--ion-color-success));
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+  }
+}
+
+/* Badge de regalo con “ping” suave */
+.gift-badge {
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ion-color-warning, #f59e0b);
+  color: var(--ion-color-warning-contrast, #000);
+  box-shadow: 0 6px 14px rgba(0,0,0,.15);
+  z-index: 1;
+
+  ion-icon { font-size: 16px; }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    border: 2px solid rgba(var(--ion-color-warning-rgb, 245,158,11), .5);
+    animation: ping 1.8s cubic-bezier(0,0,.2,1) infinite;
+  }
+}
+
+@keyframes ping {
+  0%   { transform: scale(.9); opacity: .6; }
+  80%  { transform: scale(1.25); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Tipografía consistente con tus <p> inline */
+.nombre { font-weight: 700; font-size: 17px; color: #222; }
+.detalle { font-size: 15px; margin: 2px 0; color: #444; }
+
+/* Modo oscuro: ajusta contraste */
+@media (prefers-color-scheme: dark) {
+  .happy-card {
+    background:
+      linear-gradient(90deg,
+        rgba(var(--ion-color-primary-rgb, 56,128,255), 0.10),
+        rgba(var(--ion-color-success-rgb, 16,185,129), 0.06));
+    border-color: rgba(var(--ion-color-primary-rgb, 56,128,255), 0.25);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  }
+}
+/* Efecto bombillo prendido/apagado */
+.happy-card {
+  border-radius: 12px;
+  animation: glowPulse 1.6s infinite alternate;
+  transition: transform 0.2s;
+}
+
+.happy-card:hover {
+  transform: scale(1.02);
+}
+
+@keyframes glowPulse {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6), 0 0 16px rgba(255, 111, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.95), 0 0 35px rgba(255, 111, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6), 0 0 16px rgba(255, 111, 0, 0.5);
+  }
+  
+}
+.balloons {
+  position: fixed;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.balloon {
+  width: 40px;
+  height: 50px;
+  border-radius: 50% 50% 50% 50%;
+  position: relative;
+  animation: floatUp 6s ease-in infinite;
+}
+
+.balloon::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #555;
+  transform: translateX(-50%);
+}
+
+.red { background: #e53935; }
+.blue { background: #1e88e5; }
+.green { background: #43a047; }
+.yellow { background: #fdd835; }
+
+@keyframes floatUp {
+  from { transform: translateY(0) translateX(-50%); opacity: 1; }
+  to { transform: translateY(-120vh) translateX(-50%); opacity: 0; }
+}
+

@@ -1,0 +1,222 @@
+/* 🔥 FONDO GRADIENTE SaaS */
+:host ::ng-deep ion-content{
+  --background: linear-gradient(135deg,#1976d2,#0d47a1);
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+}
+
+/* 🔥 GRID */
+.planes-wrapper{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  padding: 20px 14px 40px;
+  align-items: stretch; /* 🔥 IMPORTANTE */
+}
+
+@media (min-width: 768px){
+  .planes-wrapper{
+    grid-template-columns: repeat(2, 1fr);
+    padding: 40px;
+  }
+}
+
+@media (min-width: 1200px){
+  .planes-wrapper{
+    grid-template-columns: repeat(5, 1fr);
+    padding: 60px 80px;
+  }
+}
+
+/* 🔥 CARD GENERAL */
+.plan-card{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background: linear-gradient(180deg,#ffffff,#f8fafc);
+  border-radius: 24px;
+  padding: 60px 18px 20px;
+  margin: 0; /* 🔥 importante para grid */
+  min-height: 360px; /* 🔥 altura uniforme */
+  position: relative;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+  transition: .3s;
+  animation: fadeUp .4s ease;
+}
+
+.plan-card:hover{
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* 🔥 HEADER */
+.header{
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 150px;
+  white-space: nowrap;
+  text-align: center;
+  padding: 10px 22px;
+  border-radius: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* 🔥 TITULOS */
+.nombre{
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.precio{
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+/* 🔥 LISTA */
+ul{
+  margin-top: 14px;
+  padding-left: 0;
+  list-style: none;
+  flex-grow: 1; /* 🔥 empuja el footer abajo */
+}
+
+ul li{
+  font-size: 15px;
+  font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 7px;
+}
+
+/* 🔥 BLOQUE LIMITE */
+.limite{
+  background: #1e3a8a;
+  color: white;
+  text-align: center;
+  padding: 6px;
+  border-radius: 20px;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+/* 🔥 BADGE */
+.badge{
+  position: absolute;
+  top: -12px;
+  right: 14px;
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}
+
+/* 🔥 PLAN DESTACADO */
+.popular{
+  transform: scale(1.05);
+  z-index: 3;
+}
+
+/* 🔥 BOTÓN ATRÁS */
+.btn-back{
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 999;
+  background: #facc15;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  color: black;
+}
+
+/* 🔥 ANIMACIÓN */
+@keyframes fadeUp{
+  from{
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =======================================
+   🎨 COLORES POR PLAN
+======================================= */
+
+/* 🔵 BASICO */
+.plan-card.basico{
+  border-top: 5px solid #60a5fa;
+}
+.plan-card.basico .header{
+  background: linear-gradient(135deg,#60a5fa,#2563eb);
+  color: white;
+}
+
+/* 🟢 STANDARD */
+.plan-card.standard{
+  border-top: 5px solid #22c55e;
+}
+.plan-card.standard .header{
+  background: linear-gradient(135deg,#4ade80,#16a34a);
+  color: white;
+}
+
+/* 🟡 GOLD (PROTAGONISTA) */
+.plan-card.gold{
+  border-top: 5px solid #facc15;
+}
+.plan-card.gold .header{
+  background: linear-gradient(135deg,#facc15,#eab308);
+  color: #000;
+}
+
+/* 🪙 PLATINUM */
+.plan-card.platinum{
+  border-top: 5px solid #cbd5f5;
+}
+.plan-card.platinum .header{
+  background: linear-gradient(135deg,#e5e7eb,#9ca3af);
+  color: #111;
+}
+
+/* ⚫ ELITE */
+.plan-card.elite{
+  border-top: 5px solid #111827;
+}
+.plan-card.elite .header{
+  background: linear-gradient(135deg,#111827,#000);
+  color: #facc15;
+}
+.banner-ecf {
+  background: #f4c542;
+  color: #000;
+
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+ letter-spacing: 0.3px;
+  padding: 15px;
+  margin-bottom: 20px;
+
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.banner-ecf span {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  opacity: 0.8;
+}

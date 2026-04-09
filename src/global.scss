@@ -1,0 +1,440 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Styles applied globally across the entire app.
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* =========================================================
+   🎨 PALETA GLOBAL ALAHIAPOS (AZUL LOGO + AMARILLO PIN)
+   ========================================================= */
+
+:root {
+  /* ======== COLORES BASE ======== */
+
+  --ion-color-primary: #2F80ED;
+  --ion-color-primary-rgb: 47,128,237;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255,255,255;
+  --ion-color-primary-shade: #296fd1;
+  --ion-color-primary-tint: #448ded;
+
+  --ion-color-secondary: #4E97C9;
+  --ion-color-secondary-rgb: 78,151,201;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255,255,255;
+  --ion-color-secondary-shade: #4586b1;
+  --ion-color-secondary-tint: #609fd1;
+
+  --ion-color-tertiary: #174A70;
+  --ion-color-tertiary-rgb: 23,74,112;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255,255,255;
+  --ion-color-tertiary-shade: #143f62;
+  --ion-color-tertiary-tint: #2e5c81;
+
+  /* ======== AMARILLO (PIN) ======== */
+
+  --ion-color-warning: #F2C94C;
+  --ion-color-warning-rgb: 242,201,76;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0,0,0;
+  --ion-color-warning-shade: #d5b144;
+  --ion-color-warning-tint: #f3cf5e;
+
+  /* ======== BACKGROUND APP ======== */
+
+  --ion-background-color: #F4F7FB;
+  --ion-text-color: #1f2937;
+
+  /* ======== TITLES / TOOLBAR TEXT ======== */
+  --ion-title-color: #ffffff;
+}
+
+/* =========================================================
+   🔹 TOOLBAR / TITLE / ICONS GLOBAL (SIN anidado raro)
+   ========================================================= */
+
+ion-toolbar,
+ion-toolbar ion-title,
+ion-toolbar ion-icon,
+ion-toolbar ion-button {
+  color: var(--ion-title-color) !important;
+  --color: var(--ion-title-color) !important;
+}
+
+/* Botones globales (por defecto usan el contraste) */
+ion-button {
+  --color: var(--ion-color-primary-contrast);
+  --ion-color-contrast: var(--ion-color-primary-contrast);
+}
+
+/* =========================================================
+   🔥 Cuando ion-select tiene un valor, label negro
+   ========================================================= */
+ion-item.has-value ion-label {
+  color: #000 !important;
+  font-weight: 600;
+}
+
+/* =========================================================
+   MODALES
+   ========================================================= */
+ion-modal {
+  --background: #fff;
+}
+
+/* Toolbar dentro de modal */
+ion-modal ion-toolbar {
+  --background: var(--ion-color-primary) !important;
+  --color: var(--ion-title-color) !important;
+}
+
+ion-modal ion-title {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* =========================================================
+   DATETIME (quita rosado y usa primary)
+   ========================================================= */
+ion-datetime {
+  --background: #fff !important;
+  --color: var(--ion-color-primary) !important;
+  --ion-color-base: var(--ion-color-primary) !important;
+  --ion-color-contrast: #fff !important;
+}
+
+ion-datetime::part(active) {
+  background: var(--ion-color-primary) !important;
+  color: #fff !important;
+  border-radius: 50%;
+}
+
+ion-datetime::part(today) {
+  border: 2px solid var(--ion-color-primary) !important;
+  color: var(--ion-color-primary) !important;
+}
+
+/* =========================================================
+   TOAST NUEVA CITA
+   ========================================================= */
+.toast-nueva-cita {
+  --background: #1f1f1f;
+  --color: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  font-weight: 500;
+  margin-top: 20px;
+  animation: slideDownFade 0.4s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   Ejemplo modal custom (si usas clases)
+   ========================================================= */
+ion-modal#example-modal {
+  --width: fit-content;
+  --min-width: 250px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
+
+.my-custom-class {
+  --width: fit-content;
+  --min-width: 250px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================================================
+   Escáner activo (controlado)
+   ========================================================= */
+.scanner-active {
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
+  --opacity: 0.4;
+}
+
+/* =========================================================
+   Ajustes extra tipográficos y generales
+   ========================================================= */
+h1 {
+  margin: 20px 20px 10px 20px;
+}
+
+ion-modal#example-modal ion-icon {
+  margin-right: 6px;
+  padding: 4px 0;
+  color: #aaaaaa;
+}
+
+ion-modal#example-modal .wrapper {
+  margin-bottom: 10px;
+}
+
+/* =========================================================
+   🔹 Forzar colores dentro del modal con clase custom
+   ========================================================= */
+.custom-modal {
+  --ion-color-primary: var(--ion-color-primary);
+  --ion-color-secondary: var(--ion-color-secondary);
+  --ion-color-tertiary: var(--ion-color-tertiary);
+}
+
+/* =========================================================
+   🔹 Fix específico para iconos de accordion
+   ========================================================= */
+ion-accordion ion-item[slot="header"]::part(detail-icon) {
+  color: var(--ion-title-color) !important;
+  fill: var(--ion-title-color) !important;
+}
+
+/* =========================================================
+   Tamaños modales y popover
+   ========================================================= */
+.my-custom-class {
+  --width: 700px;
+  --max-width: 90vw;
+  --height: auto;
+  --border-radius: 16px;
+}
+
+ion-popover {
+  --width: 400px;
+  --max-width: 95vw;
+}
+
+/* =========================================================
+   Overflow modales (para autocomplete / overlays)
+   ========================================================= */
+ion-modal {
+  --overflow: visible !important;
+}
+
+ion-modal::part(content) {
+  overflow: visible !important;
+}
+
+ion-modal .modal-wrapper {
+  overflow: visible !important;
+}
+
+ion-modal ion-content {
+  overflow: visible !important;
+}
+
+.modal-citas {
+  --overflow: visible !important;
+}
+
+.modal-citas::part(content) {
+  overflow: visible !important;
+}
+
+/* ==============================
+   AUTOCOMPLETE SERVICIO
+============================== */
+
+.servicio-wrapper {
+  position: relative;
+  overflow: visible;
+}
+
+.autocomplete-list {
+  position: absolute !important;
+  z-index: 999999;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  margin-top: 5px;
+
+  /* 🔥 borde acorde a marca */
+  border: 2px solid var(--ion-color-primary);
+
+  box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+}
+
+.autocomplete-item {
+  --background: #fff;
+  --color: #000;
+  margin: 4px;
+  border-radius: 10px;
+}
+
+.autocomplete-item:hover {
+  --background: rgba(47,128,237,0.12);
+  cursor: pointer;
+}
+
+.autocomplete-list ion-item {
+  --inner-padding-end: 10px;
+}
+
+/* =========================================================
+   MODAL FACTURA FULL
+   ========================================================= */
+.modal-factura-full {
+  --width: 60%;
+  --height: 100%;
+  --max-height: 100%;
+  --border-radius: 14px;
+}
+
+/* 🔥 cuando sea móvil */
+@media (max-width: 768px) {
+  .modal-factura-full {
+    --width: 100%;
+    --height: 100%;
+    --max-height: 100%;
+    --border-radius: 0px;
+  }
+}
+
+.modal-factura-full::part(content) {
+  height: 100% !important;
+}
+
+.modal-factura-full .modal-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+.modal-factura-full ion-content {
+  height: 100% !important;
+}
+
+/* =========================================================
+   MODAL CLIENTES FULL
+   ========================================================= */
+.modal-clientes-full {
+  --width: 100%;
+  --height: 100%;
+  --max-height: 100%;
+  --border-radius: 14px;
+}
+
+.modal-clientes-full::part(content) {
+  height: 100% !important;
+}
+
+.modal-clientes-full .modal-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+.modal-clientes-full ion-content {
+  height: 100% !important;
+}
+.alert-doc-pos {
+
+  --background: #ffffff;
+  --border-radius: 18px;
+  --max-width: 340px;
+  --box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+
+  .alert-head {
+    text-align: center;
+    padding-bottom: 0;
+  }
+
+  .alert-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+  }
+
+  .alert-message {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 10px;
+  }
+
+  .alert-button-group {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 15px 15px;
+  }
+
+  .alert-button {
+    border-radius: 12px !important;
+    height: 45px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+.btn-orden-pos {
+  background: linear-gradient(135deg,#4E97C9,#2F80ED) !important;
+  color: #fff !important;
+}
+.btn-factura-pos {
+  background: linear-gradient(135deg,#F2C94C,#e6b800) !important;
+  color: #000 !important;
+}
+.btn-cancel-pos {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+/* 🔥 CENTRAR TEXTO BOTONES ALERT */
+.alert-doc-pos .alert-button {
+
+  justify-content: center !important;
+  text-align: center !important;
+
+}
+
+.alert-doc-pos .alert-button-inner {
+
+  width: 100% !important;
+  justify-content: center !important;
+  text-align: center !important;
+
+}
+.alert-doc-pos .alert-button-inner span {
+  width: 100%;
+  text-align: center;
+}
+.modal-producto-grande::part(content) {
+  width: 95vw;
+  height: 95vh;
+  max-width: 1000px;
+  max-height: 95vh;
+  cursor: default;
+  border-radius: 12px;
+}
+.whatsapp-planes .modal-wrapper,
+.whatsapp-planes .modal-shadow{
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+}

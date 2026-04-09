@@ -1,0 +1,297 @@
+/* 🔹 COLORES DE MARCA */
+:root{
+  --alahi-yellow:#facc15;
+  --alahi-yellow-soft:#fef9c3;
+}
+
+/* SPINNER */
+.centered-spinner{
+  display:block;
+  margin:40px auto;
+}
+
+
+/* 💠 CARD PRINCIPAL DE FILTROS */
+
+.filtro-card{
+  margin:12px;
+  border-radius:16px;
+  overflow:hidden;
+
+  background:#fff;
+
+  border:2px solid var(--alahi-yellow);
+
+  box-shadow:0 4px 14px rgba(0,0,0,0.12);
+}
+
+
+/* 🔹 HEADER DEL FILTRO */
+
+.filtro-header{
+  background:var(--alahi-yellow);
+  
+
+  color:#fff;
+
+  padding:6px 0;
+
+  text-align:center;
+
+  font-weight:600;
+}
+
+
+.filtro-header ion-card-title{
+  color:#fff;
+
+  font-weight:700;
+
+  font-size:1.05em;
+
+  letter-spacing:0.3px;
+}
+
+
+/* 🔹 CONTENIDO FILTROS */
+
+.filtro-content{
+  background:#fff;
+
+  padding:10px 8px 14px 8px;
+}
+
+
+/* ITEMS FILTRO */
+
+.filtro-content ion-item{
+  --background:#fff;
+
+  --padding-start:12px;
+
+  --inner-padding-end:8px;
+
+  --min-height:44px;
+
+  border-bottom:1px solid #e6e6e6;
+}
+
+.filtro-content ion-item:last-child{
+  border-bottom:none;
+}
+
+
+.filtro-content ion-label{
+  color:#333;
+
+  font-weight:600;
+
+  font-size:0.95em;
+}
+
+
+/* BOTONES DE FECHA */
+
+ion-datetime-button::part(native){
+
+  background:#f3f4f6;
+
+  border-radius:8px;
+
+  padding:6px 10px;
+
+  color:#111;
+
+  font-weight:500;
+
+  font-size:0.9em;
+
+  box-shadow:inset 0 0 2px rgba(0,0,0,0.1);
+}
+
+
+/* BOTONES GENERALES */
+
+ion-button{
+  margin-top:10px;
+
+  --border-radius:10px;
+
+  font-weight:600;
+
+  letter-spacing:0.3px;
+}
+
+
+/* 💳 TARJETAS DE INGRESO */
+
+.factura-card{
+
+  margin:12px;
+
+  border-radius:16px;
+
+  background:#fff;
+
+  border:2px solid var(--ion-color-primary); /* azul */
+
+  
+
+  box-shadow:0 4px 14px rgba(0,0,0,0.12);
+
+  transition:all 0.25s ease-in-out;
+}
+
+/* HOVER */
+
+.factura-card:hover{
+
+  transform:scale(1.02);
+
+  background:var(--alahi-yellow-soft);
+
+  box-shadow:0 6px 18px rgba(0,0,0,0.18);
+}
+
+
+/* ANIMACIÓN */
+
+.animated-card{
+  animation:fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp{
+
+  from{
+    opacity:0;
+    transform:translateY(15px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+}
+
+
+/* TITULO INGRESO */
+
+.factura-title{
+
+  font-size:1.15em;
+
+  font-weight:700;
+
+  color:var(--ion-color-primary);
+}
+
+
+/* CLIENTE */
+
+.cliente-line{
+
+  margin:4px 0;
+
+  font-size:0.95em;
+
+  color:#333;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:4px;
+}
+
+
+.cliente-nombre{
+
+  font-weight:600;
+
+  color:#222;
+}
+
+
+/* LINEAS DE MONTOS */
+
+.total-line,
+.pendiente-line,
+.pagado-line{
+
+  font-size:1.05em;
+
+  margin:4px 0;
+
+  display:flex;
+
+  justify-content:space-between;
+}
+
+
+/* MONTO TOTAL */
+
+.total-amount{
+
+  color:var(--alahi-yellow);
+
+  font-weight:800;
+
+  font-size:1.15em;
+}
+
+
+/* REFERENCIA */
+
+.pagado-amount{
+
+  color:#0a9f6b;
+
+  font-weight:700;
+
+  font-size:1.05em;
+}
+
+
+/* BADGES */
+
+ion-badge{
+
+  --background:var(--alahi-yellow);
+
+  color:#111;
+
+  font-weight:600;
+
+  font-size:0.8em;
+}
+
+
+/* FOOTER TOTAL */
+
+ion-footer{
+
+  font-size:1.1em;
+
+  font-weight:700;
+
+  color:#fff;
+}
+
+
+/* ACCORDION */
+
+ion-accordion-group{
+
+  border-radius:12px;
+
+  overflow:hidden;
+}
+
+
+/* GRID CARDS */
+
+ion-row{
+
+  padding:10px;
+}

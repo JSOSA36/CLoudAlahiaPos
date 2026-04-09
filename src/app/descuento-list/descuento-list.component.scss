@@ -1,0 +1,50 @@
+.lista-container {
+  padding: 12px;
+}
+
+.descuento-card {
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  margin-bottom: 18px;
+  padding: 4px;
+}
+
+.titulo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1b1b1b;
+}
+
+.subtitulo {
+  margin: 2px 0 0 0;
+  font-size: 0.9rem;
+  color: #007aff;
+  font-weight: 600;
+}
+
+.fecha {
+  font-size: 0.85rem;
+  margin-top: 6px;
+  color: #666;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  gap: 10px;
+}
+
+.icon-btn {
+  --border-radius: 10px;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  height: 36px;
+}

@@ -1,0 +1,112 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Reporte de Venta</ion-title>
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true">
+
+  <!-- 🔵 FILTRO DE FECHAS -->
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center">
+        <strong>Filtre por Fechas</strong>
+      </ion-card-title>
+
+      <!-- Fecha inicio -->
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime id="inicio" presentation="date"
+            [(ngModel)]="fechaInicio">
+          </ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <!-- Fecha fin -->
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime id="fin" presentation="date"
+            [(ngModel)]="fechaFin">
+          </ion-datetime>
+        </ng-template>
+      </ion-modal>
+    </ion-card-header>
+
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicio">
+        <span slot="date-target">
+          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="fin">
+        <span slot="date-target">
+          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-button color="primary" (click)="CargarIngresosPorLinea()" shape="round" expand="block">
+      <ion-icon name="search" slot="start"></ion-icon>
+      Buscar
+    </ion-button>
+
+    <!-- 🔵 RESULTADO POR FORMA DE PAGO -->
+    
+  </ion-card>
+
+  <!-- 🟢 INGRESOS POR LÍNEA DE NEGOCIO -->
+  <ion-card *ngFor="let linea of ingresosAgrupados" class="card-linea">
+
+    <!-- HEADER -->
+    <ion-card-header>
+      <ion-card-title class="titulo-linea">
+        {{ linea.areaNegocio }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <!-- CONTENIDO -->
+    <ion-card-content>
+
+      <!-- MÉTODOS -->
+      <div *ngFor="let m of linea.metodos" class="fila-metodo">
+        <span class="metodo">
+          {{ m.metodo || 'N/A' }}
+        </span>
+
+        <span class="monto">
+          ${{ m.total | number:'1.2-2' }}
+        </span>
+      </div>
+
+      <!-- TOTAL -->
+      <div class="total-linea">
+        <span>Total</span>
+        <span>${{ linea.total | number:'1.2-2' }}</span>
+      </div>
+
+    </ion-card-content>
+
+  </ion-card>
+<ion-footer class="footer-total">
+  <div class="contenido-footer">
+
+    <span class="label-total">
+      Total General
+    </span>
+
+    <span class="monto-total">
+      ${{ totalLinea | number:'1.2-2' }}
+    </span>
+
+  </div>
+</ion-footer>
+</ion-content>

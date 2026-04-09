@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Seleccionar Cliente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- INPUT NOMBRE -->
+  <ion-item>
+    <ion-label position="floating">Nombre del Cliente</ion-label>
+    <ion-input 
+      [(ngModel)]="nombreCliente"
+      (ionInput)="buscarCliente()">
+    </ion-input>
+  </ion-item>
+
+  <!-- LOADER -->
+  <ion-spinner 
+    *ngIf="cargando" 
+    name="crescent" 
+    class="spinner">
+  </ion-spinner>
+
+
+  <!-- =========================== -->
+  <!--  LISTA DE RESULTADOS (CARDS) -->
+  <!-- =========================== -->
+  <div *ngIf="nombreCliente.trim() !== '' && clientesEncontrados.length > 0">
+
+    <ion-card 
+      *ngFor="let c of clientesEncontrados" 
+      class="cliente-card"
+    >
+      <ion-card-content class="cliente-content">
+
+        <div class="cliente-info">
+          <h2 class="cliente-nombre">{{ c.nombreComercial }}</h2>
+          <p class="cliente-telefono">{{ c.telefono || 'Sin teléfono' }}</p>
+        </div>
+
+        <ion-button 
+          fill="solid"
+          color="primary"
+          size="small"
+          class="btn-select"
+          shape="round"
+          (click)="seleccionarCliente(c)"
+        >
+          ✔
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+
+  <!-- =========================== -->
+  <!--  SI NO EXISTE EL CLIENTE -->
+  <!-- =========================== -->
+  <div 
+    *ngIf="nombreCliente.trim() !== '' && !cargando && clientesEncontrados.length === 0" 
+    class="no-result">
+
+    <p>No existe este cliente.</p>
+
+    <ion-button 
+      expand="block" 
+      color="success" 
+      shape="round" 
+      (click)="crearCliente()">
+      Crear Cliente "{{ nombreCliente }}"
+    </ion-button>
+
+  </div>
+
+</ion-content>

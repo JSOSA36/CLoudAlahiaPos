@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Descuentos</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirCrear()">
+        <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="refrescar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- LISTA DE CARDS -->
+  <div *ngIf="!loading" class="lista-container">
+
+    <ion-card *ngFor="let d of descuentos" class="descuento-card">
+
+      <ion-card-content>
+
+        <!-- TITULO Y SUBTITULO -->
+        <div class="titulo-row">
+          <div>
+            <h2 class="titulo">{{ d.nombreEvento }}</h2>
+            <p class="subtitulo">{{ d.tipoDescuento }}: {{ d.valor }}</p>
+          </div>
+
+          <!-- TOGGLE -->
+          <ion-toggle
+            color="success"
+            [checked]="d.activo"
+            (ionChange)="toggleDescuento(d)">
+          </ion-toggle>
+        </div>
+
+        <!-- FECHAS -->
+        <p class="fecha">
+          {{ d.fechaInicio }} → {{ d.fechaFin }}
+        </p>
+
+        <!-- BOTONES -->
+        <div class="btn-row">
+
+          <ion-button color="success" fill="solid" size="small" class="icon-btn"
+                      (click)="abrirEditar(d)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button color="danger" fill="solid" size="small" class="icon-btn"
+                      (click)="eliminar(d.idDescuentoHeader)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+  <ion-spinner *ngIf="loading" class="center"></ion-spinner>
+
+</ion-content>

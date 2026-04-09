@@ -1,0 +1,121 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button color="light"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Horarios Estilistas</ion-title>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- LOADING -->
+  <div *ngIf="cargando" class="ion-padding">
+
+    <ion-skeleton-text animated style="width:50%; height:18px;"></ion-skeleton-text>
+
+    <ion-skeleton-text animated style="width:80%; height:18px; margin-top:8px;"></ion-skeleton-text>
+
+  </div>
+
+
+  <!-- GRID -->
+  <ion-grid>
+
+    <ion-row>
+
+      <ion-col
+        size="12"
+        size-md="6"
+        size-lg="3"
+        *ngFor="let grupo of horariosAgrupados">
+
+        <ion-card class="estilista-card">
+
+          <!-- HEADER -->
+          <div color="warning" class="estilista-header">
+
+            <span>{{ grupo.estilista }}</span>
+
+            <ion-button fill="clear" (click)="abrirModal(grupo)">
+
+              <ion-icon name="create-outline"></ion-icon>
+
+            </ion-button>
+
+          </div>
+
+
+          <!-- HORARIOS -->
+          <ion-card-content>
+
+            <div
+              *ngFor="let h of grupo.horarios"
+              class="horario-item">
+
+              <!-- DIA -->
+
+              <div class="horario-dia">
+
+                <ion-icon
+                  name="calendar-outline"
+                  class="horario-icon">
+                </ion-icon>
+
+                {{ diaLabel(h.diaSemana) }}
+
+              </div>
+
+
+              <!-- HORAS -->
+
+              <div class="horario-horas">
+
+                <div>
+                  {{ h.horaInicio?.substring(0,5) }}
+                  -
+                  {{ h.horaFin?.substring(0,5) }}
+                </div>
+
+                <div
+                  *ngIf="h.recesoInicio && h.recesoFin"
+                  style="font-size:12px; color:#888;">
+
+                  Receso:
+                  {{ h.recesoInicio?.substring(0,5) }}
+                  -
+                  {{ h.recesoFin?.substring(0,5) }}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+
+  <!-- BOTON AGREGAR -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+
+    <ion-fab-button
+      color="primary"
+      (click)="abrirModal()">
+
+      <ion-icon name="add-outline"></ion-icon>
+
+    </ion-fab-button>
+
+  </ion-fab>
+
+</ion-content>

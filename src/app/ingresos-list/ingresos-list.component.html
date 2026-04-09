@@ -1,0 +1,348 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color:white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center" style="font-weight:700; letter-spacing:0.5px;">
+      💰 Reporte de Ingresos
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="Refrescar()" fill="clear" color="light">
+        <ion-icon name="refresh-outline" style="font-size:1.4em;"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+
+<!-- 🔹 FILTROS -->
+<ion-card class="filtro-card">
+
+  <ion-accordion-group expand="inset">
+
+    <ion-accordion value="filtros">
+
+      <!-- HEADER DEL FILTRO -->
+      <ion-item slot="header" color="warning" >
+        <ion-icon name="filter-outline" slot="start"></ion-icon>
+        <ion-label class="ion-text-center">Filtros de Búsqueda</ion-label>
+      </ion-item>
+
+
+      <div slot="content" class="ion-padding filtro-content">
+
+        <!-- Fecha Desde -->
+        <ion-item lines="full">
+
+          <ion-label>Desde</ion-label>
+
+          <ion-datetime-button datetime="inicioIngresos">
+            <span slot="date-target">
+              {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+            </span>
+          </ion-datetime-button>
+
+        </ion-item>
+
+
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+
+            <ion-datetime
+              id="inicioIngresos"
+              presentation="date"
+              [(ngModel)]="fechaInicio">
+            </ion-datetime>
+
+          </ng-template>
+        </ion-modal>
+
+
+
+        <!-- Fecha Hasta -->
+        <ion-item lines="none">
+
+          <ion-label>Hasta</ion-label>
+
+          <ion-datetime-button datetime="finIngresos">
+            <span slot="date-target">
+              {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+            </span>
+          </ion-datetime-button>
+
+        </ion-item>
+
+
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+
+            <ion-datetime
+              id="finIngresos"
+              presentation="date"
+              [(ngModel)]="fechaFin">
+            </ion-datetime>
+
+          </ng-template>
+        </ion-modal>
+
+
+
+        <!-- Categoría -->
+        <ion-item color="light">
+
+          <ion-label>Categoría</ion-label>
+
+          <ion-select [(ngModel)]="categoria" interface="popover">
+
+            <ion-select-option value="">
+              Todas
+            </ion-select-option>
+
+            <ion-select-option
+              *ngFor="let c of categorias"
+              [value]="c">
+
+              {{ c }}
+
+            </ion-select-option>
+
+          </ion-select>
+
+        </ion-item>
+
+
+
+        <!-- Forma de pago -->
+        <ion-item color="light">
+
+          <ion-label>Forma de Pago</ion-label>
+
+          <ion-select [(ngModel)]="formaPago" interface="popover">
+
+            <ion-select-option value="">
+              Todas
+            </ion-select-option>
+
+            <ion-select-option
+              *ngFor="let f of formasPago"
+              [value]="f">
+
+              {{ f }}
+
+            </ion-select-option>
+
+          </ion-select>
+
+        </ion-item>
+
+
+
+        <!-- Botones -->
+        <div style="margin-top:12px;">
+
+          <ion-button
+            expand="block"
+            color="warning"
+            shape="round"
+            (click)="filtrar()">
+
+            <ion-icon slot="start" name="search-outline"></ion-icon>
+            Buscar
+
+          </ion-button>
+
+
+          <ion-button
+            expand="block"
+            color="medium"
+            fill="outline"
+            shape="round"
+            (click)="limpiarFiltros()">
+
+            <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+            Limpiar filtros
+
+          </ion-button>
+
+        </div>
+
+      </div>
+
+    </ion-accordion>
+
+  </ion-accordion-group>
+
+</ion-card>
+
+
+
+<ion-content color="light">
+
+  <!-- SPINNER -->
+  <ion-spinner
+    *ngIf="cargando"
+    class="centered-spinner">
+  </ion-spinner>
+
+
+  <!-- GRID DE INGRESOS -->
+  <ion-grid>
+
+    <ion-row>
+
+      <ion-col
+        size="12"
+        size-md="6"
+        size-lg="3"
+        *ngFor="let ingreso of ingresosFiltrados">
+
+        <ion-card class="factura-card animated-card">
+
+          <ion-card-header>
+
+            <div class="factura-header">
+
+              <div>
+
+                <ion-card-title class="factura-title">
+
+                  <ion-icon name="cash-outline" color="primary"></ion-icon>
+
+                  &nbsp;{{ ingreso.categoria }}
+
+                </ion-card-title>
+
+
+                <p class="cliente-line">
+
+                  <ion-icon name="person-circle-outline" color="medium"></ion-icon>
+
+                  <span class="cliente-nombre">
+                    {{ ingreso.origen || 'General' }}
+                  </span>
+
+                </p>
+
+
+                <ion-note color="medium">
+                  {{ ingreso.fechaRegistro | date:'dd/MM/yyyy' }}
+                </ion-note>
+
+              </div>
+
+
+              <!-- BADGE AMARILLO -->
+              <ion-badge class="badge-alahi">
+                {{ ingreso.formaPago }}
+              </ion-badge>
+
+
+            </div>
+
+          </ion-card-header>
+
+
+
+          <ion-card-content>
+
+            <p class="total-line">
+
+              <strong>Monto:</strong>
+
+              <span class="total-amount">
+                RD$ {{ ingreso.monto | number:'1.2-2' }}
+              </span>
+
+            </p>
+
+
+            <p class="pagado-line">
+
+              <strong>Referencia:</strong>
+
+              <span class="pagado-amount">
+                {{ ingreso.referencia || 'N/A' }}
+              </span>
+
+            </p>
+
+
+            <p class="pendiente-line">
+
+              <strong>Nota:</strong>
+
+              <span [style.opacity]="ingreso.nota ? '1' : '0.2'">
+                {{ ingreso.nota || '— — —' }}
+              </span>
+
+            </p>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+
+
+  <!-- SIN RESULTADOS -->
+  <ion-item
+    *ngIf="!cargando && ingresosFiltrados.length === 0"
+    color="light">
+
+    <ion-label
+      class="ion-text-center"
+      style="color:#888; font-style:italic;">
+
+      No hay ingresos registrados en este rango o filtro.
+
+    </ion-label>
+
+  </ion-item>
+
+</ion-content>
+
+
+
+<!-- TOTAL -->
+<ion-footer *ngIf="!cargando && ingresosFiltrados.length > 0">
+
+  <ion-toolbar color="warning">
+
+    <ion-title
+      class="ion-text-center"
+      style="font-weight:700; letter-spacing:0.3px;">
+
+      
+      <strong style="color:black;">
+        Total General: RD$ {{ totalGeneral | number:'1.2-2' }}
+      </strong>
+
+    </ion-title>
+
+  </ion-toolbar>
+
+</ion-footer>
+
+
+
+<!-- BOTON AGREGAR -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+
+  <ion-fab-button
+    color="primary"
+    (click)="openModalAddIngreso()">
+
+    <ion-icon name="add"></ion-icon>
+
+  </ion-fab-button>
+
+</ion-fab>

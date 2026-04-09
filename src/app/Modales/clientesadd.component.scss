@@ -1,0 +1,32 @@
+.cliente-card {
+  margin: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cliente-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.nombre {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  margin-bottom: 6px;
+}
+
+.detalle {
+  font-size: 14px;
+  color: #666;
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+ion-icon {
+  font-size: 16px;
+  color: var(--ion-color-medium);
+}

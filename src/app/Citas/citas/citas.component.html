@@ -1,0 +1,486 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button color="light"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Citas</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="abrirModal(null)" color="light">
+        <ion-icon name="add-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+<ion-item *ngIf="!soloEntrantes" lines="full" class="filtro">
+
+  <ion-icon name="calendar-clear-outline"
+            slot="start"
+            color="primary">
+  </ion-icon>
+
+  <ion-label>
+    Mostrar filtros por rango
+  </ion-label>
+
+  <ion-toggle
+    slot="end"
+    color="primary"
+    [(ngModel)]="mostrarFiltroRango"
+    (ionChange)="onToggleFiltroRango($event)">
+  </ion-toggle>
+
+</ion-item>
+  <ion-item
+  *ngIf="!soloEntrantes && mostrarFiltroRango"
+  lines="full"
+  class="filtro">
+
+  <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+  <ion-label>Desde</ion-label>
+
+  <ion-input
+    type="date"
+    [(ngModel)]="fechaDesde"
+    (ionChange)="aplicarFiltros()">
+  </ion-input>
+
+</ion-item>
+
+
+<ion-item
+  *ngIf="!soloEntrantes && mostrarFiltroRango"
+  lines="full"
+  class="filtro">
+
+  <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+  <ion-label>Hasta</ion-label>
+
+  <ion-input
+    type="date"
+    [(ngModel)]="fechaHasta"
+    (ionChange)="aplicarFiltros()">
+  </ion-input>
+
+</ion-item>
+  <!-- 📅 SEMANA -->
+ <div
+  *ngIf="!soloEntrantes && !mostrarFiltroRango"
+  class="semana-wrapper">
+
+  <div
+    *ngFor="let d of diasSemana"
+    class="dia"
+    [class.activo]="diaSeleccionado === d.fecha"
+    (click)="seleccionarDia(d.fecha)">
+
+    <div class="dia-nombre">
+      {{ d.nombre | uppercase }}
+    </div>
+
+    <div class="dia-numero">
+      {{ d.numero }}
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- 🔔 RECORDATORIO -->
+  <ion-button
+    shape="round"
+    *ngIf="!soloEntrantes"
+    [disabled]="!hayConfirmadasHoy"
+    expand="block"
+    color="warning"
+    class="btn-recordatorio ion-margin-vertical"
+    (click)="recordarCitasDelDia()">
+
+    <ion-icon name="notifications" slot="start"></ion-icon>
+
+    <span style="color:black;font-weight:600;">
+      ENVIAR RECORDATORIO
+      ({{ cantidadConfirmadasHoy }}
+      CLIENTE{{ cantidadConfirmadasHoy !== 1 ? 'S' : '' }})
+    </span>
+
+  </ion-button>
+<!-- =======================
+     🎛️ FILTROS
+     ======================= -->
+
+<ion-item
+  *ngIf="!soloEntrantes"
+  lines="full"
+  class="filtro">
+
+  <ion-icon
+    name="filter-outline"
+    slot="start"
+    color="primary">
+  </ion-icon>
+
+  <ion-label>
+    Estado
+  </ion-label>
+
+  <ion-select
+    interface="popover"
+    [(ngModel)]="estadoFiltro"
+    (ionChange)="aplicarFiltros()">
+
+    <ion-select-option value="Todas">
+      Todas
+    </ion-select-option>
+
+    <ion-select-option
+      *ngFor="let s of estados"
+      [value]="s">
+
+      {{ s }}
+
+    </ion-select-option>
+
+  </ion-select>
+
+</ion-item>
+
+
+
+<ion-item
+  *ngIf="!soloEntrantes"
+  lines="full"
+  class="filtro">
+
+  <ion-icon
+    name="people-outline"
+    slot="start"
+    color="primary">
+  </ion-icon>
+
+  <ion-label>
+    Estilista
+  </ion-label>
+
+  <ion-select
+    [(ngModel)]="filtroEstilistaId"
+    placeholder="Todos"
+    (ionChange)="aplicarFiltros()">
+
+    <ion-select-option [value]="0">
+      Todos
+    </ion-select-option>
+
+    <ion-select-option
+      *ngFor="let e of ListadoEstilistas"
+      [value]="e.idEmpleados">
+
+      {{ e.nombre }}
+
+    </ion-select-option>
+
+  </ion-select>
+
+</ion-item>
+  <!-- 🔔 TOGGLE -->
+  <ion-item lines="full" class="filtro">
+
+    <ion-icon
+      name="notifications-outline"
+      slot="start"
+      color="warning">
+    </ion-icon>
+
+    <ion-label>
+      Mostrar solo citas entrantes
+    </ion-label>
+
+    <ion-toggle
+      slot="end"
+      color="warning"
+      [(ngModel)]="soloEntrantes"
+      (ionChange)="onToggleEntrantes($event)">
+    </ion-toggle>
+
+  </ion-item>
+
+  <!-- ===================================================== -->
+  <!-- 🔔 ENTRANTES (FIX: badge + banco/abono + voucher) -->
+  <!-- ===================================================== -->
+
+  <!-- ===================================================== -->
+<!-- 🔔 ENTRANTES RESPONSIVE (GRID IGUAL QUE NORMALES) -->
+<!-- ===================================================== -->
+
+<ion-grid *ngIf="soloEntrantes && citasEntrantes.length > 0">
+<!-- 🔄 LOADING -->
+
+  <ion-row>
+
+    <ion-col
+      size="12"
+      size-md="6"
+      size-lg="4"
+      *ngFor="let c of citasEntrantes; trackBy: trackById">
+
+      <ion-card class="cita-card">
+
+      <div class="card-header-cita" [ngClass]="getHeaderClass(c.estado)">
+
+  <!-- NOMBRE -->
+  <div class="header-left">
+
+    <div class="cliente">
+      {{ c.nombreCliente }}
+    </div>
+
+    <div class="fecha-hora">
+
+      <span class="hora">
+        <ion-icon name="time-outline"></ion-icon>
+        {{ c.hora }}
+      </span>
+
+      <span class="fecha">
+        <ion-icon name="calendar-outline"></ion-icon>
+        {{ c.fecha | date:'dd/MM/yyyy' }}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- BOTONES -->
+  <div class="header-actions">
+
+  <ion-button
+  *ngIf="puedeEditar(c)"
+  fill="clear"
+  size="small"
+  (click)="abrirModal(c)">
+
+  <ion-icon
+    name="create-outline"
+    color="light">
+  </ion-icon>
+
+</ion-button>
+
+    <!-- <ion-button
+      fill="clear"
+      size="small"
+      (click)="eliminar(c)">
+
+      <ion-icon
+        name="trash-outline"
+        color="light">
+      </ion-icon>
+
+    </ion-button> -->
+
+  </div>
+
+</div>
+
+<div class="card-body">
+
+  <!-- 🔁 SEGUIMIENTO -->
+  <ion-badge
+    *ngIf="esCitaSeguimiento(c)"
+    color="medium"
+    class="badge-seguimiento">
+    🔁 Cita de Seguimiento
+  </ion-badge>
+
+  <p><strong>Servicio:</strong> {{ c.nombreServicio }}</p>
+  <p><strong>Estilista:</strong> {{ c.nombreEstilista }}</p>
+  <p><strong>Tel:</strong> {{ c.telefono }}</p>
+
+  <ng-container *ngIf="!esCitaSeguimiento(c)">
+    <p *ngIf="c.banco"><strong>Banco:</strong> {{ c.banco }}</p>
+    <p *ngIf="c.abono !== null && c.abono !== undefined && c.abono > 0"><strong>Abono:</strong> {{ c.abono }}</p>
+  </ng-container>
+
+  <ion-badge
+  class="estado-badge clickable"
+  [color]="statusColor(c.estado)"
+  (click)="cambiarEstado(c); $event.stopPropagation()">
+  {{ c.estado }}
+</ion-badge>
+
+</div>
+
+        <!-- 📄 VOUCHER -->
+        <div
+          *ngIf="c.rutaReciboPago"
+          class="recibo-cita"
+          [ngStyle]="{ 'background-image': 'url(' + c.rutaReciboPago + ')' }"
+          (click)="verRecibo(c)">
+        </div>
+
+      </ion-card>
+
+    </ion-col>
+
+  </ion-row>
+
+</ion-grid>
+
+  <!-- ===================================================== -->
+  <!-- 📋 CITAS NORMALES (GRID) -->
+  <!-- ===================================================== -->
+
+  <ion-grid *ngIf="!soloEntrantes && citasVista.length > 0">
+
+    <ion-row>
+
+      <ion-col
+        size="12"
+        size-md="6"
+        size-lg="4"
+        *ngFor="let c of citasVista; trackBy: trackById">
+
+        <ion-card class="cita-card">
+
+      <div class="card-header-cita" [ngClass]="getHeaderClass(c.estado)">
+
+  <!-- NOMBRE -->
+  <div class="header-left">
+
+    <div class="cliente">
+      {{ c.nombreCliente }}
+    </div>
+
+    <div class="fecha-hora">
+
+      <span class="hora">
+        <ion-icon name="time-outline"></ion-icon>
+        {{ c.hora }}
+      </span>
+
+      <span class="fecha">
+        <ion-icon name="calendar-outline"></ion-icon>
+        {{ c.fecha | date:'dd/MM/yyyy' }}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- BOTONES -->
+  <div class="header-actions">
+
+   <ion-button
+  *ngIf="puedeEditar(c)"
+  fill="clear"
+  size="small"
+  (click)="abrirModal(c)">
+
+  <ion-icon
+    name="create-outline"
+    color="light">
+  </ion-icon>
+
+</ion-button>
+
+    <!-- <ion-button
+      fill="clear"
+      size="small"
+      (click)="eliminar(c)">
+
+      <ion-icon
+        name="trash-outline"
+        color="light">
+      </ion-icon>
+
+    </ion-button> -->
+
+  </div>
+
+</div>
+
+<div class="card-body">
+
+  <!-- 🔁 SEGUIMIENTO -->
+  <ion-badge
+    *ngIf="esCitaSeguimiento(c)"
+    color="medium"
+    class="badge-seguimiento">
+    🔁 Cita de Seguimiento
+  </ion-badge>
+
+  <p><strong>Servicio:</strong> {{ c.nombreServicio }}</p>
+  <p><strong>Estilista:</strong> {{ c.nombreEstilista }}</p>
+  <p><strong>Tel:</strong> {{ c.telefono }}</p>
+
+  <ng-container *ngIf="!esCitaSeguimiento(c)">
+    <p *ngIf="c.banco"><strong>Banco:</strong> {{ c.banco }}</p>
+    <p *ngIf="c.abono !== null && c.abono !== undefined && c.abono > 0"><strong>Abono:</strong> {{ c.abono }}</p>
+  </ng-container>
+
+  <ion-badge
+  class="estado-badge clickable"
+  [color]="statusColor(c.estado)"
+  (click)="cambiarEstado(c); $event.stopPropagation()">
+  {{ c.estado }}
+</ion-badge>
+
+</div>
+
+          <!-- 📄 VOUCHER -->
+          <div
+            *ngIf="c.rutaReciboPago"
+            class="recibo-cita"
+            [ngStyle]="{ 'background-image': 'url(' + c.rutaReciboPago + ')' }"
+            (click)="verRecibo(c)">
+          </div>
+
+          <!-- 🧾 ORDEN -->
+          <div
+            *ngIf="c.estado === 'Confirmada' && !esCitaSeguimiento(c)"
+            class="ion-padding-top">
+
+            <ion-button
+              expand="block"
+              size="small"
+              color="success"
+              (click)="generarOrdenDesdeCita(c.idCita)">
+
+              <ion-icon name="receipt-outline" slot="start"></ion-icon>
+              Generar Orden
+
+            </ion-button>
+
+          </div>
+
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+  <!-- 🔥 OVERLAY SOLO UNA VEZ -->
+  <div
+    class="recibo-overlay"
+    *ngIf="reciboActivo"
+    (click)="cerrarRecibo()">
+
+    <img
+      [src]="reciboActivo.rutaReciboPago"
+      class="recibo-img"
+      (click)="$event.stopPropagation()" />
+
+  </div>
+<!-- 🔄 LOADING OVERLAY -->
+
+</ion-content>

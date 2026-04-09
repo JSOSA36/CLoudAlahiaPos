@@ -1,0 +1,47 @@
+<ion-app>
+  <ion-split-pane contentId="main-content" when="false">
+    <ion-menu contentId="main-content" type="overlay">
+      
+      <!-- 🔹 HEADER MENÚ -->
+      <ion-header class="menu-header">
+        <div class="menu-top">
+          <div class="menu-logo">
+  <img src="/assets/Logo.png" />
+</div>
+          <div class="menu-titles">
+            <h2 class="app-title">AlahiaPos</h2>
+            <h3 class="empresa-nombre">{{_Parametro.NombreEmpresa}}</h3>
+            <p class="usuario-info">{{ _Parametro.Rol }} — {{ _Parametro.UserName }}</p>
+          </div>
+        </div>
+      </ion-header>
+
+      <!-- 🔹 CONTENIDO MENÚ -->
+      <ion-content>
+        <ion-list id="inbox-list">
+          <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
+            <ion-item 
+              routerDirection="root" 
+              [routerLink]="[p.url]" 
+              lines="none" 
+              detail="false" 
+              routerLinkActive="selected"
+              class="menu-item">
+              
+              <fa-icon 
+                [icon]="p.icon" 
+                slot="start"
+                class="menu-icon">
+              </fa-icon>
+
+              <ion-label>{{ p.title }}</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ion-list>
+      </ion-content>
+    </ion-menu>
+
+    <!-- 🔹 MAIN OUTLET -->
+    <ion-router-outlet id="main-content"></ion-router-outlet>
+  </ion-split-pane>
+</ion-app>

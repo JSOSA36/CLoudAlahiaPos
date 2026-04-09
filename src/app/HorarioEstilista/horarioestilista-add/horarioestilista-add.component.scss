@@ -1,0 +1,203 @@
+/* 🔹 Colores de marca */
+:root{
+  --alahi-blue:#1976d2;
+  --alahi-yellow:#facc15;
+  --alahi-yellow-soft:#fff9db;
+}
+
+
+/* 🔹 Card del día */
+.dia-card{
+
+  margin:8px 0;
+
+  border-radius:12px;
+
+  padding:0;
+
+  border:#3b82f6;
+
+  border-left:#3b82f6;
+
+  box-shadow:0 1px 6px rgba(0,0,0,0.08);
+
+  transition:all 0.2s ease;
+}
+
+.dia-card:hover{
+
+  background:var(--alahi-yellow-soft);
+
+  box-shadow:0 4px 12px rgba(25,118,210,0.2);
+}
+
+
+/* 🔹 Fila principal */
+.fila-horario{
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  align-items:center;
+
+  padding:6px 6px;
+
+  gap:8px;
+
+}
+
+
+/* Día de la semana */
+
+.dia-label{
+
+  font-weight:600;
+
+  font-size:15px;
+
+  min-width:70px;
+
+  color:var(--alahi-blue);
+
+}
+
+
+/* Inputs de hora */
+
+.hora-input{
+
+  flex:1 1 75px;
+
+  min-width:70px;
+
+  max-width:95px;
+
+  font-size:14px;
+
+  margin:0;
+
+  text-align:center;
+
+  border:1px solid #e5e7eb;
+
+  border-radius:8px;
+
+  padding:4px;
+
+}
+
+
+/* Toggle */
+
+.toggle-container{
+
+  flex:0 0 auto;
+
+  margin-left:auto;
+
+}
+
+
+/* Receso */
+
+.fila-receso{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+
+  margin-top:8px;
+
+  padding-left:8px;
+
+}
+
+
+/* Label receso */
+
+.receso-label{
+
+  font-size:13px;
+
+  color:#666;
+
+  min-width:60px;
+
+}
+
+
+/* Header del día */
+
+.fila-header{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:10px;
+
+  padding-bottom:4px;
+
+  border-bottom:2px solid var(--alahi-yellow);
+
+}
+
+
+/* Sub labels */
+
+.sub-label{
+
+  width:70px;
+
+  font-size:13px;
+
+  font-weight:600;
+
+  color:var(--alahi-blue);
+
+}
+
+
+/* Compactación */
+
+.hora-input{
+
+  flex:1;
+
+}
+
+.dia-label{
+
+  font-weight:bold;
+
+}
+
+
+/* 🔹 Responsive para móviles pequeños */
+
+@media (max-width:420px){
+
+  .toggle-container{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    margin-top:-2px;
+
+  }
+
+  .fila-horario{
+
+    gap:6px;
+
+  }
+
+}

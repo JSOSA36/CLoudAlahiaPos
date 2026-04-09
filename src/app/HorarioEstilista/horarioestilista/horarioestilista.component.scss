@@ -1,0 +1,86 @@
+/* 🔹 Card general de Estilista */
+.estilista-card {
+  margin-bottom: 16px;
+  border: 2px solid #1976d2; /* Azul primario */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3); /* Glow azul */
+  }
+}
+
+/* 🔹 Header con nombre del estilista */
+.estilista-header {
+  background: #f7c948;
+  color: black;
+  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  ion-button {
+    --color: black;
+    margin: 0;
+    font-size: 20px;
+  }
+}
+
+/* 🔹 Lista de horarios */
+.horario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f1f1;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Día */
+.horario-dia {
+  font-weight: 600;
+  min-width: 100px;
+  color: #1976d2;
+}
+
+/* Horas */
+.horario-horas {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+}
+
+/* Acciones (botón editar único) */
+.horario-actions {
+  display: flex;
+  gap: 6px;
+
+  ion-button {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    font-size: 18px;
+    color: #1976d2;
+
+    &:hover {
+      color: #0d47a1;
+      transform: scale(1.1);
+    }
+  }
+}
+/* Icono del día */
+.horario-icon {
+  font-size: 18px;
+  margin-right: 6px;
+  color: #1976d2;
+  vertical-align: middle;
+}
+

@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">
+      Empleados
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- LISTADO -->
+  <ng-container *ngIf="empleados.length > 0; else sinEmpleados">
+
+    <ion-card *ngFor="let emp of empleados" class="empleado-card">
+
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="person-outline"></ion-icon>
+          {{ emp.nombre }}
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p><strong>Ocupación:</strong> {{ emp.ocupacion }}</p>
+        <p><strong>Teléfono:</strong> {{ emp.celular || '—' }}</p>
+        <p><strong>Dirección:</strong> {{ emp.direccion || '—' }}</p>
+      </ion-card-content>
+
+      <ion-item lines="none">
+        <ion-buttons slot="end">
+
+          <!-- EDITAR -->
+          <ion-button
+            color="primary"
+            (click)="abrirFormulario(emp)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+
+          <!-- ELIMINAR -->
+          <ion-button
+            color="danger"
+            (click)="eliminarEmpleado(emp)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+
+        </ion-buttons>
+      </ion-item>
+
+    </ion-card>
+
+  </ng-container>
+
+  <!-- VACÍO -->
+  <ng-template #sinEmpleados>
+    <div class="ion-text-center ion-padding">
+      <ion-icon name="people-outline" size="large"></ion-icon>
+      <p>No hay empleados registrados</p>
+    </div>
+  </ng-template>
+
+  <!-- FAB AGREGAR -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="abrirFormulario()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

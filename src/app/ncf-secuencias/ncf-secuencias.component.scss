@@ -1,0 +1,251 @@
+/* 🔥 CONTENEDOR GENERAL */
+.container {
+  padding: 20px;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+h2 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+/* 🔥 CARD PRO */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px solid #ffc107; /* 🔥 borde amarillo */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 🔥 GRID */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* 🔥 FULL WIDTH */
+.full {
+  grid-column: span 2;
+}
+
+/* 🔥 LABELS */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* 🔥 INPUTS */
+/* 🔵 INPUTS MEJORADOS */
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #90caf9; /* azul suave */
+  font-size: 14px;
+  transition: all 0.25s ease;
+  background: #fff;
+}
+
+/* 🔥 HOVER */
+.input:hover {
+  border-color: #42a5f5;
+}
+
+/* 🔥 FOCUS (cuando el usuario escribe) */
+.input:focus {
+  border-color: #1976d2; /* azul fuerte */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(25,118,210,0.2);
+}
+
+/* 🔥 CHECKBOX */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+select.input {
+  appearance: none;
+  background-color: #fff;
+}
+.check-container {
+  margin-top: 8px;
+}
+
+/* 🔥 BOTONES */
+.actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.primary {
+  background: #3498db;
+  color: white;
+}
+
+.secondary {
+  background: #bdc3c7;
+  color: #333;
+}
+
+.edit {
+  background: #f39c12;
+  color: white;
+}
+
+.delete {
+  background: #e74c3c;
+  color: white;
+}
+
+.success {
+  background: #27ae60;
+  color: white;
+}
+
+/* 🔥 TABLA PRO */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead {
+  background: linear-gradient(90deg, #3498db, #5dade2);
+  color: white;
+}
+
+th {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+td {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+/* 🔥 FILAS */
+tbody tr {
+  background: #fafafa;
+  transition: 0.2s;
+}
+
+tbody tr:hover {
+  background: #eef5ff;
+}
+
+/* 🔥 ESTADOS */
+.active {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.inactive {
+  color: #e74c3c;
+  font-weight: bold;
+}
+/* 🔥 HEADER CARD */
+.card-header {
+  background: linear-gradient(90deg, #ffc107, #ffca28);
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  color: #333;
+  font-weight: bold;
+}
+
+/* 🔥 ICONO */
+.card-header .icon {
+  font-size: 18px;
+}
+
+/* 🔥 TEXTO */
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+/* 🔥 Columna acciones */
+th:last-child,
+td:last-child {
+  width: 140px; /* 👈 reduce tamaño */
+  text-align: center;
+}
+
+/* 🔥 Contenedor de botones */
+.acciones {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 🔥 Botones base */
+.btn.accion {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 5px;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* 🔥 Colores */
+.btn.edit {
+  background: #3498db;
+  color: white;
+}
+
+.btn.delete {
+  background: #e74c3c;
+  color: white;
+}
+/* 📱 Móvil */
+@media (max-width: 768px) {
+
+  .col-serie,
+  .col-actual,
+  .col-final,
+  .col-activo {
+    display: none;
+  }
+
+  table th,
+  table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .acciones ion-button {
+    margin: 0 2px;
+  }
+}

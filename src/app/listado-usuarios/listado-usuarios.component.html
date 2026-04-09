@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">
+      Usuarios del Sistema
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- 🔹 Listado de usuarios -->
+  <ng-container *ngIf="usuarios.length > 0; else vacio">
+
+    <ion-card *ngFor="let u of usuarios" class="user-card">
+
+      <ion-card-header>
+        <ion-card-title>
+          {{ u.nombre }}
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p><strong>Correo:</strong> {{ u.correo }}</p>
+        <p><strong>Rol:</strong> {{ u.rol }}</p>
+
+        <p>
+          <strong>Estado:</strong>
+          <ion-badge [color]="u.estado ? 'success' : 'danger'">
+            {{ u.estado ? 'Activo' : 'Inactivo' }}
+          </ion-badge>
+        </p>
+      </ion-card-content>
+
+      <ion-item lines="none">
+        <ion-buttons slot="end">
+          <ion-button color="primary" (click)="abrirModal(u)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button color="danger" (click)="eliminarUsuario(u)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+
+    </ion-card>
+
+  </ng-container>
+
+  <!-- 🔹 Vacío -->
+  <ng-template #vacio>
+    <div class="ion-text-center ion-padding">
+      <ion-icon name="person-circle-outline" size="large"></ion-icon>
+      <p>No hay usuarios registrados</p>
+    </div>
+  </ng-template>
+
+  <!-- 🔹 Agregar usuario -->
+  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+    <ion-fab-button
+      color="primary"
+      (click)="abrirModal()"
+      [disabled]="!puedeAgregarUsuario">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

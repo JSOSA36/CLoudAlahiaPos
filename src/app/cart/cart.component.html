@@ -1,0 +1,131 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button icon="caret-back"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Orden</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="ion-padding">
+
+    <ion-row *ngFor="let item of parametro.ListadoProductosCate; let i = index">
+
+      <!-- ================= PRODUCTO ================= -->
+      <ion-col size="6">
+
+        <b>{{ item.descripcion }}</b><br>
+
+        <!-- Precio original -->
+        <span *ngIf="item.precioOriginal > item.precioVenta"
+              style="text-decoration: line-through; color:#777;">
+          {{ item.precioOriginal | currency }}
+        </span>
+
+        <!-- Precio final -->
+        <span style="font-weight:bold;">
+          {{ item.precioVenta | currency }}
+        </span>
+
+        <br>
+        Cantidad: {{ item._cantidad }}
+
+        <!-- Descuento -->
+        <div *ngIf="item.precioOriginal > item.precioVenta"
+             style="margin-top:6px;font-size:14px;font-weight:600;color:#c82333;">
+          Descuento:
+          -{{ (item.precioOriginal - item.precioVenta) * item._cantidad | currency }}
+        </div>
+
+        <!-- Subtotal -->
+        <div style="margin-top:4px;font-size:16px;font-weight:700;">
+          Subtotal:
+          {{ item._cantidad * item.precioVenta | currency }}
+        </div>
+
+      </ion-col>
+
+      <!-- ================= BOTONES ================= -->
+      <ion-col size="6" class="ion-text-end">
+
+        <ion-button size="small" color="danger"
+                    (click)="removerItem(i)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button size="small" color="warning"
+                    (click)="disminuirCantidad(i)">
+          <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button size="small" color="success"
+                    (click)="aumentarCantidad(i)">
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+        </ion-button>
+
+      </ion-col>
+
+      <!-- ================= COMENTARIO ================= -->
+      
+
+      <!-- ================= EMPLEADO ================= -->
+      <div class="empleado-label">
+  👤 Selecciona el empleado que realizó este servicio
+</div>
+       <ion-col size="12">
+  <div class="empleado-comision-box">
+        <ion-item>
+          <ion-select
+            [(ngModel)]="item.idEmpleadoComision"
+            label="Empleado que comisiona"
+            label-placement="stacked">
+
+            <ion-select-option
+              *ngFor="let emp of ListadoEmpleados"
+              [value]="emp.idEmpleados">
+              {{ emp.nombre }}
+            </ion-select-option>
+
+          </ion-select>
+        </ion-item>
+        </div>
+      </ion-col>
+
+    </ion-row>
+
+  </div>
+</ion-content>
+
+<!-- ================= FOOTER ================= -->
+<ion-footer>
+
+  <ion-row style="background:#f4f5f8; padding:6px;">
+    <ion-col size="6"><b>Total bruto</b></ion-col>
+    <ion-col size="6" class="ion-text-end">
+      <b>{{ TotalBruto | currency }}</b>
+    </ion-col>
+  </ion-row>
+
+  <ion-row *ngIf="TotalDescuento > 0"
+           style="background:#ffe5e5; padding:6px;">
+    <ion-col size="6"><b>Descuento</b></ion-col>
+    <ion-col size="6" class="ion-text-end" style="color:#c82333;">
+      <b>-{{ TotalDescuento | currency }}</b>
+    </ion-col>
+  </ion-row>
+
+  <ion-row style="background:#d4edda; padding:8px;">
+    <ion-col size="6"><b>Total a pagar</b></ion-col>
+    <ion-col size="6" class="ion-text-end" style="color:#155724;">
+      <b>{{ TotalNeto | currency }}</b>
+    </ion-col>
+  </ion-row>
+
+  <ion-button expand="block"
+              color="success"
+              (click)="procesarOrden()">
+    Confirmar Orden
+  </ion-button>
+
+</ion-footer>

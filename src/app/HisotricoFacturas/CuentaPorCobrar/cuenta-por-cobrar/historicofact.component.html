@@ -1,0 +1,190 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+
+      <ion-button (click)="LoadListaFactura()" size="small">
+        <ion-icon slot="icon-only" ios="logo-apple" md="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title style="margin-right: 20px;" class="ion-text-center">
+      Listado de Facturas {{_Parametro.NumeroMesa}}
+    </ion-title>
+   
+  </ion-toolbar>
+  
+</ion-header>
+
+<ion-content>
+
+  <ion-item *ngIf="_Parametro.ListadoFacturas.length == 0">
+    <ion-title class="ion-text-center">No hay Facturas que mostrar</ion-title>
+  </ion-item>
+
+  <ion-accordion-group 
+    [value]="accordionActivo" 
+    (ionChange)="onAccordionChange($event)"
+    style="color: white;"
+  >
+
+    <!-- ======================================================= -->
+    <!--     LISTADO DE ÓRDENES (ACCORDION)                      -->
+    <!-- ======================================================= -->
+    <ion-accordion 
+      *ngFor="let iten of _Parametro.ListadoFacturas; let i = index; trackBy: trackByFactura"
+      [value]="iten.idFacturaHeader"
+      style="color:white;"
+    >
+
+    <ion-item 
+  slot="header"
+  style="margin-bottom:2px;"
+  color="light"
+  [class.factura-anulada]="iten.estaCancelada"
+>
+
+        <ion-label class="label-orden">
+          <strong>
+            Fact#: {{ iten.idFacturaHeader }}
+            <ion-badge 
+    color="danger"
+    *ngIf="iten.estaCancelada"
+    style="margin-left:8px;"
+  >
+    ANULADA
+  </ion-badge>
+            <span>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ iten.fechaBencimiento | date:'dd/MM/yyyy' }} {{iten.hora}}
+            </span>
+            <ion-icon name="person-circle-outline"></ion-icon>
+            {{ iten.nombreCuenta }}
+          </strong>
+        </ion-label>
+
+      </ion-item>
+
+      <!-- ======================================================= -->
+      <!--     CONTENIDO DEL ACCORDION                             -->
+      <!-- ======================================================= -->
+      <div slot="content">
+
+        <ion-row>
+          <ion-col>
+             <ion-button (click)="AnularFact(iten.idFacturaHeader)" color="danger"
+             [disabled]="iten.estaCancelada">
+             
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-button> 
+
+
+            <ion-button (click)="SendPrintAccount(iten.idFacturaHeader)" color="primary"
+             [disabled]="iten.estaCancelada">
+              <ion-icon slot="icon-only" name="print"></ion-icon>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+
+        <!-- ======================================================= -->
+        <!--     DETALLES DE LA ORDEN                               -->
+        <!-- ======================================================= -->
+        <ion-row class="ion-no-padding" *ngFor="let itenDetalle of iten.facturaDetalles; let j = index">
+
+          <ion-col size="12" style="color:black;">
+
+            <ion-label>
+
+              <!-- Nombre -->
+              <h5><b>{{ itenDetalle.productos.nombre }}</b></h5>
+
+              <!-- Precio original tachado -->
+              <div *ngIf="itenDetalle.descuento > 0" >
+                Precio:
+                {{ itenDetalle.productos.precioVenta | currency }}
+              </div>
+
+              <!-- Precio final -->
+              
+
+              <!-- Descuento aplicado -->
+              <div *ngIf="itenDetalle.descuento > 0" style="color:#e74c3c;">
+                Descuento aplicado:
+                <b>{{ itenDetalle.descuento * itenDetalle.cantidad| currency }}</b>
+              </div>
+
+              <!-- Cantidad -->
+              <h5><b>Cantidad: {{ itenDetalle.cantidad }}</b></h5>
+
+              <!-- Subtotal -->
+            <div class="precio-row">
+
+  <div class="precio-label">
+    SubTotal:
+    <b>{{ itenDetalle.subTotal | currency }}</b>
+  </div>
+
+ 
+</div>
+
+              <hr>
+<div class="badge-estilista">
+
+  <ion-icon name="person-circle-outline"></ion-icon>
+
+  {{ itenDetalle.nombreEmpleadoComision || 'No asignado' }}
+
+  
+
+</div>
+            </ion-label>
+
+          </ion-col>
+
+          
+
+        </ion-row>
+
+        <!-- ======================================================= -->
+        <!--     TOTALES Y DESCUENTO GLOBAL                          -->
+        <!-- ======================================================= -->
+        <ion-item color="warning" lines="none">
+          <ion-label class="ion-text-center">
+
+            <div *ngIf="iten.totalDescuento > 0" style="color:#e74c3c; font-size:18px;">
+              Descuento total aplicado:
+              <b>{{ iten.totalDescuento | currency }}</b>
+            </div>
+
+           <!-- TOTAL ORIGINAL -->
+<div style="font-size:22px; color:black; margin-top:5px;">
+  <b>Total: {{ iten.total | currency }}</b>
+</div>
+
+<!-- ABONO -->
+<!-- <div *ngIf="iten.pagado > 0" style="color:#27ae60; font-size:20px; margin-top:5px;">
+  Abono en Cita:
+  <b>- {{ iten.pagado | currency }}</b>
+</div> -->
+
+<!-- PENDIENTE (TOTAL REAL A COBRAR) -->
+<!-- <div *ngIf="iten.pagado > 0" style="color:#c0392b; font-size:26px; margin-top:5px;">
+  <b>Pendiente: {{ (iten.total - iten.pagado) | currency }}</b>
+
+</div> -->
+
+
+          </ion-label>
+        </ion-item>
+
+      </div>
+
+    </ion-accordion>
+
+  </ion-accordion-group>
+
+  <!-- FAB PARA AGREGAR CLIENTE POR VOZ -->
+  
+
+</ion-content>

@@ -1,0 +1,433 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color:white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title></ion-title>
+
+    <ion-searchbar
+      color="primary"
+      #posSearch
+      placeholder="Buscar productos"
+      [(ngModel)]="busqueda"
+      (ionInput)="buscarGlobal()"
+      (ionClear)="limpiarBusqueda()"
+      (keydown.enter)="procesarEnter()">
+    </ion-searchbar>
+
+  </ion-toolbar>
+</ion-header>
+
+
+<!-- SEARCH RESULT -->
+<div class="search-grid" *ngIf="busqueda && productosFiltrados.length">
+
+  <div
+    class="search-row"
+    *ngFor="let prod of productosFiltrados; let i = index"
+    (click)="seleccionarProductoMouse(prod)"
+    [class.selected]="i === indiceSeleccionado">
+
+    <div class="col-name">
+      {{ prod.nombre }}
+    </div>
+
+    <div class="col-price">
+      {{ prod.precioVenta | currency:'DOP':'symbol':'1.2-2' }}
+    </div>
+
+    <div class="col-stock">
+      {{ prod.stock }}
+    </div>
+
+  </div>
+
+</div>
+
+
+<ion-content class="pos-page">
+
+<div class="pos-layout">
+
+<!-- ================= IZQUIERDA ================= -->
+
+<section class="left-area">
+
+
+<!-- CATEGORIAS -->
+
+<div class="cats-accordion">
+
+<ion-accordion-group
+[value]="catsOpen ? 'cats' : undefined"
+(ionChange)="onCatsAccordionChange($event)">
+
+<ion-accordion value="cats">
+
+<div slot="content" class="acc-content">
+
+<div class="cats-wrapper">
+
+<button class="scroll-btn left" (click)="scrollCats('left')">
+<ion-icon name="chevron-back-outline"></ion-icon>
+</button>
+
+<div class="cats-row" #catsScroller>
+
+<div
+class="cat-card"
+*ngFor="let cat of categorias"
+(click)="selectCategoria(cat)"
+[class.selected]="categoriaSeleccionada === cat.nombre">
+
+<div class="cat-name">
+{{ cat.nombre }}
+</div>
+
+</div>
+
+</div>
+
+<button class="scroll-btn right" (click)="scrollCats('right')">
+<ion-icon name="chevron-forward-outline"></ion-icon>
+</button>
+
+</div>
+
+</div>
+
+</ion-accordion>
+
+</ion-accordion-group>
+
+</div>
+
+
+<!-- PRODUCTOS -->
+
+<div class="panel panel-products">
+
+<div class="panel-head">
+
+<div class="panel-title">
+Productos
+</div>
+
+<div class="panel-sub">
+{{ productosFiltrados.length }} item(s)
+</div>
+
+</div>
+
+
+<div class="panel-body products-area">
+
+<ion-grid>
+<ion-row>
+
+<ion-col
+size="6"
+size-md="4"
+size-lg="3"
+*ngFor="let prod of productosFiltrados">
+
+<div
+class="producto-card"
+(click)="addToCart(prod,  $event)">
+
+<!-- DESCUENTO -->
+
+<div
+class="discount-badge"
+*ngIf="prod._precioOriginal && prod._precioOriginal > prod.precioVenta">
+
+-{{
+((prod._precioOriginal - prod.precioVenta) /
+prod._precioOriginal * 100) | number:'1.0-0'
+}}%
+
+</div>
+
+<!-- CANTIDAD -->
+
+<div
+class="qty-badge"
+*ngIf="getQty(prod.idProducto) > 0">
+
+{{ getQty(prod.idProducto) }}
+
+</div>
+
+
+<!-- IMAGEN -->
+
+<div
+class="producto-img-wrap"
+*ngIf="prod.imagen1">
+
+<ion-img
+
+[src]="prod.imagen1">
+</ion-img>
+
+</div>
+
+
+<div
+class="producto-img-wrap no-img"
+*ngIf="!prod.imagen1">
+
+<ion-icon name="pricetag-outline"></ion-icon>
+
+</div>
+
+
+<!-- INFO -->
+
+<div class="producto-info">
+
+<div class="producto-nombre">
+{{ prod.nombre }}
+</div>
+
+
+<div class="producto-precio">
+
+<div
+class="precio-original"
+*ngIf="prod._precioOriginal && prod._precioOriginal > prod.precioVenta">
+
+{{ prod._precioOriginal | currency:'DOP':'symbol':'1.2-2' }}
+
+</div>
+
+
+<div class="precio-final">
+{{ prod.precioVenta | currency:'DOP':'symbol':'1.2-2' }}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</ion-col>
+
+</ion-row>
+</ion-grid>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= DERECHA ================= -->
+
+<aside
+class="right-panel"
+[class.open]="isCartOpen">
+
+<div class="panel-header header-warning">
+
+<div class="title ion-text-center">
+Que Tipo de Ordenes Deseas Ver?
+</div>
+
+
+<div class="order-actions">
+
+<div class="order-types">
+
+<button class="order-btn domicilio">
+<ion-icon name="bicycle-outline"></ion-icon>
+A DOMICILIO
+</button>
+
+<button class="order-btn interno">
+<ion-icon name="restaurant-outline"></ion-icon>
+CONSUMO INTERNO
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+ 
+
+<div class="panel-controls controls-soft"></div>
+
+
+<ion-content color="warning">
+
+<div class="panel-body body-warning">
+
+<div class="items"  #cartItems>
+
+
+<div class="item" *ngFor="let item of carrito">
+
+
+<div class="item-info">
+
+<div class="name">
+{{ item.nombre }}
+</div>
+
+<div class="sub">
+Precio: {{ item.precio | currency }}
+</div>
+<div class="item-itbis" *ngIf="facturarITBIS">
+  ITBIS: {{ item.itbisProducto | currency:'DOP':'symbol':'1.2-2' }}
+</div>
+</div>
+
+
+<div class="item-qty">
+
+<button class="qty-btn" (click)="dec(item)">
+<ion-icon name="remove-outline"></ion-icon>
+</button>
+
+<div class="qty">
+{{ item.cantidad }}
+</div>
+
+<button class="qty-btn" (click)="inc(item)">
+<ion-icon name="add-outline"></ion-icon>
+</button>
+
+</div>
+
+
+<div class="item-total">
+
+<div class="price">
+{{ item.subtotal | currency }}
+</div>
+
+<button class="remove-btn" (click)="remove(item)">
+<ion-icon name="trash-outline"></ion-icon>
+</button>
+
+</div>
+
+
+<ion-select
+[(ngModel)]="item.idEmpleadoComision"
+interface="popover"
+class="empleado-select"
+placeholder="Quien Comisona?">
+
+<ion-select-option
+*ngFor="let emp of ListadoEmpleados"
+[value]="emp.idEmpleados">
+
+{{ emp.nombre }}
+
+</ion-select-option>
+
+</ion-select>
+
+</div>
+
+
+<div
+class="empty ion-text-center"
+*ngIf="carrito.length === 0">
+
+Agrega productos para empezar.
+
+</div>
+
+
+</div>
+
+</div>
+
+</ion-content>
+
+
+
+<div class="panel-footer footer-warning">
+
+<div class="invoice-summary">
+
+
+
+<div class="sum-line" *ngIf="aplicarITBIS">
+  <span>ITBIS (18%)</span>
+  <strong>
+    {{ getItbis() | currency:'DOP':'symbol':'1.2-2' }}
+  </strong>
+</div>
+
+<div class="sum-line" *ngIf="aplicarPropina">
+  <span>Propina (10%)</span>
+  <strong>
+    {{ getPropina() | currency:'DOP':'symbol':'1.2-2' }}
+  </strong>
+</div>
+
+<div class="sum-line total-final">
+  <span>Total</span>
+  <strong>
+    {{ getTotal() | currency:'DOP':'symbol':'1.2-2' }}
+  </strong>
+</div>
+
+</div>
+
+<ion-button
+expand="block"
+class="btn-vender"
+(click)="facturar()"
+[disabled]="carrito.length === 0">
+
+Contuar
+
+</ion-button>
+
+
+<div class="bottom-row">
+
+<span>{{ carrito.length }} Producto(s)</span>
+
+<a (click)="vaciarCarrito()">Cancelar</a>
+
+</div>
+
+</div>
+
+</aside>
+
+</div>
+
+
+<button
+class="cart-float"
+#cartIcon
+(click)="toggleCart()">
+
+<ion-icon name="receipt-outline"></ion-icon>
+
+<span class="cart-total">
+{{ getTotal() | currency:'DOP':'symbol':'1.2-2' }}
+</span>
+
+</button>
+
+
+<div
+class="cart-overlay"
+*ngIf="isCartOpen"
+(click)="toggleCart()">
+</div>
+
+</ion-content>

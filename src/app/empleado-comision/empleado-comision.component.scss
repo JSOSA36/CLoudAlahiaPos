@@ -1,0 +1,119 @@
+/* 🌟 Tarjetas elevadas */
+.card-elevated {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+  background: #fff;
+  margin-bottom: 14px;
+}
+
+/* 🔹 Títulos de listas */
+.list-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 4px;
+}
+
+/* 🔹 Contenedor de listas con scroll */
+.list-box {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* 🔹 Botones de transferencia */
+.transfer-buttons ion-button + ion-button {
+  margin-top: 8px;
+}
+
+/* 🔹 Input genérico de porcentaje */
+.pct-input {
+  max-width: 84px;
+  text-align: center;
+  border: 1px solid #1976d2;
+  border-radius: 8px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  font-weight: 500;
+  transition: 0.2s ease all;
+}
+
+.pct-input:focus-within {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
+}
+
+/* 🔹 Sufijo % */
+.pct-suffix,
+.pct-symbol {
+  margin-left: 6px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+}
+
+/* 🔹 Layout para áreas */
+.area-list {
+  margin-top: 8px;
+}
+
+.area-item {
+  --min-height: 56px;
+  align-items: center;
+  --background: #fff;
+}
+
+.area-nombre {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ion-text-color, #222);
+}
+
+/* 🔹 Grupo de input % alineado a la derecha */
+.input-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 110px;
+}
+
+.pct-symbol {
+  width: 14px;
+  text-align: right;
+}
+
+/* 🔹 Item asignado */
+.asignado-item {
+  display: flex;
+  align-items: center;
+
+  .comision-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+
+    .pct-input {
+      max-width: 60px;
+      text-align: center;
+    }
+  }
+
+  ion-button {
+    margin-left: 8px;
+  }
+}
+
+/* 🔹 Botón flotante global */
+ion-fab-button {
+  --background: #1976d2;
+  --box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+}
+
+/* 🔹 Ion-item nativo centrado verticalmente */
+ion-item::part(native) {
+  align-items: center;
+}

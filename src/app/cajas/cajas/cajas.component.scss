@@ -1,0 +1,96 @@
+/* CARD GENERAL */
+.card-linea {
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+
+  /* 🔥 BORDE AMARILLO */
+  border: 2px solid #FFC107;
+
+  /* SOMBRA SUAVE */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* 🔵 HEADER AZUL */
+.card-linea ion-card-header {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  padding: 12px;
+}
+
+/* 🔵 TITULO CENTRADO */
+.titulo-linea {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+}
+
+/* CUERPO */
+.fila-metodo {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* TEXTO MÉTODO */
+.metodo {
+  color: #555;
+}
+
+/* MONTO */
+.monto {
+  font-weight: bold;
+  color: #000;
+}
+
+/* TOTAL */
+.total-linea {
+  background: #f9f9f9;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 16px;
+
+  /* 🔥 LÍNEA AZUL */
+  border-top: 2px solid #1976d2;
+
+  color: #1976d2;
+}
+/* 🔥 FOOTER TOTAL GENERAL */
+.footer-total {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+
+  /* 🟡 AMARILLO PREMIUM */
+  background: linear-gradient(135deg, #FFC107, #FFD54F);
+
+  padding: 14px 16px;
+
+  /* SOMBRA SUPERIOR */
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+}
+
+/* CONTENIDO */
+.contenido-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* TEXTO */
+.label-total {
+  color: #000; /* 🔥 NEGRO */
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* MONTO */
+.monto-total {
+  color: #000; /* 🔥 NEGRO */
+  font-size: 22px;
+  font-weight: bold;
+}

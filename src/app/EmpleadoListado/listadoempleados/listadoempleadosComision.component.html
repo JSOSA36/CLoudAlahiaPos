@@ -1,0 +1,124 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Comisiones por Área</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <!-- 🔹 Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="cargarEmpleados($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- 🔹 Lista de empleados -->
+  <ion-accordion-group *ngIf="empleados.length > 0; else noEmpleados">
+
+    <ion-accordion
+      *ngFor="let emp of empleados"
+      [value]="emp.idEmpleados"
+      class="accordion-card"
+    >
+
+      <!-- 🔹 Header del empleado -->
+      <ion-item slot="header" color="light" class="accordion-header">
+        <ion-avatar slot="start">
+          <ion-icon
+            name="person-circle-outline"
+            size="large"
+            color="primary">
+          </ion-icon>
+        </ion-avatar>
+
+        <ion-label>
+          <strong class="nombre-empleado">{{ emp.nombre }}</strong>
+          <p class="areas-count">
+            Áreas asignadas:
+           <span [ngClass]="{ 'has-areas': (emp.comisiones?.length ?? 0) > 0 }">
+  {{ emp.comisiones?.length ?? 0 }}
+</span>
+
+          </p>
+        </ion-label>
+
+        <!-- ✏️ Editar -->
+        <ion-button
+          fill="clear"
+          color="primary"
+          size="small"
+          (click)="abrirComisiones(emp.idEmpleados)">
+          <fa-icon [icon]="['fas', 'pen-to-square']"></fa-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- 🔹 Contenido -->
+      <div
+        slot="content"
+       *ngIf="(emp.comisiones?.length ?? 0) > 0; else sinComisiones"
+
+        class="accordion-content"
+      >
+
+        <ion-list lines="none">
+          <ion-item
+            *ngFor="let com of emp.comisiones"
+            class="comision-item"
+          >
+
+            <!-- 🧠 Ícono dinámico por área -->
+            <ion-avatar slot="start">
+              <ion-icon
+                [name]="getIconoPorArea(com.areaNombre)"
+                color="primary">
+              </ion-icon>
+            </ion-avatar>
+
+            <ion-label>
+              <h3 class="area-nombre">{{ com.areaNombre }}</h3>
+              <p class="comision-text">
+  Comisión:
+  <strong *ngIf="com.tipoComision === 'PORCIENTO'">
+    {{ com.porcientoComision }}%
+  </strong>
+
+  <strong *ngIf="com.tipoComision === 'MONTO'">
+    RD$ {{ com.montoComision }}
+  </strong>
+</p>
+            </ion-label>
+
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- ❌ Sin comisiones -->
+      <ng-template #sinComisiones>
+        <div class="no-comisiones">
+          <ion-icon name="alert-circle-outline" color="medium"></ion-icon>
+          <p>Sin comisiones registradas</p>
+        </div>
+      </ng-template>
+
+    </ion-accordion>
+  </ion-accordion-group>
+
+  <!-- 🔹 Sin empleados -->
+  <ng-template #noEmpleados>
+    <ion-text color="medium">
+      <p class="ion-text-center" style="margin-top: 2rem;">
+        No hay empleados registrados
+      </p>
+    </ion-text>
+  </ng-template>
+
+  <!-- ➕ Nueva comisión -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="abrirNuevaComision()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

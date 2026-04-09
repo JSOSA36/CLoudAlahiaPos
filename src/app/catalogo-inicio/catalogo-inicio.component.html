@@ -1,0 +1,192 @@
+<!-- Solo mostrar la vista cuando ya cargaron colores y catálogo -->
+<ng-container *ngIf="!cargando; else loadingTpl">
+
+  <!-- Header para página normal -->
+  <ng-container *ngIf="!sinHeader">
+    <ion-header *ngIf="!sinHeader" 
+      style="--background: #f4f5f8; --ion-background-color:#f4f5f8; box-shadow:none; border:none;">
+      <ion-toolbar style="--background: transparent; --ion-background-color: transparent; box-shadow:none; border:none; padding:0;">
+        
+        <!-- 🔹 Franja con fondo primario SOLO detrás del logo -->
+        <div style="background: var(--ion-color-primary); padding: 30px 0; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+          <div class="ion-text-center">
+            <ion-avatar style="width:120px; height:120px; margin:auto; border:3px solid white; background:#fff;">
+              <ion-img [src]="empresa?.logo"></ion-img>
+            </ion-avatar>
+          </div>
+        </div>
+
+        <!-- 🔹 Información del salón -->
+        <div style="background:#f4f5f8; padding: 15px;">
+          <h2 class="ion-text-center" style="color:#000; margin:0; font-weight:bold;">
+            {{ empresa?.nombreComercial || 'Cargando...' }}
+          </h2>
+
+          <!-- Teléfono -->
+          <p *ngIf="empresa?.telefono" class="ion-text-center" style="margin:5px 0 0; color:#000;">
+            <ion-icon name="call-outline" style="color:#000;"></ion-icon>
+            <a [href]="'tel:' + empresa?.telefono" style="color:#000; text-decoration:none;">
+              {{ empresa?.telefono }}
+            </a>
+          </p>
+
+          <!-- Dirección + botón ver mapa -->
+          <p *ngIf="empresa?.direccion" class="ion-text-center" style="margin:5px 0 10px; color:#000;">
+            <ion-icon name="location-outline" style="color:#000;"></ion-icon>
+            {{ empresa?.direccion }}
+            <br>
+            <a (click)="abrirMapa()" style="margin-left:8px; color:#000; text-decoration:none; font-weight:500; display:inline-flex; align-items:center; cursor:pointer;">
+              <ion-icon name="map-outline" style="margin-right:4px; font-size:16px;"></ion-icon>
+              VER MAPA
+            </a>
+          </p>
+
+          <!-- Subtítulo -->
+          <h3 class="ion-text-center" style="margin:10px 0; font-weight:bold; color:#000;">
+            Ver nuestro catálogo virtual
+          </h3>
+        </div>
+
+      </ion-toolbar>
+    </ion-header>
+  </ng-container>
+
+  <!-- Header para modal -->
+  <ng-container *ngIf="sinHeader">
+    <ion-header>
+      <ion-toolbar style="box-shadow:none; background: var(--ion-color-primary) !important;">
+        <ion-title style="text-align:center; font-weight:bold; color: var(--ion-title-color);">
+          Nuestro Catálogo Virtual
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" (click)="cerrarModal()" style="--color: var(--ion-title-color);">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+  </ng-container>
+
+  <!-- Contenido -->
+  <ion-content class="ion-padding" color="light" *ngIf="catalogo as c">
+
+    <!-- 🔎 Buscador -->
+    <ion-searchbar
+      placeholder="Buscar productos o servicios por Nombre o Precio..."
+      [(ngModel)]="busqueda"
+      (ionInput)="filtrarServicios()"
+      showCancelButton="focus"
+      debounce="300"
+      style="margin-bottom:10px;">
+    </ion-searchbar>
+
+    <!-- Caso 1: Hay búsqueda activa -->
+    <ng-container *ngIf="busqueda && serviciosFiltrados.length > 0">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" *ngFor="let s of serviciosFiltrados">
+            <ion-card class="servicio-card compact-card" 
+                      style="min-height:260px; border:1px solid var(--ion-color-primary); border-radius:8px;">
+              <!-- Imagen -->
+              <ion-img 
+                [src]="s.imagen ? s.imagen : (s.isServicio ? './assets/servicios.png' : './assets/Producto.png')"
+                class="servicio-imgt"
+                [ngClass]="{'placeholder-img': !s.imagen}">
+              </ion-img>
+
+              <ion-card-header>
+                <ion-card-subtitle style="color:#000;">{{ s.nombre }}</ion-card-subtitle>
+              </ion-card-header>
+             <ion-card-content>
+  <ion-note class="servicio-precio" 
+            style="
+              display: inline-block;
+              background: var(--ion-color-primary);
+              color: var(--ion-title-color);
+              font-weight: bold;
+              font-size: 18px;
+              padding: 6px 14px;
+              border-radius: 20px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            ">
+    {{ s.precio | currency:'DOP':'symbol':'1.0-0' }}
+  </ion-note>
+</ion-card-content>
+
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+
+    <!-- Caso 2: Sin búsqueda -> Mostrar áreas con accordion -->
+    <ng-container *ngIf="!busqueda">
+      <ion-accordion-group *ngIf="c.areas.length > 0" class="ion-margin-top">
+        <ion-accordion *ngFor="let area of c.areas" style="border-radius:10px; margin-bottom:12px; overflow:hidden;">
+
+          <!-- Header -->
+          <div slot="header" class="acc-header" style="background: var(--ion-color-primary);">
+            <span class="acc-title" [style.color]="'var(--ion-title-color)'">
+              {{ area.nombre }}
+            </span>
+            <ion-icon class="acc-icon" name="chevron-down-outline" [style.color]="'var(--ion-title-color)'"></ion-icon>
+          </div>
+
+          <!-- Contenido -->
+          <div slot="content" style="background:#fff; padding:10px;">
+            <ion-grid>
+              <ion-row>
+                <ion-col size="6" *ngFor="let s of area.servicios">
+                  <ion-card class="servicio-card compact-card" 
+                            style="min-height:260px; border:1px solid var(--ion-color-primary); border-radius:8px;">
+
+                    <ion-img 
+                      [src]="s.imagen ? s.imagen : (s.isServicio ? './assets/servicios.png' : './assets/Producto.png')"
+                      class="servicio-imgt"
+                      [ngClass]="{'placeholder-img': !s.imagen}">
+                    </ion-img>
+
+                    <ion-card-header>
+                      <ion-card-subtitle style="color:#000;">{{ s.nombre }}</ion-card-subtitle>
+                    </ion-card-header>
+                    <ion-card-content>
+  <ion-note class="servicio-precio" 
+            style="
+              display: inline-block;
+              background: var(--ion-color-primary);
+              color: var(--ion-title-color);
+              font-weight: bold;
+              font-size: 18px;
+              padding: 6px 14px;
+              border-radius: 20px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            ">
+    {{ s.precio | currency:'DOP':'symbol':'1.0-0' }}
+  </ion-note>
+</ion-card-content>
+
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+        </ion-accordion>
+      </ion-accordion-group>
+    </ng-container>
+
+    <!-- Sin resultados -->
+    <div *ngIf="busqueda && serviciosFiltrados.length === 0" class="ion-text-center" style="margin-top:20px;">
+      <ion-text color="medium">
+        <p>No se encontraron resultados.</p>
+      </ion-text>
+    </div>
+  </ion-content>
+</ng-container>
+
+<!-- Loader -->
+<ng-template #loadingTpl>
+  <ion-content class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando catálogo...</p>
+  </ion-content>
+</ng-template>

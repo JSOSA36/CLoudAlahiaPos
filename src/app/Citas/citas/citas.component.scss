@@ -1,0 +1,143 @@
+/* ===============================
+   🧾 TARJETA CITA
+   =============================== */
+
+.cita-card {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--ion-color-primary);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  height: 100%;
+}
+
+/* ===============================
+   🔵 HEADER
+   =============================== */
+
+.card-header-cita {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--ion-color-primary);
+  color: white;
+  padding: 10px 12px;
+}
+
+/* 👤 NOMBRE */
+.cliente {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* 🕒 FECHA */
+.fecha-hora {
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+/* ===============================
+   📄 BODY
+   =============================== */
+
+.card-body {
+  padding: 12px;
+  background: white;
+}
+
+/* ===============================
+   🏷️ BADGE ESTADO
+   =============================== */
+
+.estado-badge {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.estado-badge.clickable {
+  cursor: pointer;
+}
+
+/* ===============================
+   📎 RECIBO
+   =============================== */
+
+.recibo-cita {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid var(--ion-color-success);
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* ===============================
+   🌑 OVERLAY
+   =============================== */
+
+.recibo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recibo-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* ===============================
+   📅 SEMANA
+   =============================== */
+
+.semana-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dia {
+  min-width: 55px;
+  height: 70px;
+  background: #f2f2f2;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dia.activo {
+  background: #1976d2;
+  color: white;
+}
+
+/* ===============================
+   🎨 HEADER COLORES
+   =============================== */
+
+.header-confirmada { background:#2b74c8; color:white; }
+.header-encurso { background:#6c757d; color:white; }
+.header-completada { background:#28a745; color:white; }
+.header-cancelada { background:#dc3545; color:white; }
+.header-programada { background:#ffc107; color:black; }
+.header-default { background:var(--ion-color-primary); color:white; }

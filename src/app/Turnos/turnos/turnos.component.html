@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Clientes Activos</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-button expand="block" color="primary" (click)="simularNuevoCliente()">
+    Agregar Cliente
+  </ion-button>
+
+  <ion-card class="card-clientes">
+    <ion-card-header>
+      <ion-card-title>Clientes Activos</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item *ngFor="let cliente of clientesActivos; let i = index"
+                  [@entradaCliente]
+                  [ngClass]="{'recortando-animado': cliente.estado === 'Recortando'}"
+                  class="cliente-item">
+
+          <!-- Avatar + posición superpuesta -->
+          <div class="avatar-wrap" slot="start">
+            <ion-avatar>
+              <img src="https://randomuser.me/api/portraits/men/75.jpg" />
+            </ion-avatar>
+            <div class="posicion">{{ i + 1 }}</div>
+          </div>
+
+          <!-- Contenido -->
+          <ion-label class="ion-text-wrap contenido">
+            <h2 class="nombre">{{ cliente.nombre }}</h2>
+            <p class="estado">{{ cliente.estado }}</p>
+          </ion-label>
+
+          <!-- Botón acción -->
+          <ion-button
+            slot="end"
+            class="boton-unico"
+            [color]="getButtonColor(cliente.estado)"
+            (click)="accionCliente(cliente)"
+            size="default"
+            fill="solid"
+            shape="round">
+            {{ getButtonTexto(cliente.estado) }}
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

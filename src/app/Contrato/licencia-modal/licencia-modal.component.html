@@ -1,0 +1,71 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="closeModal()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Licencia de Uso</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card style="padding:16px;border-radius:16px;background:linear-gradient(145deg,#ffffff,#f1f1f1);box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:420px;overflow-y:auto;">
+
+  <h2 style="text-align:center;margin-bottom:16px;font-size:18px;">
+    Licencia de Uso – Términos y Condiciones
+  </h2>
+
+  <p style="font-size:14px;line-height:1.6;">
+    Al utilizar este sistema, EL CLIENTE acepta los siguientes términos y condiciones de uso:
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>PRIMERO: LICENCIA DE USO</strong><br>
+    Este software es propiedad de <strong>{{ empresaNombre }}</strong> y se concede una licencia de uso no transferible,
+    válida únicamente para la empresa registrada.
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>SEGUNDO: FECHA Y CONDICIONES DE PAGO</strong><br>
+    EL CLIENTE se compromete a realizar el pago del servicio de forma mensual,
+    teniendo como fecha límite de pago el día <strong>{{ diaPago }}</strong> de cada mes.
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>TERCERO: SUSPENSIÓN DEL SERVICIO</strong><br>
+    En caso de no realizar el pago dentro del plazo establecido,
+    el sistema será <strong>suspendido automáticamente</strong> sin previo aviso.
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>CUARTO: REACTIVACIÓN</strong><br>
+    Para reactivar el servicio, EL CLIENTE deberá ponerse al día con el pago pendiente
+    y cubrir el <strong>cargo por reconexión</strong> vigente.
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>QUINTO: SOPORTE</strong><br>
+    El soporte se ofrece de lunes a viernes, de 9:00 a.m. a 5:00 p.m.,
+    exclusivamente por medios digitales.
+  </p>
+
+  <p style="font-size:14px;line-height:1.6;">
+    <strong>SEXTO: ACEPTACIÓN</strong><br>
+    Al aceptar este contrato, EL CLIENTE confirma haber leído,
+    entendido y aceptado todas las condiciones aquí descritas.
+  </p>
+
+</ion-card>
+
+
+
+  <ion-item lines="none" style="margin-top: 12px;">
+    <ion-label>Acepto los términos y condiciones</ion-label>
+    <ion-checkbox slot="end" [(ngModel)]="aceptado" color="primary"></ion-checkbox>
+  </ion-item>
+
+  <ion-button expand="block" color="success" [disabled]="!aceptado" (click)="aceptar()" style="margin-top: 20px;">
+    Aceptar
+  </ion-button>
+</ion-content>

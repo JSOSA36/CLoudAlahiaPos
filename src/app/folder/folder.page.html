@@ -1,0 +1,231 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding dashboard-content">
+
+  <!-- 🔄 Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- 🔹 TARJETAS RESUMEN -->
+  <ion-grid fixed>
+    <ion-row class="summary-grid">
+      <ion-col size="12" size-md="6">
+        <ion-card class="summary-card card-dia">
+          <ion-card-header>
+            <ion-card-title style="color: white;">Ingresos del Día</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="card-data">
+              <div class="card-value">{{ totalDia | currency }}</div>
+              <fa-icon [icon]="['fas', 'sack-dollar']" size="2x"></fa-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card class="summary-card card-mes">
+          <ion-card-header>
+            <ion-card-title style="color: white;">Ingresos del Mes</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="card-data">
+              <div class="card-value">{{ totalMes | currency }}</div>
+              <fa-icon [icon]="['fas', 'money-check-dollar']" size="2x"></fa-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card class="summary-card card-comisiones">
+          <ion-card-header>
+            <ion-card-title>Comisiones del Mes</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="card-data">
+              <div class="card-value">{{ totalComisiones | currency }}</div>
+              <fa-icon [icon]="['fas', 'hand-holding-dollar']" size="2x"></fa-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card class="summary-card card-gastos">
+          <ion-card-header>
+            <ion-card-title style="color: white;">Gastos del Mes</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="card-data">
+              <div class="card-value">{{ totalGastos | currency }}</div>
+              <fa-icon [icon]="['fas', 'file-invoice-dollar']" size="2x"></fa-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  
+
+  <!-- 🔹 GRÁFICOS -->
+  <ion-grid class="charts-grid" fixed>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card class="chart-card">
+          <ion-card-header>
+            <ion-card-title>Ingresos por Mes</ion-card-title>
+            <ion-card-subtitle>Evolución de los últimos 12 meses</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content class="chart-container">
+            <canvas id="ingresosChart"></canvas>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card class="chart-card">
+          <ion-card-header>
+            <ion-card-title>Ingresos vs Gastos</ion-card-title>
+            <ion-card-subtitle>Comparativo mensual</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content class="chart-container">
+            <canvas id="ingresosGastosChart"></canvas>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+    <!-- 📊 Resumen Financiero -->
+    <div class="resumen-financiero ion-padding-horizontal ion-margin-top">
+      <ion-row class="resumen-item">
+        <ion-col size="6" class="titulo">Ingresos del mes:</ion-col>
+        <ion-col size="6" class="valor ion-text-right">
+          {{ totalMes | number:'1.0-0':'es-DO' }}
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="resumen-item">
+        <ion-col size="6" class="titulo">Gastos del mes:</ion-col>
+        <ion-col size="6" class="valor ion-text-right text-danger">
+          {{ totalGastos | number:'1.0-0':'es-DO' }}
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="resumen-item">
+        <ion-col size="6" class="titulo">Comisiones del mes:</ion-col>
+        <ion-col size="6" class="valor ion-text-right text-warning">
+          {{ totalComisiones | number:'1.0-0':'es-DO' }}
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="resumen-item total">
+        <ion-col size="6" class="titulo"><strong>Ganancia neta:</strong></ion-col>
+        <ion-col size="6" class="valor ion-text-right text-success">
+          <strong>{{ totalGanancia | number:'1.0-0':'es-DO' }}</strong>
+        </ion-col>
+      </ion-row>
+    </div>
+  </ion-grid>
+
+  <!-- 📅 CITAS DEL DÍA -->
+  <ion-card class="citas-dia-card">
+    <ion-card-header>
+      <ion-card-title>Citas del Día</ion-card-title>
+      <ion-card-subtitle>Agenda de hoy ({{ citasHoy.length }} citas)</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div *ngIf="!citasHoy || citasHoy.length === 0" class="ion-text-center ion-padding">
+        <p>No hay citas programadas para hoy 🎉</p>
+      </div>
+
+      <!-- <ion-list *ngIf="citasHoy.length > 0" lines="none" class="citas-list">
+        <ion-item *ngFor="let c of citasHoy" class="cita-item">
+          <ion-avatar slot="start" class="cita-avatar">
+            <fa-icon [icon]="['fas', 'user']"></fa-icon>
+          </ion-avatar>
+
+          <ion-label>
+            <h3>{{ c.nombreCliente }}</h3>
+            <h3>{{ c.servicio }}</h3>
+            <p>
+              <strong>{{ c.servicio }}</strong> • {{ c.hora }}<br />
+              <strong>Estilista: <strong>{{ c.empleado }}</strong></strong>
+            </p>
+          </ion-label>
+
+          <ion-badge [color]="getEstadoColor(c.estado)">
+            {{ c.estado || 'Programada' }}
+          </ion-badge>
+        </ion-item>
+      </ion-list> -->
+
+      <div *ngIf="citasHoy.length > 0" class="total-citas ion-text-right ion-padding-top">
+        <strong>Total del día:</strong>
+        <span>{{ citasHoy.length }}</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🏆 Servicios más ofrecidos -->
+  <ion-card class="top-servicios-card">
+    <ion-card-header>
+      <ion-card-title>Servicios más ofrecidos del mes</ion-card-title>
+      <ion-card-subtitle>Top 5 en cantidad de veces realizados</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-item *ngFor="let s of topServicios; let i = index" class="servicio-item">
+  <ion-avatar slot="start" class="rank-avatar">
+    <div class="rank">{{ i + 1 }}</div>
+  </ion-avatar>
+  <ion-label>
+    <h3>{{ s.nombreServicio }}</h3>
+    <p>{{ s.veces }} veces este mes</p>
+  </ion-label>
+  <ion-badge color="primary">RD$ {{ s.totalFacturado | number:'1.0-0':'es-DO' }}</ion-badge>
+</ion-item>
+
+  </ion-card>
+
+  <!-- 💰 Cuentas por Cobrar -->
+<!-- 💰 Cuentas por Cobrar -->
+<ion-card class="cuentas-cobrar-card">
+  <ion-card-header>
+    <ion-card-title>Cuentas por Cobrar</ion-card-title>
+    <ion-card-subtitle>Clientes con deudas pendientes</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-list lines="none" class="cuentas-list">
+      <ion-item *ngFor="let c of cuentasPorCobrar" class="cuenta-item">
+        <ion-avatar slot="start" class="cliente-avatar">
+          <fa-icon [icon]="['fas', 'user']"></fa-icon>
+        </ion-avatar>
+
+        <ion-label>
+          <h3>{{ c.nombreCliente }}</h3>
+          <p>Tel: {{ c.telefono || '—' }}</p>
+        </ion-label>
+
+        <ion-badge color="danger">
+          RD$ {{ c.totalDeuda | number:'1.0-0':'es-DO' }}
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+
+    <div class="total-deuda">
+      <strong>Total general:</strong>
+      <span>{{ totaldeudacobrar | number:'1.0-0':'es-DO' }}</span>
+    </div>
+  </ion-card-content>
+</ion-card>
+</ion-grid>
+</ion-content>

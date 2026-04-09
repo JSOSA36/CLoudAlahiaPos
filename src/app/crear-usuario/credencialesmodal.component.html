@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Credenciales de acceso</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Cuenta creada correctamente</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-text>
+        <p style="font-size: 16px; margin-bottom: 10px;">
+          Hemos enviado las <b>credenciales de acceso</b> al correo electrónico registrado.
+        </p>
+
+        <p style="font-size: 16px;">
+          Por favor, <b>revise su bandeja de entrada</b> (y la carpeta de spam si es necesario).
+        </p>
+      </ion-text>
+
+      <ion-text color="primary">
+        <p style="font-size: 15px; font-weight: 500; margin-top: 14px;">
+          🔐 Al iniciar sesión, podrá <b>cambiar su contraseña</b> por una de su preferencia.
+        </p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" color="success" (click)="irAlLogin()">
+    <ion-icon name="log-in-outline" slot="start"></ion-icon>
+    Ir al inicio de sesión
+  </ion-button>
+</ion-content>

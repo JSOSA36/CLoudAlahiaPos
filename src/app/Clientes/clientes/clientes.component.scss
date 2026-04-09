@@ -1,0 +1,146 @@
+/* =========================
+   CARDS MOBILE
+========================= */
+
+.cliente-card{
+  margin:8px;
+  padding:6px;
+}
+
+.cliente-avatar{
+  width:55px;
+  height:55px;
+}
+
+.cliente-info{
+  font-size:17px;
+  font-weight:700;
+}
+
+.cliente-telefono{
+  font-size:15px;
+  font-weight:600;
+  color:#2c3e50;
+}
+
+.cliente-email{
+  font-size:14px;
+  color:#555;
+}
+
+.cliente-direccion{
+  font-size:14px;
+  color:#666;
+}
+
+.cliente-fecha{
+  font-size:13px;
+  color:#888;
+}
+
+
+/* =========================
+   MOBILE POR DEFECTO
+========================= */
+
+.desktop-view{
+  display:none;
+}
+
+.mobile-view{
+  display:block;
+}
+
+
+/* =========================
+   TABLET / PC
+========================= */
+
+@media (min-width:992px){
+
+  .desktop-view{
+    display:block;
+  }
+
+  .mobile-view{
+    display:none;
+  }
+
+}
+
+
+/* =========================
+   TABLA CLIENTES
+========================= */
+
+.tabla-clientes{
+  width:100%;
+  padding:10px;
+}
+
+
+/* HEADER */
+
+.header-row{
+  background:#f7c948;
+  color:#1f2937;
+  font-weight:700;
+
+  border-bottom:2px solid #f7c948;
+
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+
+/* FILAS */
+
+.data-row{
+  min-height:72px;
+  align-items:center;
+
+  border-bottom:1px solid #fde68a;
+  border-right:3px solid #f7c948;
+  border-left:3px solid #f7c948;
+
+  padding:6px 10px;
+
+  transition:background .2s ease;
+}
+
+
+.data-row:hover{
+  background:#fffbeb;
+}
+
+
+/* =========================
+   COLUMNAS
+========================= */
+
+.col-nombre{
+  font-weight:700;
+  font-size:16px;
+}
+
+.col-telefono{
+  font-weight:600;
+}
+
+.col-email{
+  color:#555;
+}
+
+.col-direccion{
+  color:#666;
+}
+
+.col-fecha{
+  font-size:13px;
+  color:#888;
+}
+
+.col-rnc{
+  font-weight:600;
+}

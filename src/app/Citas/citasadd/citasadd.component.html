@@ -1,0 +1,264 @@
+<ion-header>
+  <ion-toolbar style="--background: var(--ion-color-primary);">
+    <ion-title class="ion-text-center"
+      style="color: var(--ion-title-color); font-weight: bold;">
+      {{ cita ? 'Editar Cita' : 'Agendar Cita' }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="cerrar()"
+        style="--color: var(--ion-title-color);">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+<ion-card>
+<ion-card-content>
+
+<!-- TELÉFONO -->
+<ion-item lines="inset">
+  <ion-label position="floating">Teléfono</ion-label>
+  <ion-input
+    type="tel"
+    [(ngModel)]="form.telefono"
+    maxlength="10"
+    inputmode="numeric"
+    placeholder="8091234567"
+    (ionInput)="buscarClientePorTelefono()">
+  </ion-input>
+</ion-item>
+
+<!-- NOMBRE -->
+<ion-item lines="inset">
+  <ion-label position="floating">Nombre del Cliente</ion-label>
+  <ion-input
+    [(ngModel)]="form.nombreCliente"
+    maxlength="50"
+    (ionInput)="onNombreChange()"
+    (ionBlur)="normalizarNombre()">
+  </ion-input>
+</ion-item>
+
+<ion-note color="danger" *ngIf="nombreInvalido">
+  Ingresa nombre y apellido válido
+</ion-note>
+
+<!-- CORREO -->
+<ion-item lines="inset">
+  <ion-label position="floating">Correo electrónico *</ion-label>
+  <ion-input
+    type="email"
+    [(ngModel)]="form.correo">
+  </ion-input>
+</ion-item>
+
+<div class="alerta-warning">
+  <ion-icon name="warning-outline"></ion-icon>
+  <span>
+    Asegúrese de ingresar un correo válido para recibir la confirmación de su cita.
+  </span>
+</div>
+
+<!-- SERVICIO -->
+<div class="servicio-wrapper">
+
+  <ion-item lines="inset">
+    <ion-label position="stacked">Servicio</ion-label>
+    <ion-input
+      placeholder="Buscar servicio..."
+      [(ngModel)]="textoBuscarServicio"
+      (ionInput)="filtrarServicios($event)">
+    </ion-input>
+  </ion-item>
+
+  <div class="autocomplete-dropdown"
+    *ngIf="textoBuscarServicio.length > 0 && form.idProducto === 0">
+
+    <div class="autocomplete-item"
+      *ngFor="let s of serviciosFiltrados"
+      (click)="seleccionarServicio(s)">
+
+      <div>
+        <strong>{{ s.nombre }}</strong>
+        <p>
+          {{ s.duracionServicio }} min ·
+          <span class="precio">
+            RD${{ s.precioVenta | number:'1.2-2' }}
+          </span>
+        </p>
+      </div>
+
+      <ion-icon name="checkmark-circle"
+        color="primary"></ion-icon>
+
+    </div>
+  </div>
+
+</div>
+
+<ion-item lines="none" *ngIf="form.idProducto">
+  <ion-label color="primary">
+    Servicio seleccionado:
+    <strong>{{ textoBuscarServicio }}</strong>
+  </ion-label>
+</ion-item>
+
+<!-- SEGUIMIENTO -->
+<ion-item lines="none">
+  <ion-checkbox slot="start"
+    [(ngModel)]="form.esSeguimiento">
+  </ion-checkbox>
+
+  <ion-label>
+    Cita de seguimiento (no requiere abono)
+  </ion-label>
+</ion-item>
+
+<div class="alerta-info">
+  <ion-icon name="information-circle-outline"></ion-icon>
+  <span>
+    Si no está realizando un procedimiento continuo, no seleccione esta opción.
+  </span>
+</div>
+
+<!-- ESTILISTA -->
+<ion-item lines="inset">
+  <ion-label>Estilista</ion-label>
+
+  <ion-select
+    [(ngModel)]="form.idEmpleados"
+    (ionChange)="onEstilistaChange()">
+
+    <ion-select-option
+      *ngFor="let emp of empleados"
+      [value]="emp.idEmpleados">
+
+      {{ emp.userName || emp.nombre }}
+
+    </ion-select-option>
+
+  </ion-select>
+</ion-item>
+
+<!-- FECHA -->
+<div class="calendar-panel" *ngIf="mostrarCalendario">
+
+  <ion-item lines="inset">
+    <ion-label>Fecha</ion-label>
+
+    <ion-datetime
+      presentation="date"
+      preferWheel="false"
+      size="fixed"
+      show-default-buttons="false"
+      class="calendar-datetime"
+      [(ngModel)]="form.fecha"
+      (ionChange)="onFechaChange()"
+      [min]="hoyISO()"
+      [isDateEnabled]="isDateEnabled">
+    </ion-datetime>
+
+  </ion-item>
+
+  <div class="horas-panel" *ngIf="horasDisponibles.length > 0">
+
+    <h4 class="horas-title">Horas disponibles</h4>
+
+    <div class="horas-grid">
+
+      
+      <ion-button
+        *ngFor="let h of horasDisponibles"
+        fill="outline"
+        size="small"
+        shape="round"
+        class="hora-btn"
+        (click)="seleccionarHora(h)"
+        [disabled]="horasBloqueadas.includes(h)"
+        [ngClass]="{'hora-activa': form.hora === h}">
+        {{ h | horaRD }}
+      </ion-button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- BANCO -->
+<ion-item lines="inset" *ngIf="!form.esSeguimiento">
+  <ion-label position="stacked">Banco</ion-label>
+
+  <ion-select [(ngModel)]="form.banco">
+    <ion-select-option value="BHD">Banco BHD</ion-select-option>
+    <ion-select-option value="Banreservas">Banreservas</ion-select-option>
+    <ion-select-option value="Popular">Popular</ion-select-option>
+    <ion-select-option value="QIK">QIK</ion-select-option>
+  </ion-select>
+</ion-item>
+
+<!-- ABONO -->
+<ion-item lines="inset" *ngIf="!form.esSeguimiento">
+  <ion-label position="stacked">Monto abonado</ion-label>
+  <ion-input type="number"
+    [(ngModel)]="form.abono">
+  </ion-input>
+</ion-item>
+
+<div class="alerta-danger" *ngIf="!form.esSeguimiento">
+  <ion-icon name="alert-circle-outline"></ion-icon>
+  <span>
+    Si el monto abonado no cumple con la política establecida, no podrá agendar la cita.
+  </span>
+</div>
+
+<!-- RECIBO -->
+<ion-item lines="full" *ngIf="!form.esSeguimiento">
+  <ion-label position="stacked">
+    Recibo / Volante de pago
+  </ion-label>
+
+  <input type="file"
+    accept="image/*"
+    (change)="onSeleccionarRecibo($event)" />
+</ion-item>
+
+<ion-item *ngIf="previewRecibo && !form.esSeguimiento">
+  <ion-thumbnail slot="start">
+    <img [src]="previewRecibo" />
+  </ion-thumbnail>
+  <ion-label>Imagen cargada</ion-label>
+</ion-item>
+
+<!-- NOTA -->
+<ion-item lines="inset">
+  <ion-label position="stacked">Nota</ion-label>
+  <ion-textarea autoGrow="true"
+    [(ngModel)]="form.nota">
+  </ion-textarea>
+</ion-item>
+
+<!-- BOTÓN -->
+<div class="ion-padding-top">
+  <ion-button expand="block"
+    (click)="guardar()"
+    [disabled]="guardando">
+
+    <ion-spinner
+      *ngIf="guardando"
+      name="lines-small">
+    </ion-spinner>
+
+    {{ guardando ? 'Guardando...' : 'Guardar' }}
+
+  </ion-button>
+</div>
+
+</ion-card-content>
+</ion-card>
+
+</ion-content>

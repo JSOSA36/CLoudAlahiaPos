@@ -1,0 +1,51 @@
+.card-lavador{
+  border-radius: 18px;
+  border: 2px solid #2f7de1;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  margin-bottom: 16px;
+}
+
+.header-lavador{
+  background: linear-gradient(135deg,#2f7de1,#4aa3ff);
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 12px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.fila{
+  display:flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 1rem;
+}
+
+.label.verde{
+  color:#18a558;
+  font-weight:600;
+}
+
+.label.rojo{
+  color:#e53935;
+  font-weight:600;
+}
+
+.label.azul{
+  color:#2f7de1;
+  font-weight:700;
+}
+
+.neto{
+  margin-top:10px;
+  border-top:1px solid #eee;
+  padding-top:10px;
+}
+
+.netoValor{
+  font-size:1.3rem;
+  font-weight:bold;
+  color:#2f7de1;
+}

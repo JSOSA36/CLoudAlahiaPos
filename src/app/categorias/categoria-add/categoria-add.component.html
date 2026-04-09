@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="closeModal()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center" style="font-size: 20px;">Agregar Categoría</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card style="padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+    
+    <!-- Nombre de la categoría -->
+    <ion-item>
+      <ion-label position="stacked" style="font-size: 16px; font-weight: 600;">Nombre de la categoría</ion-label>
+      <ion-input [(ngModel)]="nombre" placeholder="Ingrese el nombre" style="font-size: 16px;"></ion-input>
+    </ion-item>
+
+    <!-- Imagen -->
+    <ion-item lines="none">
+      <ion-label position="stacked" style="font-size: 16px; font-weight: 600;">Imagen de la categoría</ion-label>
+      <ion-button expand="block" color="primary" (click)="fileInput.click()" style="font-size: 16px;">
+        <ion-icon name="image-outline" slot="start"></ion-icon>
+        Seleccionar Imagen
+      </ion-button>
+      <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)">
+    </ion-item>
+
+    <!-- Preview de la imagen -->
+    <div class="ion-text-center" *ngIf="imagenPreview">
+      <ion-avatar style="margin: 15px auto; width: 120px; height: 120px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+        <img [src]="imagenPreview" />
+      </ion-avatar>
+    </div>
+
+    <!-- Toggle Activo/Inactivo -->
+    <ion-item>
+      <ion-label style="font-size: 16px; font-weight: 600;">Activo</ion-label>
+      <ion-toggle slot="end" [checked]="_estado" (ionChange)="onToggleChange($event)"></ion-toggle>
+    </ion-item>
+
+    <!-- Botón Guardar -->
+    <ion-button expand="block" color="success" (click)="guardarCategoria()" style="margin-top: 20px; font-size: 16px;">
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+      Guardar Categoría
+    </ion-button>
+
+  </ion-card>
+</ion-content>

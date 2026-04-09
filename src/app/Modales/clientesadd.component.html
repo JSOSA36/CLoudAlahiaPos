@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <!-- Botón cerrar modal -->
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <!-- Título centrado -->
+    <ion-title class="ion-text-center">
+      {{ isEdit ? 'Editar Cliente' : 'Nuevo Cliente' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-list lines="full">
+
+    <ion-item>
+      <ion-label position="floating">Nombre Comercial</ion-label>
+      <ion-input [(ngModel)]="cliente.nombreComercial"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Teléfono</ion-label>
+      <ion-input type="tel" [(ngModel)]="cliente.telefono"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Celular</ion-label>
+      <ion-input type="tel" [(ngModel)]="cliente.celular"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Correo</ion-label>
+      <ion-input type="email" [(ngModel)]="cliente.email"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Dirección</ion-label>
+      <ion-textarea auto-grow="true" [(ngModel)]="cliente.direccion"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Fecha de Nacimiento</ion-label>
+      <ion-input type="date" [(ngModel)]="cliente.fechaNacimiento"></ion-input>
+    </ion-item>
+
+  </ion-list>
+
+  <!-- ÚNICO BOTÓN -->
+  <div class="ion-text-center ion-margin-top">
+    <ion-button expand="block" color="primary" (click)="guardar()">
+      <ion-icon slot="start" name="save-outline"></ion-icon>
+      {{ isEdit ? 'Actualizar' : 'Registrar' }}
+    </ion-button>
+  </div>
+
+</ion-content>

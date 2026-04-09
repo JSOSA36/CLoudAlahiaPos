@@ -1,0 +1,228 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center" style="font-weight: 700;">
+      💵 Pago de Factura
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button color="light" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+
+  <!-- 🟡 Card de información de factura -->
+  <ion-card class="factura-info-card">
+    <ion-card-header>
+      <ion-card-title class="card-title-yellow">
+        📄 Factura #0000{{ factura.idFacturaHeader }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p><strong>Total:</strong> RD$ {{ factura.total | number:'1.2-2' }}</p>
+      <p><strong>Pagado:</strong> RD$ {{ factura.pagado || 0 | number:'1.2-2' }}</p>
+      <p>
+        <strong>Pendiente:</strong>
+        <span style="color: #d32f2f; font-weight: 700;">
+          RD$ {{ factura.pendiente || factura.total | number:'1.2-2' }}
+        </span>
+      </p>
+      <p *ngIf="factura.fechaBencimiento">
+        <strong>Fecha:</strong>
+        <span style="color: #444;">
+          {{ factura.fechaBencimiento | date:'dd/MM/yyyy' }}
+        </span>
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🔹 Sección MODO PAGO -->
+  <ng-container *ngIf="modo === 'pago'">
+    <ion-card class="pago-card">
+      <ion-card-header>
+        <ion-card-title class="card-title-green">
+          💰 Registrar Pago
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list lines="full">
+          <ion-item>
+            <ion-label position="stacked"><strong>Monto a abonar</strong></ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="montoAbono"
+              placeholder="Ej. 1000"
+              [disabled]="cargando">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            
+          <ion-select
+          [(ngModel)]="metodoPago"
+          interface="popover"
+          placeholder="Selecciona una forma de pago">
+
+          <ion-select-option value="Efectivo">💵 Efectivo</ion-select-option>
+          <ion-select-option value="Tarjeta">💳 Tarjeta</ion-select-option>
+          <ion-select-option value="Transferencia BHD">🏦 Transferencia BHD</ion-select-option>
+          <ion-select-option value="Transferencia Banreservas">🏦 Transferencia Banreservas</ion-select-option>
+          <ion-select-option value="Transferencia Popular">🏦 Transferencia Popular</ion-select-option>
+          <ion-select-option value="Transferencia QIK">🏦 Transferencia QIK</ion-select-option>
+
+        </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked"><strong>Nota (opcional)</strong></ion-label>
+            <ion-textarea
+              auto-grow="true"
+              [(ngModel)]="nota"
+              placeholder="Agrega una observación o referencia...">
+            </ion-textarea>
+          </ion-item>
+        </ion-list>
+
+        <ion-button
+          expand="block"
+          color="success"
+          class="btn-pagar"
+          (click)="procesarPago()"
+          [disabled]="cargando">
+          <ion-icon slot="start" name="cash-outline"></ion-icon>
+          {{ cargando ? 'Procesando...' : 'Registrar Pago' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <!-- 🔹 Sección MODO HISTORIAL -->
+  <ng-container *ngIf="modo === 'historial'">
+    <ion-card class="historial-card">
+      <ion-card-header>
+        <ion-card-title class="card-title-blue">
+          🧾 Historial de Pagos
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list *ngIf="pagos && pagos.length > 0">
+          <ion-item *ngFor="let pago of pagos" lines="full">
+            <ion-label>
+              <h2>
+                {{ pago.formaPago }} — 
+                <strong style="color:#0a9f6b;">
+                  RD$ {{ pago.monto | number:'1.2-2' }}
+                </strong>
+              </h2>
+              <p style="font-size: 0.9em; color:#666;">
+                {{ pago.fechaInseccion | date:'dd/MM/yyyy' }}
+              </p>
+              <p *ngIf="pago.nota" style="font-size: 0.85em; font-style: italic;">
+                "{{ pago.nota }}"
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-item *ngIf="!pagos || pagos.length === 0">
+          <ion-label class="ion-text-center" style="color:#999;">
+            No hay pagos registrados para esta factura.
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>
+
+<style>
+/* 🟡 Card de factura */
+.factura-info-card {
+  border-left: 6px solid #fbbf24;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+  background: #fffbe6;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 💰 Card de registro de pago */
+.pago-card {
+  border-left: 5px solid #0a9f6b;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  margin-bottom: 20px;
+  background: #f0fff4;
+}
+
+.card-title-green {
+  color: #0a9f6b;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 🔹 Card del historial */
+.historial-card {
+  border-left: 5px solid var(--ion-color-primary);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+}
+
+.card-title-yellow {
+  color: #b45309;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-title-blue {
+  color: var(--ion-color-primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 💵 Estilo de pagos */
+ion-item {
+  --min-height: 55px;
+}
+
+ion-label h2 {
+  font-weight: 600;
+  color: #111;
+}
+
+ion-label p {
+  margin-top: 2px;
+}
+
+ion-item::part(native) {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Animación suave */
+ion-card {
+  animation: fadeIn 0.35s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

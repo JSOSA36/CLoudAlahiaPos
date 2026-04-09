@@ -1,0 +1,30 @@
+ion-toolbar {
+  --color: #000000;                  /* aquí fuerzas negro fijo */
+  --background: var(--ion-color-primary); /* aquí usas el color de la empresa */
+  text-align: center;
+}
+
+.salon-info {
+  margin-top: 15px;
+  font-size: 16px;
+
+  ion-icon {
+    vertical-align: middle;
+    margin-right: 5px;
+    color: #000000; /* fijo en negro como pediste */
+  }
+}
+
+.bienvenida {
+  margin-top: 20px;
+
+  h3 {
+    font-weight: bold;
+    color: #000000; /* fijo negro */
+  }
+
+  p {
+    font-size: 15px;
+    color: #444444; /* gris fijo */
+  }
+}

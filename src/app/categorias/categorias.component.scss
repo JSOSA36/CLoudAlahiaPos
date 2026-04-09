@@ -1,0 +1,281 @@
+/* ============================================================
+   🔹 CONTENEDOR HORIZONTAL (SCROLL)
+============================================================ */
+.flex-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 8px 10px;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.flex-item {
+  flex: 0 0 auto;
+  width: 160px;
+}
+
+/* ============================================================
+   🔹 CARD GENERAL
+============================================================ */
+ion-card {
+  border: 1px solid var(--ion-color-primary, #3dc2ff);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+ion-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+   🔹 IMÁGENES DE PRODUCTOS
+============================================================ */
+
+/* Imagen dentro de ion-card */
+.img-prod {
+  width: 100%;
+  height: 140px;
+  object-fit: contain;        /* 🔥 Perfecto para Producto.png */
+  object-position: center;
+  display: block;
+  background: #fff;
+  padding: 6px;
+}
+
+/* Imagen de categorías */
+.img-cat {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* ============================================================
+   🔹 BUSCADOR
+============================================================ */
+.search-container {
+  margin: 10px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.flex-item ion-card {
+  width: 160px;
+  height: 170px;   /* 🔥 altura fija igual para todos */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-title-area {
+  height: 40px;        /* 🔥 espacio fijo para título */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+}
+ion-searchbar {
+  --background: #fff;
+  --border-radius: 12px;
+  --color: #222;
+  --placeholder-color: #888;
+  --icon-color: var(--ion-color-primary, #1976d2);
+  --clear-button-color: var(--ion-color-primary, #1976d2);
+  font-size: 15px;
+  padding: 0;
+}
+
+/* ============================================================
+   🔹 TÍTULO Y PRECIOS
+============================================================ */
+
+h2 {
+  text-align: center;
+  font-size: 15px;
+  color: #222;
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+h2 strong {
+  color: var(--ion-color-primary, #1976d2);
+}
+
+.precio-original {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 14px;
+}
+
+.precio-oferta {
+  color: #0c6efd;
+  font-size: 18px;
+  font-weight: 700;
+}
+ion-card {
+  background: #eaf2ff;   /* azul suave elegante */
+  border: 1px solid #4c8dff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+/* ============================================================
+   🔹 BADGE DESCUENTO
+============================================================ */
+.badge-descuento {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #e63946;
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+/* ============================================================
+   🔹 CARD PRODUCTO (posicionamiento)
+============================================================ */
+.producto-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+    background: #eaf2ff;  
+}
+
+/* ============================================================
+   🔹 BOTONES
+============================================================ */
+ion-card ion-button {
+  --border-radius: 6px;
+  margin: 2px 3px;
+}
+.producto-card ion-card-content {
+  padding: 0 !important;
+}
+/* CONTENEDOR para mantener forma perfecta */
+.img-wrapper {
+  width: 100%;
+  height: 110px;              /* 🔥 altura elegante */
+  overflow: hidden;           /* evita espacios feos */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+.flex-item {
+  display: flex;
+}
+.titulo-prod {
+  font-size: 13px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.precio-oferta {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+/* IMAGEN que llena el card completamente */
+.img-prod {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;          /* 🔥 llena todo el contenedor */
+  object-position: center;    /* centra el producto */
+  display: block;
+}
+@media (min-width: 1024px) {
+  .img-prod,
+  .img-cat {
+    height: 110px;
+    object-fit: cover;
+  }
+}
+.titulo-prod {
+    font-size: 12px;
+  }
+
+  ion-button[size="small"] {
+    height: 28px;
+    font-size: 11px;
+  }
+  @media (min-width: 1024px) {
+
+  .titulo-prod {
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+
+  .precio-oferta {
+    font-size: 15px;
+    color: #1976d2;
+  }
+
+  .titulo-prod strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .titulo-prod {
+    font-size: 11px;
+  }
+
+  .producto-card ion-card-content {
+    padding-bottom: 2px;
+  }
+
+}
+@media (min-width: 1024px) {
+
+  .producto-card {
+    padding-bottom: 2px;
+  }
+
+  .img-wrapper {
+    margin-bottom: 2px;
+  }
+
+  .buttons-area {
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+
+  .titulo-prod {
+    margin-top: 2px;
+    margin-bottom: 0;
+    line-height: 1.1;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .precio-oferta {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1976d2;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+}

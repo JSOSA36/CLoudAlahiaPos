@@ -1,0 +1,71 @@
+<ion-content class="login-background">
+
+  <form>
+    <!-- LOGO -->
+    <div class="logo-container">
+      <ion-avatar class="logo-avatar">
+        <ion-img src="/assets/Logo.png"></ion-img>
+      </ion-avatar>
+    </div>
+
+    <!-- CARD GLASSMORPHISM -->
+    <ion-card class="login-card">
+      <ion-card-header>
+        <ion-title color="primary" class="title-text ion-text-center">Bienvenido</ion-title>
+      </ion-card-header>
+    
+      <ion-card-content>
+        <!-- Usuario -->
+        <ion-item lines="full" class="input-item">
+          <ion-icon color="warning" name="person" slot="start"></ion-icon>
+          <ion-label position="floating">Usuario</ion-label>
+          <ion-input [(ngModel)]="Usuario" [ngModelOptions]="{standalone: true}" required></ion-input>
+        </ion-item>
+
+        <!-- Contraseña -->
+        <ion-item lines="full" class="input-item">
+          <ion-icon color="warning" name="key" slot="start"></ion-icon>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input [(ngModel)]="PassWord" type="password" [ngModelOptions]="{standalone: true}" required></ion-input>
+        </ion-item>
+        
+        <br>
+
+        <!-- Botón Iniciar Sesión -->
+        <ion-button 
+          expand="block" 
+          shape="round" 
+          
+          color="warning"
+          (click)="login()">
+          Iniciar Sesión
+        </ion-button>
+        
+      
+       
+        
+     <ion-button  
+  expand="block" 
+  shape="round" 
+  color="dark"
+ 
+  (click)="irARegistro()">
+ <p style="color:#facc15">VER PLANES</p>
+</ion-button>  
+
+
+
+
+
+        <!-- Olvidó contraseña 
+         <p 
+  class="ion-text-center forgot-pass" 
+  style="color: white; margin-top: 10px; cursor: pointer;" 
+  (click)="goToForgot()">
+  ¿Olvidaste tu contraseña?
+</p>
+-->
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>

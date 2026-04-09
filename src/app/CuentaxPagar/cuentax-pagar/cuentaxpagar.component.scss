@@ -1,0 +1,537 @@
+/* =========================
+FONDO GENERAL DEL MODAL
+========================= */
+
+.factura-scroll {
+
+  flex: 1;
+  overflow-y: auto;
+
+  padding: 15px;
+
+  background: linear-gradient(
+    180deg,
+    #1e2430 0%,
+    #2c3444 100%
+  );
+
+}
+
+
+/* =========================
+CARD CENTRAL
+========================= */
+
+.factura-card {
+
+  background: transparent;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+}
+
+
+/* =========================
+ITEMS CONFIGURACIÓN
+========================= */
+
+.factura-scroll ion-item {
+
+  --background: #fff4c4;
+
+  border: 2px solid #e0a800;
+  border-radius: 10px;
+
+  margin-bottom: 10px;
+
+  box-shadow:
+0 10px 25px rgba(0,0,0,0.4);
+
+}
+
+
+/* =========================
+SELECTS
+========================= */
+
+ion-select {
+
+  font-weight: 500;
+
+}
+
+
+/* =========================
+CLIENTE SELECTOR
+========================= */
+
+.cliente-selector {
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #1f2633;
+
+  border: 2px dashed #4a90ff;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  color: white;
+
+}
+
+.cliente-selector ion-icon {
+
+  color: #4a90ff;
+
+}
+
+
+/* =========================
+RESTANTE CRÉDITO
+========================= */
+
+.restante-box {
+
+  background: #111;
+
+  border-radius: 10px;
+
+  padding: 10px;
+
+  margin-top: 15px;
+
+}
+
+.restante-label {
+
+  color: #aaa;
+
+  font-size: 12px;
+
+}
+
+.restante-monto {
+
+  color: #ff3b30;
+
+  font-size: 26px;
+
+  font-weight: bold;
+
+}
+
+
+/* =========================
+FOOTER
+========================= */
+
+.factura-footer {
+
+  padding: 12px;
+
+  background: #0f1218;
+
+  border-top: 1px solid #2a3242;
+
+}
+
+
+/* =========================
+TOTAL FOOTER
+========================= */
+
+.total-footer {
+
+  background: linear-gradient(
+    180deg,
+    #000000,
+    #1a1a1a
+  );
+
+  border-radius: 12px;
+
+  padding: 12px;
+
+  margin-bottom: 10px;
+
+  text-align: center;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+
+}
+
+.total-label {
+
+  color: #999;
+
+  font-size: 12px;
+
+}
+
+.total-value {
+
+  color: #ff3b30;
+
+  font-size: 34px;
+
+  font-weight: bold;
+
+}
+
+
+/* =========================
+BOTONES
+========================= */
+
+.factura-footer ion-button[color="success"] {
+
+  --background: #22c55e;
+  --border-radius: 8px;
+
+}
+
+.factura-footer ion-button[color="medium"] {
+
+  --border-radius: 8px;
+
+}
+
+
+/* =========================
+ICONOS BANCO
+========================= */
+
+.icono-banco {
+
+  width: 26px;
+  height: 26px;
+
+}
+.grupo-opciones{
+margin-bottom:20px;
+text-align:center;
+}
+
+.titulo-opcion{
+font-weight:600;
+margin-bottom:8px;
+color:#ddd;
+}
+
+.opciones-grid{
+
+display:grid;
+
+grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+
+
+
+justify-items:center;
+
+max-width:500px;
+
+margin:auto;
+
+}
+
+.opcion{
+
+width:160px;
+
+height:45px;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+background:#fff4c4;
+
+border:2px solid #e0a800;
+
+border-radius:10px;
+
+font-weight:600;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.opcion:hover{
+
+transform:scale(1.05);
+
+}
+
+.opcion.activa{
+
+background:#22c55e;
+
+border-color:#22c55e;
+
+color:white;
+
+}
+.cambio-box{
+
+background:#1a1a1a;
+
+border-radius:10px;
+
+padding:8px;
+
+margin-top:8px;
+
+text-align:center;
+
+}
+
+.cambio-label{
+
+font-size:12px;
+
+color:#aaa;
+
+}
+
+.cambio-value{
+
+font-size:26px;
+
+font-weight:bold;
+
+color:#22c55e;
+
+}
+.cash-buttons{
+
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:8px;
+
+margin-top:10px;
+
+}
+
+.cash-btn{
+
+height:45px;
+
+border-radius:8px;
+
+border:2px solid #d4a300;
+
+background:#f7e6a0;
+
+font-weight:600;
+
+font-size:15px;
+
+cursor:pointer;
+
+transition:.15s;
+
+}
+
+.cash-btn:hover{
+
+transform:scale(1.05);
+
+}
+
+.cash-btn.exacto{
+
+background:#22c55e;
+
+border:none;
+
+color:white;
+
+}
+.efectivo-panel{
+
+display:grid;
+
+grid-template-columns:1fr 160px;
+
+gap:10px;
+
+margin-top:10px;
+
+}
+
+.cash-buttons{
+
+display:flex;
+
+flex-direction:column;
+
+gap:6px;
+
+}
+
+.cash-buttons button{
+
+height:40px;
+
+border-radius:8px;
+
+border:2px solid #d4a300;
+
+background:#f4e4a0;
+
+font-weight:600;
+
+cursor:pointer;
+
+transition:.15s;
+
+}
+
+.cash-buttons button:hover{
+
+transform:scale(1.04);
+
+}
+
+.cash-buttons .exacto{
+
+background:#22c55e;
+
+border:none;
+
+color:white;
+
+}
+.panel-efectivo{
+
+position:fixed;
+
+right:20px;
+top:120px;
+
+display:flex;
+flex-direction:column;
+
+
+
+z-index:999;
+
+}
+
+.panel-efectivo button{
+
+width:90px;
+height:42px;
+
+border-radius:8px;
+
+border:2px solid #d4a300;
+
+background:#f4e4a0;
+
+font-weight:600;
+
+cursor:pointer;
+
+transition:.15s;
+
+}
+
+.panel-efectivo button:hover{
+
+transform:scale(1.05);
+
+}
+
+.panel-efectivo .exacto{
+
+background:#22c55e;
+border:none;
+color:white;
+
+}
+.modal-efectivo{
+
+--width:420px;
+--height:auto;
+--border-radius:14px;
+
+}
+
+.modal-efectivo-content{
+
+padding:20px;
+text-align:center;
+
+}
+
+.modal-efectivo-content h2{
+
+margin-bottom:15px;
+font-size:20px;
+font-weight:600;
+
+}
+
+.efectivo-grid{
+
+display:grid;
+
+grid-template-columns:repeat(2,1fr);
+
+gap:12px;
+
+margin-bottom:15px;
+
+}
+
+.efectivo-grid button{
+
+height:65px;
+
+font-size:20px;
+
+font-weight:700;
+
+border-radius:12px;
+
+border:2px solid #d4a300;
+
+background:#f4e4a0;
+
+}
+
+.efectivo-grid button:hover{
+
+transform:scale(1.05);
+
+}
+
+.efectivo-grid .exacto{
+
+grid-column:1/3;
+
+background:#22c55e;
+
+color:white;
+
+border:none;
+
+}
+.print-check-box{
+  margin-top: 10px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 2px solid #e5e7eb;
+}

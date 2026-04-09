@@ -1,0 +1,36 @@
+ion-item
+{
+  --padding-end:0;
+  --inner-padding-end:0;
+}
+my-custom-class {
+  --height:200px
+  --with:200px
+}
+.empleado-comision-box {
+
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+
+  background: #e7f3ff;
+  border: 2px dashed #007bff;
+
+  ion-item {
+    --background: #ffffff;
+    --border-radius: 10px;
+    --padding-start: 8px;
+  }
+
+  ion-select {
+    font-weight: bold;
+    color: #004085;
+  }
+
+}
+.empleado-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #004085;
+  margin-bottom: 4px;
+}

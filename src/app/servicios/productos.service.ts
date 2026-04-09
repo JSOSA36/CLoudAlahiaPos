@@ -1,0 +1,60 @@
+// src/app/servicios/productos.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { productos } from '../models/productos';
+import { AppConfigService } from './app-config.service';
+import { ProductoLite } from '../models/producto-lite.model';
+
+@Injectable({ providedIn: 'root' })
+export class ProductosService {
+
+  private readonly baseUrl: string;
+  private httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+  };
+
+  constructor(
+    private httpClient: HttpClient,
+    private config: AppConfigService
+  ) {
+    // Queda: https://apikds.alahiapos.com/api/Productos
+    this.baseUrl = `${this.config.apiUrl}/Productos`;
+  }
+
+  GetProductosByIdCategoria(Id: number, IdEmpresa: number): Observable<productos[]> {
+    return this.httpClient.get<productos[]>(`${this.baseUrl}/${Id}/${IdEmpresa}`);
+  }
+  getProductosLite(IdEmpresa: number): Observable<ProductoLite[]> {
+  return this.httpClient.get<ProductoLite[]>(
+    `${this.baseUrl}/ProductosLite/${IdEmpresa}`
+  );
+}
+
+  GetProductos(IdEmpresa: number): Observable<productos[]> {
+    return this.httpClient.get<productos[]>(`${this.baseUrl}/GetListadoProductos/${IdEmpresa}`);
+  }
+
+  GetProductosByBarCode(BarCode: string): Observable<productos> {
+    const params = new HttpParams().set('BarCode', BarCode);
+    return this.httpClient.get<productos>(`${this.baseUrl}/GetProductByBarCode/`, { params });
+  }
+
+  DeleteIten(id: number): Observable<any> {
+    return this.httpClient.delete<any>(`${this.baseUrl}/${id}`);
+  }
+
+  EnviarItem(value: FormData): Observable<any> {
+    // FormData: no agregar headers de JSON
+    return this.httpClient.post<any>(`${this.baseUrl}/`, value);
+  }
+
+  EditarProductos(value: FormData): Observable<any> {
+    // FormData: no agregar headers de JSON
+    return this.httpClient.put<any>(`${this.baseUrl}/`, value);
+  }
+
+  getServiciosByArea(idArea: number, idEmpresa: number): Observable<productos[]> {
+    return this.httpClient.get<productos[]>(`${this.baseUrl}/GetServiciosByArea/${idArea}/${idEmpresa}`);
+  }
+}

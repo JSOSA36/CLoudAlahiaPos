@@ -1,0 +1,63 @@
+<ion-content class="ion-padding form-background">
+
+  <ion-card class="form-card">
+    <!-- Cabecera del modal -->
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">
+        {{ isEdit ? 'Editar Gasto' : 'Registrar Gasto' }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Tipo de gasto -->
+      <ion-item lines="full">
+        <ion-icon name="pricetag-outline" slot="start" color="primary"></ion-icon>
+        <ion-label position="floating">Tipo de Gasto</ion-label>
+        <ion-select [(ngModel)]="gasto.tipoGasto">
+          <ion-select-option value="Servicios">Servicios</ion-select-option>
+          <ion-select-option value="Insumos">Insumos</ion-select-option>
+          <ion-select-option value="Publicidad">Publicidad</ion-select-option>
+          <ion-select-option value="Mantenimiento">Mantenimiento</ion-select-option>
+          <ion-select-option value="Otros">Otros</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Monto -->
+      <ion-item lines="full">
+        <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
+        <ion-label position="floating">Monto</ion-label>
+        <ion-input type="number" [(ngModel)]="gasto.monto"></ion-input>
+      </ion-item>
+
+      <!-- Origen -->
+      <ion-item lines="full">
+        <ion-icon name="wallet-outline" slot="start" color="tertiary"></ion-icon>
+        <ion-label position="floating">Origen</ion-label>
+        <ion-select [(ngModel)]="gasto.orien">
+          <ion-select-option value="Caja Chica">Caja Chica</ion-select-option>
+          <ion-select-option value="Banco">Banco</ion-select-option>
+          <ion-select-option value="Tarjeta">Tarjeta</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Detalle -->
+      <ion-item lines="full">
+        <ion-icon name="document-text-outline" slot="start" color="warning"></ion-icon>
+        <ion-label position="floating">Detalle</ion-label>
+        <ion-textarea [(ngModel)]="gasto.detalle"></ion-textarea>
+      </ion-item>
+
+      <!-- Botón Guardar / Actualizar -->
+      <ion-button expand="block" shape="round" class="save-btn" (click)="guardar()">
+        <ion-icon [name]="isEdit ? 'create-outline' : 'save-outline'" slot="start"></ion-icon>
+        {{ isEdit ? 'Actualizar' : 'Guardar' }}
+      </ion-button>
+
+      <!-- Botón cerrar -->
+      <ion-button expand="block" fill="clear" color="danger" (click)="modalCtrl.dismiss()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

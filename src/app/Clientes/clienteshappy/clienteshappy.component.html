@@ -1,0 +1,79 @@
+<!-- 🎈 Globos animados -->
+<div class="balloons" *ngIf="clientesCumple.length > 0">
+  <div class="balloon red"></div>
+  <div class="balloon blue"></div>
+  <div class="balloon green"></div>
+  <div class="balloon yellow"></div>
+</div>
+
+<!-- 🔹 Header -->
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <!-- 👈 Si es página normal → muestra el botón de menú -->
+    <ion-buttons slot="start" *ngIf="!isModal">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">Cumpleaños de Hoy</ion-title>
+
+    <!-- 👈 Si es modal → muestra el botón de cerrar -->
+    <ion-buttons slot="end" *ngIf="isModal">
+      <ion-button (click)="dismiss()" fill="clear" color="light">
+        <ion-icon name="close-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<!-- 🔹 Contenido -->
+<ion-content class="ion-padding">
+
+  <!-- Refrescar -->
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ⏳ Cargando -->
+  <div *ngIf="cargando" class="ion-padding">
+    <ion-skeleton-text animated style="width: 80%; height: 18px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 60%; height: 18px; margin-top: 8px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 70%; height: 18px; margin-top: 8px;"></ion-skeleton-text>
+  </div>
+
+  <!-- 🎈 Vacío -->
+  <ion-card *ngIf="!cargando && clientesCumple.length === 0" class="ion-text-center">
+    <ion-card-content>
+      Nadie cumple años hoy. 🎈
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🎉 Lista de cumpleañeros -->
+  <ion-list *ngIf="!cargando && clientesCumple.length > 0">
+    <ion-card *ngFor="let c of clientesCumple; trackBy: trackById"
+              class="ion-margin-bottom happy-card ion-activatable ripple-parent">
+
+      <ion-item lines="none" class="ion-align-items-start">
+        <ion-avatar slot="start">
+          <ion-icon name="person-circle-outline" style="font-size:40px;"></ion-icon>
+        </ion-avatar>
+
+        <ion-label class="ion-text-wrap">
+          <h2 class="nombre">{{ c.nombreComercial }}</h2>
+          <p class="detalle">🎂 {{ fechaBonita(c.fechaNacimiento) }}</p>
+          <p class="detalle">📞 {{ c.celular || c.telefono || '—' }}</p>
+          <p *ngIf="c.direccion" class="detalle">🏠 {{ c.direccion }}</p>
+        </ion-label>
+
+        <!-- 🎁 Chip -->
+        <ion-chip slot="end" color="primary" class="bday-chip">
+          <ion-icon name="gift-outline"></ion-icon>
+          <ion-label>¡Feliz!</ion-label>
+        </ion-chip>
+      </ion-item>
+
+      <ion-ripple-effect></ion-ripple-effect>
+    </ion-card>
+  </ion-list>
+</ion-content>

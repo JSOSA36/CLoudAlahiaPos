@@ -1,0 +1,163 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="CloseModal()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center" style="font-size: 20px;">
+      {{ producto ? 'Editar Producto' : 'Agregar Producto' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content  class="producto-content">
+  
+<ion-card class="producto-card-form">
+  <ion-card-header>
+    <div class="imagen-preview" (click)="abrirSelectorImagen()">
+
+  <ion-avatar>
+    <img [src]="imagenPreview || 'assets/img/product-placeholder.png'" />
+  </ion-avatar>
+
+</div>
+
+<input
+  #fileInput
+  type="file"
+  accept="image/*"
+  hidden
+  (change)="onFileSelected($event)">
+  </ion-card-header>
+
+<ion-grid>
+
+<ion-row>
+
+<!-- Nombre -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Nombre</ion-label>
+    <ion-input [(ngModel)]="form.nombre"></ion-input>
+  </ion-item>
+</ion-col>
+
+<!-- Precio -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Precio de venta</ion-label>
+    <ion-input type="number" [(ngModel)]="form.precioVenta"></ion-input>
+  </ion-item>
+</ion-col>
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Codigo Barra</ion-label>
+    <ion-input [(ngModel)]="form.codigoBarra"></ion-input>
+  </ion-item>
+</ion-col>
+
+<!-- Precio -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Precio Incluye Itbis</ion-label>
+    <ion-toggle slot="end" [(ngModel)]="form.Itbis"></ion-toggle>
+  </ion-item>
+</ion-col>
+
+<!-- Costo -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Costo</ion-label>
+    <ion-input type="number" [(ngModel)]="form.Costo"></ion-input>
+  </ion-item>
+</ion-col>
+
+<!-- Cantidad -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Cantidad</ion-label>
+    <ion-input type="number" [(ngModel)]="form.cantidad"></ion-input>
+  </ion-item>
+</ion-col>
+
+<!-- Categoría -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Categoría</ion-label>
+    <ion-select [(ngModel)]="form.idCategoria">
+      <ion-select-option *ngFor="let cat of categorias" [value]="cat.idCategoria">
+        {{ cat.nombre }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+</ion-col>
+
+<!-- Duración -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Duración (minutos)</ion-label>
+    <ion-input type="number" [(ngModel)]="form.duracionServicio"></ion-input>
+  </ion-item>
+</ion-col>
+
+<!-- Disponible en citas -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Disponible en Citas</ion-label>
+    <ion-toggle slot="end" [(ngModel)]="form.disponibleEnCitas"></ion-toggle>
+  </ion-item>
+</ion-col>
+
+<!-- Activo -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Activo</ion-label>
+    <ion-toggle slot="end" [(ngModel)]="form.isActivo"></ion-toggle>
+  </ion-item>
+</ion-col>
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Es Servicio</ion-label>
+    <ion-toggle slot="end" [(ngModel)]="form.esServicio"></ion-toggle>
+  </ion-item>
+</ion-col>
+<!-- Controlar stock -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Controlar Stock</ion-label>
+    <ion-toggle slot="end" [(ngModel)]="form.controlarStock"></ion-toggle>
+  </ion-item>
+</ion-col>
+
+<!-- Área -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Área</ion-label>
+    <ion-select [(ngModel)]="form.idArea">
+      <ion-select-option *ngFor="let area of areas" [value]="area.idArea">
+        {{ area.nombre }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+</ion-col>
+
+</ion-row>
+
+</ion-grid>
+<div class="guardar-area">
+
+  <ion-button shape="round"
+    expand="block"
+    size="large"
+    color="warning"
+    (click)="guardarProducto()">
+
+    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+    Guardar Producto
+
+  </ion-button>
+
+</div>
+</ion-card>
+</ion-content>

@@ -1,0 +1,96 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="secondary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;" ></ion-menu-button>
+    </ion-buttons>
+    <ion-title style="margin-right: 20px;" class="ion-text-center">Zonas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+ 
+<ion-content>
+ 
+
+    <ion-accordion-group >
+      <ion-accordion   *ngFor="let iten of this._Parametro._ListadoZonas let i = index" value={{i}}>
+        <ion-item (click)="SubMetodo(iten.zonaId)"  slot="header" color="lihgt">
+          <ion-label style="color: black;">{{iten.zonaName}}</ion-label>
+          
+      </ion-item>
+
+      
+      
+        <div  style="padding: 0px;" slot="content">
+          
+         <ion-item *ngIf="this._Parametro.Carga==true">
+         <ion-label>Cargando Mesas</ion-label>
+         <ion-spinner name="circles"></ion-spinner>
+        </ion-item>
+          <ion-row  >
+          <ion-col *ngFor="let mesa of this._Parametro._ListadoMesas let i = index" [ngSwitch]="mesa.tipo" size="4" class="ion-no-padding">
+            <ion-card style="border-radius: 20px;" *ngIf="mesa.estado=='Ocupada'" color="danger">
+              <ion-card-header>
+                <ion-card-title class="ion-text-center">{{mesa.numero}}</ion-card-title>
+               
+              </ion-card-header>
+            
+              <ion-card-content  *ngSwitchCase="'1 Silla'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+              <img src="/assets/Mesa_1.png">
+              </ion-card-content>
+              <ion-card-content  *ngSwitchCase="'2 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                <img src="/assets/Mesa2.png">
+                </ion-card-content>
+                <ion-card-content  *ngSwitchCase="'3 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                  <img src="/assets/Mesa_3.png">
+                  </ion-card-content>
+                  <ion-card-content  *ngSwitchCase="'6 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                    <img src="/assets/Mesa_6.png">
+                    </ion-card-content>
+                    <ion-card-content  *ngSwitchCase="'4 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                      <img src="/assets/Silla4.png">
+                      </ion-card-content>
+                      <ion-card-content  *ngSwitchCase="'5 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                        <img src="/assets/Silla_5.png">
+                        </ion-card-content>
+            </ion-card>
+            <ion-card style="border-radius: 20px;" *ngIf="mesa.estado=='Libre'" color="success">
+              <ion-card-header>
+                <ion-card-title class="ion-text-center">{{mesa.numero}}</ion-card-title>
+               
+              </ion-card-header>
+            
+              <ion-card-content  *ngSwitchCase="'1 Silla'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+              <img src="/assets/Mesa_1.png">
+              </ion-card-content>
+              <ion-card-content  *ngSwitchCase="'2 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                <img src="/assets/Mesa2.png">
+                </ion-card-content>
+                <ion-card-content *ngSwitchCase="'3 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                  <img src="/assets/Mesa_3.png">
+                  </ion-card-content>
+                  <ion-card-content *ngSwitchCase="'6 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                    <img src="/assets/Mesa_6.png">
+                    </ion-card-content>
+                    <ion-card-content  *ngSwitchCase="'4 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                      <img src="/assets/Silla4.png">
+                      </ion-card-content>
+                      <ion-card-content  *ngSwitchCase="'5 Sillas'" (click)="openModal(mesa.idMesa,mesa.numero,mesa)">
+                        <img src="/assets/Silla_5.png">
+                        </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+        </div>
+     
+ 
+  </ion-accordion>
+ 
+</ion-accordion-group>
+</ion-content>
+ 
+ 
+
+ 
+
+</ion-content>

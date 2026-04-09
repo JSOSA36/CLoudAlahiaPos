@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Nuevo Horario</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="light" (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ESTILISTA -->
+  <ion-card color="warning" style="border-radius: 50px;" >
+    <ion-card-content>
+      <ion-item color="warning" lines="none">
+        <ion-label>Estilista</ion-label>
+        <ion-select interface="popover" [(ngModel)]="idEmpleado" placeholder="Selecciona...">
+          <ion-select-option *ngFor="let emp of empleados" [value]="emp.idEmpleados">
+            {{ emp.userName || emp.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- DIAS -->
+  <ion-card  *ngFor="let d of dias" class="dia-card">
+    <ion-card-content >
+
+      <!-- HEADER DIA -->
+      <div class="fila-header">
+        <span class="dia-label">{{ d.label }}</span>
+        <ion-toggle [(ngModel)]="d.activo"></ion-toggle>
+      </div>
+
+      <!-- JORNADA -->
+      <div class="fila-horario" *ngIf="d.activo">
+        <ion-label class="sub-label">Jornada</ion-label>
+
+        <ion-input
+          type="time"
+          [(ngModel)]="d.horaInicio"
+          class="hora-input">
+        </ion-input>
+
+        <ion-input
+          type="time"
+          [(ngModel)]="d.horaFin"
+          class="hora-input">
+        </ion-input>
+      </div>
+
+      <!-- RECESO -->
+      <div class="fila-horario" *ngIf="d.activo">
+        <ion-label class="sub-label">Receso</ion-label>
+
+        <ion-input
+          type="time"
+          [(ngModel)]="d.recesoInicio"
+          class="hora-input">
+        </ion-input>
+
+        <ion-input
+          type="time"
+          [(ngModel)]="d.recesoFin"
+          class="hora-input">
+        </ion-input>
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- BOTON -->
+  <div class="ion-padding-top">
+    <ion-button shape="round" expand="block" color="warning" (click)="guardar()" [disabled]="guardando">
+      <ion-spinner *ngIf="guardando" name="lines-small" class="ion-margin-end"></ion-spinner>
+      {{ guardando ? 'Guardando...' : 'Guardar' }}
+    </ion-button>
+  </div>
+
+</ion-content>

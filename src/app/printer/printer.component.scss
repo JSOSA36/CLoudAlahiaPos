@@ -1,0 +1,124 @@
+::host {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 999999;
+  display: block;
+}
+
+/* FONDO GRIS SIMULADOR */
+
+.print-preview {
+  background: #8f8f8f;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
+}
+@media print {
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html, body {
+    width: 80mm;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+}
+/* PAPEL */
+
+.paper {
+  width: 80mm;
+  background: white;
+  padding: 4mm;
+  box-shadow: 0 0 10px rgba(0,0,0,.25);
+  font-family: monospace;
+  font-size: 12px;
+  color: #000;
+}
+
+/* TEXTOS */
+
+.center {
+  text-align: center;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.small {
+  font-size: 11px;
+}
+
+/* LINEA PUNTEADA */
+
+.line {
+  border-top: 1px dashed black;
+  margin: 6px 0;
+}
+
+/* TABLA ITEMS */
+
+.items {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items td {
+  padding: 2px 0;
+}
+
+.qty {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.total {
+  text-align: right;
+  width: 35px;
+}
+
+/* TOTALES */
+
+.totales div {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* MODO IMPRESIÓN REAL */
+
+@media print {
+
+  body,
+  html {
+    background: white !important;
+  }
+
+  .print-preview {
+    background: white;
+    padding: 0;
+  }
+
+  .paper {
+    box-shadow: none;
+    width: 80mm;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+}
+.ticket {
+  width: 78mm;
+  margin: 0 auto;
+}

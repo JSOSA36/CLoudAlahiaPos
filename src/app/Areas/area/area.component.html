@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <!-- Menú a la izquierda -->
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Gestión de Áreas</ion-title>
+
+    <!-- Botón agregar a la derecha -->
+    <ion-buttons slot="end">
+      <ion-button (click)="openModal()"> 
+        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Lista de áreas -->
+  <ion-card *ngFor="let area of areas" style="box-shadow: 0 4px 12px rgba(25,118,210,0.4); border-radius: 12px; margin-bottom: 16px;">
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>
+          <h2 style="font-weight: 600; font-size: 18px;">{{ area.nombre }}</h2>
+          <p *ngIf="!area.isActivo" style="color: #d32f2f;">Inactiva</p>
+        </ion-label>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" color="primary" (click)="openModal(area)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="danger" (click)="deleteArea(area.idArea)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Mensaje cuando no hay áreas -->
+  <ion-text *ngIf="areas.length === 0" color="medium">
+    <p class="ion-text-center">No hay áreas registradas aún.</p>
+  </ion-text>
+</ion-content>
+
+<!-- MODAL -->
+<ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>{{ editingArea ? 'Editar Área' : 'Nueva Área' }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <ion-card style="box-shadow: 0 4px 12px rgba(25,118,210,0.4); border-radius: 12px;">
+        <ion-card-content>
+          <ion-item>
+            <ion-label position="stacked">Nombre del área</ion-label>
+            <ion-input [(ngModel)]="form.nombre" placeholder="Ej: Uñas, Spa..."></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Activo</ion-label>
+            <ion-toggle [(ngModel)]="form.isActivo"></ion-toggle>
+          </ion-item>
+
+          <ion-button expand="block" color="primary" (click)="saveArea()" style="margin-top: 20px;">
+            <ion-icon name="save-outline" slot="start"></ion-icon>
+            {{ editingArea ? 'Actualizar' : 'Guardar' }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ion-content>
+  </ng-template>
+</ion-modal>

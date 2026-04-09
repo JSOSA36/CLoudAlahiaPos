@@ -1,0 +1,203 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center" style="font-weight:700; letter-spacing:0.5px;">
+      💳 Cuentas por Cobrar
+    </ion-title>
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color:white;"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="Refrescar()" fill="clear" color="light">
+        <ion-icon name="refresh-outline" style="font-size:1.4em;"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- FILTRO CLIENTE -->
+  <ion-item color="warning" lines="none" style="--background:#f8f9fc;">
+    <ion-label style="font-weight:600;">Filtrar por cliente</ion-label>
+
+    <ion-select [(ngModel)]="clienteSeleccionado" (ionChange)="filtrarPorCliente($event)">
+      <ion-select-option [value]="0">🔹 Mostrar todas</ion-select-option>
+
+      <ion-select-option
+        *ngFor="let c of clientes"
+        [value]="c.idCliente">
+
+        {{ c.nombreComercial }}
+
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <!-- CLIENTE ACTUAL -->
+  <ion-item color="light">
+    <ion-label class="ion-text-center">
+      <strong>Cliente actual:</strong>
+
+      <span style="color:var(--ion-color-primary); font-weight:600;">
+        {{ clienteNombre || 'Todos los clientes' }}
+      </span>
+
+    </ion-label>
+  </ion-item>
+
+</ion-header>
+
+
+<ion-content color="light">
+
+  <ion-spinner *ngIf="cargando" class="centered-spinner"></ion-spinner>
+
+
+  <!-- GRID DE FACTURAS -->
+
+  <ion-grid>
+
+    <ion-row>
+
+      <ion-col
+        size="12"
+        size-sm="6"
+        size-md="4"
+        size-lg="3"
+        *ngFor="let factura of facturasFiltradas">
+
+        <ion-card class="factura-card animated-card">
+
+          <ion-card-header>
+
+            <div class="factura-header">
+
+              <div>
+
+                <ion-card-title class="factura-title">
+                  <ion-icon name="receipt-outline" color="primary"></ion-icon>
+                  &nbsp;Factura #0000{{ factura.idFacturaHeader }}
+                </ion-card-title>
+
+                <p class="cliente-line">
+                  <ion-icon name="person-circle-outline" color="medium"></ion-icon>
+
+                  <span class="cliente-nombre">
+                    {{ factura.clientes?.nombreComercial || 'Cliente no especificado' }}
+                  </span>
+
+                </p>
+
+                <ion-note color="medium">
+                  {{ factura.fechaBencimiento | date:'dd/MM/yyyy' }}
+                </ion-note>
+
+              </div>
+
+              <ion-badge
+                [color]="factura.estado === 'Parcial' ? 'warning' : 'danger'">
+
+                {{ factura.estado || 'Pendiente' }}
+
+              </ion-badge>
+
+            </div>
+
+          </ion-card-header>
+
+
+          <ion-card-content>
+
+            <p class="total-line">
+              <strong>Total:</strong>
+
+              <span class="total-amount">
+                RD$ {{ factura.total | number:'1.2-2' }}
+              </span>
+            </p>
+
+            <p class="pagado-line">
+              <strong>Pagado:</strong>
+
+              <span class="pagado-amount">
+                RD$ {{ factura.pagado || 0 | number:'1.2-2' }}
+              </span>
+            </p>
+
+            <p class="pendiente-line">
+              <strong>Pendiente:</strong>
+
+              <span class="pendiente-amount">
+                RD$ {{ factura.pendiente || factura.total | number:'1.2-2' }}
+              </span>
+            </p>
+
+
+            <div class="actions">
+
+              <ion-button shape="round"
+                (click)="efectuarPago(factura)"
+                expand="block"
+                color="success">
+
+                <ion-icon slot="start" name="cash-outline"></ion-icon>
+                Efectuar Pago
+
+              </ion-button>
+
+
+              <ion-button shape="round"
+                (click)="verHistorial(factura)"
+                expand="block"
+                color="warning"
+             >
+
+                <ion-icon slot="start" name="time-outline"></ion-icon>
+                Ver Historial
+
+              </ion-button>
+
+            </div>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+
+
+  <!-- SIN RESULTADOS -->
+
+  <ion-item
+    *ngIf="!cargando && facturasFiltradas.length === 0"
+    color="light">
+
+    <ion-label class="ion-text-center" style="color:#888; font-style:italic;">
+      No hay facturas pendientes.
+    </ion-label>
+
+  </ion-item>
+
+</ion-content>
+
+
+<!-- TOTAL GENERAL -->
+
+<ion-footer *ngIf="!cargando && facturasFiltradas.length > 0">
+
+  <ion-toolbar color="warning">
+
+    <ion-title class="ion-text-center" style="font-weight:700;color: black;">
+
+     
+      <strong style="font-weight:700;color: black;"> Total General Pendiente: RD$ {{ totalGeneral | number:'1.2-2' }}</strong>
+
+    </ion-title>
+
+  </ion-toolbar>
+
+</ion-footer>

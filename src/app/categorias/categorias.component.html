@@ -1,0 +1,223 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Formulario de Órdenes</ion-title>
+  </ion-toolbar>
+
+  <ion-row>
+    <ion-col size="8"></ion-col>
+    <ion-col class="ion-text-end" size="4">
+      <ion-button (click)="goBackCategoria()" color="primary">Regresar</ion-button>
+    </ion-col>
+  </ion-row>
+</ion-header>
+
+<!-- 🔹 LISTADO DE CATEGORÍAS -->
+<ion-content *ngIf="!productoCategory">
+
+  <!-- 🔍 Buscador global -->
+  <ion-searchbar
+    placeholder="Buscar producto en todas las categorías..."
+    [(ngModel)]="filtroProducto"
+    (ionInput)="filtrarProducto($event)"
+    show-clear-button="always"
+    animated>
+  </ion-searchbar>
+
+  <!-- 🔹 RESULTADOS GLOBAL -->
+  <ion-grid *ngIf="filtroProducto && productosFiltrados.length > 0">
+    <ion-row>
+     <ion-col
+  size="6"
+  size-md="4"
+  size-lg="2"
+  *ngFor="let iten of productosFiltrados; let i = index">
+
+
+        <ion-card class="ion-no-padding producto-card">
+
+          <!-- Badge Descuento -->
+          <div *ngIf="iten._precioOriginal" class="badge-descuento">
+            -{{ ((iten._precioOriginal - iten.precioVenta) / iten._precioOriginal * 100) | number:'1.0-0' }}%
+          </div>
+
+          <ion-card-content class="ion-no-padding ion-text-center">
+
+            <!-- IMAGEN DEL PRODUCTO -->
+            <div class="img-wrapper">
+
+              <img *ngIf="iten.imagen1; else imgBeautyOrDefault"
+               [src]="iten.imagen1"
+               class="img-prod real-img">
+
+              <ng-template #imgBeautyOrDefault>
+                <img
+                  [src]="iten.esProductoBelleza ? './assets/Producto.png' : './assets/servicios.png'"
+                  class="img-prod contain-img">
+              </ng-template>
+
+            </div>
+
+            <!-- Botones -->
+            <div class="ion-text-center buttons-area">
+              <ion-button size="small" color="success"
+                          (click)="aumentarCantidad(i, iten.idProducto)">
+                <ion-icon slot="icon-only" name="duplicate-outline"></ion-icon>
+              </ion-button>
+
+              <ion-button size="small" color="danger"
+                          [disabled]="iten._cantidad == 0"
+                          (click)="disminuirCantidad(i)">
+                <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+              </ion-button>
+
+              <ion-button size="small" color="medium"
+                          (click)="editarPrecio(iten)">
+                <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+              </ion-button>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Info del producto -->
+        <h2 class="titulo-prod">
+          <ng-container *ngIf="iten._precioOriginal">
+            <span class="precio-original"> ${{ iten._precioOriginal }} </span><br>
+          </ng-container>
+
+          <strong class="precio-oferta"> $: {{ iten.precioVenta }} </strong><br>
+          {{ iten.nombre }}
+        </h2>
+
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- 🔹 CATEGORÍAS -->
+  <ion-grid *ngIf="!filtroProducto">
+    <ion-row>
+      <ion-col
+  size="6"
+  size-md="4"
+  size-lg="2"
+  *ngFor="let iten of listadoCategorias">
+
+        <ion-card (click)="segmentChanged(iten.idCategoria) "
+                  color="warning" class="ion-no-padding categoria-card">
+
+          <ion-card-header>
+            <ion-label><b>{{ iten.nombre }}</b></ion-label>
+          </ion-card-header>
+
+          <ion-card-content class="ion-no-padding">
+            <div class="img-wrapper">
+              <img *ngIf="!iten.imagenPath"
+                   src="./assets/servicios.png" class="img-cat contain-img">
+
+              <img *ngIf="iten.imagenPath"
+                   [src]="iten.imagenPath" class="img-cat real-img">
+            </div>
+          </ion-card-content>
+
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>
+
+<!-- 🔹 LISTADO DE PRODUCTOS POR CATEGORÍA -->
+<ion-content *ngIf="productoCategory" [ngClass]="{'scanner-active': scanning}">
+
+  <ion-searchbar
+    placeholder="Buscar dentro de esta categoría..."
+    [(ngModel)]="filtroProducto"
+    (ionInput)="filtrarProducto($event)"
+    show-clear-button="always"
+    animated>
+  </ion-searchbar>
+
+  <ion-row>
+    <ion-col
+  size="6"
+  size-md="4"
+  size-lg="2"
+  *ngFor="let iten of productosFiltrados; let i = index">
+
+
+      <ion-card class="ion-no-padding producto-card">
+
+        <!-- Badge Descuento -->
+        <div *ngIf="iten._precioOriginal" class="badge-descuento">
+          -{{ ((iten._precioOriginal - iten.precioVenta) / iten._precioOriginal * 100) | number:'1.0-0' }}%
+        </div>
+
+        <ion-card-content class="ion-no-padding ion-text-center">
+
+          <!-- IMAGEN DEL PRODUCTO -->
+          <div class="img-wrapper">
+
+            <img *ngIf="iten.imagen1; else imgBeautyOrDefault2"
+               [src]="iten.imagen1"
+               class="img-prod real-img">
+
+            <ng-template #imgBeautyOrDefault2>
+              <img
+                [src]="iten.esProductoBelleza ? './assets/Producto.png' : './assets/servicios.png'"
+                class="img-prod contain-img">
+            </ng-template>
+          </div>
+
+          <!-- Botones -->
+          <div class="ion-text-center buttons-area">
+            <ion-button size="small" color="success"
+                        (click)="aumentarCantidad(i, iten.idProducto)">
+              <ion-icon slot="icon-only" name="duplicate-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button size="small" color="danger"
+                        [disabled]="iten._cantidad == 0"
+                        (click)="disminuirCantidad(i)">
+              <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button size="small" color="medium"
+                        (click)="editarPrecio(iten)">
+              <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+            </ion-button>
+          </div>
+
+        </ion-card-content>
+
+      </ion-card>
+
+      <h2 class="titulo-prod">
+        <ng-container *ngIf="iten._precioOriginal">
+          <span class="precio-original"> ${{ iten._precioOriginal }} </span><br>
+        </ng-container>
+
+        <strong class="precio-oferta"> $: {{ iten.precioVenta }} </strong><br>
+        <h3>{{ iten.nombre }}</h3>
+      </h2>
+
+    </ion-col>
+  </ion-row>
+</ion-content>
+
+<!-- 🔹 FOOTER -->
+<ion-footer>
+  <ion-toolbar *ngIf="!scanning" color="primary">
+    <ion-row>
+      <ion-col size="6">
+        <ion-label>{{ parametro.Cart }} Productos</ion-label><br>
+        <ion-title>{{ parametro.Total | currency }}</ion-title>
+      </ion-col>
+      <ion-col size="6" class="ion-text-end">
+        <ion-button (click)="callCart()" color="warning">Continuar</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>
