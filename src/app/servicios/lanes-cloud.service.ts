@@ -7,8 +7,10 @@ import { AppConfigService } from './app-config.service';
 export interface PlanCloud {
   idPlan: number;
   nombre: string;
-  precioUSD: number;
-  descripcion: string;
+  precio: number;
+  nivel: number;
+  limiteFacturacion: number;
+  esActual: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,7 +32,14 @@ export class PlanesCloudService {
   getPlanes(): Observable<PlanCloud[]> {
     return this.http.get<PlanCloud[]>(`${this.baseUrl}/GetPlanes`);
   }
-
+// =====================================================
+// 📦 PLANES CON PLAN ACTUAL
+// =====================================================
+getPlanesPorEmpresa(idEmpresa: number): Observable<PlanCloud[]> {
+  return this.http.get<PlanCloud[]>(
+    `${this.baseUrl}/empresa/${idEmpresa}`
+  );
+}
   // =====================================================
   // 🔍 OBTENER PLAN POR ID
   // =====================================================

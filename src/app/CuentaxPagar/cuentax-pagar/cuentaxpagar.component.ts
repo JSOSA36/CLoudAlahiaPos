@@ -47,7 +47,9 @@ _FormaPagoAbonoCredito: string = '';
 _MetodoPago1: string = '';
 
 _AbonoMixtoCredito: boolean = false;
-
+rncCliente: string = '';
+_ClienteSeleccionado: any = null;
+loadingCliente = false;
 
 modalEfectivo = false;
 _MetodoAbono1: string = '';
@@ -62,7 +64,7 @@ _MetodoPago2: string = '';
 _MontoPago2: number = 0;
 
   // 🔹 Cliente seleccionado
-  _ClienteSeleccionado: clientes | null = null;
+
 
   constructor(
     private modalCtrl: ModalController,
@@ -153,33 +155,54 @@ get restanteCredito(): number {
 
   // 🔹 Procesar factura (contado o crédito)
  // 🔹 Procesar factura (contado o crédito)
- private construirPagosContado(): any[] {
+private construirPagosContado(): any[] {
 
   let pagos: any[] = [];
 
+  let total = Number(this.TotalFactura) || 0;
+
   if (!this._PagoMixto) {
 
+    // 🔥 IGNORAR cualquier input del usuario
     pagos.push({
       metodo: this._FormaPago,
-      monto: this.TotalFactura
+      monto: total
     });
 
   } else {
 
-    if (this._MontoPago1 > 0) {
+    let monto1 = Number(this._MontoPago1) || 0;
+    let monto2 = Number(this._MontoPago2) || 0;
+
+    let suma = monto1 + monto2;
+
+    if (suma < total) {
+      let diferencia = total - suma;
+
+      if (this._MetodoPago1 === 'Efectivo') {
+        monto1 += diferencia;
+      }
+      else if (this._MetodoPago2 === 'Efectivo') {
+        monto2 += diferencia;
+      }
+      else {
+        monto2 += diferencia;
+      }
+    }
+
+    if (monto1 > 0) {
       pagos.push({
         metodo: this._MetodoPago1,
-        monto: Number(this._MontoPago1)
+        monto: monto1
       });
     }
 
-    if (this._MontoPago2 > 0) {
+    if (monto2 > 0) {
       pagos.push({
         metodo: this._MetodoPago2,
-        monto: Number(this._MontoPago2)
+        monto: monto2
       });
     }
-
   }
 
   return pagos;
@@ -197,17 +220,40 @@ private construirPagosAbono(): any[] {
 
   } else {
 
-    if (this._MontoAbono1 > 0) {
+    let monto1 = Number(this._MontoAbono1) || 0;
+    let monto2 = Number(this._MontoAbono2) || 0;
+
+    let total = Number(this.TotalFactura) || 0;
+    let suma = monto1 + monto2;
+
+    // 🔥 AJUSTE AUTOMÁTICO (pero sin pasarse del total)
+    if (suma > total) {
+
+      let exceso = suma - total;
+
+      // 👉 quitar exceso del efectivo primero
+      if (this._MetodoAbono1 === 'Efectivo') {
+        monto1 -= exceso;
+      }
+      else if (this._MetodoAbono2 === 'Efectivo') {
+        monto2 -= exceso;
+      }
+      else {
+        monto2 -= exceso;
+      }
+    }
+
+    if (monto1 > 0) {
       pagos.push({
         metodo: this._MetodoAbono1,
-        monto: Number(this._MontoAbono1)
+        monto: monto1
       });
     }
 
-    if (this._MontoAbono2 > 0) {
+    if (monto2 > 0) {
       pagos.push({
         metodo: this._MetodoAbono2,
-        monto: Number(this._MontoAbono2)
+        monto: monto2
       });
     }
 
@@ -466,5 +512,36 @@ getIconoFormaPago(pago: string): string {
     default: return '';
   }
 }
+buscarCliente() {
+
+  if (!this.rncCliente) return;
+
+  this.loadingCliente = true;
+
+  // 🔥 1. buscar en tu BD
+  //this.api.buscarLocal(this.rncCliente).subscribe(local => {
+
+    //if (local) {
+      //this._ClienteSeleccionado = local;
+      this.loadingCliente = false;
+      return;
+    }
+
+    // 🔥 2. fallback DGII
+    //this.api.consultarDgii(this.rncCliente).subscribe(res => {
+
+      //this.loadingCliente = false;
+
+      //if (!res) return;
+
+      //this._ClienteSeleccionado = res;
+
+      // 🔥 guardar automático
+      //this.api.guardarCliente(res).subscribe();
+
+    //});
+
+  //});
 
 }
+

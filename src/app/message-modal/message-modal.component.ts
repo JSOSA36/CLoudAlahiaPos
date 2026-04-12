@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { PlanesCloudService } from '../servicios/lanes-cloud.service';
 import { ParametrosService } from '../servicios/parametros.service';
+import { PlanCloud } from '../servicios/lanes-cloud.service';
+
 @Component({
   selector: 'app-message-modal',
   templateUrl: './message-modal.component.html',
@@ -10,7 +12,8 @@ import { ParametrosService } from '../servicios/parametros.service';
 export class MessageModalComponent {
 mostrarCambioPlan: boolean = true;
 planSeleccionado: number | null = null;
-planes: any[] = [];
+planes: PlanCloud[] = [];
+PlanActual: PlanCloud | null = null;
 planActualNombre: string = '';
   @Input() title: string = 'Información';
   @Input() message: string = '';
@@ -28,25 +31,54 @@ ngOnInit() {
 }
 
 cargarPlanes() {
-  this.service.getPlanes().subscribe(res => {
-  this.planes = res
-  .filter(p => p.nombre !== 'Demo')
-  .sort((a, b) => a.precioUSD - b.precioUSD);
+ this.service.getPlanesPorEmpresa(this.parametros.IdEmpresa)
+  .subscribe(res => {
+
+    const planActual = res.find(p => p.esActual);
+
+    if (planActual) {
+      this.planes = res.filter(p => p.precio > planActual.precio);
+      this.PlanActual = planActual;
+    }
   });
 }
 
-cambiarPlan() {
+async cambiarPlan() {
 
   if (!this.planSeleccionado) {
-    alert('Selecciona un plan');
+    await this.mostrarExito(
+      'Atención',
+      'Debes seleccionar un plan'
+    );
     return;
   }
 
-  this.service.cambiarPlan(this.planSeleccionado, this.parametros.IdEmpresa)
-    .subscribe(() => {
-      alert('Plan actualizado correctamente');
+  this.service.cambiarPlan(this.parametros.IdEmpresa, this.planSeleccionado)
+    .subscribe(async () => {
+
+      await this.mostrarExito(
+        'Plan actualizado',
+        'Tu plan fue actualizado correctamente 🚀'
+      );
+
       this.cerrar();
-      window.location.reload();
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800); // pequeño delay para UX
     });
+}
+private async mostrarExito(title: string, message: string) {
+  const modal = await this.modalCtrl.create({
+    component: MessageModalComponent,
+    cssClass: 'modal-clientes-full',
+    componentProps: {
+      title,
+      message,
+      icon: 'checkmark-circle-outline' // 🔥 icono bonito
+    }
+  });
+
+  await modal.present();
 }
 }

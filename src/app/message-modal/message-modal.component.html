@@ -20,10 +20,7 @@
   <div class="plan-card" *ngIf="mostrarCambioPlan">
 
   <!-- 🔵 HEADER AZUL -->
-  <div class="plan-header-card">
-    <ion-icon name="card-outline"></ion-icon>
-    <span>Cambiar Plan</span>
-  </div>
+  
 
   <!-- 🔽 CONTENIDO -->
   <div class="plan-body">
@@ -55,7 +52,7 @@
         <strong>
           <b>
         {{ plan.nombre }} -
-        <span class="precio">USD${{ plan.precioUSD | number:'1.0-0' }}</span>
+        <span class="precio">USD${{ plan.precio | number:'1.0-0' }}</span>
         </b>
         </strong>
       </div>

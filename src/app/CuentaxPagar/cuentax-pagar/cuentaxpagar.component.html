@@ -146,51 +146,45 @@
       🏢 Crédito Fiscal
 
     </button>
-    <button
-      class="opcion"
-      [class.activa]="_TipoComprobante==='Sin Comprobante'"
-      (click)="_TipoComprobante='Sin Comprobante'">
-
-      🏢 Sin Comprobante
-
-    </button>
+   
 
   </div>
 
 </div> -->
       <!-- ================= CLIENTE ================= -->
 
-      <div
-        *ngIf="_TipoDocumento === 'Factura' && _TipoFactura==='Credito'"
-        (click)="abrirModalClientes()"
-        class="cliente-selector">
+   <div
+  *ngIf="_TipoDocumento === 'Factura' && (_TipoFactura==='Credito' || _TipoComprobante==='CreditoFiscal')"
+  class="cliente-selector">
 
-        <ion-icon name="person-circle-outline"></ion-icon>
+  <ion-icon name="person-circle-outline"></ion-icon>
 
-        <div class="cliente-texto">
+  <div class="cliente-texto">
 
-          <ng-container *ngIf="_ClienteSeleccionado; else noCliente">
+    <!-- INPUT RNC -->
+    <ion-input
+      placeholder="RNC o Cédula"
+      [(ngModel)]="rncCliente"
+      (keyup.enter)="buscarCliente()"
+      (ionBlur)="buscarCliente()">
+    </ion-input>
 
-            <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong>
+    <!-- RESULTADO -->
+    <div *ngIf="_ClienteSeleccionado">
 
-            <br>
+      <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong>
 
-            <small *ngIf="_ClienteSeleccionado.telefono">
-              📞 {{ _ClienteSeleccionado.telefono }}
-            </small>
+      <br>
 
-          </ng-container>
+      <small>
+        {{ _ClienteSeleccionado.cedulaRNC }}
+      </small>
 
-          <ng-template #noCliente>
-            Seleccionar Cliente
-          </ng-template>
+    </div>
 
-        </div>
+  </div>
 
-        <ion-icon name="chevron-forward-outline"></ion-icon>
-
-      </div> -->
-
+</div>
 
       <!-- ================= FORMA DE PAGO ================= -->
 

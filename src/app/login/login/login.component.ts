@@ -60,6 +60,7 @@ async abrirPlanesWhatsApp() {
   ) {
     const modal = await this.modalCtrl.create({
       component: MessageModalComponent,
+        cssClass: 'modal-clientes-full', // opcional (para estilos)
       componentProps: { title, message, icon }
     });
     await modal.present();
@@ -108,7 +109,7 @@ desbloquearAudio(): Promise<void> {
   // ===============================
   // 🔐 LOGIN
   // ===============================
-  async login() {
+async login() {
 
   localStorage.setItem('audioUnlocked', 'true');
 
@@ -133,74 +134,96 @@ desbloquearAudio(): Promise<void> {
     .subscribe({
       next: async (resp: any) => {
 
-        this.parametros.ApiPrint = resp.empresa.apiPrint;
-        this.parametros.puedeEliminarOrden = resp.usuario.puedeEliminarOrden || false;
+        // =====================================
+        // 🔥 CASO: REQUIERE UPGRADE (NUEVO)
+        // =====================================
+        if (resp?.requiereUpgrade) {
 
-        // ===============================
-        // 🔥 ALERTA DEL PLAN (AQUÍ)
-        // ===============================
-        if (resp.alertaPlan) {
+          this.parametros.IdEmpresa = resp?.empresa?.idEmpresa || 0;
+
+          await loading.dismiss();
+
+          await this.mostrarMensaje(
+            'Plan agotado',
+            resp?.mensaje || 'Has alcanzado el límite de tu plan'
+          );
+
+          //await this.abrirPlanes();
+
+          return; // 💣 IMPORTANTÍSIMO
+        }
+
+        // =====================================
+        // 🔥 LOGIN NORMAL (SEGURO)
+        // =====================================
+
+        // 👇 proteger datos por si no vienen
+        const empresa = resp?.empresa || {};
+        const usuario = resp?.usuario || {};
+        const modulos = resp?.modulos || [];
+
+        this.parametros.ApiPrint = empresa.apiPrint || '';
+        this.parametros.IdEmpresa = empresa.idEmpresa || 0;
+
+        console.log('Empresa ID:', resp);
+
+        // 🔥 alerta plan
+        if (resp?.alertaPlan) {
           setTimeout(async () => {
             await this.mostrarMensaje(
               'Aviso de consumo',
               resp.alertaPlan
             );
-          }, 500); // pequeño delay para que cargue primero
+          }, 500);
         }
 
-        // ===============================
-        // 1️⃣ GUARDAR MENÚ
-        // ===============================
+        // 📦 guardar módulos
         localStorage.setItem(
           'menu_modulos',
-          JSON.stringify(resp.modulos || [])
+          JSON.stringify(modulos)
         );
 
-        // ===============================
-        // 2️⃣ SESIÓN
-        // ===============================
+        // 🔐 sesión (sin romper si faltan campos)
         this.parametros.setLoginData(
-          resp.usuario.userName,
+          usuario.userName || '',
           this.PassWord,
-          resp.empresa.idEmpresa,
-          resp.token || 'ok',
-          resp.usuario.rol || '',
-          resp.usuario.idUsuario,
-          resp.usuario,
+          empresa.idEmpresa || 0,
+          resp?.token || 'ok',
+          usuario.rol || '',
+          usuario.idUsuario || 0,
+          usuario
         );
 
-        // ===============================
-        // 3️⃣ MÓDULOS ACTIVOS
-        // ===============================
+        // 🔧 módulos activos
         this.parametros.setModulosActivos(
-          (resp.modulos || []).map((m: any) => m.moduloId)
+          modulos.map((m: any) => m.moduloId)
         );
 
-        // ===============================
-        // 🛰️ OneSignal
-        // ===============================
+        // 🛰️ OneSignal (seguro)
         try {
-          const osUserId =
-            `emp_${resp.empresa.idEmpresa}_user_${resp.usuario.idUsuario}`;
+          if (empresa.idEmpresa && usuario.idUsuario) {
+            const osUserId =
+              `emp_${empresa.idEmpresa}_user_${usuario.idUsuario}`;
 
-          await OneSignal.login(osUserId);
-          await OneSignal.User.addTag(
-            'empresa_id',
-            resp.empresa.idEmpresa.toString()
-          );
+            await OneSignal.login(osUserId);
+            await OneSignal.User.addTag(
+              'empresa_id',
+              empresa.idEmpresa.toString()
+            );
+          }
         } catch (e) {
           console.warn('OneSignal error:', e);
         }
 
         await loading.dismiss();
 
-        // ===============================
-        // 4️⃣ REDIRECCIÓN
-        // ===============================
-        this.redirigirSegunModulos(resp.modulos || []);
+        // 🚀 redirección
+        this.redirigirSegunModulos(modulos);
       },
+
       error: async (err) => {
         await loading.dismiss();
+
         await this.mostrarMensaje(
           'Error de acceso',
           err?.error || 'No se pudo iniciar sesión'
