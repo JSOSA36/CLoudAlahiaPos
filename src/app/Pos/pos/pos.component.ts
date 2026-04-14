@@ -12,7 +12,7 @@ import { categorias } from 'src/app/models/categorias';
 import { productos } from 'src/app/models/productos';
 import { CuentaxPagarComponent } from 'src/app/CuentaxPagar/cuentax-pagar/cuentaxpagar.component';
 import { Empleado } from 'src/app/models/empleado.models';
-
+import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 type ItemCarrito = {
   idProducto: number;
   nombre: string;
@@ -81,7 +81,8 @@ carritoModal = false;
     private alertCtrl: AlertController,
     private parametroConfigService: ParametroConfigService,
      private modal: ModalController,
-     private router: Router
+     private router: Router,
+     private _FacturaHeader: FacturaHeaderService
   ) {
 
     
@@ -156,42 +157,73 @@ async openModalCobro() {
 
   if (!this.carrito.length) return;
 
-  console.log("🧾 Carrito:", this.carrito);
-  console.log("💰 Total:", this.total);
-
   const modal = await this.modal.create({
     component: CuentaxPagarComponent,
     cssClass: 'modal-factura-full',
     componentProps: {
-
       Items: this.carrito,
-
       Subtotal: this.subtotalProductos,
-
       Itbis: this.montoItbis,
-
       TotalFactura: this.total,
-
       TipoOrden: this.tipoOrden
-
     }
   });
 
   await modal.present();
 
-  const { role } = await modal.onDidDismiss();
+  const { data, role } = await modal.onDidDismiss();
 
   if (role === 'ok') {
 
-    console.log("✅ Pago completado");
+    console.log("💰 Data modal:", data);
 
-    // limpiar carrito
-    this.carrito = [];
+    // 🔥 VALIDACIÓN
+    if (!data?.pagos || data.pagos.length === 0) {
+      console.warn("⚠️ No hay pagos");
+      return;
+    }
 
-    this.recalcularTotales();
+    const facturaDTO = this.armarFacturaDTO(data);
 
+    console.log("📦 DTO listo:", facturaDTO);
+
+    this._FacturaHeader.createFacturaDirecta(facturaDTO)
+      .subscribe({
+        next: (resp: any) => {
+
+          console.log("✅ Factura creada:", resp);
+
+          // 🔥 LIMPIAR
+          this.carrito = [];
+          this.recalcularTotales();
+
+        },
+        error: (err) => {
+          console.error("❌ Error creando factura", err);
+        }
+      });
   }
+}
+private armarFacturaDTO(dataModal: any) {
 
+  return {
+    header: {
+      idEmpresa: this.parametro.GetIdEmpresa(),
+      idCliente: dataModal.idCliente,
+      idMoso: 1,
+      tipoFactura: dataModal.tipoFactura,
+      printPending: dataModal.imprimir,
+
+      facturaDetalles: this.carrito.map(item => ({
+        idProducto: item.idProducto,
+        cantidad: item.cantidad,
+        precioOferta: item.precioBase ?? item.precio,
+        itbis: item.itbisProducto ?? 0
+      }))
+    },
+
+    pagos: dataModal.pagos
+  };
 }
  recalcularTotales() {
 
@@ -591,8 +623,7 @@ async openModalCobro() {
       total: this.getTotal()
     });
 
-    this.carrito = [];
-    this.recalcularTotales();
+    
     
   }
   getSubtotalBase(){

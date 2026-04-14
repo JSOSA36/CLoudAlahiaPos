@@ -153,41 +153,77 @@
 </div> -->
       <!-- ================= CLIENTE ================= -->
 
-   <div
-  *ngIf="_TipoDocumento === 'Factura' && (_TipoFactura==='Credito' || _TipoComprobante==='CreditoFiscal')"
+ <div
+  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante==='CreditoFiscal'"
   class="cliente-selector">
 
   <ion-icon name="person-circle-outline"></ion-icon>
 
   <div class="cliente-texto">
 
-    <!-- INPUT RNC -->
-    <ion-input
-      placeholder="RNC o Cédula"
-      [(ngModel)]="rncCliente"
-      (keyup.enter)="buscarCliente()"
-      (ionBlur)="buscarCliente()">
-    </ion-input>
+    <!-- 🔍 BUSCAR CLIENTE -->
+    <div *ngIf="!_ClienteSeleccionado" class="rnc-search">
 
-    <!-- RESULTADO -->
-    <div *ngIf="_ClienteSeleccionado">
+      <ion-input
+        placeholder="RNC o Cédula"
+        [(ngModel)]="rncCliente"
+        (keyup.enter)="buscarCliente()">
+      </ion-input>
 
-      <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong>
+      <ion-button 
+      color="success"
+        size="small"
+        (click)="buscarCliente()">
+        <ion-icon style="color: white;" name="search-outline"></ion-icon>
+      </ion-button>
 
-      <br>
+    </div>
 
-      <small>
-        {{ _ClienteSeleccionado.cedulaRNC }}
-      </small>
+    <!-- ✅ RESULTADO -->
+    <div *ngIf="_ClienteSeleccionado" class="rnc-result">
+
+      <div class="cliente-info">
+        <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong>
+        <br>
+        <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
+      </div>
+
+      <ion-button 
+        fill="clear"
+        color="danger"
+        (click)="limpiarCliente()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
 
     </div>
 
   </div>
 
 </div>
-
       <!-- ================= FORMA DE PAGO ================= -->
+<!-- 🔹 CLIENTE NORMAL -->
+<div
+  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante !== 'CreditoFiscal'"
+  class="cliente-selector"
+  (click)="abrirModalClientes()"
+>
 
+  <ion-icon name="person-circle-outline"></ion-icon>
+
+  <div class="cliente-texto">
+
+    <div *ngIf="_ClienteSeleccionado">
+      <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong><br>
+      <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
+    </div>
+
+    <div *ngIf="!_ClienteSeleccionado">
+      Seleccionar cliente
+    </div>
+
+  </div>
+
+</div>
       <ng-container *ngIf="_TipoDocumento === 'Factura' && _TipoFactura==='Contado'">
 
         <ion-item>

@@ -35,7 +35,9 @@ export class FacturaHeaderService {
     return this.httpClient.post<facturaheader>(`${this.baseUrl}/`, value, this.httpOptions);
   }
 
-  
+  createFacturaDirecta(dto: any) {
+  return this.httpClient.post(`${this.baseUrl}/ProcesarFactura`, dto);
+}
   GetListadoOrdenes(IdEmpresa: number): Observable<facturaheader[]> {
   return this.httpClient.get<facturaheader[]>(
     `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}`

@@ -76,7 +76,7 @@
 
 </div>
 
-  <div class="nota-plan">
+  <div class="nota-plan" *ngIf="mostrarCambioPlan">
   <span class="icono">💡</span>
   <div class="texto">
     Actualiza tu plan ahora y continúa sin interrupciones.<br>
@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<ion-button expand="block" color="success" (click)="cambiarPlan()">
+<ion-button *ngIf="mostrarCambioPlan" expand="block" color="success" (click)="cambiarPlan()">
   Cambiar Plan
 </ion-button>
 

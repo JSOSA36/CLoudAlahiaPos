@@ -53,18 +53,24 @@ async abrirPlanesWhatsApp() {
   // ===============================
   // 🔥 MODAL MENSAJES
   // ===============================
-  private async mostrarMensaje(
-    title: string,
-    message: string,
-    icon: string = 'alert-circle-outline'
-  ) {
-    const modal = await this.modalCtrl.create({
-      component: MessageModalComponent,
-        cssClass: 'modal-clientes-full', // opcional (para estilos)
-      componentProps: { title, message, icon }
-    });
-    await modal.present();
-  }
+ private async mostrarMensaje(
+  title: string,
+  message: string,
+  icon: string = 'alert-circle-outline',
+  mostrarCambioPlan: boolean = false // 🔥 default FALSE
+) {
+  const modal = await this.modalCtrl.create({
+    component: MessageModalComponent,
+    componentProps: {
+      title,
+      message,
+      icon,
+      mostrarCambioPlan
+    }
+  });
+
+  await modal.present();
+}
 activarAudioGlobal(): Promise<void> {
 
   return new Promise((resolve) => {
@@ -116,7 +122,9 @@ async login() {
   if (!this.Usuario || !this.PassWord) {
     await this.mostrarMensaje(
       'Campos requeridos',
-      'Debes ingresar usuario y contraseña'
+      'Debes ingresar usuario y contraseña',
+      'alert-circle-outline',
+      false
     );
     return;
   }
@@ -135,7 +143,7 @@ async login() {
       next: async (resp: any) => {
 
         // =====================================
-        // 🔥 CASO: REQUIERE UPGRADE (NUEVO)
+        // 🔥 CASO: REQUIERE UPGRADE
         // =====================================
         if (resp?.requiereUpgrade) {
 
@@ -145,19 +153,17 @@ async login() {
 
           await this.mostrarMensaje(
             'Plan agotado',
-            resp?.mensaje || 'Has alcanzado el límite de tu plan'
+            resp?.mensaje || 'Has alcanzado el límite de tu plan',
+            'alert-circle-outline',
+            true // 👈 SOLO aquí mostramos cambio de plan
           );
 
-          //await this.abrirPlanes();
-
-          return; // 💣 IMPORTANTÍSIMO
+          return;
         }
 
         // =====================================
-        // 🔥 LOGIN NORMAL (SEGURO)
+        // 🔥 LOGIN NORMAL
         // =====================================
-
-        // 👇 proteger datos por si no vienen
         const empresa = resp?.empresa || {};
         const usuario = resp?.usuario || {};
         const modulos = resp?.modulos || [];
@@ -167,23 +173,22 @@ async login() {
 
         console.log('Empresa ID:', resp);
 
-        // 🔥 alerta plan
         if (resp?.alertaPlan) {
           setTimeout(async () => {
             await this.mostrarMensaje(
               'Aviso de consumo',
-              resp.alertaPlan
+              resp.alertaPlan,
+              'alert-circle-outline',
+              false
             );
           }, 500);
         }
 
-        // 📦 guardar módulos
         localStorage.setItem(
           'menu_modulos',
           JSON.stringify(modulos)
         );
 
-        // 🔐 sesión (sin romper si faltan campos)
         this.parametros.setLoginData(
           usuario.userName || '',
           this.PassWord,
@@ -194,12 +199,10 @@ async login() {
           usuario
         );
 
-        // 🔧 módulos activos
         this.parametros.setModulosActivos(
           modulos.map((m: any) => m.moduloId)
         );
 
-        // 🛰️ OneSignal (seguro)
         try {
           if (empresa.idEmpresa && usuario.idUsuario) {
             const osUserId =
@@ -217,16 +220,27 @@ async login() {
 
         await loading.dismiss();
 
-        // 🚀 redirección
         this.redirigirSegunModulos(modulos);
       },
 
       error: async (err) => {
         await loading.dismiss();
 
+        let mensaje = 'No se pudo iniciar sesión';
+
+        if (typeof err?.error === 'string' && err.error.trim() !== '') {
+          mensaje = err.error;
+        } else if (err?.status === 0) {
+          mensaje = 'No se pudo conectar con el servidor';
+        } else if (err?.error?.mensaje) {
+          mensaje = err.error.mensaje;
+        }
+
         await this.mostrarMensaje(
           'Error de acceso',
-          err?.error || 'No se pudo iniciar sesión'
+          mensaje,
+          'alert-circle-outline',
+          false // 👈 nunca mostrar cambio de plan en errores normales
         );
       }
     });

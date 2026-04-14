@@ -535,3 +535,70 @@ border:none;
   background: #f8fafc;
   border: 2px solid #e5e7eb;
 }
+.cliente-selector {
+  border: 2px dashed #4c8dff;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.cliente-texto {
+  width: 100%;
+}
+
+.rnc-search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.rnc-input {
+  flex: 1;
+  max-width: 420px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  text-align: center;
+}
+
+.btn-buscar-rnc {
+  --background: #f4b400;
+  --background-hover: #e0a800;
+  --background-activated: #d89b00;
+  --color: #1b1b1b;
+  --border-radius: 10px;
+  min-width: 46px;
+  height: 42px;
+}
+
+.rnc-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.cliente-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.cliente-info strong {
+  font-size: 16px;
+  color: #fff;
+}
+
+.cliente-info small {
+  font-size: 13px;
+  color: #d7d7d7;
+}
+
+.btn-limpiar-rnc {
+  margin: 0;
+}

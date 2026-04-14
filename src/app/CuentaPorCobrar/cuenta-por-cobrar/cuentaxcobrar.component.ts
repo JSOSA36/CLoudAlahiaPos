@@ -14,7 +14,7 @@ import { ClienteVozComponent } from 'src/app/modals/cliente-voz/cliente-voz.comp
 import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component';
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
-
+import { PrintService } from 'src/app/servicios/print.services';
 @Component({
   selector: 'app-cuenta-por-cobrar',
   templateUrl: './cuentaxcobrar.component.html',
@@ -23,7 +23,7 @@ import { EmpleadosService } from 'src/app/servicios/empleados.service';
 export class CuentaPorCobrarComponent implements OnInit {
 
   @ViewChild(IonModal) _modal!: IonModal;
-
+procesandoPago = false;
   NombreCliente: string = "";
   empleados: Empleado[] = [];
   CodigoEmpleado: string = "";
@@ -37,7 +37,8 @@ puedeEliminarOrden: boolean = false;
     private _FacturaHeader: FacturaHeaderService,
       private alertController: AlertController,
       private empleadosService: EmpleadosService,
-      private toastCtrl: ToastController
+      private toastCtrl: ToastController,
+      private printService: PrintService
       
   ) {}
 cargarEmpleadosEmpresa() {
@@ -289,22 +290,25 @@ getPendiente(iten: any): number {
   return Math.max(0, total - pagado);
 }
 
- async openModal(IdFact: number) {
+ async PagarFact(IdFact: number) {
+
+  if (this.procesandoPago) return;
+  this.procesandoPago = true;
 
   this.NombreCliente = "";
 
   const factura = this._Parametro.ListadoOrdenes
     .find(c => c.idFacturaHeader == IdFact);
 
-  if (!factura) return;
+  if (!factura) {
+    this.procesandoPago = false;
+    return;
+  }
 
-  // 🔥 CALCULAR PENDIENTE REAL
+  // 🔥 CALCULAR PENDIENTE
   const total = Number(factura.total ?? 0);
   const pagado = Number(factura.pagado ?? 0);
   const pendiente = Math.max(0, total - pagado);
-
-  console.log("🔍 Factura:", factura);
-  console.log("💰 Pendiente:", pendiente);
 
   const modal = await this.modal.create({
     component: CuentaxPagarComponent,
@@ -317,19 +321,111 @@ getPendiente(iten: any): number {
 
   await modal.present();
 
-  const { role } = await modal.onDidDismiss();
+  const { data, role } = await modal.onDidDismiss();
 
-  if (role === 'ok') {
+  if (role === 'ok' && data) {
 
-    const index = this._Parametro.ListadoOrdenes
-      .findIndex(c => c.idFacturaHeader == IdFact);
-
-    if (index !== -1) {
-      this._Parametro.ListadoOrdenes.splice(index, 1);
+    // ================= VALIDACIÓN =================
+    if (!data.pagos || data.pagos.length === 0) {
+      console.warn("⚠️ No hay pagos");
+      this.procesandoPago = false;
+      return;
     }
+
+    // ================= DTO =================
+    const dto: any = {
+      idFactura: factura.idFacturaHeader,
+      tipoFactura: data.tipoFactura,
+      idCliente: data.idCliente,
+      imprimirFactura: data.imprimir,
+      formaPago:
+        data.pagos.length > 1
+          ? 'Mixto'
+          : (data.pagos[0]?.metodo ?? 'Efectivo'),
+      detallePagos: [],
+      detalleAbono: []
+    };
+
+    if (data.tipoFactura === 'Contado') {
+      dto.detallePagos = data.pagos;
+    }
+
+    if (data.tipoFactura === 'Credito') {
+      dto.detalleAbono = data.pagos;
+    }
+
+    console.log("📦 DTO enviado:", dto);
+
+    // ================= API =================
+    this._FacturaHeader.GenerateFacts(dto)
+      .subscribe({
+        next: async () => {
+
+          console.log("✅ Factura procesada");
+
+          // ================= IMPRESIÓN 🔥 =================
+          try {
+
+            // 🔥 siempre lavador
+            this.printService.printLavador(dto.idFactura)
+              .subscribe({
+                next: () => console.log("🧾 Lavador impreso"),
+                error: err => console.error("❌ Error lavador", err)
+              });
+
+            // 🔥 solo si cliente quiere factura
+            if (dto.imprimirFactura) {
+              this.printService.printFactura(dto.idFactura)
+                .subscribe({
+                  next: () => console.log("🧾 Factura cliente impresa"),
+                  error: err => console.error("❌ Error factura", err)
+                });
+            }
+
+          } catch (error) {
+            console.error("❌ Error impresión:", error);
+          }
+
+          // ================= LIMPIAR LISTA =================
+          const index = this._Parametro.ListadoOrdenes
+            .findIndex(c => c.idFacturaHeader == IdFact);
+
+          if (index !== -1) {
+            this._Parametro.ListadoOrdenes.splice(index, 1);
+          }
+
+          // ================= UI =================
+          const toast = await this.toastCtrl.create({
+            message: 'Factura procesada correctamente',
+            duration: 1500,
+            color: 'success'
+          });
+
+          toast.present();
+
+          this.procesandoPago = false;
+        },
+
+        error: async (err) => {
+
+          console.error("❌ Error:", err);
+
+          const toast = await this.toastCtrl.create({
+            message: 'Error procesando la factura',
+            duration: 1500,
+            color: 'danger'
+          });
+
+          toast.present();
+
+          this.procesandoPago = false;
+        }
+      });
+
+  } else {
+    this.procesandoPago = false;
   }
 }
-
 
   // ============================================================
   // 🔥 AJUSTADO — DESCUENTO REAL (NO PORCENTAJE)
