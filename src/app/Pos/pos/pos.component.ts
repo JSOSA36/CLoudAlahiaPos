@@ -44,6 +44,7 @@ export class PosComponent implements OnInit {
 facturarITBIS: boolean = false;
 precioIncluyeITBIS: boolean = false;
 tasaITBIS: number = 0.18;
+aplicarITBIS: boolean = true;
   public ListadoEmpleados: Empleado[] = [];
 
   busqueda = '';
@@ -54,7 +55,7 @@ tasaITBIS: number = 0.18;
   tipoOrden: 'Llevar' | 'ComerAqui' | 'Delivery' | 'DeliveryExterno' = 'Llevar';
   tipoDocumento: 'Factura' | 'Orden' = 'Factura';
   tipoFactura: 'Contado' | 'Crédito' = 'Contado';
-
+  comisionEmpleado: boolean = false;
   carrito: ItemCarrito[] = [];
 
   searchOpen = false;
@@ -69,7 +70,7 @@ carritoModal = false;
   total: number = 0;
 
   // Toggles header carrito
-  aplicarITBIS: boolean = true;
+ 
   aplicarPropina: boolean = false;
 
   constructor(
@@ -93,13 +94,17 @@ carritoModal = false;
   abrirCarrito(){
   this.carritoModal = true;
 }
-
+setITBIS(valor: boolean) {
+  this.aplicarITBIS = valor;
+  this.recalcularTotales();
+}
 cerrarCarrito(){
   this.carritoModal = false;
 }
 iirAImpresion() {
   this.router.navigate(['/printer']);
 }
+
 cargarParametrosPOS(){
 
   const idEmpresa = this.parametro.GetIdEmpresa();
@@ -109,12 +114,14 @@ cargarParametrosPOS(){
 
     const facturar = params.find(x => x.clave === 'FACTURAR_CON_ITBIS');
     const incluye = params.find(x => x.clave === 'PRECIO_INCLUYE_ITBIS');
-
+    const comision = params.find(x => x.clave === 'COMISION_EMPLEADO');
+   
     this.facturarITBIS = facturar?.valor === 'true';
     this.precioIncluyeITBIS = incluye?.valor === 'true';
-
+    this.comisionEmpleado = comision?.valor === 'true';
     console.log("ITBIS activo:", this.facturarITBIS);
     console.log("Precio incluye ITBIS:", this.precioIncluyeITBIS);
+    console.log("Comisión por empleado:", this.comisionEmpleado);
 
   });
 
@@ -225,36 +232,53 @@ private armarFacturaDTO(dataModal: any) {
     pagos: dataModal.pagos
   };
 }
- recalcularTotales() {
+recalcularTotales() {
 
-  // subtotal del carrito
+  const usarITBIS = this.facturarITBIS && this.aplicarITBIS;
+
+  // 🔥 RECALCULAR CADA ITEM
+  this.carrito.forEach(item => {
+
+    const precioBase = item.precioBase ?? item.precio;
+
+    if (usarITBIS) {
+
+      item.itbisProducto = +(precioBase * this.tasaITBIS).toFixed(2);
+
+      const precioFinal = +(precioBase + item.itbisProducto).toFixed(2);
+
+      item.subtotal = +(precioFinal * item.cantidad).toFixed(2);
+
+    } else {
+
+      item.itbisProducto = 0;
+
+      item.subtotal = +(precioBase * item.cantidad).toFixed(2);
+    }
+
+  });
+
+  // 🔹 subtotal base
   this.subtotalProductos = this.carrito.reduce((sum, item) => {
-   return sum + ((item.precioBase ?? item.precio) * item.cantidad);
+    return sum + ((item.precioBase ?? item.precio) * item.cantidad);
   }, 0);
 
-  // calcular ITBIS total
-  this.montoItbis = this.carrito.reduce((sum, item) => {
-    return sum + ((item.itbisProducto ?? 0) * item.cantidad);
-  }, 0);
+  // 🔹 ITBIS total
+  this.montoItbis = usarITBIS
+    ? this.carrito.reduce((sum, item) => {
+        return sum + ((item.itbisProducto ?? 0) * item.cantidad);
+      }, 0)
+    : 0;
 
-  // calcular propina
+  // 🔹 propina
   this.montoPropina = this.aplicarPropina
     ? +(this.subtotalProductos * 0.10).toFixed(2)
     : 0;
 
-  // 🔹 lógica correcta del total
-  if (this.precioIncluyeITBIS) {
-
-    // el ITBIS ya está dentro del precio
-    this.total = +(this.subtotalProductos + this.montoPropina).toFixed(2);
-
-  } else {
-
-    // el ITBIS se suma al total
-    this.total = +(this.subtotalProductos + this.montoItbis + this.montoPropina).toFixed(2);
-
-  }
-
+  // 🔹 total final
+  this.total = usarITBIS
+    ? +(this.subtotalProductos + this.montoItbis + this.montoPropina).toFixed(2)
+    : +(this.subtotalProductos + this.montoPropina).toFixed(2);
 }
 
   onToggleItbis() {
@@ -451,29 +475,22 @@ private armarFacturaDTO(dataModal: any) {
 
   const precioVenta = prod.precioVenta;
 
-  let precioBase = precioVenta;
-  let itbisProducto = 0;
-  let precioFinal = precioVenta;
+  // 🔹 1. CALCULAR BASE SIEMPRE (NO DEPENDE DE FACTURA)
+  let precioBase = this.precioIncluyeITBIS
+    ? +(precioVenta / (1 + this.tasaITBIS)).toFixed(2)
+    : precioVenta;
 
-  if (this.facturarITBIS) {
+  // 🔹 2. DECIDIR SI LA FACTURA LLEVA ITBIS
+  const usarITBIS = this.facturarITBIS && this.aplicarITBIS;
 
-    if (this.precioIncluyeITBIS) {
+  let itbisProducto = usarITBIS
+    ? +(precioBase * this.tasaITBIS).toFixed(2)
+    : 0;
 
-      // 🔹 extraer ITBIS del precio
-      precioBase = +(precioVenta / (1 + this.tasaITBIS)).toFixed(2);
-      itbisProducto = +(precioVenta - precioBase).toFixed(2);
-
-      precioFinal = precioVenta;
-
-    } else {
-
-      // 🔹 calcular ITBIS encima
-      precioBase = precioVenta;
-      itbisProducto = +(precioVenta * this.tasaITBIS).toFixed(2);
-
-      precioFinal = +(precioBase + itbisProducto).toFixed(2);
-    }
-  }
+  // 🔹 3. PRECIO FINAL DEPENDE DE SI SE APLICA ITBIS
+  let precioFinal = usarITBIS
+    ? +(precioBase + itbisProducto).toFixed(2)
+    : precioBase;
 
   const item = this.carrito.find(i => i.idProducto === prod.idProducto);
 
@@ -486,14 +503,13 @@ private armarFacturaDTO(dataModal: any) {
     this.recalcularTotales();
 
     return;
-
   }
 
   this.carrito.push({
     idProducto: prod.idProducto,
     nombre: prod.nombre,
 
-    // 🔹 ahora el precio del item es la base
+    // 🔹 PRECIO BASE SIEMPRE LIMPIO
     precio: precioBase,
 
     cantidad: 1,

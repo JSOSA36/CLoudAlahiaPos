@@ -10,9 +10,11 @@ import { PlanCloud } from '../servicios/lanes-cloud.service';
   styleUrls: ['./message-modal.component.scss'],
 })
 export class MessageModalComponent {
-mostrarCambioPlan: boolean = true;
+@Input() mostrarCambioPlan: boolean = false;
 planSeleccionado: number | null = null;
+@Input() mostrarPago: boolean = false;
 planes: PlanCloud[] = [];
+archivo: File | null = null;
 PlanActual: PlanCloud | null = null;
 planActualNombre: string = '';
   @Input() title: string = 'Información';
@@ -27,9 +29,48 @@ planActualNombre: string = '';
  
 
 ngOnInit() {
-  this.cargarPlanes();
+  console.log('mostrarCambioPlan:', this.mostrarCambioPlan);
+  if (this.mostrarCambioPlan) {
+    this.cargarPlanes();
+  }
 }
+onFileSelected(event: any) {
+  const file = event.target.files[0];
 
+  if (file) {
+    this.archivo = file;
+    console.log('Archivo seleccionado:', file.name);
+  }
+}
+async enviarPago() {
+
+  if (!this.archivo) {
+    await this.mostrarExito(
+      'Atención',
+      'Debes adjuntar el comprobante'
+    );
+    return;
+  }
+
+  // 🔥 AQUÍ LUEGO VA TU API
+  console.log('Enviando archivo...', this.archivo);
+
+  await this.mostrarExito(
+    'Enviado',
+    'Tu comprobante fue enviado correctamente. Será validado.'
+  );
+
+  this.cerrar();
+}
+copiarTexto(texto: string) {
+  navigator.clipboard.writeText(texto)
+    .then(() => {
+      console.log('Copiado:', texto);
+    })
+    .catch(err => {
+      console.error('Error al copiar:', err);
+    });
+}
 cargarPlanes() {
  this.service.getPlanesPorEmpresa(this.parametros.IdEmpresa)
   .subscribe(res => {

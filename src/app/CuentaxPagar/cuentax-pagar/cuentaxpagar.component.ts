@@ -17,7 +17,7 @@ export class CuentaxPagarComponent implements OnInit {
   @Input() Subtotal!: number;
   @Input() Itbis!: number;
   @Input() TipoOrden!: string;
-
+cambio: number = 0;
   _TipoComprobante: string = 'Consumo';
   _PropinaLegal: boolean = false;
   _MontoPropina: number = 0;
@@ -65,16 +65,18 @@ export class CuentaxPagarComponent implements OnInit {
 
   ngOnInit() {}
 
-  calcularCambio() {
-    const total = Number(this.TotalFactura) || 0;
-    const recibido = Number(this.EfectivoRecibido) || 0;
+ calcularCambio() {
 
-    this.Cambio = recibido - total;
+  const recibido = Number(this.EfectivoRecibido) || 0;
+  const total = Number(this.TotalFactura) || 0;
 
-    if (this.Cambio < 0) {
-      this.Cambio = 0;
-    }
+  this.cambio = recibido - total;
+
+  if (this.cambio < 0) {
+    this.cambio = 0;
   }
+
+}
 
   sumarEfectivo(monto: number) {
     this.EfectivoRecibido = monto;
@@ -114,7 +116,10 @@ export class CuentaxPagarComponent implements OnInit {
 
     return this.TotalFactura - abono;
   }
-
+setMonto(valor: number) {
+  this.EfectivoRecibido = valor;
+  this.calcularCambio();
+}
   async abrirModalClientes() {
     const modal = await this.modalCtrl.create({
       component: ClientesComponent,
@@ -384,7 +389,14 @@ export class CuentaxPagarComponent implements OnInit {
   seleccionarPago(pago: string) {
     this._FormaPago = pago;
   }
+validarClienteAutomatico() {
 
+  if (this._TipoFactura === 'Contado' && this._TipoComprobante === 'Consumo') {
+    this._ClienteSeleccionado = null;
+  }
+
+ 
+}
   getIconoFormaPago(pago: string): string {
     switch (pago) {
       case 'Efectivo': return 'assets/bancos/efectivo.png';

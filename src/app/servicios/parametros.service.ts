@@ -37,7 +37,7 @@ public puedeEliminarOrden: boolean = false;
   public NombreEmpresa = '';
   public NumeroMesa = '';
   public Buscar = '';
-
+public nombrePlan: string = '';
   public IdMesa = 0;
   public IdZona = 0;
   public IdCategoria = 0;

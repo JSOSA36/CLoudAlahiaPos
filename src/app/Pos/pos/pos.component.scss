@@ -135,7 +135,34 @@
 
   max-width: 120px;
 }
+.itbis-selector {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
 
+.itbis-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #ffc107;
+  background: white;
+  color: #333;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* 🔥 ACTIVO */
+.itbis-btn.active {
+  background: #ffc107;
+  color: #000;
+  border-color: #ffc107;
+}
+
+/* HOVER */
+.itbis-btn:hover {
+  transform: scale(1.03);
+}
 /* Flechas */
 .scroll-btn{
   position: absolute;
@@ -360,35 +387,127 @@
 }
 
 /* Items */
+/* =============================
+   CONTENEDOR ITEMS
+============================= */
 .items{
-  background: rgba(255,255,255,.85);
-  border-radius: 12px;
-  padding: 2px 2px;
+  flex: 1;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 🔥 separación real */
+
+  padding: 10px;
 }
 
+/* =============================
+   ITEM DEL CARRITO
+============================= */
 .item{
+
   display: grid;
- grid-template-columns: 1fr 90px 110px;
+  grid-template-columns: 1fr 90px 110px;
+
   gap: 10px;
-  padding: 2px 0;
-  border-bottom: 1px solid rgba(0,0,0,.08);
+
+  padding: 12px;
+
+  background: #fff;
+
+  border-radius: 12px;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+
   align-items: center;
+
+  border-left: 4px solid #f7c948; /* 🔥 tu color */
+
+  transition: all 0.2s ease;
+}
+
+/* HOVER */
+.item:hover{
+  transform: translateY(-2px);
+}
+
+/* =============================
+   INFO PRODUCTO
+============================= */
+.item-info{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .item-info .name{
   font-weight: 700;
   font-size: 13px;
-  margin: 6px;
-  white-space: normal;
-  word-break: break-word;
-}
-.item-info .sub{
-  font-size: 12px;
-   margin: 6px;
+  margin: 0;
 }
 
+.item-info .sub{
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.item-itbis{
+  font-size: 11px;
+  color: #888;
+}
+
+/* =============================
+   CANTIDAD
+============================= */
+.item-qty{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 10px;
+
+  padding: 4px 6px;
+}
+
+.qty-btn{
+  background: transparent;
+  border: none;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.qty{
+  width: 26px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* =============================
+   TOTAL + ELIMINAR
+============================= */
 .item-total{
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.remove-btn{
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.remove-btn ion-icon{
+  font-size: 18px;
+  color: #e03131;
 }
 
 .btn-vender{
@@ -1215,4 +1334,241 @@ transition:transform .2s;
 
   --border-radius:16px;
 
+}
+.itbis-center {
+  display: flex;
+  justify-content: center;
+}
+
+.itbis-center ion-item {
+  --inner-padding-end: 0;
+  --padding-start: 0;
+  width: auto;
+  text-align: center;
+}
+
+.itbis-center ion-label {
+  text-align: center;
+  width: 100%;
+}
+ion-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+/* BOTONES DERECHA */
+ion-buttons[slot="end"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* CAJA ITBIS */
+.itbis-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  font-weight: 600;
+  margin-left: 10px;
+}
+/* BOTÓN BASE */
+.itbis-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+  border-radius: 10px;
+
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* HOVER */
+.itbis-button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ACTIVO 🔥 */
+.itbis-button.active {
+  background: #ffc107;
+  color: #000;
+}
+
+/* TOGGLE AJUSTE */
+.itbis-button ion-toggle {
+  transform: scale(0.85);
+}
+/* 🔵 BASE */
+/* BASE */
+.order-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 14px;
+  border-radius: 10px;
+
+  font-weight: 600;
+  font-size: 13px;
+
+  border: none;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* 🟢 DOMICILIO (VERDE) */
+.order-btn.domicilio {
+  background: #28a745;
+  color: #fff;
+}
+
+.order-btn.domicilio:hover {
+  background: #218838;
+}
+
+/* 🔴 CONSUMO INTERNO */
+.order-btn.interno {
+  background: #e53935;
+  color: #fff;
+}
+
+.order-btn.interno:hover {
+  background: #c62828;
+}
+
+/* ICONO */
+.order-btn ion-icon {
+  font-size: 16px;
+}
+/* CONTENEDOR DERECHA */
+ion-buttons[slot="end"] {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 🔥 espacio entre botones */
+}
+
+/* BOTONES BASE */
+.order-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 14px;
+  border-radius: 10px;
+
+  font-weight: 600;
+  font-size: 13px;
+
+  height: 36px; /* 💣 MISMA ALTURA */
+}
+
+/* ITBIS COMO BOTÓN */
+.itbis-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 10px;
+
+  background: #ffc107;
+  color: #000;
+
+  font-weight: 600;
+  height: 36px; /* 💣 IGUAL QUE LOS DEMÁS */
+
+  margin-left: 6px;
+}
+
+/* TOGGLE MÁS PEQUEÑO */
+.itbis-button ion-toggle {
+  transform: scale(0.8);
+}
+/* =============================
+   FIX SOLO CARRITO (NO TOCA NADA MAS)
+============================= */
+
+/* separación entre items */
+.items{
+  gap: 12px !important;
+  padding: 8px !important;
+}
+
+/* tarjeta ligera SIN dañar layout */
+.item{
+  background: #fff !important;
+
+  border-radius: 10px !important;
+
+  padding: 10px !important;
+
+  margin: 0 !important;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,.08) !important;
+
+  border-left: 3px solid #f7c948 !important;
+}
+
+/* evita que se peguen visualmente */
+.item + .item{
+  margin-top: 6px;
+}
+
+/* texto más claro */
+.item-info .name{
+  font-weight: 600;
+}
+
+/* itbis más suave */
+.item-itbis{
+  color: #777;
+  font-size: 11px;
+}
+/* =============================
+   FOOTER CARRITO (BOTTOM ROW)
+============================= */
+.bottom-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 10px 12px;
+  margin-top: 6px;
+
+  font-size: 13px;
+
+  border-top: 1px solid rgba(0,0,0,.1);
+}
+
+/* CANTIDAD */
+.productos-count{
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* BOTON CANCELAR 🔥 */
+.btn-cancelar{
+  color: #e03131;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  transition: all 0.2s ease;
+}
+
+/* HOVER */
+.btn-cancelar:hover{
+  background: rgba(224,49,49,.1);
+  text-decoration: underline;
 }

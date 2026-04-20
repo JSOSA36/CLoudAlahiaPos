@@ -5,6 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AlertController, Platform } from '@ionic/angular';
 import { ParametrosService } from './servicios/parametros.service';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { AuthService } from 'src/app/servicios/auth.service';
 import { filter } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { CitasService } from './servicios/citas.service';
@@ -103,7 +104,28 @@ export class AppComponent implements OnInit, OnDestroy {
   private activeAlert: HTMLIonAlertElement | null = null;
 
   private readonly WARNING_BEFORE_EXPIRY = 5 * 60_000; // 5 minutos
+getPlanColor(plan: string): string {
+  switch (plan?.toLowerCase()) {
+    case 'básico':
+    case 'basico':
+      return 'primary'; // azul
 
+    case 'standard':
+      return 'success'; // verde
+
+    case 'gold':
+      return 'warning'; // amarillo
+
+    case 'platinum':
+      return 'medium'; // gris
+
+    case 'elite':
+      return 'dark'; // negro
+
+    default:
+      return 'warning'; // demo fallback
+  }
+}
   constructor(
     private router: Router,
     public _Parametro: ParametrosService,
@@ -111,7 +133,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private platform: Platform,
     private updates: SwUpdate,
 private toastCtrl: ToastController,
-private citasService: CitasService
+private citasService: CitasService,private authService: AuthService
   ) {}
 
   // ===============================
@@ -335,12 +357,27 @@ private startIdleWatcher() {
   // ===============================
   // 🚪 LOGOUT FORZADO
   // ===============================
-  private forceLogout() {
-    this.activeAlert?.dismiss();
-    this.activeAlert = null;
-    this._Parametro.logout();
-    this.router.navigateByUrl('/login', { replaceUrl: true });
+  private async forceLogout() {
+
+  this.activeAlert?.dismiss();
+  this.activeAlert = null;
+
+  const idUsuario = this._Parametro.IdUsuario;
+
+  try {
+    if (idUsuario) {
+      await this.authService.logout(idUsuario).toPromise();
+    }
+  } catch (error) {
+    console.warn('Error cerrando sesión en backend', error);
   }
+
+  // 🔥 LIMPIAR TODO
+  this._Parametro.logout();
+  localStorage.clear();
+
+  this.router.navigateByUrl('/login', { replaceUrl: true });
+}
 
   // ===============================
   // 📋 MENÚ (IGUAL QUE ANTES)

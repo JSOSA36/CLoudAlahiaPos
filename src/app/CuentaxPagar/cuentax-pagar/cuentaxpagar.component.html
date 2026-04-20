@@ -8,210 +8,103 @@
   </ion-card-header>
 
   <div class="factura-scroll">
-
     <ion-card-content>
 
-
-      <!-- ================= DOCUMENTO ================= -->
-
-      <!-- <div class="grupo-opciones">
-
-        <div class="titulo-opcion">
-          Documento
-        </div>
-
-        <div class="opciones-grid">
-
-          <button
-            class="opcion"
-            [class.activa]="_TipoDocumento==='Factura'"
-            (click)="_TipoDocumento='Factura'">
-
-            Factura
-
-          </button>
-
-          <button
-            class="opcion"
-            [class.activa]="_TipoDocumento==='Orden'"
-            (click)="_TipoDocumento='Orden'">
-
-            Orden
-
-          </button>
-
-        </div>
-
-      </div> -->
-
-
-      <!-- ================= TIPO ORDEN ================= -->
-
-      <!-- <div class="grupo-opciones" *ngIf="_TipoDocumento === 'Orden'">
-
-        <div class="titulo-opcion">
-          Tipo Orden
-        </div>
-
-        <div class="opciones-grid">
-
-          <button
-            class="opcion"
-            [class.activa]="_TipoOrden==='Llevar'"
-            (click)="_TipoOrden='Llevar'">
-
-            🛍 Llevar
-
-          </button>
-
-          <button
-            class="opcion"
-            [class.activa]="_TipoOrden==='ComerAqui'"
-            (click)="_TipoOrden='ComerAqui'">
-
-            🍽 Comer aquí
-
-          </button>
-
-          <button
-            class="opcion"
-            [class.activa]="_TipoOrden==='Delivery'"
-            (click)="_TipoOrden='Delivery'">
-
-            🚚 Delivery
-
-          </button>
-
-        </div>
-
-      </div> -->
-
-
       <!-- ================= TIPO FACTURA ================= -->
-
       <div class="grupo-opciones" *ngIf="_TipoDocumento === 'Factura'">
 
-        <div class="titulo-opcion">
-          Tipo Factura
-        </div>
+        <div class="titulo-opcion">Tipo Factura</div>
 
         <div class="opciones-grid">
 
           <button
             class="opcion"
             [class.activa]="_TipoFactura==='Contado'"
-            (click)="_TipoFactura='Contado'">
-
+            (click)="_TipoFactura='Contado'; validarClienteAutomatico()">
             💵 Contado
-
           </button>
 
-           <button
+          <button
             class="opcion"
             [class.activa]="_TipoFactura==='Credito'"
-            (click)="_TipoFactura='Credito'">
-
+            (click)="_TipoFactura='Credito'; validarClienteAutomatico()">
             🧾 Crédito
-
-          </button> 
+          </button>
 
         </div>
-
       </div>
 
-<!-- ================= TIPO COMPROBANTE ================= -->
+      <!-- ================= TIPO COMPROBANTE ================= -->
+      <div class="grupo-opciones" *ngIf="_TipoDocumento === 'Factura'">
 
-<div class="grupo-opciones" *ngIf="_TipoDocumento === 'Factura'">
+        <div class="titulo-opcion">Tipo de Comprobante</div>
 
-  <div class="titulo-opcion">
-    Tipo de Comprobante
-  </div>
+        <div class="opciones-grid">
 
-  <div class="opciones-grid">
+          <button
+            class="opcion"
+            [class.activa]="_TipoComprobante==='Consumo'"
+            (click)="_TipoComprobante='Consumo'; validarClienteAutomatico()">
+            🧾 Consumo
+          </button>
 
-    <button
-      class="opcion"
-      [class.activa]="_TipoComprobante==='Consumo'"
-      (click)="_TipoComprobante='Consumo'">
+          <button
+            class="opcion"
+            [class.activa]="_TipoComprobante==='CreditoFiscal'"
+            (click)="_TipoComprobante='CreditoFiscal'; validarClienteAutomatico()">
+            🏢 Crédito Fiscal
+          </button>
 
-      🧾 Consumo
+        </div>
+      </div>
 
-    </button>
+      <!-- ================= CLIENTE (CUANDO APLICA) ================= -->
+     <!-- ================= CLIENTE ================= -->
 
-    <button
-      class="opcion"
-      [class.activa]="_TipoComprobante==='CreditoFiscal'"
-      (click)="_TipoComprobante='CreditoFiscal'">
-
-      🏢 Crédito Fiscal
-
-    </button>
-   
-
-  </div>
-
-</div> -->
-      <!-- ================= CLIENTE ================= -->
-
- <div
-  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante==='CreditoFiscal'"
+<!-- 🔹 CRÉDITO FISCAL = buscar por RNC/Cédula -->
+<div
+  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante === 'CreditoFiscal'"
   class="cliente-selector">
 
   <ion-icon name="person-circle-outline"></ion-icon>
 
   <div class="cliente-texto">
 
-    <!-- 🔍 BUSCAR CLIENTE -->
     <div *ngIf="!_ClienteSeleccionado" class="rnc-search">
-
       <ion-input
         placeholder="RNC o Cédula"
         [(ngModel)]="rncCliente"
         (keyup.enter)="buscarCliente()">
       </ion-input>
 
-      <ion-button 
-      color="success"
-        size="small"
-        (click)="buscarCliente()">
-        <ion-icon style="color: white;" name="search-outline"></ion-icon>
+      <ion-button color="success" size="small" (click)="buscarCliente()">
+        <ion-icon name="search-outline"></ion-icon>
       </ion-button>
-
     </div>
 
-    <!-- ✅ RESULTADO -->
     <div *ngIf="_ClienteSeleccionado" class="rnc-result">
-
       <div class="cliente-info">
-        <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong>
-        <br>
+        <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong><br>
         <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
       </div>
 
-      <ion-button 
-        fill="clear"
-        color="danger"
-        (click)="limpiarCliente()">
+      <ion-button fill="clear" color="danger" (click)="limpiarCliente()">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
-
     </div>
 
   </div>
-
 </div>
-      <!-- ================= FORMA DE PAGO ================= -->
-<!-- 🔹 CLIENTE NORMAL -->
+
+<!-- 🔹 CRÉDITO = seleccionar cliente por modal -->
 <div
-  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante !== 'CreditoFiscal'"
+  *ngIf="_TipoDocumento === 'Factura' && _TipoFactura === 'Credito' && _TipoComprobante !== 'CreditoFiscal'"
   class="cliente-selector"
-  (click)="abrirModalClientes()"
->
+  (click)="abrirModalClientes()">
 
   <ion-icon name="person-circle-outline"></ion-icon>
 
   <div class="cliente-texto">
-
     <div *ngIf="_ClienteSeleccionado">
       <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong><br>
       <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
@@ -220,323 +113,103 @@
     <div *ngIf="!_ClienteSeleccionado">
       Seleccionar cliente
     </div>
-
   </div>
-
 </div>
+
+<!-- 🔹 CONTADO + CONSUMO = al portador -->
+<div
+  *ngIf="_TipoDocumento === 'Factura' 
+        && _TipoFactura === 'Contado' 
+        && _TipoComprobante === 'Consumo'"
+  class="cliente-selector">
+
+  <ion-icon name="person-outline"></ion-icon>
+
+  <div class="cliente-texto">
+    Cliente: <strong>Al portador</strong>
+  </div>
+</div>
+
+    
+
+      <!-- ================= FORMA DE PAGO ================= -->
       <ng-container *ngIf="_TipoDocumento === 'Factura' && _TipoFactura==='Contado'">
 
         <ion-item>
-
           <ion-label>Forma de Pago</ion-label>
 
-        <ion-select [(ngModel)]="_FormaPago" interface="popover">
+          <ion-select [(ngModel)]="_FormaPago">
 
-  <ion-select-option value="Efectivo">
-    💵 Efectivo
-  </ion-select-option>
+            <ion-select-option value="Efectivo">💵 Efectivo</ion-select-option>
+            <ion-select-option value="Tarjeta">💳 Tarjeta</ion-select-option>
+            <ion-select-option value="Transferencia BHD">🏦 BHD</ion-select-option>
+            <ion-select-option value="Transferencia Popular">🏦 Popular</ion-select-option>
 
-  <ion-select-option value="Tarjeta">
-    💳 Tarjeta
-  </ion-select-option>
-
-  <ion-select-option value="Transferencia BHD">
-    🏦 BHD
-  </ion-select-option>
-
-  <ion-select-option value="Transferencia Popular">
-    🏦 Popular
-  </ion-select-option>
-
-  <!-- Delivery Apps -->
-
-  <ion-select-option value="PedidosYa">
-    🟡 PedidosYa
-  </ion-select-option>
-
-  <ion-select-option value="UberEats">
-    🟢 UberEats
-  </ion-select-option>
-
-  <ion-select-option value="Rappi">
-    🔴 Rappi
-  </ion-select-option>
-
-</ion-select>
-
+          </ion-select>
         </ion-item>
-
 
         <!-- PAGO MIXTO -->
-
         <ion-item lines="none">
-
           <ion-checkbox slot="start" [(ngModel)]="_PagoMixto"></ion-checkbox>
-
-          <ion-label>
-            Pago Mixto
-          </ion-label>
-
+          <ion-label>Pago Mixto</ion-label>
         </ion-item>
 
+        <!-- EFECTIVO -->
+        <div *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
 
-        <!-- ================= METODOS PAGO MIXTO ================= -->
-
-        <div *ngIf="_PagoMixto" class="pago-mixto-box">
-
-          <ion-grid>
-
-            <ion-row>
-
-              <!-- METODO 1 -->
-              <ion-col size="6">
-
-                <ion-item>
-
-                  <ion-select
-                    [(ngModel)]="_MetodoPago1"
-                    placeholder="Método 1"
-                    interface="popover">
-
-                    <ion-select-option value="Efectivo">💵 Efectivo</ion-select-option>
-                    <ion-select-option value="Tarjeta">💳 Tarjeta</ion-select-option>
-                    <ion-select-option value="Transferencia BHD">🏦 BHD</ion-select-option>
-                    <ion-select-option value="Transferencia Popular">🏦 Popular</ion-select-option>
-
-                  </ion-select>
-
-                </ion-item>
-
-                <ion-item>
-
-                  <ion-input
-                    type="number"
-                    placeholder="Monto"
-                    [(ngModel)]="_MontoPago1">
-                  </ion-input>
-
-                </ion-item>
-
-              </ion-col>
-
-
-              <!-- METODO 2 -->
-              <ion-col size="6">
-
-                <ion-item>
-
-                  <ion-select
-                    [(ngModel)]="_MetodoPago2"
-                    placeholder="Método 2"
-                    interface="popover">
-
-                    <ion-select-option value="Efectivo">💵 Efectivo</ion-select-option>
-                    <ion-select-option value="Tarjeta">💳 Tarjeta</ion-select-option>
-                    <ion-select-option value="Transferencia BHD">🏦 BHD</ion-select-option>
-                    <ion-select-option value="Transferencia Popular">🏦 Popular</ion-select-option>
-
-                  </ion-select>
-
-                </ion-item>
-
-                <ion-item>
-
-                  <ion-input
-                    type="number"
-                    placeholder="Monto"
-                    [(ngModel)]="_MontoPago2">
-                  </ion-input>
-
-                </ion-item>
-
-              </ion-col>
-
-            </ion-row>
-
-          </ion-grid>
+          <ion-item>
+            <ion-label position="stacked">💵 Efectivo recibido</ion-label>
+            <ion-input
+  type="number"
+  [(ngModel)]="EfectivoRecibido"
+  (ionInput)="calcularCambio()"
+  (keyup.enter)="calcularCambio()"
+  (ionBlur)="calcularCambio()">
+</ion-input>
+          </ion-item>
 
         </div>
-<!-- ================= EFECTIVO RECIBIDO ================= -->
 
-<!-- BOTONES RAPIDOS EFECTIVO -->
+        <!-- IMPRIMIR -->
+        <ion-item lines="none">
+          <ion-checkbox slot="start" [(ngModel)]="ImprimirFacturaCliente"></ion-checkbox>
+          <ion-label>🧾 Imprimir factura al cliente</ion-label>
+        </ion-item>
 
-<!-- EFECTIVO PANEL -->
-
-<!-- ================= EFECTIVO RECIBIDO ================= -->
-
-
-
-<div *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto" class="efectivo-input-box">
-
-  <ion-item>
-
-    <ion-label position="stacked">
-      💵 Efectivo recibido
-    </ion-label>
-
-    <ion-input
-      type="number"
-      [(ngModel)]="EfectivoRecibido"
-      (ionInput)="calcularCambio()"
-      placeholder="Monto recibido">
-    </ion-input>
-
-  </ion-item>
-  <ion-button
-size="small"
-fill="outline"
-id="abrir-efectivo"
-(click)="abrirModalEfectivo()">
-💵 Montos rápidos
-
-</ion-button>
-<!-- ================= IMPRIMIR FACTURA CLIENTE ================= -->
-
-
-</div>
-<ion-item lines="none" class="print-check-box">
-
-  <ion-checkbox
-    slot="start"
-    color="success"
-    [(ngModel)]="ImprimirFacturaCliente">
-  </ion-checkbox>
-
-  <ion-label>
-    🧾 Imprimir factura al cliente
-  </ion-label>
-
-</ion-item>
       </ng-container>
 
-
-      <!-- ================= QR ================= -->
-
-      <!-- <div *ngIf="_MostrarQR" class="ion-text-center ion-margin-top">
-
-        <qrcode
-          [qrdata]="qrData"
-          [width]="220">
-        </qrcode>
-
-        <p class="ion-text-muted">
-          Escanea el QR para ver la factura
-        </p>
-
-      </div> -->
-
     </ion-card-content>
-
   </div>
-
 </ion-card>
 
-<!-- ================= PANEL BOTONES EFECTIVO ================= -->
-
-
 <!-- ================= FOOTER ================= -->
-
 <ion-footer class="factura-footer">
+<div class="cambio-box" *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
+  
+  
 
+</div>
   <div class="total-footer">
-
-    <div class="total-label">
-      TOTAL A PAGAR
-    </div>
-
+    <div class="total-label">TOTAL A PAGAR</div>
     <div class="total-value">
       RD$ {{ TotalFactura | number:'1.2-2' }}
     </div>
-<!-- CAMBIO -->
-
-<div *ngIf="Cambio > 0" class="cambio-box">
-
-  <div class="cambio-label">
-    CAMBIO
   </div>
+<div class="cambio-box" *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
 
-  <div class="cambio-value">
-    RD$ {{ Cambio | number:'1.2-2' }}
+  <div class="cambio-label">CAMBIO</div>
+
+  <div class="cambio-valor">
+    RD$ {{ cambio | number:'1.2-2' }}
   </div>
 
 </div>
-
-  </div>
-  
-
-
-  <ion-button
-    expand="block"
-    color="success"
-    *ngIf="!_MostrarQR"
-    (click)="CloseModal()">
-
+  <ion-button expand="block" color="success" (click)="CloseModal()">
     Procesar
-
   </ion-button>
 
-
-  <ion-button
-    expand="block"
-    color="primary"
-    *ngIf="_MostrarQR"
-    (click)="ConfirmarCierre()">
-
-    Finalizar y Cerrar
-
-  </ion-button>
-
-
-  <ion-button
-    expand="block"
-    fill="outline"
-    color="medium"
-    *ngIf="!_MostrarQR"
-    (click)="CerrarModal()">
-
+  <ion-button expand="block" fill="outline" (click)="CerrarModal()">
     Cancelar
-
   </ion-button>
 
 </ion-footer>
-<ion-modal
-[isOpen]="modalEfectivo"
-cssClass="modal-efectivo">
-
-<ng-template>
-
-<div class="modal-efectivo-content">
-
-<h2>Montos rápidos</h2>
-
-<div class="efectivo-grid">
-
-<button (click)="setEfectivo(100)">100</button>
-<button (click)="setEfectivo(200)">200</button>
-<button (click)="setEfectivo(500)">500</button>
-
-
-<button (click)="setEfectivo(1000)">1000</button>
-<button (click)="setEfectivo(1500)">1500</button>
-<button (click)="setEfectivo(2000)">2000</button>
-
-<button class="exacto" (click)="pagoExacto()">
-Exacto
-</button>
-
-</div>
-
-<ion-button color="danger"
-expand="block"
-[disabled]="procesandoFactura"
-(click)="cerrarModalEfectivo()">
-
-Cerrar
-
-</ion-button>
-
-</div>
-
-</ng-template>
-
-</ion-modal>

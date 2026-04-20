@@ -13,6 +13,24 @@
             <h3 class="empresa-nombre">{{_Parametro.NombreEmpresa}}</h3>
             <p class="usuario-info">{{ _Parametro.Rol }} — {{ _Parametro.UserName }}</p>
           </div>
+       <div class="plan-info">
+
+  <ion-badge 
+    [color]="getPlanColor(_Parametro.nombrePlan)">
+    
+    {{ _Parametro?.nombrePlan || 'Plan Demo' }}
+  
+  </ion-badge>
+
+  <p class="plan-desc">
+    {{
+      (_Parametro?.nombrePlan === 'Demo' || !_Parametro?.nombrePlan)
+        ? 'Gratis por 15 días'
+        : 'Plan activo'
+    }}
+  </p>
+
+</div>
         </div>
       </ion-header>
 

@@ -18,6 +18,7 @@ export interface EmpresaDto {
   secondaryColor?: string;
   tertiaryColor?: string;
   titleColor?: string;
+  nombrePlan: string;
 
   // 🔐 Identificador público
   guidPublico: string;

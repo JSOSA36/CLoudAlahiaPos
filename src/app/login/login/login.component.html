@@ -9,11 +9,31 @@
     </div>
 
     <!-- CARD GLASSMORPHISM -->
-    <ion-card class="login-card">
-      <ion-card-header>
-        <ion-title color="primary" class="title-text ion-text-center">Bienvenido</ion-title>
-      </ion-card-header>
-    
+    <ion-card class="login-card" >
+     <ion-card-header color="warning"  class="header-demo">
+
+  <h2 class="titulo-demo">
+    Bievendio a AlahiaPOS<br>
+   
+  </h2>
+  <h4 class="subtitulo-demo">
+    <strong>
+   Controla tus ventas, clientes y reportes desde un solo lugar.
+Empieza gratis en minutos.
+     </strong>
+  </h4>
+  <p class="link-demo">
+  🚀 Probar demo gratis
+</p>
+
+<p class="link-demo" (click)="irARegistro()">
+  💰 Ver planes y precios
+</p>
+  
+
+ 
+
+</ion-card-header>
       <ion-card-content>
         <!-- Usuario -->
         <ion-item lines="full" class="input-item">
@@ -36,23 +56,17 @@
           expand="block" 
           shape="round" 
           
-          color="warning"
+          color="dark"
           (click)="login()">
-          Iniciar Sesión
+
+          <P style="color: gold;">Iniciar Sesión</P>
         </ion-button>
         
       
-       
-        
-     <ion-button  
-  expand="block" 
-  shape="round" 
-  color="dark"
- 
-  (click)="irARegistro()">
- <p style="color:#facc15">VER PLANES</p>
-</ion-button>  
-
+    
+<div class="banner-login">
+  💡 ¿Sabías que puedes facturar electrónicamente  (e-CF) desde el sistema?
+</div>
 
 
 

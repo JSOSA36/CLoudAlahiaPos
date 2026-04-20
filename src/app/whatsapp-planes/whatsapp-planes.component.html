@@ -6,13 +6,20 @@
 </ion-button>
 
 <ion-content class="planes-bg">
-<div class="banner-ecf">
-  ➕ Facturación electrónica (e-CF) disponible desde US$35 / mes  
-  (Desde 100 comprobantes)
-</div>
+
+  <!-- 🔥 BANNER -->
+  <div class="banner-ecf">
+    ➕ Facturación electrónica (e-CF) disponible desde US$35 / mes  
+    - Actívala cuando la necesites.
+
+    <ion-button style="margin-bottom: 10px;" size="small"  (click)="abrirPlanesEcf()">
+      Ver planes
+    </ion-button>
+  </div>
+
+  <!-- 🔥 PLANES -->
   <div class="planes-wrapper">
 
-    <!-- PLAN BASICO -->
     <div class="plan-card basico">
       <div class="header">
         <span class="nombre">BÁSICO</span>
@@ -23,13 +30,14 @@
         <li>✔ Ideal para negocios pequeños</li>
         <li>✔ Sistema completo en la nube</li>
         <li>✔ Soporte incluido</li>
+        <li>✔ Funciona en cualquier dispositivo</li>
+        <li>✔ Accede desde cualquier lugar</li>
         <li>✔ 1 usuario</li>
       </ul>
 
       <div class="limite">Ingresos Hasta: RD$150,000 / mes</div>
     </div>
 
-    <!-- 🟢 STANDARD -->
     <div class="plan-card standard">
       <div class="header">
         <span class="nombre">STANDARD</span>
@@ -40,13 +48,14 @@
         <li>✔ Ideal para negocios en crecimiento</li>
         <li>✔ Sistema completo en la nube</li>
         <li>✔ Soporte incluido</li>
+        <li>✔ Funciona en cualquier dispositivo</li>
+        <li>✔ Accede desde cualquier lugar</li>
         <li>✔ 2 usuarios</li>
       </ul>
 
       <div class="limite">Ingresos Hasta: RD$400,000 / mes</div>
     </div>
 
-    <!-- GOLD -->
     <div class="plan-card gold popular">
       <div class="header">
         <span class="nombre">GOLD</span>
@@ -58,12 +67,13 @@
         <li>✔ Mayor capacidad operativa</li>
         <li>✔ 3 usuarios</li>
         <li>✔ Soporte incluido</li>
+        <li>✔ Funciona en cualquier dispositivo</li>
+        <li>✔ Accede desde cualquier lugar</li>
       </ul>
 
       <div class="limite">Ingresos Hasta: RD$1,500,000 / mes</div>
     </div>
 
-    <!-- PLATINUM -->
     <div class="plan-card platinum">
       <div class="header">
         <span class="nombre">PLATINUM</span>
@@ -75,12 +85,13 @@
         <li>✔ Mejor rendimiento general</li>
         <li>✔ 5 usuarios</li>
         <li>✔ Soporte incluido</li>
+        <li>✔ Funciona en cualquier dispositivo</li>
+        <li>✔ Accede desde cualquier lugar</li>
       </ul>
 
       <div class="limite">Ingresos Hasta: RD$3,000,000 / mes</div>
     </div>
 
-    <!-- ELITE -->
     <div class="plan-card elite">
       <div class="header">
         <span class="nombre">ELITE</span>
@@ -92,6 +103,8 @@
         <li>✔ Operación intensiva</li>
         <li>✔ Hasta 8 usuarios</li>
         <li>✔ Soporte incluido</li>
+        <li>✔ Funciona en cualquier dispositivo</li>
+        <li>✔ Accede desde cualquier lugar</li>
       </ul>
 
       <div class="limite">Ingresos Hasta: RD$10,000,000 / mes</div>
@@ -100,3 +113,81 @@
   </div>
 
 </ion-content>
+
+<!-- 🔥 MODAL FACTURACIÓN -->
+<div class="modal-ecf-backdrop" *ngIf="mostrarEcf" (click)="cerrarPlanesEcf()">
+
+  <div class="modal-ecf" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+
+      <ion-button fill="clear" (click)="cerrarPlanesEcf()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+
+      <h2>Facturación Electrónica</h2>
+
+      <ion-button fill="clear" (click)="cerrarPlanesEcf()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+
+    </div>
+
+    <!-- PLANES ECF -->
+    <div class="plan-ecf-card">
+      <div class="header">
+        <span class="nombre">BÁSICO</span>
+        <span class="precio">US$35 / MES</span>
+      </div>
+      <ul>
+        <li>✔ Hasta 100 comprobantes</li>
+        <li>✔ Soporte incluido</li>
+        <li>✔ Respaldo XML por 10 años</li>
+      </ul>
+    </div>
+
+    <div class="plan-ecf-card popular">
+      <div class="header">
+        <span class="nombre">STANDARD</span>
+        <span class="precio">US$55 / MES</span>
+      </div>
+      <ul>
+        <li>✔ Hasta 300 comprobantes</li>
+        <li>✔ Soporte incluido</li>
+        <li>✔ Respaldo XML por 10 años</li>
+      </ul>
+    </div>
+
+    <div class="plan-ecf-card">
+      <div class="header">
+        <span class="nombre">PROFESIONAL</span>
+        <span class="precio">US$80 / MES</span>
+      </div>
+      <ul>
+        <li>✔ Hasta 1000 comprobantes</li>
+        <li>✔ Soporte incluido</li>
+        <li>✔ Respaldo XML por 10 años</li>
+      </ul>
+    </div>
+
+    <div class="plan-ecf-card">
+      <div class="header">
+        <span class="nombre">AVANZADO</span>
+        <span class="precio">US$120 / MES</span>
+      </div>
+      <ul>
+        <li>✔ Hasta 3000 comprobantes</li>
+        <li>✔ Soporte incluido</li>
+        <li>✔ Respaldo XML por 10 años</li>
+      </ul>
+    </div>
+
+    <!-- BOTÓN FINAL -->
+    <ion-button expand="block" color="medium" (click)="cerrarPlanesEcf()">
+      Volver
+    </ion-button>
+
+  </div>
+
+</div>

@@ -172,3 +172,236 @@ ion-radio {
   color: black;
   line-height: 1.4;
 }
+/* 🔥 CONTENEDOR GENERAL */
+.pago-card {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 💰 TOTAL */
+.total {
+  font-size: 36px;
+  font-weight: bold;
+  color: #16a34a;
+  margin: 10px 0 15px 0;
+}
+
+/* 📄 DETALLE */
+.detalle p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* 💳 SECCIÓN CUENTAS */
+.cuentas {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.cuentas h4 {
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #1f2937;
+}
+
+/* 🏦 TARJETA DE CUENTA */
+.cuenta {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* 📎 UPLOAD */
+.upload {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.upload ion-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/* INPUT FILE BONITO */
+.upload input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 13px;
+}
+
+/* 🚀 BOTÓN */
+ion-button {
+  margin-top: 18px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* 🔔 MENSAJE */
+.modal-message {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 10px;
+}
+
+/* 🔥 TITULO */
+.modal-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* 🔥 MENSAJE */
+.modal-message {
+  font-size: 15px;
+  color: #374151;
+}
+
+/* 💰 TOTAL */
+.total {
+  font-size: 40px;
+  font-weight: bold;
+  color: #16a34a;
+   text-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin: 10px 0;
+}
+
+/* 📄 DETALLE */
+.detalle p {
+  font-size: 15px;
+  margin: 5px 0;
+}
+
+/* 🔠 SECCION */
+.cuentas h4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 🏦 TARJETAS */
+.cuenta {
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  text-align: left;
+  font-size: 15px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.btn-upload {
+  height: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+
+  --background: #f1f5f9;
+  --color: #1f2937;
+  border: 2px dashed #cbd5f5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔥 EFECTO HOVER (web) */
+.btn-upload:hover {
+  --background: #e2e8f0;
+}
+
+/* 📎 NOMBRE ARCHIVO */
+.file-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+/* 🔵 QIK */
+.qik {
+  border-left: 6px solid #3b82f6;
+  background: #eff6ff;
+}
+
+/* 🟢 BHD (CAMBIO IMPORTANTE) */
+.bhd {
+  border-left: 6px solid #16a34a;
+  background: #ecfdf5;
+}
+
+/* ⚠️ MENSAJE ROJO */
+.regla-pago {
+  margin-top: 14px;
+  font-size: 14px;
+  color: #7f1d1d;
+  background: #fee2e2;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+/* 📎 UPLOAD */
+.upload ion-label {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.upload input {
+  font-size: 14px;
+  padding: 10px;
+}
+
+/* 📎 ARCHIVO */
+.upload p {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* 🚀 BOTON */
+ion-button {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: bold;
+  height: 48px;
+}
+ion-button {
+  height: 52px;
+  font-size: 17px;
+}
+h3 {
+  font-size: 16px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+.btn-upload {
+  border: 2px dashed #94a3b8;
+  background: #f8fafc;
+  color: #475569;
+}
+.btn-demo {
+  margin-top: 8px;
+  height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+
+  --background: transparent;
+  --color: #ffffff;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  border-radius: 20px;
+
+  opacity: 0.9;
+}
+
+/* hover web */
+.btn-demo:hover {
+  opacity: 1;
+  border-color: #ffffff;
+}

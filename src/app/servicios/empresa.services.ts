@@ -38,4 +38,23 @@ export class EmpresaService {
   updateEmpresa(value: FormData): Observable<any> {
     return this.httpClient.put<any>(`${this.baseUrl}/`, value);
   }
+  // 🔥 MARCAR PAGO (ADMIN)
+marcarPago(empresaId: number) {
+  return this.httpClient.post(`${this.baseUrl}/MarcarPago/${empresaId}`, {});
+}
+
+// 🔥 MARCAR PENDIENTE (CLIENTE SUBE COMPROBANTE)
+marcarPendiente(empresaId: number) {
+  return this.httpClient.post(`${this.baseUrl}/MarcarPendiente/${empresaId}`, {});
+}
+
+// 🔥 ACTUALIZAR ESTADO (CRON O MANUAL)
+actualizarEstado() {
+  return this.httpClient.post(`${this.baseUrl}/ActualizarEstado`, {});
+}
+
+// 🔥 VALIDAR SI PUEDE OPERAR
+puedeOperar(empresaId: number) {
+  return this.httpClient.get<any>(`${this.baseUrl}/PuedeOperar/${empresaId}`);
+}
 }

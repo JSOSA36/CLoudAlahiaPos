@@ -164,17 +164,30 @@
           </ion-row>
 
           <!-- PLAN -->
-          <ion-row >
-            <ion-col size="12">
-              <ion-item lines="none" class="section-item">
-                <ion-icon name="pricetag-outline" slot="start"></ion-icon>
-                <ion-label>
-                  <h3>Plan Demo</h3>
-                  <p>Gratis por 15 días (asignado automáticamente)</p>
-                </ion-label>
-              </ion-item>
-            </ion-col>
-          </ion-row>
+          <ion-row>
+  <ion-col size="12">
+    <ion-item lines="none" class="section-item">
+      <ion-icon name="pricetag-outline" slot="start"></ion-icon>
+
+      <ion-label>
+        <!-- 🔥 NOMBRE DEL PLAN -->
+        <h3>
+          {{ empresa?.nombrePlan || 'Plan Demo' }}
+        </h3>
+
+        <!-- 🔥 DESCRIPCIÓN DINÁMICA -->
+        <p *ngIf="empresa?.nombrePlan === 'Demo' || !empresa?.nombrePlan">
+          Gratis por 15 días (asignado automáticamente)
+        </p>
+
+        <p *ngIf="empresa?.nombrePlan && empresa?.nombrePlan !== 'Demo'">
+          Plan activo en tu cuenta
+        </p>
+      </ion-label>
+
+    </ion-item>
+  </ion-col>
+</ion-row>
 
           <!-- BOTONES -->
           <ion-row >

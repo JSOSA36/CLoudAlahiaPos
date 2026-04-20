@@ -10,6 +10,7 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { MessageModalComponent } from 'src/app/message-modal/message-modal.component';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { WhatsappPlanesComponent } from 'src/app/whatsapp-planes/whatsapp-planes.component';
+import { PoliticasComponent } from 'src/app/politicas/politicas.component';
 // OneSignal
 declare const OneSignal: any;
 
@@ -57,15 +58,18 @@ async abrirPlanesWhatsApp() {
   title: string,
   message: string,
   icon: string = 'alert-circle-outline',
-  mostrarCambioPlan: boolean = false // 🔥 default FALSE
+  mostrarCambioPlan: boolean = false,
+  mostrarPago: boolean = false // 🔥 NUEVO
 ) {
   const modal = await this.modalCtrl.create({
     component: MessageModalComponent,
+    cssClass: 'modal-clientes-full', // opcional (para estilos)
     componentProps: {
       title,
       message,
       icon,
-      mostrarCambioPlan
+      mostrarCambioPlan,
+      mostrarPago // 🔥 IMPORTANTE
     }
   });
 
@@ -90,7 +94,27 @@ activarAudioGlobal(): Promise<void> {
   });
 
 }
+private async validarPoliticasAntesDeEntrar(): Promise<boolean> {
+  const yaAcepto = localStorage.getItem('politicas_aceptadas');
 
+  if (yaAcepto === 'true') {
+    return true;
+  }
+
+  await this.mostrarPoliticas();
+
+  // 🔥 volver a revisar después de cerrar el modal
+  return localStorage.getItem('politicas_aceptadas') === 'true';
+}
+async mostrarPoliticas(): Promise<void> {
+  const modal = await this.modalCtrl.create({
+    component: PoliticasComponent,
+    backdropDismiss: false
+  });
+
+  await modal.present();
+  await modal.onDidDismiss();
+}
 desbloquearAudio(): Promise<void> {
 
   return new Promise((resolve) => {
@@ -129,22 +153,46 @@ async login() {
     return;
   }
 
+  const aceptoPoliticas = await this.validarPoliticasAntesDeEntrar();
+
+  if (!aceptoPoliticas) {
+    await this.mostrarMensaje(
+      'Políticas requeridas',
+      'Debes aceptar las políticas del servicio para continuar.',
+      'alert-circle-outline',
+      false
+    );
+    return;
+  }
+
   const loading = await this.loadingCtrl.create({
     message: 'Iniciando sesión...',
     spinner: 'crescent'
   });
+
   await loading.present();
 
   const deviceId = this.obtenerDeviceId();
 
-  this.authService
-    .login(this.Usuario, this.PassWord, deviceId)
+  this.authService.login(this.Usuario, this.PassWord, deviceId)
     .subscribe({
+
       next: async (resp: any) => {
 
-        // =====================================
-        // 🔥 CASO: REQUIERE UPGRADE
-        // =====================================
+        // 🔴 SESIÓN ACTIVA
+        if (resp?.errorSesion) {
+          await loading.dismiss();
+
+          await this.mostrarMensaje(
+            'Sesión activa',
+            'Este usuario ya está conectado en otro dispositivo.',
+            'alert-circle-outline',
+            false
+          );
+          return;
+        }
+
+        // 🟢 UPGRADE
         if (resp?.requiereUpgrade) {
 
           this.parametros.IdEmpresa = resp?.empresa?.idEmpresa || 0;
@@ -155,45 +203,73 @@ async login() {
             'Plan agotado',
             resp?.mensaje || 'Has alcanzado el límite de tu plan',
             'alert-circle-outline',
-            true // 👈 SOLO aquí mostramos cambio de plan
+            true
           );
 
           return;
         }
 
-        // =====================================
-        // 🔥 LOGIN NORMAL
-        // =====================================
         const empresa = resp?.empresa || {};
         const usuario = resp?.usuario || {};
         const modulos = resp?.modulos || [];
 
-        this.parametros.ApiPrint = empresa.apiPrint || '';
-        this.parametros.IdEmpresa = empresa.idEmpresa || 0;
-
-        console.log('Empresa ID:', resp);
-
+        // 🔔 ALERTA (MANDADA POR BACKEND)
         if (resp?.alertaPlan) {
-          setTimeout(async () => {
+
+          const alerta = resp.alertaPlan;
+
+          // 🔴 CRÍTICO = BLOQUEO
+          if (alerta.tipo === 'critico') {
+
+            await loading.dismiss();
+
             await this.mostrarMensaje(
-              'Aviso de consumo',
-              resp.alertaPlan,
+              'Servicio suspendido',
+              alerta.mensaje,
               'alert-circle-outline',
               false
             );
+
+            return; // ❌ NO entra
+          }
+
+          // 🟡 / 🔵 SOLO MOSTRAR
+          setTimeout(async () => {
+
+            await this.mostrarMensaje(
+              alerta.tipo === 'advertencia'
+                ? 'Aviso importante'
+                : 'Recordatorio',
+              alerta.mensaje,
+              alerta.tipo === 'advertencia'
+                ? 'warning-outline'
+                : 'information-circle-outline',
+              false,
+              true
+            );
+
           }, 500);
         }
 
-        localStorage.setItem(
-          'menu_modulos',
-          JSON.stringify(modulos)
-        );
+        // 🔐 TOKEN
+        if (resp?.token) {
+          localStorage.setItem('token_sesion', resp.token);
+        }
+
+        // 📦 PARAMETROS
+        this.parametros.ApiPrint = empresa.apiPrint || '';
+        this.parametros.IdEmpresa = empresa.idEmpresa || 0;
+        this.parametros.NombreEmpresa = empresa.nombreComercial || '';
+        this.parametros.nombrePlan = empresa.nombrePlan || '';
+        this.parametros.puedeEliminarOrden = usuario.puedeEliminarOrden || false;
+
+        localStorage.setItem('menu_modulos', JSON.stringify(modulos));
 
         this.parametros.setLoginData(
           usuario.userName || '',
           this.PassWord,
           empresa.idEmpresa || 0,
-          resp?.token || 'ok',
+          resp?.token || '',
           usuario.rol || '',
           usuario.idUsuario || 0,
           usuario
@@ -203,12 +279,14 @@ async login() {
           modulos.map((m: any) => m.moduloId)
         );
 
+        // 🔔 ONESIGNAL
         try {
           if (empresa.idEmpresa && usuario.idUsuario) {
-            const osUserId =
-              `emp_${empresa.idEmpresa}_user_${usuario.idUsuario}`;
+
+            const osUserId = `emp_${empresa.idEmpresa}_user_${usuario.idUsuario}`;
 
             await OneSignal.login(osUserId);
+
             await OneSignal.User.addTag(
               'empresa_id',
               empresa.idEmpresa.toString()
@@ -224,6 +302,7 @@ async login() {
       },
 
       error: async (err) => {
+
         await loading.dismiss();
 
         let mensaje = 'No se pudo iniciar sesión';
@@ -240,7 +319,7 @@ async login() {
           'Error de acceso',
           mensaje,
           'alert-circle-outline',
-          false // 👈 nunca mostrar cambio de plan en errores normales
+          false
         );
       }
     });

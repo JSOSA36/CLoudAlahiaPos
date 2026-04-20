@@ -192,3 +192,116 @@ ion-button {
  
   --color:#facc15;
 }
+.btn-demo {
+  margin-top: 10px;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+
+  --background: rgba(255,255,255,0.1);
+  --color: #ffffff;
+
+  border: 1.5px solid rgba(255,255,255,0.7);
+  border-radius: 12px;
+
+  backdrop-filter: blur(4px);
+}
+.header-demo {
+  text-align: center;
+  
+  border-radius: 16px 16px 0 0;
+  padding: 15px 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* 🟡 TITULO */
+.titulo-demo {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f2937; /* negro elegante */
+  margin-bottom: 4px;
+}
+
+/* 🟡 SUBTITULO */
+.subtitulo-demo {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+/* 👇 BIENVENIDO */
+.title-text {
+  color: white !important;
+  font-size: 20px;
+  margin-top: 6px;
+}
+.link-demo {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 🔥 HOVER */
+.link-demo:hover {
+  color: #000;
+  transform: scale(1.03);
+}
+.login-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 10px;
+}
+
+/* 🔥 HEADER AMARILLO COMPLETO */
+.header-demo {
+ background: linear-gradient(135deg, #fde68a, #fcd34d);
+  border-radius: 16px 16px 0 0;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+/* TEXTO */
+.titulo-demo {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.subtitulo-demo {
+  font-size: 13px;
+  color: #1f2937;
+}
+
+/* LINKS */
+.link-demo {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.banner-login {
+  margin-top: 14px;
+  padding: 8px 12px;
+
+  font-size: 18px;
+  text-align: center;
+
+  color: rgba(255,255,255,0.85);
+
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+
+  border-left: 3px solid #facc15;
+
+  backdrop-filter: blur(6px);
+
+  width: 100%;
+}

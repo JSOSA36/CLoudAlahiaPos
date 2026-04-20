@@ -1,15 +1,16 @@
 <ion-header>
   <ion-toolbar color="primary">
 
+    <!-- IZQUIERDA -->
     <ion-buttons slot="start">
       <ion-menu-button style="color:white;"></ion-menu-button>
     </ion-buttons>
 
+    <!-- CENTRO -->
     <ion-title></ion-title>
 
     <ion-searchbar
       color="primary"
-      #posSearch
       placeholder="Buscar productos"
       [(ngModel)]="busqueda"
       (ionInput)="buscarGlobal()"
@@ -17,9 +18,30 @@
       (keydown.enter)="procesarEnter()">
     </ion-searchbar>
 
+    <!-- DERECHA 🔥 -->
+   <ion-buttons slot="end">
+
+  <button class="order-btn domicilio">
+    <ion-icon name="bicycle-outline"></ion-icon>
+    A DOMICILIO
+  </button>
+
+  <button class="order-btn interno">
+    <ion-icon name="restaurant-outline"></ion-icon>
+    CONSUMO INTERNO
+  </button>
+
+  <div class="itbis-button">
+  ITBIS
+  <ion-toggle 
+    [(ngModel)]="aplicarITBIS"
+    (ionChange)="onToggleItbis()">
+  </ion-toggle>
+</div>
+
+</ion-buttons>
   </ion-toolbar>
 </ion-header>
-
 
 <!-- SEARCH RESULT -->
 <div class="search-grid" *ngIf="busqueda && productosFiltrados.length">
@@ -234,30 +256,16 @@ class="right-panel"
 
 <div class="panel-header header-warning">
 
-<div class="title ion-text-center">
-Que Tipo de Ordenes Deseas Ver?
-</div>
 
 
-<div class="order-actions">
 
-<div class="order-types">
 
-<button class="order-btn domicilio">
-<ion-icon name="bicycle-outline"></ion-icon>
-A DOMICILIO
-</button>
 
-<button class="order-btn interno">
-<ion-icon name="restaurant-outline"></ion-icon>
-CONSUMO INTERNO
-</button>
+
 
 </div>
 
-</div>
 
-</div>
 
  
 
@@ -319,7 +327,7 @@ Precio: {{ item.precio | currency }}
 </div>
 
 
-<ion-select
+<ion-select *ngIf="comisionEmpleado"
 [(ngModel)]="item.idEmpleadoComision"
 interface="popover"
 class="empleado-select"
@@ -396,13 +404,14 @@ Contuar
 
 
 <div class="bottom-row">
+  <span class="productos-count">
+    {{ carrito.length }} Producto(s)
+  </span>
 
-<span>{{ carrito.length }} Producto(s)</span>
-
-<a (click)="vaciarCarrito()">Cancelar</a>
-
+  <a class="btn-cancelar" (click)="vaciarCarrito()">
+    Cancelar
+  </a>
 </div>
-
 </div>
 
 </aside>

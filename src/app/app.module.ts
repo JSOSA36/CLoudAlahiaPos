@@ -11,7 +11,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { ReporteserviciosComponent } from './ReporteServicio/reporteservicios/reporteservicios.component';
 // 🔹 Formularios
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
+import { PoliticasComponent } from './politicas/politicas.component';
 // 🔹 Animaciones y QR
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -101,6 +101,7 @@ import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.componen
     LavadorDashboardComponent,
     AreaComponent,
     WhatsappPlanesComponent,
+    PoliticasComponent,
     ProductosComponent,
     CatalogoInicioComponent,
     DescuentoListComponent,

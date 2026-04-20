@@ -27,7 +27,15 @@ export class AuthService {
       deviceId
     });
   }
-
+logout(idUsuario: number) {
+  return this.http.post(
+    `${this.baseUrl}/logout`,
+    {
+      idUsuario
+    
+    }
+  );
+}
   // ============================
   // FORGOT PASSWORD
   // ============================
