@@ -26,7 +26,9 @@ export class LavadorConsumoService {
       `${this.baseUrl}/Historial?idEmpleado=${idEmpleado}&idEmpresa=${idEmpresa}&desde=${desde}&hasta=${hasta}`
     )
   }
-
+deleteConsumo(id: number): Observable<any> {
+  return this.http.delete(`${this.baseUrl}/${id}`);
+}
   getPendientes(idEmpleado:number,idEmpresa:number){
     return this.http.get(
       `${this.baseUrl}/Pendientes?idEmpleado=${idEmpleado}&idEmpresa=${idEmpresa}`

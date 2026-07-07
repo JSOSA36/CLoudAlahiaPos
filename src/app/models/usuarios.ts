@@ -18,4 +18,7 @@ export class usuarios
     empresas:empresas=new empresas();
     dispositivoGuardado : string="";
     puedeEliminarOrden: boolean = false;
+     PuedeEliminarItemCarrito: boolean = false;
+
+ PuedeDisminuirCantidadCarrito: boolean = false;
 }

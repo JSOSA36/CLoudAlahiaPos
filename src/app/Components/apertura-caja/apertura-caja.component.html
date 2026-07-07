@@ -1,0 +1,111 @@
+
+
+  <div class="apertura-layout">
+
+    <div class="apertura-card">
+
+      <!-- HEADER -->
+
+      <div class="card-header">
+
+        <div class="icon-box">
+          💰
+        </div>
+
+        <div>
+
+          <h1>
+            Apertura de Caja
+          </h1>
+
+          <p>
+            Ingrese el monto inicial
+            disponible en caja
+          </p>
+
+        </div>
+
+      </div>
+
+      <!-- MONTO -->
+
+      <div class="form-group">
+
+        <label>
+          Monto Inicial
+        </label>
+
+        <ion-input
+
+          type="number"
+
+          fill="outline"
+
+          placeholder="0.00"
+
+          [(ngModel)]="montoInicial">
+
+        </ion-input>
+
+      </div>
+
+      <!-- OBSERVACION -->
+
+      <div class="form-group">
+
+        <label>
+          Observación
+        </label>
+
+        <ion-textarea
+
+          autoGrow="true"
+
+          fill="outline"
+
+          placeholder="Observación opcional"
+
+          [(ngModel)]="observacion">
+
+        </ion-textarea>
+
+      </div>
+
+      <!-- TOTAL -->
+
+      <div class="monto-box">
+
+        <span>
+          Fondo Inicial
+        </span>
+
+        <strong>
+
+          {{
+            montoInicial
+            |
+            currency:'DOP'
+          }}
+
+        </strong>
+
+      </div>
+
+      <!-- BOTON -->
+
+      <ion-button
+
+        expand="block"
+
+        color="primary"
+
+        (click)="abrirCaja()">
+
+        🔓 Abrir Caja
+
+      </ion-button>
+
+    </div>
+
+  </div>
+

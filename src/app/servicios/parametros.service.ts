@@ -10,6 +10,7 @@ import { EmpresaDto } from '../models/empresadto.models';
 
 import { ZonasService } from './zonas.service';
 import { FacturaHeaderService } from './factura-header.service';
+import { clientes } from '../models/clientes';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,7 @@ export class ParametrosService {
   // ==================================================
   public ListadoProductosCate: productos[] = [];
   public ListadoProductoCategoria: productos[] = [];
+ 
   public ListadoOrdenes: facturaheader[] = [];
    public ListadoFacturas: facturaheader[] = [];
   public IdCliente:number=0;
@@ -29,10 +31,12 @@ export class ParametrosService {
   public TipoDocumento: 'ORDEN' | 'FACTURA' = 'ORDEN';
 public puedeEliminarOrden: boolean = false;
   public _Empresa?: EmpresaDto;
-
+PoliticasAceptadas: boolean = false;
   public _Cat: categorias = new categorias();
   public _Mesa: Mesas = new Mesas();
+public PuedeEliminarItemCarrito: boolean = false;
 
+public PuedeDisminuirCantidadCarrito: boolean = false;
   public NombreCliente = '';
   public NombreEmpresa = '';
   public NumeroMesa = '';

@@ -2,146 +2,339 @@ import { Component, OnInit } from '@angular/core';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
-import { facturaheader } from 'src/app/models/facturaheader';
 import { clientes } from 'src/app/models/clientes';
-import { ToastController, ModalController } from '@ionic/angular';
-import { PagoFacturaComponent } from '../pago-factura/pago-factura.component'; // ✅ modal de pagos / historial
-import { FacturaHeaderDto } from '../Modales/facturaheader.dto';
+import {
+  ToastController,
+  ModalController
+} from '@ionic/angular';
+
+import { PagoFacturaComponent }
+from '../pago-factura/pago-factura.component';
+
+import { FacturaHeaderDto }
+from '../Modales/facturaheader.dto';
 
 @Component({
   selector: 'app-facturasporcobrar',
-  templateUrl: './facturasporcobrar.component.html',
-  styleUrls: ['./facturasporcobrar.component.scss'],
+  templateUrl:
+    './facturasporcobrar.component.html',
+
+  styleUrls:
+    ['./facturasporcobrar.component.scss'],
 })
-export class FacturasporcobrarComponent implements OnInit {
+export class FacturasporcobrarComponent
+implements OnInit {
+
+  // =====================================================
+  // 🔥 VARIABLES
+  // =====================================================
 
   facturas: FacturaHeaderDto[] = [];
-  facturasFiltradas: FacturaHeaderDto[] = [];
+
+  facturasFiltradas:
+    FacturaHeaderDto[] = [];
+
   clientes: clientes[] = [];
+
   clienteSeleccionado: number = 0;
-  clienteNombre: string = 'Todos los clientes';
+
+  clienteNombre: string =
+    'Todos los clientes';
 
   cargando = false;
+
   totalGeneral: number = 0;
 
+  accordionActivo: any = null;
+
+  // =====================================================
+  // 🔥 CONSTRUCTOR
+  // =====================================================
+
   constructor(
-    private _facturaSrv: FacturaHeaderService,
-    private _clientesSrv: ClienteService,
-    private _parametro: ParametrosService,
-    private toastCtrl: ToastController,
-    private modalCtrl: ModalController
+
+    private _facturaSrv:
+      FacturaHeaderService,
+
+    private _clientesSrv:
+      ClienteService,
+
+    private _parametro:
+      ParametrosService,
+
+    private toastCtrl:
+      ToastController,
+
+    private modalCtrl:
+      ModalController
+
   ) {}
 
+  // =====================================================
+  // 🔥 INIT
+  // =====================================================
+
   ngOnInit() {
+
     this.cargarClientes();
   }
 
-  // 🔹 Cargar listado de clientes
+  // =====================================================
+  // 🔥 CLIENTES
+  // =====================================================
+
   async cargarClientes() {
-    this._clientesSrv.GetListadoClientes(this._parametro.GetIdEmpresa()).subscribe({
+
+    this._clientesSrv
+    .GetListadoClientes(
+      this._parametro.GetIdEmpresa()
+    )
+    .subscribe({
+
       next: (res) => {
-        this.clientes = res || [];
+
+        this.clientes =
+          res || [];
+
         this.cargarFacturas();
       },
+
       error: async () => {
-        (await this.toastCtrl.create({
-          message: 'Error cargando clientes',
-          duration: 1500,
-          color: 'danger'
-        })).present();
+
+        (
+          await this.toastCtrl.create({
+
+            message:
+              'Error cargando clientes',
+
+            duration: 1500,
+
+            color: 'danger'
+          })
+
+        ).present();
       }
     });
   }
 
-  // 🔹 Cargar facturas pendientes (según cliente)
+  // =====================================================
+  // 🔥 FACTURAS
+  // =====================================================
+
   async cargarFacturas() {
+
     this.cargando = true;
 
-    const idCliente = this.clienteSeleccionado || 0;
-    const idEmpresa = this._parametro.IdEmpresa;
+    const idCliente =
 
-    this._facturaSrv.GetAllFacturaPendiente(idCliente, idEmpresa).subscribe({
+      this.clienteSeleccionado || 0;
+
+    const idEmpresa =
+      this._parametro.IdEmpresa;
+
+    this._facturaSrv
+    .GetAllFacturaPendiente(
+      idCliente,
+      idEmpresa
+    )
+    .subscribe({
+
       next: (res) => {
-        this.facturas = res || [];
-        this.facturasFiltradas = [...this.facturas];
+
+        this.facturas =
+          res || [];
+
+        this.facturasFiltradas =
+          [...this.facturas];
+
         this.cargando = false;
+
         this.calcularTotalGeneral();
       },
+
       error: async () => {
+
         this.cargando = false;
-        (await this.toastCtrl.create({
-          message: 'Error cargando facturas pendientes',
-          duration: 1500,
-          color: 'danger'
-        })).present();
+
+        (
+          await this.toastCtrl.create({
+
+            message:
+              'Error cargando facturas pendientes',
+
+            duration: 1500,
+
+            color: 'danger'
+          })
+
+        ).present();
       }
     });
   }
 
-  // 🔹 Filtrar facturas por cliente
+  // =====================================================
+  // 🔥 FILTRAR
+  // =====================================================
+
   filtrarPorCliente(event: any) {
-    this.clienteSeleccionado = Number(event.detail.value) || 0;
-    console.log('🟢 Cliente seleccionado ID:', this.clienteSeleccionado);
+
+    this.clienteSeleccionado =
+
+      Number(event.detail.value) || 0;
+
+    console.log(
+      '🟢 Cliente seleccionado ID:',
+      this.clienteSeleccionado
+    );
 
     if (this.clienteSeleccionado > 0) {
-      const cliente = this.clientes.find(c => c.idCliente === this.clienteSeleccionado);
-      this.clienteNombre = cliente ? cliente.nombreComercial : 'Cliente desconocido';
-    } else {
-      this.clienteNombre = 'Todos los clientes';
+
+      const cliente =
+        this.clientes.find(
+
+          c =>
+            c.idCliente ===
+            this.clienteSeleccionado
+        );
+
+      this.clienteNombre =
+
+        cliente
+          ? cliente.nombreComercial
+          : 'Cliente desconocido';
+    }
+    else {
+
+      this.clienteNombre =
+        'Todos los clientes';
     }
 
     this.cargarFacturas();
   }
 
-  // 🔹 Calcular total general
+  // =====================================================
+  // 🔥 TOTAL GENERAL
+  // =====================================================
+
   calcularTotalGeneral() {
-    this.totalGeneral = this.facturasFiltradas.reduce(
-      (acc, f) => acc + (f.pendiente || f.total || 0),
-      0
-    );
+
+    this.totalGeneral =
+
+      this.facturasFiltradas.reduce(
+
+        (acc, f) =>
+
+          acc +
+          (f.pendiente || f.total || 0),
+
+        0
+      );
   }
 
-  // 🔹 Refrescar manualmente
+  // =====================================================
+  // 🔥 REFRESCAR
+  // =====================================================
+
   async Refrescar() {
+
     this.cargarFacturas();
   }
 
-  // 💳 Abrir modal para efectuar pago
-  async efectuarPago(factura: facturaheader) {
-    console.log('💵 Efectuar pago de factura:', factura);
+  // =====================================================
+  // 🔥 ACCORDION
+  // =====================================================
 
-    factura.iDCliente = this.clienteSeleccionado || factura.iDCliente || 0;
+  onAccordionChange(event: any) {
 
-    const modal = await this.modalCtrl.create({
-      component: PagoFacturaComponent,
-      componentProps: { 
-        factura,
-        modo: 'pago' // 👈 modo para mostrar formulario de pago
-      },
-      cssClass: 'modal-pago-factura'
-    });
+    this.accordionActivo =
+      event.detail.value;
+  }
+
+  trackByFactura(
+    index: number,
+    item: FacturaHeaderDto
+  ): number {
+
+    return item.idFacturaHeader;
+  }
+
+  // =====================================================
+  // 🔥 EFECTUAR PAGO
+  // =====================================================
+
+  async efectuarPago(
+    factura: FacturaHeaderDto
+  ) {
+
+    console.log(
+      '💵 Efectuar pago de factura:',
+      factura
+    );
+
+    factura.iDCliente =
+
+      this.clienteSeleccionado ||
+      factura.iDCliente ||
+      0;
+
+    const modal =
+      await this.modalCtrl.create({
+
+        component:
+          PagoFacturaComponent,
+
+        componentProps: {
+
+          factura,
+
+          modo: 'pago'
+        },
+
+        cssClass:
+          'modal-pago-factura'
+      });
 
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
+    const { data } =
+
+      await modal.onDidDismiss();
 
     if (data?.actualizado) {
+
       this.cargarFacturas();
     }
   }
 
-  // 📜 Ver historial de pagos
-  async verHistorial(factura: facturaheader) {
-    console.log('📜 Ver historial de pagos de factura:', factura);
+  // =====================================================
+  // 🔥 HISTORIAL
+  // =====================================================
 
-    const modal = await this.modalCtrl.create({
-      component: PagoFacturaComponent,
-      componentProps: { 
-        factura,
-        modo: 'historial' // 👈 modo para mostrar lista de pagos realizados
-      },
-      cssClass: 'modal-historial-factura'
-    });
+  async verHistorial(
+    factura: FacturaHeaderDto
+  ) {
+
+    console.log(
+      '📜 Ver historial de pagos:',
+      factura
+    );
+
+    const modal =
+      await this.modalCtrl.create({
+
+        component:
+          PagoFacturaComponent,
+
+        componentProps: {
+
+          factura,
+
+          modo: 'historial'
+        },
+
+        cssClass:
+          'modal-historial-factura'
+      });
 
     await modal.present();
   }

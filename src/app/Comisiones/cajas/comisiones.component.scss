@@ -49,3 +49,48 @@
   font-weight:bold;
   color:#2f7de1;
 }
+.fila-comision {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.nombre {
+  font-weight: 500;
+  color: #333;
+}
+
+.monto {
+  color: #28a745;
+  font-weight: bold;
+}
+.card-empleado {
+  background: #ffffff;
+  border: 2px solid #facc15;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.nombre {
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.detalle {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.consumo strong {
+  color: #ef4444; /* rojo */
+}
+
+.neto strong {
+  color: #16a34a; /* verde */
+}

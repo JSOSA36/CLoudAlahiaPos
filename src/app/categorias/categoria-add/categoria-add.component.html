@@ -41,7 +41,27 @@
       <ion-label style="font-size: 16px; font-weight: 600;">Activo</ion-label>
       <ion-toggle slot="end" [checked]="_estado" (ionChange)="onToggleChange($event)"></ion-toggle>
     </ion-item>
+<ion-item>
 
+  <ion-label>Tipo Operación</ion-label>
+
+  <ion-select [(ngModel)]="tipoOperacion">
+
+    <ion-select-option value="COMPRA">
+      Compra
+    </ion-select-option>
+
+    <ion-select-option value="VENTA">
+      Venta
+    </ion-select-option>
+
+    <ion-select-option value="AMBAS">
+      Compra y Venta
+    </ion-select-option>
+
+  </ion-select>
+
+</ion-item>
     <!-- Botón Guardar -->
     <ion-button expand="block" color="success" (click)="guardarCategoria()" style="margin-top: 20px; font-size: 16px;">
       <ion-icon name="checkmark-outline" slot="start"></ion-icon>

@@ -1,63 +1,163 @@
-<div class="print-preview">
+<!-- 🔷 CONTENIDO -->
+<ion-content>
 
-  <div class="paper">
+  <!-- 🔷 FACTURA / POS -->
+  <div *ngIf="factura">
 
-    <div class="center bold">
-      ALAHIA POS
+    <!-- ============================= -->
+    <!-- 📄 VISTA NORMAL -->
+    <!-- ============================= -->
+    <div *ngIf="!vistaPos" class="factura">
+
+      <div class="titulo-factura">
+        FACTURA
+      </div>
+
+      <!-- HEADER -->
+      <div class="header">
+
+        <div class="empresa">
+          <h2>{{ factura.empresa || 'Mi Empresa' }}</h2>
+          <p *ngIf="factura.direccion">{{ factura.direccion }}</p>
+          <p *ngIf="factura.telefono">Tel: {{ factura.telefono }}</p>
+          <p *ngIf="factura.rnc">RNC: {{ factura.rnc }}</p>
+        </div>
+
+        <div class="info-factura">
+          <p><strong>Factura:</strong> #{{ factura.idFacturaHeader }}</p>
+          <p><strong>Fecha:</strong> {{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</p>
+          <p><strong>Tipo:</strong> {{ factura.tipoFactura || 'Contado' }}</p>
+          <p><strong>Cliente:</strong> {{ factura.clientes?.nombreComercial || 'Al Portador' }}</p>
+        </div>
+
+      </div>
+
+      <hr>
+
+      <!-- DETALLE -->
+      <table class="detalle">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of factura.facturaDetalles">
+            <td>{{ item.productos?.descripcion || 'Producto' }}</td>
+            <td class="text-center">{{ item.cantidad }}</td>
+            <td class="text-right">{{ item.precioOferta | number:'1.2-2' }}</td>
+            <td class="text-right">
+              {{ (item.cantidad * item.precioOferta) | number:'1.2-2' }}
+            </td>
+          </tr>
+
+          <tr *ngIf="!factura.facturaDetalles?.length">
+            <td colspan="4" class="text-center">Sin productos</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- TOTALES -->
+      <div class="totales">
+
+        <p class="total-final">
+          TOTAL RD$ {{ factura.total | number:'1.2-2' }}
+        </p>
+
+        <p *ngIf="factura.tipoFactura === 'Credito'">
+          <strong>Pendiente:</strong>
+          RD$ {{ factura.pendiente | number:'1.2-2' }}
+        </p>
+
+        <p *ngIf="factura.tipoFactura === 'Contado'">
+          <strong>Pagado:</strong>
+          RD$ {{ factura.pagado | number:'1.2-2' }}
+        </p>
+
+      </div>
+
+      <hr>
+
+      <div class="footer">
+        <p>Gracias por su compra</p>
+      </div>
+
     </div>
 
-    <div class="center small">
-      MacroBits S.R.L<br>
-      RNC: 133307887<br>
-      Carmen Renata 3<br>
-      Santo Domingo Oeste
-    </div>
+    <!-- ============================= -->
+    <!-- 🧾 VISTA POS -->
+    <!-- ============================= -->
+    <div *ngIf="vistaPos" class="ticket-pos">
 
-    <div class="line"></div>
+      <div class="center bold">{{ factura.empresa || 'Mi Empresa' }}</div>
+      <div class="center small">{{ factura.direccion }}</div>
+      <div class="center small">Tel: {{ factura.telefono }}</div>
 
-    <div class="small">
-      Factura: #000124<br>
-      Fecha: 10/03/2026<br>
-      NCF: B01000000124<br>
-      Cliente: Juan Pérez
-    </div>
+      <div class="line"></div>
 
-    <div class="line"></div>
+      <div class="center bold">FACTURA CLIENTE</div>
 
-    <table class="items">
-      <tr>
-        <td>Coca Cola</td>
-        <td class="qty">2 x 40</td>
-        <td class="total">80</td>
-      </tr>
+      <div class="line"></div>
 
-      <tr>
-        <td>Frutop</td>
-        <td class="qty">1 x 30</td>
-        <td class="total">30</td>
-      </tr>
+      <div>Factura: {{ factura.idFacturaHeader }}</div>
+      <div>Fecha: {{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</div>
+      <div>Cliente: {{ factura.clientes?.nombreComercial }}</div>
 
-      <tr>
-        <td>Red Bull</td>
-        <td class="qty">1 x 200</td>
-        <td class="total">200</td>
-      </tr>
-    </table>
+      <div class="line"></div>
 
-    <div class="line"></div>
+      <div *ngFor="let item of factura.facturaDetalles">
 
-    <div class="totales small">
-      <div><span>Subtotal</span><span>370.00</span></div>
-      <div><span>ITBIS</span><span>66.60</span></div>
-      <div class="bold"><span>Total</span><span>436.60</span></div>
-    </div>
+        <div class="bold">
+          {{ item.cantidad }} {{ item.productos?.descripcion }}
+        </div>
 
-    <div class="line"></div>
+        <div>
+          RD$ {{ item.precioOferta | number:'1.2-2' }}
+        </div>
 
-    <div class="center small">
-      Gracias por su compra
+      </div>
+
+      <div class="line"></div>
+
+      <div class="center total">
+        TOTAL RD$ {{ factura.total | number:'1.2-2' }}
+      </div>
+
+      <div class="line"></div>
+
+      <div class="center small">GRACIAS POR PREFERIRNOS</div>
+
     </div>
 
   </div>
 
-</div>
+</ion-content>
+
+<!-- 🔥 FOOTER FIJO -->
+<ion-footer class="no-print">
+  <ion-toolbar>
+
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleVistaPos()">
+        {{ vistaPos ? '📄 Normal' : '🧾 POS' }}
+      </ion-button>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-button color="warning" (click)="imprimir()">
+        🖨️ Imprimir
+      </ion-button>
+
+      <ion-button color="success" (click)="cerrar()">
+        Cerrar
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-footer>

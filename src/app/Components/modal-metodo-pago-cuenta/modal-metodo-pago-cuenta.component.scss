@@ -1,0 +1,331 @@
+:host{
+
+  display:block;
+
+  height:100%;
+}
+
+/* =====================================
+🔥 CONTENT
+===================================== */
+
+ion-content{
+
+  --background:
+    #f4f7fb;
+}
+
+/* =====================================
+🔥 LAYOUT
+===================================== */
+
+.form-layout{
+
+  max-width:650px;
+
+  margin:auto;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+}
+
+/* =====================================
+🔥 TOP CARD
+===================================== */
+
+.top-card{
+
+  padding:25px;
+
+  border-radius:24px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:20px;
+
+  color:white;
+
+  box-shadow:
+    0 12px 30px
+    rgba(0,0,0,.12);
+}
+
+/* =====================================
+🔥 ICON
+===================================== */
+
+.icon-preview{
+
+  width:80px;
+
+  height:80px;
+
+  border-radius:22px;
+
+  background:
+    rgba(255,255,255,.15);
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  backdrop-filter:blur(8px);
+
+  flex-shrink:0;
+}
+
+.icon-preview ion-icon{
+
+  font-size:42px;
+
+  color:white;
+}
+
+/* =====================================
+🔥 INFO
+===================================== */
+
+.top-info{
+
+  flex:1;
+}
+
+.top-info h2{
+
+  margin:0;
+
+  font-size:28px;
+
+  font-weight:800;
+
+  color:white;
+}
+
+.top-info span{
+
+  display:block;
+
+  margin-top:8px;
+
+  font-size:14px;
+
+  opacity:.92;
+
+  font-weight:600;
+}
+
+/* =====================================
+🔥 ITEMS
+===================================== */
+
+ion-item{
+
+  --background:white;
+
+  --border-radius:18px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  padding:4px;
+
+  box-shadow:
+    0 4px 15px
+    rgba(0,0,0,.03);
+}
+
+ion-label{
+
+  font-weight:700;
+
+  color:#334155;
+}
+
+ion-input,
+ion-select{
+
+  margin-top:8px;
+}
+
+/* =====================================
+🔥 CUENTA PREVIEW
+===================================== */
+
+.cuenta-preview{
+
+  background:white;
+
+  border-radius:22px;
+
+  padding:18px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:16px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 6px 20px
+    rgba(0,0,0,.04);
+}
+
+/* =====================================
+🔥 PREVIEW ICON
+===================================== */
+
+.preview-icon{
+
+  width:60px;
+
+  height:60px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  flex-shrink:0;
+
+  color:white;
+}
+
+.preview-icon ion-icon{
+
+  font-size:30px;
+}
+
+/* =====================================
+🔥 PREVIEW INFO
+===================================== */
+
+.preview-info{
+
+  flex:1;
+}
+
+.preview-info h3{
+
+  margin:0;
+
+  font-size:18px;
+
+  font-weight:800;
+
+  color:#0f172a;
+}
+
+.preview-info span{
+
+  display:block;
+
+  margin-top:5px;
+
+  color:#64748b;
+
+  font-size:14px;
+
+  font-weight:600;
+}
+
+/* =====================================
+🔥 TOGGLE
+===================================== */
+
+ion-toggle{
+
+  zoom:1.05;
+}
+
+/* =====================================
+🔥 BOTONES
+===================================== */
+
+.acciones{
+
+  display:flex;
+
+  gap:15px;
+
+  margin-top:10px;
+}
+
+.acciones ion-button{
+
+  flex:1;
+
+  height:52px;
+
+  --border-radius:18px;
+
+  font-size:15px;
+
+  font-weight:700;
+
+  text-transform:none;
+}
+
+/* =====================================
+🔥 MOBILE
+===================================== */
+
+@media(max-width:768px){
+
+  .top-card{
+
+    flex-direction:column;
+
+    text-align:center;
+  }
+
+  .top-info h2{
+
+    font-size:24px;
+  }
+
+  .acciones{
+
+    flex-direction:column;
+  }
+
+  .icon-preview{
+
+    width:70px;
+
+    height:70px;
+  }
+
+  .icon-preview ion-icon{
+
+    font-size:36px;
+  }
+
+  .preview-icon{
+
+    width:55px;
+
+    height:55px;
+  }
+}

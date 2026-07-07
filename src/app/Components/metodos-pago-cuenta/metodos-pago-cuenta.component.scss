@@ -1,0 +1,295 @@
+:host{
+
+  display:block;
+
+  height:100%;
+}
+
+ion-content{
+
+  --background:#f4f7fb;
+}
+
+/* =====================================
+🔥 LOADING
+===================================== */
+
+.loading-box{
+
+  height:70vh;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+
+  align-items:center;
+
+  gap:15px;
+}
+
+/* =====================================
+🔥 GRID
+===================================== */
+
+.metodos-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(340px,1fr)
+    );
+
+  gap:22px;
+}
+
+/* =====================================
+🔥 CARD
+===================================== */
+
+.metodo-card{
+
+  background:white;
+
+  border-radius:22px;
+
+  padding:20px;
+
+  padding-bottom:30px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0,0,0,.06);
+
+  border:
+    1px solid
+    #facc15;
+
+  transition:.25s;
+}
+
+.metodo-card:hover{
+
+  transform:
+    translateY(-4px);
+
+  box-shadow:
+    0 18px 40px
+    rgba(37,99,235,.14);
+}
+
+/* =====================================
+🔥 HEADER
+===================================== */
+
+.metodo-header{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:16px;
+
+  margin-bottom:22px;
+}
+
+/* =====================================
+🔥 ICONO
+===================================== */
+
+.icono{
+
+  width:72px;
+
+  height:72px;
+
+  border-radius:22px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:white;
+
+  flex-shrink:0;
+
+  box-shadow:
+    0 12px 24px
+    rgba(37,99,235,.25);
+}
+
+.icono ion-icon{
+
+  font-size:34px;
+}
+
+/* =====================================
+🔥 INFO
+===================================== */
+
+.info{
+
+  flex:1;
+}
+
+.info h2{
+
+  margin:0;
+
+  font-size:22px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+.info span{
+
+  display:block;
+
+  margin-top:6px;
+
+  font-size:14px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 ITEMS
+===================================== */
+
+ion-item{
+
+  --background:#f8fafc;
+
+  --border-radius:18px;
+
+  margin-top:12px;
+
+  border:
+    1px solid
+    #e2e8f0;
+}
+
+ion-label{
+
+  font-weight:700;
+
+  color:#334155;
+}
+
+/* =====================================
+🔥 ACCIONES
+===================================== */
+
+.acciones{
+
+  margin-top:25px;
+
+  margin-bottom:10px;
+}
+
+.acciones ion-button{
+
+  
+
+  --border-radius:18px;
+
+  height:50px;
+
+  font-weight:800;
+
+  text-transform:none;
+
+  box-shadow:
+    0 10px 20px
+    rgba(37,99,235,.2);
+}
+
+/* =====================================
+🔥 EMPTY
+===================================== */
+
+.empty-box{
+
+  height:70vh;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+
+  align-items:center;
+
+  text-align:center;
+
+  padding:20px;
+}
+
+.empty-box ion-icon{
+
+  font-size:90px;
+
+  color:#2563eb;
+
+  margin-bottom:18px;
+}
+
+.empty-box h2{
+
+  margin:0;
+
+  font-size:28px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+.empty-box p{
+
+  margin-top:12px;
+
+  color:#64748b;
+
+  max-width:320px;
+
+  line-height:1.5;
+}
+
+/* =====================================
+🔥 MOBILE
+===================================== */
+
+@media(max-width:768px){
+
+  .metodos-grid{
+
+    grid-template-columns:1fr;
+  }
+
+  .metodo-card{
+
+    padding:18px;
+  }
+
+  .icono{
+
+    width:65px;
+
+    height:65px;
+  }
+
+  .icono ion-icon{
+
+    font-size:28px;
+  }
+}

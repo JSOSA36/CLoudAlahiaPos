@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { MetodosPagoCuentaComponent } from './Components/metodos-pago-cuenta/metodos-pago-cuenta.component';
 
 const routes: Routes = [
   {
@@ -16,6 +17,64 @@ const routes: Routes = [
   {
     path: 'productos',
     loadChildren: () => import('./folder/folder.module').then(m => m.FolderPageModule),
+    canActivate: [AuthGuard]
+  },
+   {
+    path: 'movimientosinventario',
+    loadChildren: () => import('./Components/historico-movimientos-inventario/historico-movimientos-inventario.module').then(m => m.HistoricoMovimientosInventarioModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'cuentafinanciera',
+    loadChildren: () => import('./Components/cuentas-financieras/cuentas-financieras.module').then(m => m.CuentasFinancierasModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'transferenciasfinancieras',
+    loadChildren: () => import('./Components/transferencias-financieras/transferencias-financieras.module').then(m => m.TransferenciasFinancierasModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'movimientosfinancieros',
+    loadChildren: () => import('./Components/movimientos-financieros/movimientos-financieros.module').then(m => m.MovimientosFinancierosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+  path:'metodopagocuentas',
+
+  component:
+    MetodosPagoCuentaComponent,
+
+  canActivate:[AuthGuard]
+},
+   {
+    path: 'listadocaja',
+    loadChildren: () => import('./Components/listado-caja/listado-caja.module').then(m => m.ListadoCajaModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'movimientocaja',
+    loadChildren: () => import('./Components/movimiento-caja/movimiento-caja.module').then(m => m.MovimientoCajaModule),
+    canActivate: [AuthGuard]
+  },
+   {
+    path: 'cierrecaja',
+    loadChildren: () => import('./Components/cierre-caja/cierre-caja.module').then(m => m.CierreCajaModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'reporte607',
+    loadChildren: () => import('./Components/reporte607/reporte607.module').then(m => m.Reporte607Module),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'bizcocho',
+    loadChildren: () => import('./bizcocho/listado-encargos/listado-encargos.module').then(m => m.ListadoEncargosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'listadopago',
+    loadChildren: () => import('./pagos/pagos-list/pagos-list.module').then(m => m.PagosListModule),
     canActivate: [AuthGuard]
   },
   {

@@ -1,0 +1,567 @@
+:host{
+
+  display:block;
+
+  height:100%;
+}
+
+/* =====================================
+🔥 CONTENT
+===================================== */
+
+ion-content{
+
+  --background:
+    #f4f7fb;
+}
+
+/* =====================================
+🔥 DASHBOARD
+===================================== */
+
+.dashboard-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(250px,1fr)
+    );
+
+  gap:18px;
+
+  margin-bottom:25px;
+}
+
+/* =====================================
+🔥 CARD
+===================================== */
+
+.dashboard-card{
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:22px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:18px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0,0,0,.05);
+}
+
+/* =====================================
+🔥 ICONOS
+===================================== */
+
+.icon-box{
+
+  width:70px;
+
+  height:70px;
+
+  border-radius:22px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:white;
+
+  flex-shrink:0;
+}
+
+.icon-box ion-icon{
+
+  font-size:34px;
+}
+
+/* =====================================
+🔥 COLORES
+===================================== */
+
+.entradas .icon-box{
+
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #16a34a
+    );
+}
+
+.salidas .icon-box{
+
+  background:
+    linear-gradient(
+      135deg,
+      #ef4444,
+      #dc2626
+    );
+}
+
+.transferencias .icon-box{
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+}
+
+/* =====================================
+🔥 INFO
+===================================== */
+
+.info{
+
+  flex:1;
+}
+
+.info span{
+
+  display:block;
+
+  color:#64748b;
+
+  font-size:14px;
+
+  font-weight:700;
+}
+
+.info h2{
+
+  margin:6px 0 0 0;
+
+  font-size:28px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 FILTROS
+===================================== */
+
+.filtros-box{
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:20px;
+
+  margin-bottom:25px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0,0,0,.04);
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(220px,1fr)
+    );
+
+  gap:16px;
+}
+
+/* =====================================
+🔥 ITEMS
+===================================== */
+
+ion-item{
+
+  --background:
+    #f8fafc;
+
+  --border-radius:
+    18px;
+
+  border:
+    1px solid
+    #e2e8f0;
+}
+
+ion-label{
+
+  font-weight:700;
+
+  color:#334155;
+}
+
+ion-searchbar{
+
+  --background:
+    #f8fafc;
+
+  --border-radius:
+    18px;
+
+  padding:0;
+
+  border:
+    1px solid
+    #e2e8f0;
+}
+
+/* =====================================
+🔥 LOADING
+===================================== */
+
+.loading-box{
+
+  height:50vh;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:15px;
+
+  color:#64748b;
+}
+
+.loading-box p{
+
+  margin:0;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 LISTADO
+===================================== */
+
+.movimientos-list{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+}
+
+/* =====================================
+🔥 CARD MOVIMIENTO
+===================================== */
+
+.movimiento-card{
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:22px;
+
+  display:flex;
+
+  align-items:flex-start;
+
+  gap:20px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0,0,0,.04);
+
+  transition:.25s;
+}
+
+.movimiento-card:hover{
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 14px 30px
+    rgba(0,0,0,.07);
+}
+
+/* =====================================
+🔥 ICONO TIPO
+===================================== */
+
+.tipo-icon{
+
+  width:65px;
+
+  height:65px;
+
+  border-radius:20px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:white;
+
+  flex-shrink:0;
+}
+
+.tipo-icon ion-icon{
+
+  font-size:30px;
+}
+
+/* =====================================
+🔥 INFO MOVIMIENTO
+===================================== */
+
+.movimiento-info{
+
+  flex:1;
+}
+
+/* =====================================
+🔥 TOP INFO
+===================================== */
+
+.top-info{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  margin-bottom:10px;
+}
+
+.top-info h2{
+
+  margin:0;
+
+  font-size:20px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+.fecha{
+
+  font-size:13px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 MOTIVO
+===================================== */
+
+.motivo{
+
+  font-size:16px;
+
+  font-weight:700;
+
+  color:#334155;
+
+  margin-bottom:8px;
+}
+
+/* =====================================
+🔥 OBS
+===================================== */
+
+.obs{
+
+  font-size:14px;
+
+  color:#64748b;
+
+  line-height:1.5;
+
+  margin-bottom:12px;
+}
+
+/* =====================================
+🔥 CUENTAS
+===================================== */
+
+.cuentas-info{
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:10px;
+}
+
+.cuentas-info span{
+
+  padding:
+    8px 14px;
+
+  border-radius:999px;
+
+  background:#eff6ff;
+
+  color:#1d4ed8;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 MONTO
+===================================== */
+
+.monto-box{
+
+  min-width:160px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:flex-end;
+}
+
+.monto-box strong{
+
+  font-size:24px;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 EMPTY
+===================================== */
+
+.empty-box{
+
+  height:55vh;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+
+  align-items:center;
+
+  text-align:center;
+
+  color:#64748b;
+}
+
+.empty-box ion-icon{
+
+  font-size:85px;
+
+  margin-bottom:18px;
+
+  color:#94a3b8;
+}
+
+.empty-box h2{
+
+  margin:0;
+
+  font-size:28px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+.empty-box p{
+
+  margin-top:10px;
+
+  max-width:320px;
+
+  line-height:1.5;
+}
+
+/* =====================================
+🔥 MOBILE
+===================================== */
+
+@media(max-width:768px){
+
+  .dashboard-grid{
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .filtros-box{
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .movimiento-card{
+
+    flex-direction:column;
+  }
+
+  .top-info{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+  }
+
+  .monto-box{
+
+    width:100%;
+
+    justify-content:flex-start;
+  }
+
+  .monto-box strong{
+
+    font-size:22px;
+  }
+
+  .tipo-icon{
+
+    width:58px;
+
+    height:58px;
+  }
+
+  .tipo-icon ion-icon{
+
+    font-size:26px;
+  }
+}

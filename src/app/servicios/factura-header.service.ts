@@ -9,6 +9,7 @@ import { AppConfigService } from './app-config.service';
 import { FacturaHeaderDto } from '../Modales/facturaheader.dto';
 import { ServicioRankingDto } from '../models/ServicioRankingDto .models';
 import { CuentaPorCobrarDto } from '../models/CuentaPorCobrarDto .models';
+import { CierreCajaDto } from '../models/CierreCajaDto.models';
 @Injectable({ providedIn: 'root' })
 export class FacturaHeaderService {
 
@@ -53,6 +54,45 @@ AnularFactura(IdFact: number, IdEmpresa: number): Observable<any> {
     `${this.baseUrl}/AnularFactura?IdFact=${IdFact}&idEmpresa=${IdEmpresa}`,
     {},
     this.httpOptions
+  );
+}
+GetIngresosCajaActual(
+  idEmpresa: number,
+  idUsuario: number
+): Observable<any[]> {
+
+  return this.httpClient.get<any[]>(
+
+    `${this.baseUrl}/GetIngresosCajaAbierta?idEmpresa=${idEmpresa}&idUsuario=${idUsuario}`
+
+  );
+}
+// ======================================================
+// 🔥 REPORTE 607
+// ======================================================
+
+GetListadoOrdenesByFecha(
+  IdEmpresa: number,
+  fechaDesde: string,
+  fechaHasta: string
+): Observable<facturaheader[]> {
+
+  return this.httpClient.get<facturaheader[]>(
+
+    `${this.baseUrl}/GetAllOrdenesByFecha?IdEmpresa=${IdEmpresa}&fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`
+
+  );
+}
+GetReporte607(
+  desde: string,
+  hasta: string,
+  idEmpresa: number
+): Observable<any[]> {
+
+  return this.httpClient.get<any[]>(
+
+    `${this.baseUrl}/Reporte607?desde=${desde}&hasta=${hasta}&idEmpresa=${idEmpresa}`
+
   );
 }
   GetAllFacturaPendiente(IdCliente: number, IdEmpresa: number): Observable<FacturaHeaderDto[]> {

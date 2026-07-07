@@ -1,0 +1,593 @@
+ion-content{
+
+  --background:
+  linear-gradient(
+    180deg,
+    #f4f7fb,
+    #eef4ff
+  );
+}
+
+/* =====================================
+🔥 LAYOUT
+===================================== */
+
+.listado-layout{
+
+  padding:14px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:16px;
+}
+
+/* =====================================
+🔥 RESUMEN GRID
+===================================== */
+
+.resume-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:12px;
+}
+
+/* =====================================
+🔥 RESUME CARD
+===================================== */
+
+.resume-card{
+
+  background:#ffffff;
+
+  border-radius:20px;
+
+  padding:16px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:14px;
+
+  border:2px solid #facc15;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.05);
+}
+
+/* =====================================
+🔥 ICON
+===================================== */
+
+.resume-icon{
+
+  width:52px;
+
+  height:52px;
+
+  border-radius:16px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  font-size:24px;
+
+  color:#ffffff;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 CARD TEXT
+===================================== */
+
+.resume-card span{
+
+  display:block;
+
+  margin-bottom:4px;
+
+  font-size:13px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+.resume-card strong{
+
+  font-size:22px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 COLORS
+===================================== */
+
+.azul-card .resume-icon{
+
+  background:
+  linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+}
+
+.naranja-card .resume-icon{
+
+  background:
+  linear-gradient(
+    135deg,
+    #f59e0b,
+    #d97706
+  );
+}
+
+.verde-card .resume-icon{
+
+  background:
+  linear-gradient(
+    135deg,
+    #10b981,
+    #059669
+  );
+}
+
+.rojo-card .resume-icon{
+
+  background:
+  linear-gradient(
+    135deg,
+    #ef4444,
+    #dc2626
+  );
+}
+
+/* =====================================
+🔥 ACCORDION
+===================================== */
+
+ion-accordion{
+
+  margin-bottom:14px;
+
+  border-radius:20px;
+
+  overflow:hidden;
+
+  border:2px solid #facc15;
+
+  background:#ffffff;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.05);
+}
+
+/* =====================================
+🔥 HEADER
+===================================== */
+
+.caja-header{
+
+  --background:#ffffff;
+
+  --padding-start:16px;
+
+  --padding-end:16px;
+
+  --min-height:90px;
+}
+
+/* =====================================
+🔥 HEADER TOP
+===================================== */
+
+.header-top{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:8px;
+}
+
+.header-top h2{
+
+  margin:0;
+
+  font-size:18px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 HEADER INFO
+===================================== */
+
+.header-info{
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:12px;
+
+  font-size:13px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 BADGE
+===================================== */
+
+ion-badge{
+
+  font-size:11px;
+
+  font-weight:900;
+
+  padding:
+    8px
+    12px;
+
+  border-radius:12px;
+}
+
+/* =====================================
+🔥 DETALLE
+===================================== */
+
+.detalle-box{
+
+  padding:18px;
+
+  background:#f8fbff;
+}
+
+/* =====================================
+🔥 GRID
+===================================== */
+
+.detalle-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:12px;
+
+  margin-bottom:20px;
+}
+
+/* =====================================
+🔥 DETALLE CARD
+===================================== */
+
+.detalle-card{
+
+  background:#ffffff;
+
+  border-radius:18px;
+
+  padding:14px;
+
+  border:1px solid #dbeafe;
+
+  text-align:center;
+}
+
+.detalle-card span{
+
+  display:block;
+
+  margin-bottom:8px;
+
+  font-size:13px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+.detalle-card strong{
+
+  font-size:20px;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 SECTION
+===================================== */
+
+.section-title{
+
+  margin-bottom:14px;
+
+  font-size:16px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 LINE
+===================================== */
+
+.line{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  min-height:46px;
+
+  padding:8px 0;
+
+  border-bottom:1px dashed #dbeafe;
+}
+
+.line span{
+
+  font-size:14px;
+
+  color:#334155;
+
+  font-weight:700;
+}
+
+.line strong{
+
+  font-size:15px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 OBSERVACION
+===================================== */
+
+.observacion-box{
+
+  margin-top:20px;
+
+  background:#ffffff;
+
+  border-radius:18px;
+
+  padding:16px;
+
+  border:1px solid #dbeafe;
+}
+
+.observacion-box p{
+
+  margin:0;
+
+  font-size:14px;
+
+  line-height:1.6;
+
+  color:#475569;
+}
+
+/* =====================================
+🔥 COLORS TEXT
+===================================== */
+
+.azul{
+
+  color:#2563eb;
+}
+
+.verde{
+
+  color:#059669;
+}
+
+.rojo{
+
+  color:#dc2626;
+}
+
+.morado{
+
+  color:#7c3aed;
+}
+
+/* =====================================
+🔥 RESPONSIVE
+===================================== */
+
+@media(max-width:1100px){
+
+  .resume-grid{
+
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .detalle-grid{
+
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+}
+
+@media(max-width:700px){
+
+  .resume-grid{
+
+    grid-template-columns:1fr;
+  }
+
+  .detalle-grid{
+
+    grid-template-columns:1fr;
+  }
+
+  .header-top{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:10px;
+  }
+
+  .header-info{
+
+    flex-direction:column;
+
+    gap:6px;
+  }
+}
+.usuarios-box{
+
+  display:flex;
+
+  gap:18px;
+
+  flex-wrap:wrap;
+
+  margin-top:8px;
+
+  font-size:14px;
+
+  color:#64748b;
+}
+
+.usuarios-box strong{
+
+  color:#111827;
+
+  font-weight:700;
+}
+.filtros-box{
+
+  background: white;
+
+  padding: 15px;
+
+  border-radius: 16px;
+
+  margin-bottom: 15px;
+
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+
+.btn-filtrar{
+
+  display: flex;
+
+  align-items: end;
+}
+.productos-box{
+
+  margin-top: 20px;
+
+  padding: 15px;
+
+  border-radius: 14px;
+
+  background: #fff;
+
+  border: 1px solid #ececec;
+}
+
+.producto-header{
+
+  display: grid;
+
+  grid-template-columns:
+    2fr
+    1fr
+    1fr
+    1fr;
+
+  font-weight: bold;
+
+  padding: 10px 0;
+
+  border-bottom:
+    1px solid #ddd;
+
+  margin-bottom: 10px;
+
+  color: #444;
+}
+
+.producto-line{
+
+  display: grid;
+
+  grid-template-columns:
+    2fr
+    1fr
+    1fr
+    1fr;
+
+  padding: 10px 0;
+
+  border-bottom:
+    1px solid #f1f1f1;
+
+  align-items: center;
+}
+
+.producto-nombre{
+
+  font-weight: 500;
+}
+
+.cantidad{
+
+  color: #1976d2;
+
+  font-weight: bold;
+}
+
+.existencia{
+
+  font-weight: bold;
+
+  color: #2e7d32;
+}
+
+.critico{
+
+  color: #d32f2f;
+}
+
+.total{
+
+  font-weight: bold;
+
+  color: #6a1b9a;
+}

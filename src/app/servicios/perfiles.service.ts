@@ -48,15 +48,18 @@ export class PerfilesService {
   // 🔥 CREAR PERFIL COMPLETO (AHORA CON EMPRESA)
   // ===============================
   createPerfilCompleto(
-    idEmpresa: number,
-    data: PerfilCreate
-  ): Observable<{ idPerfil: number }> {
-    return this.http.post<{ idPerfil: number }>(
-      `${this.baseUrl}/empresa/${idEmpresa}/completo`,
-      data
-    );
-  }
+  idEmpresa: number,
+  data: PerfilCreate
+): Observable<{ idPerfil: number }> {
 
+  // Si el DTO tiene IdEmpresa, lo asignamos
+  data.idEmpresa = idEmpresa;
+
+  return this.http.post<{ idPerfil: number }>(
+    `${this.baseUrl}/completo`,
+    data
+  );
+}
   // ===============================
   // ✏️ ACTUALIZAR PERFIL COMPLETO (AHORA CON EMPRESA)
   // ===============================

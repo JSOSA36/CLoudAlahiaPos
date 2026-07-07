@@ -1,0 +1,284 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-title>
+
+      {{
+
+        isEdit
+
+        ?
+
+        '✏️ Editar Método'
+
+        :
+
+        '💳 Método de Pago'
+      }}
+
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        fill="clear"
+        (click)="cerrar()">
+
+        <ion-icon
+          name="close-outline">
+        </ion-icon>
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="form-layout">
+
+    <!-- =====================================
+    🔥 TOP CARD
+    ====================================== -->
+
+    <div
+      class="top-card"
+
+      [style.background]="
+        GetMetodo()?.color
+      ">
+
+      <div class="icon-preview">
+
+        <ion-icon
+
+          [name]="
+            GetMetodo()?.icono
+          ">
+        </ion-icon>
+
+      </div>
+
+      <div class="top-info">
+
+        <h2>
+
+          {{
+            model.metodoPago
+          }}
+
+        </h2>
+
+        <span>
+
+          Configuración financiera
+
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 MÉTODO
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Método de Pago
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        fill="outline"
+
+        [(ngModel)]="model.metodoPago">
+
+        <ion-select-option
+
+          *ngFor="
+            let item of
+            metodosDisponibles
+          "
+
+          [value]="item.nombre">
+
+          {{ item.nombre }}
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 CUENTA
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Cuenta Financiera
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        fill="outline"
+
+        [(ngModel)]="model.idCuentaFinanciera">
+
+        <ion-select-option
+
+          *ngFor="
+            let cuenta of
+            cuentas
+          "
+
+          [value]="
+            cuenta.idCuentaFinanciera
+          ">
+
+          {{ cuenta.nombre }}
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 INFO CUENTA
+    ====================================== -->
+
+    <div
+
+      class="cuenta-preview"
+
+      *ngIf="
+        model.idCuentaFinanciera
+      ">
+
+      <div class="preview-icon">
+
+        <ion-icon
+          name="wallet-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="preview-info">
+
+        <h3>
+
+          {{
+  GetCuentaSeleccionada()?.nombre
+}}
+
+        </h3>
+
+        <span>
+
+          Cuenta asociada
+          al método de pago
+
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 ESTADO
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label>
+
+        Método activo
+
+      </ion-label>
+
+      <ion-toggle
+
+        [(ngModel)]="model.activo">
+
+      </ion-toggle>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 BOTONES
+    ====================================== -->
+
+    <div class="acciones">
+
+      <ion-button
+
+        expand="block"
+
+        fill="outline"
+
+        color="medium"
+
+        (click)="cerrar()">
+
+        Cancelar
+
+      </ion-button>
+
+      <ion-button
+
+        expand="block"
+
+        color="primary"
+
+        [disabled]="guardando"
+
+        (click)="guardar()">
+
+        <ion-spinner
+
+          *ngIf="guardando"
+
+          name="crescent">
+
+        </ion-spinner>
+
+        <span *ngIf="!guardando">
+
+          {{
+
+            isEdit
+
+            ?
+
+            'Actualizar'
+
+            :
+
+            'Guardar'
+          }}
+
+        </span>
+
+      </ion-button>
+
+    </div>
+
+  </div>
+
+</ion-content>

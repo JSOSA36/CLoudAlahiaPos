@@ -16,6 +16,7 @@ _descuentoValor?: number
         cantidad:number=0;
         stock:number=0;
         preciooferta:number=0;
+        tipoOperacion:string="";
         idArea:number=0;
         precioVenta:number=0;
         precioVentaMasItbis:number=0;
@@ -43,6 +44,7 @@ _descuentoValor?: number
         controlarStock :boolean=false;
         isActivo :boolean=false;
         esServicio:boolean=false;
+        nombreCategoria?: string;
         ganancia :number=0;
         precioOriginal:number=0;
         itbis:boolean=false;

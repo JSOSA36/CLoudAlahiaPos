@@ -2,6 +2,7 @@ export interface LavadorConsumoDetalle {
   fecha: string
   concepto: string
   monto: number
+  idConsumo: number
 }
 
 export interface LavadorDashboard {

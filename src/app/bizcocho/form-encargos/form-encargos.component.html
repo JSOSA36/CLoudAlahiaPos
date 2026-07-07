@@ -1,0 +1,136 @@
+<ion-page>
+
+  <ion-header>
+    <ion-toolbar class="cake-header">
+
+      <!-- ❌ BOTÓN CERRAR -->
+      <ion-buttons slot="start">
+        <button class="btn-cerrar" (click)="cerrar()">✕</button>
+      </ion-buttons>
+
+      <!-- 🎂 TÍTULO -->
+      <div class="header-center">
+        <div class="icon">🎂</div>
+        <div class="text">
+          <div class="title-main">Registro de Bizcocho</div>
+          <div class="subtitle">Haz cada cumpleaños especial</div>
+        </div>
+      </div>
+
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+
+    <div class="form-card">
+
+      <form [formGroup]="form">
+
+        <div class="grid">
+
+
+          <div class="full celular-destacado">
+
+  <label>
+    📱 Celular del Cliente
+  </label>
+
+  <small class="hint">
+    Escribe el celular para buscar clientes existentes automáticamente
+  </small>
+
+  <input
+    formControlName="celular"
+    placeholder="Ej: 8495787517"
+    (blur)="buscarPorCelular($event)"
+    (keydown.enter)="buscarPorCelular($event)">
+
+</div>
+          <div>
+            <label>Cliente</label>
+            <input formControlName="cliente">
+          </div>
+
+          
+
+          <div>
+            <label>Tipo de Masa</label>
+            <select formControlName="tipoMasa">
+              <option>Vainilla</option>
+              <option>Chocolate</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Tipo de Relleno</label>
+            <select formControlName="tipoRelleno">
+              <option>Fresa</option>
+              <option>Dulce de leche</option>
+              <option>Vainilla</option>
+              
+              <option>Crema Pastelera</option>
+              <option>Guayaba</option>
+              <option>Piña</option>
+              <option>Chocolate</option>
+              <option>Limón</option>
+              <option>Nutella</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Libras</label>
+            <input type="number" formControlName="libras" [disabled]="editando">
+          </div>
+
+          <div>
+            <label>Precio Total</label>
+            <input type="number" formControlName="precio" [disabled]="editando">
+          </div>
+
+          <div>
+            <label>Abono</label>
+            <input type="number" formControlName="abono" [disabled]="editando">
+          </div>
+
+          <div class="full">
+            <label>Nota</label>
+            <textarea formControlName="nota"></textarea>
+          </div>
+
+          <div>
+            <label>Fecha Entrega</label>
+            <input type="date" formControlName="fechaEntrega">
+          </div>
+
+          <div>
+            <label>Hora Entrega</label>
+            <input type="time" formControlName="horaEntrega">
+          </div>
+
+        </div>
+
+        <div class="total-card">
+          <div>Total RD$ {{ total | number:'1.2-2' }}</div>
+          <div>Pendiente RD$ {{ pendiente | number:'1.2-2' }}</div>
+
+          <div class="estado"
+               [ngClass]="estado === 'Pagado' ? 'pagado' : 'pendiente'">
+            {{ estado }}
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+
+  </ion-content>
+
+  <ion-footer class="cake-footer">
+    <div class="footer-inner">
+      <button class="btn-guardar" (click)="guardar()">
+        🎂 Guardar Orden
+      </button>
+    </div>
+  </ion-footer>
+
+</ion-page>

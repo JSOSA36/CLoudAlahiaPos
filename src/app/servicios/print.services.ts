@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient,HttpHeaders } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpHeaders
+} from '@angular/common/http';
+
 import { Observable } from 'rxjs';
-import { ParametrosService } from './parametros.service';
+
+import { ParametrosService }
+from './parametros.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,52 +18,197 @@ export class PrintService {
     private http: HttpClient,
     private parametros: ParametrosService
   ) {}
- private httpOptions = {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+
+  private httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    })
   };
+// =========================================
+// 🔥 PRINT CIERRE CAJA
+// =========================================
+
+printCierre(
+  idCajaCierre: number
+): Observable<any> {
+
+  if (!this.apiPrint) {
+
+    console.error(
+      "❌ ApiPrint no configurado"
+    );
+
+    throw new Error(
+      "ApiPrint vacío"
+    );
+  }
+
+  return this.http.get(
+
+    `${this.apiPrint}` +
+
+    `/api/Printer/cierre/` +
+
+    `${idCajaCierre}`,
+
+    {
+      withCredentials: false
+    }
+  );
+}
   private get apiPrint(): string {
+
     return this.parametros.ApiPrint || '';
   }
 
-  // ============================
-  // 🔹 PRINT FACTURA CLIENTE
-  // ============================
-  printFactura(idFactura: number): Observable<any> {
+  // =========================================
+  // 🔥 PRINT GENERAL
+  // =========================================
+// =========================================
+// 🔥 PRINT CIERRE ENCARGOS
+// =========================================
 
-    if (!this.apiPrint) {
-      console.error("❌ ApiPrint no configurado");
-      throw new Error("ApiPrint vacío");
-    }
+printCierreEncargos(
+  idEmpresa: number
+): Observable<any> {
 
-    return this.http.get(
-      `${this.apiPrint}/api/Printer/factura/${idFactura}`,
-      { withCredentials: false } // 🔥 LA LÍNEA QUE ARREGLA TODO
+  if (!this.apiPrint) {
+
+    console.error(
+      "❌ ApiPrint no configurado"
+    );
+
+    throw new Error(
+      "ApiPrint vacío"
     );
   }
 
-  // ============================
-  // 🔹 PRINT TICKET LAVADOR
-  // ============================
-  printLavador(idFacturaHeader: number): Observable<any> {
+  return this.http.get(
+
+    `${this.apiPrint}` +
+
+    `/api/Printer/cierre-encargos/` +
+
+    `${idEmpresa}`,
+
+    {
+      withCredentials: false
+    }
+  );
+}
+  printTicket(
+    idFacturaHeader: number,
+    idEmpresa: number
+  ): Observable<any> {
 
     if (!this.apiPrint) {
-      console.error("❌ ApiPrint no configurado");
-      throw new Error("ApiPrint vacío");
+
+      console.error(
+        "❌ ApiPrint no configurado"
+      );
+
+      throw new Error(
+        "ApiPrint vacío"
+      );
     }
 
     return this.http.get(
-      `${this.apiPrint}/api/Printer/lavador/${idFacturaHeader}`,
-      { withCredentials: false } // 🔥 CLAVE
+
+      `${this.apiPrint}` +
+
+      `/api/Printer/ticket/` +
+
+      `${idFacturaHeader}/` +
+
+      `${idEmpresa}`,
+
+      {
+        withCredentials: false
+      }
     );
   }
 
-  // ============================
-  // 🔹 TEST API
-  // ============================
+  // =========================================
+  // 🔥 PRINT LAVADOR
+  // =========================================
+
+  printLavador(
+    idFacturaHeader: number
+  ): Observable<any> {
+
+    if (!this.apiPrint) {
+
+      console.error(
+        "❌ ApiPrint no configurado"
+      );
+
+      throw new Error(
+        "ApiPrint vacío"
+      );
+    }
+
+    return this.http.get(
+
+      `${this.apiPrint}` +
+
+      `/api/Printer/lavador/` +
+
+      `${idFacturaHeader}`,
+
+      {
+        withCredentials: false
+      }
+    );
+  }
+
+  // =========================================
+  // 🔥 PDF
+  // =========================================
+
+  printFacturaPDF(
+    idFactura: number
+  ): Observable<any> {
+
+    if (!this.apiPrint) {
+
+      console.error(
+        "❌ ApiPrint no configurado"
+      );
+
+      throw new Error(
+        "ApiPrint vacío"
+      );
+    }
+
+    return this.http.get(
+
+      `${this.apiPrint}` +
+
+      `/api/Printer/facturaPDF/` +
+
+      `${idFactura}`,
+
+      {
+        withCredentials: false
+      }
+    );
+  }
+
+  // =========================================
+  // 🔥 TEST API
+  // =========================================
+
   ping(): Observable<any> {
+
     return this.http.get(
-      `${this.apiPrint}/api/printer/ping`,
-      { withCredentials: false } // 🔥 también aquí
+
+      `${this.apiPrint}` +
+
+      `/api/Printer/ping`,
+
+      {
+        withCredentials: false
+      }
     );
   }
 }

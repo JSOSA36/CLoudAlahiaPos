@@ -1,7 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
+
 import { GastosService } from 'src/app/servicios/gastos.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { MetodoPagoCuentaService } from 'src/app/servicios/metodo-pago-cuenta.service';
+
+import { Gastos } from 'src/app/models/Gastos.models';
+import { MetodoPagoCuenta } from 'src/app/models/MetodoPagoCuenta.models';
 
 @Component({
   selector: 'app-gasto-form',
@@ -9,53 +14,222 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
   styleUrls: ['./gastoadd.component.scss'],
 })
 export class GastoFormPage implements OnInit {
-  @Input() gasto: any = { tipoGasto: '', monto: 0, orien: '', detalle: '', idEmpleado: null, idEmpresa: 0 };
-  @Input() isEdit: boolean = false;
+
+  /* =====================================
+  🔥 INPUTS
+  ====================================== */
+
+  @Input()
+  gasto: Gastos = new Gastos();
+
+  @Input()
+  isEdit: boolean = false;
+
+  /* =====================================
+  🔥 VARIABLES
+  ====================================== */
+
+  modalEfectivo = false;
+
+  metodosPago: MetodoPagoCuenta[] = [];
+
+  /* =====================================
+  🔥 CONSTRUCTOR
+  ====================================== */
 
   constructor(
+
     private gastosSrv: GastosService,
+
     private toastCtrl: ToastController,
+
     public modalCtrl: ModalController,
-    private _Para: ParametrosService // ✅ inyectamos ParametrosService
+
+    private _Para: ParametrosService,
+
+    private metodoPagoCuentaService: MetodoPagoCuentaService
+
   ) {}
 
-  ngOnInit() {
-    // 👉 siempre asignar el IdEmpresa dinámico al abrir el modal
-    this.gasto.idEmpresa = this._Para.GetIdEmpresa();
+  /* =====================================
+  🔥 INIT
+  ====================================== */
+
+  ngOnInit(): void {
+
+    this.gasto.idEmpresa =
+      this._Para.GetIdEmpresa();
+
+    this.gasto.idUsuario =
+      this._Para.IdUsuario;
+
+    this.gasto.formaPago =
+      this.gasto.formaPago || 'EFECTIVO';
+
+    this.CargarMetodosPago();
   }
 
-  async guardar() {
-    // ✅ asegurar que antes de enviar esté el IdEmpresa correcto
-    this.gasto.idEmpresa = this._Para.GetIdEmpresa();
+  /* =====================================
+  🔥 CARGAR MÉTODOS
+  ====================================== */
 
-    if (this.isEdit) {
-      // 🔹 Actualizar gasto
-      this.gastosSrv.actualizarGasto(this.gasto).subscribe(async () => {
-        (await this.toastCtrl.create({
-          message: '✏️ Gasto actualizado correctamente',
-          duration: 1500,
-          color: 'success'
-        })).present();
+  CargarMetodosPago(): void {
 
-        this.gasto = {}; // limpiar objeto
-        this.modalCtrl.dismiss({ recargar: true });
+    this.metodoPagoCuentaService
+      .getByEmpresa(
+
+        this._Para.GetIdEmpresa()
+
+      )
+      .subscribe({
+
+        next: (resp: MetodoPagoCuenta[]) => {
+
+          this.metodosPago =
+
+            (resp || [])
+              .filter(x => x.activo);
+
+          console.log(
+            'METODOS:',
+            this.metodosPago
+          );
+        },
+
+        error: (err) => {
+
+          console.error(err);
+        }
       });
-    } else {
-      // 🔹 Crear gasto
-      this.gastosSrv.crearGasto(this.gasto).subscribe(async () => {
-        (await this.toastCtrl.create({
-          message: '✅ Gasto registrado',
-          duration: 1500,
-          color: 'success'
-        })).present();
-
-        this.gasto = {}; // limpiar objeto
-        this.modalCtrl.dismiss({ recargar: true });
-      });
-    }
   }
 
-  cerrar() {
-    this.modalCtrl.dismiss({ recargar: false });
+  /* =====================================
+  🔥 GUARDAR
+  ====================================== */
+/* =====================================
+🔥 GUARDAR
+====================================== */
+
+async guardar(): Promise<void> {
+
+  this.gasto.idEmpresa =
+    this._Para.GetIdEmpresa();
+
+  this.gasto.idUsuario =
+    this._Para.IdUsuario;
+
+  if (this.isEdit) {
+
+    this.gastosSrv
+      .actualizarGasto(this.gasto)
+      .subscribe(async (resp: any) => {
+
+        if (!resp.success) {
+
+          (
+            await this.toastCtrl.create({
+
+              message: resp.message,
+
+              duration: 2500,
+
+              color: 'warning'
+
+            })
+          ).present();
+
+          return;
+        }
+
+        (
+          await this.toastCtrl.create({
+
+            message:
+              '✏️ Gasto actualizado correctamente',
+
+            duration: 1500,
+
+            color: 'success'
+
+          })
+        ).present();
+
+        this.gasto = new Gastos();
+
+        this.gasto.idEmpresa =
+          this._Para.GetIdEmpresa();
+
+        this.gasto.idUsuario =
+          this._Para.IdUsuario;
+
+        this.modalCtrl.dismiss({
+          recargar: true
+        });
+
+      });
+
+    return;
+  }
+
+  this.gastosSrv
+    .crearGasto(this.gasto)
+    .subscribe(async (resp: any) => {
+
+      if (!resp.success) {
+
+        (
+          await this.toastCtrl.create({
+
+            message: resp.message,
+
+            duration: 2500,
+
+            color: 'warning'
+
+          })
+        ).present();
+
+        return;
+      }
+
+      (
+        await this.toastCtrl.create({
+
+          message:
+            '✅ Gasto registrado',
+
+          duration: 1500,
+
+          color: 'success'
+
+        })
+      ).present();
+
+      this.gasto = new Gastos();
+
+      this.gasto.idEmpresa =
+        this._Para.GetIdEmpresa();
+
+      this.gasto.idUsuario =
+        this._Para.IdUsuario;
+
+      this.modalCtrl.dismiss({
+        recargar: true
+      });
+
+    });
+}
+
+  /* =====================================
+  🔥 CERRAR
+  ====================================== */
+
+  cerrar(): void {
+
+    this.modalCtrl.dismiss({
+
+      recargar: false
+
+    });
   }
 }

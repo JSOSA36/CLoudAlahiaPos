@@ -1,0 +1,207 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-title>
+      💳 Métodos de Pago
+    </ion-title>
+
+   <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- =====================================
+  🔥 LOADING
+  ====================================== -->
+
+  <div
+    class="loading-box"
+
+    *ngIf="cargando">
+
+    <ion-spinner
+      name="crescent">
+    </ion-spinner>
+
+    <p>
+      Cargando métodos...
+    </p>
+
+  </div>
+
+  <!-- =====================================
+  🔥 LISTADO
+  ====================================== -->
+
+  <div
+    class="metodos-grid"
+
+    *ngIf="!cargando">
+
+    <div
+
+      class="metodo-card"
+
+      *ngFor="let item of metodos">
+
+      <!-- =====================================
+      🔥 HEADER
+      ====================================== -->
+
+      <div class="metodo-header">
+<div
+
+  class="icono"
+
+  [style.background]="
+    GetMetodo(
+      item.metodoPago
+    ).color
+  ">
+
+  <ion-icon
+
+    [name]="
+      GetMetodo(
+        item.metodoPago
+      ).icono
+    ">
+  </ion-icon>
+
+</div>
+
+        <div class="info">
+
+          <h2>
+            {{ item.metodoPago }}
+          </h2>
+
+          <span>
+
+            {{
+              item.idCuentaFinanciera
+
+              ?
+
+              GetNombreCuenta(
+                item.idCuentaFinanciera
+              )
+
+              :
+
+              'Sin configurar'
+            }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+      🔥 SELECT
+      ====================================== -->
+
+      <ion-item
+        lines="none">
+
+        <ion-label position="stacked">
+
+          Cuenta financiera
+
+        </ion-label>
+
+        <ion-select
+
+          interface="popover"
+
+          [(ngModel)]="item.idCuentaFinanciera">
+
+          <ion-select-option
+
+            *ngFor="let cuenta of cuentas"
+
+            [value]="
+              cuenta.idCuentaFinanciera
+            ">
+
+            {{ cuenta.nombre }}
+
+          </ion-select-option>
+
+        </ion-select>
+
+      </ion-item>
+
+      <!-- =====================================
+      🔥 BOTON
+      ====================================== -->
+
+      <div class="acciones">
+
+        <ion-button
+
+          expand="block"
+
+          color="primary"
+
+          (click)="Guardar(item)">
+
+          <ion-icon
+
+            slot="start"
+
+            name="save-outline">
+          </ion-icon>
+
+          Guardar Configuración
+
+        </ion-button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================
+  🔥 EMPTY
+  ====================================== -->
+
+  <div
+
+    class="empty-box"
+
+    *ngIf="
+
+      !cargando
+
+      &&
+
+      cuentas.length === 0
+    ">
+
+    <ion-icon
+      name="wallet-outline">
+    </ion-icon>
+
+    <h2>
+      No existen cuentas financieras
+    </h2>
+
+    <p>
+
+      Debes crear al menos
+      una cuenta financiera.
+
+    </p>
+
+  </div>
+
+</ion-content>

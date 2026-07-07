@@ -34,6 +34,9 @@ export class ProductosService {
   GetProductos(IdEmpresa: number): Observable<productos[]> {
     return this.httpClient.get<productos[]>(`${this.baseUrl}/GetListadoProductos/${IdEmpresa}`);
   }
+  GetListadoProductosVenta(IdEmpresa: number): Observable<productos[]> {
+    return this.httpClient.get<productos[]>(`${this.baseUrl}/GetListadoProductosVenta/${IdEmpresa}`);
+  }
 
   GetProductosByBarCode(BarCode: string): Observable<productos> {
     const params = new HttpParams().set('BarCode', BarCode);

@@ -35,28 +35,64 @@ totalLinea: number = 0;
      this.CargarIngresosPorLinea(); // 🔥 NUEVO
   }
 CargarIngresosPorLinea() {
-  const soloFechaInicio = this.fechaInicio.split('T')[0];
-  const soloFechaFin = this.fechaFin.split('T')[0];
 
-  this._Ingresos.getIngresosPorLinea(
-    this.parametro.GetIdEmpresa(),
-    soloFechaInicio,
-    soloFechaFin
-  ).subscribe({
-    next: (res: any[]) => {
+  const soloFechaInicio =
+    this.fechaInicio.split('T')[0];
 
-      console.log("RAW BACKEND:", res);
+  const soloFechaFin =
+    this.fechaFin.split('T')[0];
 
-      this.ingresosAgrupados = this.agruparPorLinea(res);
-this.totalLinea = this.ingresosAgrupados
-  .reduce((acc, x) => acc + x.total, 0);
-      console.log("AGRUPADO FINAL:", this.ingresosAgrupados);
+  this._Ingresos
+    .getIngresosPorLinea(
 
-    },
-    error: (err) => {
-      console.error(err);
-    }
-  });
+      this.parametro.GetIdEmpresa(),
+
+      soloFechaInicio,
+
+      soloFechaFin
+
+    )
+    .subscribe({
+
+      next: (res: any) => {
+
+        console.log(
+          'RAW BACKEND:',
+          res
+        );
+
+        const data =
+          res?.data || [];
+
+        this.ingresosAgrupados =
+          this.agruparPorLinea(
+            data
+          );
+
+        this.totalLinea =
+          this.ingresosAgrupados
+          .reduce(
+
+            (acc, x) =>
+              acc + x.total,
+
+            0
+          );
+
+        console.log(
+          'AGRUPADO FINAL:',
+          this.ingresosAgrupados
+        );
+      },
+
+      error: (err) => {
+
+        console.error(
+          '❌ Error cargando ingresos',
+          err
+        );
+      }
+    });
 }
 agruparPorLinea(data: any[]) {
 

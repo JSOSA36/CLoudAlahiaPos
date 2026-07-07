@@ -29,6 +29,9 @@ export class CategoriasService {
   GetListadoCategorias(IdEmpresa: number): Observable<categorias[]> {
     return this.httpClient.get<categorias[]>(`${this.baseUrl}/${IdEmpresa}`);
   }
+  GetCategoriaVenta(IdEmpresa: number): Observable<categorias[]> {
+    return this.httpClient.get<categorias[]>(`${this.baseUrl}/GetCategoriaVenta/${IdEmpresa}`);
+  }
 
   DeleteIten(id: number): Observable<number> {
     return this.httpClient.delete<number>(`${this.baseUrl}/${id}`);

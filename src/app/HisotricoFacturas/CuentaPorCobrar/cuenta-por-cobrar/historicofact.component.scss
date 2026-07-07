@@ -1,93 +1,776 @@
+/* ======================================================= */
+/* 🔥 ACCORDION ICON */
+/* ======================================================= */
 
-ion-accordion ion-item::part(icon) {
-  color: #fff !important; /* blanco */
+ion-accordion ion-item::part(icon){
+
+  color:#fff !important;
 }
 
-ion-item[slot="header"]::part(native) {
-  border-radius: 6px;
-  margin-bottom: 6px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-}
-.label-orden {
-  font-size: clamp(12px, 3vw, 22px);
-  white-space: nowrap;       /* evita salto de línea */
-  overflow: hidden;          /* oculta lo que se desborde */
-  text-overflow: ellipsis;   /* agrega "..." si no cabe */
-}
+/* ======================================================= */
+/* 🔥 HEADER */
+/* ======================================================= */
 
+ion-item[slot="header"]::part(native){
 
-@media (max-width: 480px) {
-  .label-orden {
-    font-size: 14px; /* reduce en pantallas móviles */
-  }
-}
-.badge-estilista {
+  border-radius:12px;
 
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  margin-bottom:10px;
 
-  background: var(--ion-color-warning);   /* 🔥 amarillo del logo */
-  color: #000;
+  box-shadow:
+    0px 2px 8px rgba(0,0,0,0.08);
 
-  font-weight: 700;
-  font-size: 14px;
-
-  padding: 6px 14px;
-  border-radius: 20px;
-
-  margin-top: 8px;
-
-  border: 1px solid #d5b144;   /* shade del warning */
-
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transition:all .2s ease-in-out;
 }
 
-.badge-estilista ion-icon {
-  font-size: 18px;
-  color: #000;
+/* ======================================================= */
+/* 🔥 FACTURA HEADER */
+/* ======================================================= */
+
+.factura-header{
+
+  --background:#fffdf6;
 }
-.badge-estilista ion-icon {
-  font-size: 18px;
-  color: #000;
+
+/* ======================================================= */
+/* 🔥 LABEL */
+/* ======================================================= */
+
+.label-factura{
+
+  width:100%;
 }
-.precio-edit-row{
+
+/* ======================================================= */
+/* 🔥 TOP */
+/* ======================================================= */
+
+.factura-top{
+
   display:flex;
-  align-items:center;
+
   justify-content:space-between;
-  margin-top:4px;
-}
-.precio-row{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
+
+  align-items:flex-start;
+
+  gap:14px;
 }
 
-.precio-label{
-  font-size: 16px;
-  color: #000;
+/* ======================================================= */
+/* 🔥 LEFT */
+/* ======================================================= */
+
+.top-left{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:4px;
 }
 
-.btn-edit-precio{
-  --background: #1976d2;
-  --border-radius: 8px;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  height: 34px;
-  margin-left: 8px;
+/* ======================================================= */
+/* 🔥 DOCUMENTO */
+/* ======================================================= */
+
+.doc-number{
+
+  font-size:18px;
+
+  font-weight:bold;
+
+  color:#2563eb;
 }
+
+/* ======================================================= */
+/* 🔥 CLIENTE */
+/* ======================================================= */
+
+.cliente-row{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:5px;
+
+  font-size:15px;
+
+  font-weight:600;
+
+  color:#111827;
+}
+
+.cliente-row ion-icon{
+
+  font-size:17px;
+
+  color:#111827;
+}
+
+/* ======================================================= */
+/* 🔥 RIGHT */
+/* ======================================================= */
+
+.top-right{
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:flex-end;
+}
+
+/* ======================================================= */
+/* 🔥 TOTAL */
+/* ======================================================= */
+
+.total-box{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+}
+
+.total-box span{
+
+  font-size:13px;
+
+  color:#000;
+}
+
+.total-box strong{
+
+  color:#16a34a;
+
+  font-size:28px;
+
+  font-weight:bold;
+}
+
+/* ======================================================= */
+/* 🔥 INFO */
+/* ======================================================= */
+
+.factura-info-row{
+
+  margin-top:10px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:2px;
+}
+
+/* ======================================================= */
+/* 🔥 MINI INFO */
+/* ======================================================= */
+
+.mini-info{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:5px;
+
+  font-size:14px;
+}
+
+.mini-label{
+
+  color:#000;
+
+  min-width:50px;
+}
+
+.mini-info strong{
+
+  color:#111827;
+
+  font-weight:700;
+}
+
+/* ======================================================= */
+/* 🔥 NCF */
+/* ======================================================= */
+
+.ncf-text{
+
+  color:#0f766e !important;
+
+  font-weight:bold;
+}
+
+/* ======================================================= */
+/* 🔥 ITBIS */
+/* ======================================================= */
+
+.itbis-text{
+
+  color:#d97706 !important;
+
+  font-weight:bold;
+}
+
+/* ======================================================= */
+/* 🔥 FOOTER */
+/* ======================================================= */
+
+.factura-footer{
+
+  margin-top:10px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-end;
+
+  gap:10px;
+}
+
+/* ======================================================= */
+/* 🔥 LEFT */
+/* ======================================================= */
+
+.footer-left{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:4px;
+}
+
+/* ======================================================= */
+/* 🔥 FECHA */
+/* ======================================================= */
+
+.fecha-box{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:5px;
+
+  color:#6b7280;
+
+  font-size:13px;
+}
+
+/* ======================================================= */
+/* 🔥 BADGES */
+/* ======================================================= */
+
+.badges{
+
+  display:flex;
+
+  gap:6px;
+
+  flex-wrap:wrap;
+}
+
+.badge{
+
+  padding:4px 10px;
+
+  border-radius:20px;
+
+  font-size:12px;
+
+  font-weight:bold;
+}
+
+.badge.cliente{
+
+  background:#fef3c7;
+
+  color:#92400e;
+}
+
+.badge.anulada{
+
+  background:#fee2e2;
+
+  color:#b91c1c;
+}
+
+/* ======================================================= */
+/* 🔥 ACCIONES */
+/* ======================================================= */
+
+.acciones-header{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+
+  margin-left:auto;
+}
+
+.acciones-header ion-button{
+
+  margin:0;
+
+  height:34px;
+
+  --border-radius:8px;
+
+  min-width:38px;
+}
+
+/* ======================================================= */
+/* 🔥 ANULADA */
+/* ======================================================= */
+
 .factura-anulada{
+
   background:#ffecec !important;
-  border-left:6px solid #e53935;
+
+  border-left:5px solid #e53935;
+
   opacity:.85;
 }
 
 .factura-anulada strong{
-  text-decoration: line-through;
+
+  text-decoration:line-through;
+
   color:#888;
 }
 
-.factura-anulada ion-icon{
-  color:#999;
+/* ======================================================= */
+/* 🔥 LOADING */
+/* ======================================================= */
+
+.loading-container{
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  height:100%;
+}
+
+/* ======================================================= */
+/* 🔥 BADGE EMPLEADO */
+/* ======================================================= */
+
+.badge-estilista{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  background:
+    var(--ion-color-warning);
+
+  color:#000;
+
+  font-weight:700;
+
+  font-size:14px;
+
+  padding:6px 14px;
+
+  border-radius:20px;
+
+  margin-top:8px;
+
+  border:
+    1px solid #d5b144;
+
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.15);
+}
+
+.badge-estilista ion-icon{
+
+  font-size:18px;
+
+  color:#000;
+}
+
+/* ======================================================= */
+/* 🔥 PRECIO */
+/* ======================================================= */
+
+.precio-row{
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  margin-top:4px;
+}
+
+.precio-label{
+
+  font-size:16px;
+
+  color:#000;
+}
+
+/* ======================================================= */
+/* 🔥 BOTON PRECIO */
+/* ======================================================= */
+
+.btn-edit-precio{
+
+  --background:#1976d2;
+
+  --border-radius:8px;
+
+  --padding-start:8px;
+
+  --padding-end:8px;
+
+  height:34px;
+
+  margin-left:8px;
+}
+
+/* ======================================================= */
+/* 🔥 NO ASIGNADO */
+/* ======================================================= */
+
+.no-asignado{
+
+  background:#ffe082;
+
+  color:#000;
+
+  font-size:12px;
+
+  padding:4px 8px;
+
+  border-radius:10px;
+}
+
+/* ======================================================= */
+/* 🔥 ACCORDION */
+/* ======================================================= */
+
+ion-accordion{
+
+  transition:all .2s ease-in-out;
+}
+
+/* ======================================================= */
+/* 🔥 MOBILE */
+/* ======================================================= */
+
+@media(max-width:768px){
+
+  .factura-top{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+  }
+
+  .top-right{
+
+    align-items:flex-start;
+  }
+
+  .factura-footer{
+
+    width:100%;
+  }
+
+  .acciones-header{
+
+    margin-left:auto;
+  }
+
+  .total-box strong{
+
+    font-size:24px;
+  }
+
+  .doc-number{
+
+    font-size:16px;
+  }
+}
+/* ======================================================= */
+/* 🔥 ACCORDION */
+/* ======================================================= */
+
+ion-accordion{
+
+  margin-bottom:14px;
+
+  border-radius:18px;
+
+  overflow:hidden;
+
+  background:#fffdf6;
+
+  border:2px solid #f3d36b;
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.08);
+
+  transition:all .2s ease-in-out;
+}
+
+/* ======================================================= */
+/* 🔥 HOVER */
+/* ======================================================= */
+
+ion-accordion:hover{
+
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* ======================================================= */
+/* 🔥 HEADER */
+/* ======================================================= */
+
+.factura-header{
+
+  --background:
+    linear-gradient(
+      180deg,
+      #fff8dc,
+      #fffdf6
+    );
+
+  border-bottom:
+    1px solid #f1d67a;
+
+  padding-bottom:6px;
+}
+
+/* ======================================================= */
+/* 🔥 CONTENT */
+/* ======================================================= */
+
+ion-accordion [slot="content"]{
+
+  background:#fff;
+
+  padding:14px;
+
+  border-top:
+    1px dashed #e7c85c;
+}
+
+/* ======================================================= */
+/* 🔥 DETALLE */
+/* ======================================================= */
+
+ion-row.ion-no-padding{
+
+  background:#fffef9;
+
+  border:1px solid #f4e1a1;
+
+  border-radius:14px;
+
+  padding:12px;
+
+  margin-bottom:12px;
+
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* ======================================================= */
+/* 🔥 PRODUCTO */
+/* ======================================================= */
+
+ion-row h5{
+
+  margin:0 0 4px 0;
+
+  color:#3f2d00;
+}
+
+/* ======================================================= */
+/* 🔥 SUBTOTAL */
+/* ======================================================= */
+
+.precio-label{
+
+  font-size:17px;
+
+  font-weight:700;
+
+  color:#000;
+}
+
+/* ======================================================= */
+/* 🔥 BADGE EMPLEADO */
+/* ======================================================= */
+
+.badge-estilista{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffd54f,
+      #fbc02d
+    );
+
+  color:#000;
+
+  font-weight:700;
+
+  font-size:14px;
+
+  padding:7px 14px;
+
+  border-radius:20px;
+
+  margin-top:10px;
+
+  border:
+    1px solid #d5b144;
+
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* ======================================================= */
+/* 🔥 FOOTER */
+/* ======================================================= */
+
+.factura-footer{
+
+  margin-top:12px;
+
+  padding-top:10px;
+
+  border-top:
+    1px dashed #ecd27c;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-end;
+
+  gap:10px;
+}
+
+/* ======================================================= */
+/* 🔥 BOTONES */
+/* ======================================================= */
+
+.acciones-header ion-button{
+
+  margin:0;
+
+  height:36px;
+
+  --border-radius:10px;
+
+  min-width:42px;
+
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ======================================================= */
+/* 🔥 TOTAL */
+/* ======================================================= */
+
+.total-box strong{
+
+  color:#16a34a;
+
+  font-size:32px;
+
+  font-weight:800;
+
+  text-shadow:
+    0 1px 1px rgba(0,0,0,0.08);
+}
+
+/* ======================================================= */
+/* 🔥 DOCUMENTO */
+/* ======================================================= */
+
+.doc-number{
+
+  font-size:20px;
+
+  font-weight:800;
+
+  color:#2563eb;
+}
+
+/* ======================================================= */
+/* 🔥 CLIENTE */
+/* ======================================================= */
+
+.cliente-row{
+
+  margin-top:3px;
+
+  font-size:16px;
+
+  font-weight:700;
+}
+
+/* ======================================================= */
+/* 🔥 BADGES */
+/* ======================================================= */
+
+.badge.cliente{
+
+  background:#fef3c7;
+
+  color:#92400e;
+
+  border:
+    1px solid #f3d36b;
+}
+
+/* ======================================================= */
+/* 🔥 MOBILE */
+/* ======================================================= */
+
+@media(max-width:768px){
+
+  ion-accordion{
+
+    border-radius:14px;
+  }
+
+  .total-box strong{
+
+    font-size:28px;
+  }
+
+  ion-row.ion-no-padding{
+
+    padding:10px;
+  }
 }

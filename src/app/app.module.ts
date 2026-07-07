@@ -77,12 +77,28 @@ import { EmpleadoFormComponent } from './listado-empleados/empleado-form/emplead
 import { ListadoempleadosComisionComponent } from './EmpleadoListado/listadoempleados/listadoempleadosComision.component';
 import { ListadoEmpleadosComponent } from './listado-empleados/listado-empleados.component';
 import { HoraRdPipe } from './pipes/hora-rd.pipe';
-
+import { PagoEncargoComponent } from './bizcocho/pago-encargo/pago-encargo.component';
+import { FormEncargosComponent } from './bizcocho/form-encargos/form-encargos.component';
 import { WhatsappPlanesComponent } from './whatsapp-planes/whatsapp-planes.component';
 import { ParametrosConfigComponent } from './parametros-config/parametros-config.component';
 import { LavadorDashboardComponent } from './lavador-dashboard/lavador-dashboard.component';
 import { HistoricofactComponent } from './HisotricoFacturas/CuentaPorCobrar/cuenta-por-cobrar/historicofact.component';
 import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.component';
+import { Reporte607Component } from './Components/reporte607/reporte607.component';
+import { PagosListComponent } from './pagos/pagos-list/pagos-list.component';
+import { CierreCajaComponent } from './Components/cierre-caja/cierre-caja.component';
+import { ListadoEncargosComponent } from './bizcocho/listado-encargos/listado-encargos.component';
+import { AperturaCajaComponent } from './Components/apertura-caja/apertura-caja.component';
+import { ListadoCajaComponent } from './Components/listado-caja/listado-caja.component';
+import {MovimientosInventarioComponent} from './Components/movimientos-inventario/movimientos-inventario.component';
+import { MovimientoCajaComponent } from './Components/movimiento-caja/movimiento-caja.component';
+import { MetodosPagoCuentaComponent } from './Components/metodos-pago-cuenta/metodos-pago-cuenta.component';
+import { ModalCuentaFinancieraComponent } from './Components/modal-cuenta-financiera/modal-cuenta-financiera.component';
+import { CuentasFinancierasComponent } from './Components/cuentas-financieras/cuentas-financieras.component';
+import { ModalMetodoPagoCuentaComponent } from './Components/modal-metodo-pago-cuenta/modal-metodo-pago-cuenta.component';
+import { ModalTransferenciaFinancieraComponent } from './Components/modal-transferencia-financiera/modal-transferencia-financiera.component';
+import { MovimientosFinancierosComponent } from './Components/movimientos-financieros/movimientos-financieros.component';
+import { HistoricoMovimientosInventarioComponent } from './Components/historico-movimientos-inventario/historico-movimientos-inventario.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -90,7 +106,23 @@ import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.componen
     CajasComponent,
     ResetPasswordComponent,
     IngresosListComponent,
+    MovimientosInventarioComponent,
+    HistoricoMovimientosInventarioComponent,
     EmpleadoFormComponent,
+    MovimientoCajaComponent,
+    MovimientosFinancierosComponent,
+    MetodosPagoCuentaComponent,
+    ModalMetodoPagoCuentaComponent,
+    ModalCuentaFinancieraComponent,
+    ModalTransferenciaFinancieraComponent,
+    CuentasFinancierasComponent,
+    AperturaCajaComponent,
+    CierreCajaComponent,
+    FormEncargosComponent,
+    ListadoEncargosComponent,
+    Reporte607Component,
+    PagosListComponent,
+    ListadoCajaComponent,
     ClienteVozComponent,
     DashboardComponent,
     ParametrosConfigComponent,
@@ -101,6 +133,7 @@ import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.componen
     LavadorDashboardComponent,
     AreaComponent,
     WhatsappPlanesComponent,
+    PagoEncargoComponent,
     PoliticasComponent,
     ProductosComponent,
     CatalogoInicioComponent,

@@ -1,51 +1,146 @@
-::host {
-  position: fixed;
-  inset: 0;
-  background: white;
-  z-index: 999999;
-  display: block;
+.factura {
+  width: 100%;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  color: #000;
+  background: #fff;
 }
 
-/* FONDO GRIS SIMULADOR */
+/* 🔷 TITULO */
+.titulo-factura {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
 
-.print-preview {
-  background: #8f8f8f;
-  min-height: 100vh;
+/* 🔷 HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+
+.empresa h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.empresa p {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.info-factura {
+  text-align: right;
+  font-size: 14px;
+}
+
+.info-factura p {
+  margin: 3px 0;
+}
+
+/* 🔷 LINEA */
+hr {
+  border: none;
+  border-top: 1px solid #000;
+  margin: 15px 0;
+}
+
+/* 🔷 TABLA */
+.detalle {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.detalle th {
+  border-bottom: 2px solid #000;
+  padding: 10px 6px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.detalle td {
+  border-bottom: 1px solid #ccc;
+  padding: 8px 6px;
+  font-size: 14px;
+}
+
+/* alineación */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* 🔷 TOTALES */
+.totales {
+  text-align: right;
+  margin-top: 25px;
+}
+
+.total-final {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 🔷 FOOTER */
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 13px;
+  color: #444;
+}
+
+/* 🔷 BOTONES */
+.acciones {
+  margin-top: 30px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding-top: 40px;
+  gap: 15px;
 }
-@media print {
 
-  @page {
-    size: 80mm auto;
-    margin: 0;
-  }
-
-  html, body {
-    width: 80mm;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-
+.btn-print {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
 }
-/* PAPEL */
 
-.paper {
-  width: 80mm;
-  background: white;
-  padding: 4mm;
-  box-shadow: 0 0 10px rgba(0,0,0,.25);
+.btn-cerrar {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* ============================= */
+/* 🧾 TICKET POS REAL */
+/* ============================= */
+.ticket-pos {
+  width: 260px;
+  margin: 0 auto;
   font-family: monospace;
   font-size: 12px;
   color: #000;
 }
 
-/* TEXTOS */
-
+/* utilidades */
 .center {
   text-align: center;
 }
@@ -58,67 +153,65 @@
   font-size: 11px;
 }
 
-/* LINEA PUNTEADA */
-
 .line {
-  border-top: 1px dashed black;
+  border-top: 1px dashed #000;
   margin: 6px 0;
 }
 
-/* TABLA ITEMS */
-
-.items {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.items td {
-  padding: 2px 0;
-}
-
-.qty {
-  text-align: right;
-  white-space: nowrap;
-}
-
 .total {
-  text-align: right;
-  width: 35px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 5px;
 }
 
-/* TOTALES */
-
-.totales div {
-  display: flex;
-  justify-content: space-between;
-}
-
-/* MODO IMPRESIÓN REAL */
-
+/* ============================= */
+/* 🖨️ IMPRESIÓN */
+/* ============================= */
 @media print {
 
-  body,
-  html {
-    background: white !important;
-  }
-
-  .print-preview {
-    background: white;
-    padding: 0;
-  }
-
-  .paper {
-    box-shadow: none;
-    width: 80mm;
-  }
-
   @page {
-    size: 80mm auto;
+    size: letter;
+    margin: 12mm;
+  }
+
+  body {
     margin: 0;
   }
 
+  /* 🔥 SOLO ocultar lo que NO quieres imprimir */
+  .no-print {
+    display: none !important;
+  }
+
+  /* 🔥 Asegurar que factura ocupa la hoja */
+  .factura,
+  .ticket-pos {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
 }
-.ticket {
-  width: 78mm;
-  margin: 0 auto;
+ion-content {
+  --padding-bottom: 80px; /* espacio para footer */
+}
+
+ion-footer {
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  --background: #fff;
+}
+.footer-pro {
+  padding: 8px;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.footer-actions ion-button {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
 }

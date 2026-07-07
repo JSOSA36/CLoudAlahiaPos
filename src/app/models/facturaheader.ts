@@ -35,7 +35,10 @@ export class facturaheader
     Estado_Orden:string="";
     ajustadoInventario:boolean=false;
     facturaDetalles:facturadetalles[]=[];
-    
-   
+    numeroDocumento:string="";
+    rnc:string="";
+    nombreEmpresa:string="";
+    ncf:string="";
+     clientes?: clientes;
     
 }

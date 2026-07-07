@@ -1,8 +1,17 @@
-<ion-header>
+<<ion-header>
   <ion-toolbar color="primary">
+
+    <!-- BOTÓN ATRÁS 🔥 -->
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
     <ion-title class="ion-text-center">
       💵 Registrar Ingreso
     </ion-title>
+
   </ion-toolbar>
 </ion-header>
 
@@ -38,12 +47,41 @@
       </ion-item>
 
       <!-- Forma de Pago -->
-      <ion-item>
-        <ion-label position="stacked">Forma de Pago</ion-label>
-        <ion-select [(ngModel)]="ingreso.formaPago" interface="popover">
-          <ion-select-option *ngFor="let f of formasPago" [value]="f">{{ f }}</ion-select-option>
-        </ion-select>
-      </ion-item>
+      <!-- Forma de Pago -->
+<ion-item>
+
+  <ion-label position="stacked">
+
+    Forma de Pago
+
+  </ion-label>
+
+  <ion-select
+
+    [(ngModel)]="
+      ingreso.formaPago
+    "
+
+    interface="popover">
+
+    <ion-select-option
+
+      *ngFor="
+        let metodo of
+        metodosPago
+      "
+
+      [value]="
+        metodo.metodoPago
+      ">
+
+      {{ metodo.metodoPago }}
+
+    </ion-select-option>
+
+  </ion-select>
+
+</ion-item>
 
       <!-- Referencia -->
       <ion-item>

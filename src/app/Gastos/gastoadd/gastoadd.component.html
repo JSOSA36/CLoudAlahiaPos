@@ -31,15 +31,49 @@
 
       <!-- Origen -->
       <ion-item lines="full">
-        <ion-icon name="wallet-outline" slot="start" color="tertiary"></ion-icon>
-        <ion-label position="floating">Origen</ion-label>
-        <ion-select [(ngModel)]="gasto.orien">
-          <ion-select-option value="Caja Chica">Caja Chica</ion-select-option>
-          <ion-select-option value="Banco">Banco</ion-select-option>
-          <ion-select-option value="Tarjeta">Tarjeta</ion-select-option>
-        </ion-select>
-      </ion-item>
+  <ion-icon
+    name="wallet-outline"
+    slot="start"
+    color="tertiary">
+  </ion-icon>
 
+  <ion-label position="floating">
+    Método de Pago
+  </ion-label>
+
+  <ion-select
+    [(ngModel)]="gasto.formaPago"
+    interface="popover"
+    placeholder="Seleccione método">
+
+    <ion-select-option
+      *ngFor="let metodo of metodosPago"
+      [value]="metodo.metodoPago">
+
+      {{ metodo.metodoPago }}
+
+    </ion-select-option>
+
+  </ion-select>
+
+</ion-item>
+<ion-item lines="full">
+
+  <ion-icon
+    name="document-outline"
+    slot="start"
+    color="medium">
+  </ion-icon>
+
+  <ion-label position="floating">
+    Referencia
+  </ion-label>
+
+  <ion-input
+    [(ngModel)]="gasto.referencia">
+  </ion-input>
+
+</ion-item>
       <!-- Detalle -->
       <ion-item lines="full">
         <ion-icon name="document-text-outline" slot="start" color="warning"></ion-icon>

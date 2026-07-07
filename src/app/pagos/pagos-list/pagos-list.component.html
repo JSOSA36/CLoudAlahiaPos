@@ -1,0 +1,102 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Pagos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-spinner *ngIf="cargando"></ion-spinner>
+
+  <ion-card *ngFor="let pago of pagos" class="pago-card">
+
+    <ion-card-header>
+
+      <ion-card-subtitle>
+        {{ pago.nombreEmpresa }}
+      </ion-card-subtitle>
+
+      <ion-card-title>
+        RD$ {{ pago.monto | number:'1.0-0' }}
+      </ion-card-title>
+
+      <ion-badge [color]="
+        pago.estado === 'APROBADO' ? 'success' :
+        pago.estado === 'RECHAZADO' ? 'danger' : 'warning'
+      ">
+        {{ pago.estado }}
+      </ion-badge>
+
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <p><strong>Fecha:</strong> {{ pago.fechaSubida | date:'short' }}</p>
+
+      <!-- 🔥 BOTÓN VER -->
+      <ion-button 
+        size="small" 
+        fill="outline" 
+        color="primary"
+        (click)="abrirModal(pago.archivoUrl)">
+
+        <ion-icon name="eye-outline" slot="start"></ion-icon>
+        Ver comprobante
+      </ion-button>
+
+      <!-- 🔥 ACCIONES -->
+      <div *ngIf="pago.estado === 'PENDIENTE'" class="acciones">
+
+        <ion-button color="success" (click)="aprobar(pago)">
+          Aprobar
+        </ion-button>
+
+        <ion-button color="danger" (click)="rechazar(pago)">
+          Rechazar
+        </ion-button>
+
+      </div>
+
+    </ion-card-content>
+
+  </ion-card>
+
+</ion-content>
+
+<!-- 🔥 MODAL INLINE -->
+<ion-modal 
+  [isOpen]="modalAbierto" 
+  (didDismiss)="cerrarModal()" 
+  class="modal-fullscreen">
+
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="dark">
+        <ion-title>Comprobante</ion-title>
+
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content [scrollY]="true" class="viewer" fullscreen="true">
+
+      <img 
+        *ngIf="urlSeleccionado && !urlSeleccionado.toLowerCase().includes('.pdf')" 
+        [src]="urlSeleccionado" 
+        class="img-full"
+      />
+
+      <iframe 
+        *ngIf="urlSeleccionado && urlSeleccionado.toLowerCase().includes('.pdf')" 
+        [src]="getSafeUrl(urlSeleccionado)" 
+        class="pdf-full">
+      </iframe>
+
+    </ion-content>
+  </ng-template>
+
+</ion-modal>

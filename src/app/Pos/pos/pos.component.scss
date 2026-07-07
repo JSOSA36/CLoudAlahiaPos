@@ -254,25 +254,45 @@
 }
 
 /* 🔥 IMAGEN FULL WIDTH REAL */
+/* 🔥 IMAGEN FULL WIDTH REAL */
 .producto-img-wrap{
+
   width: 100%;
-  height: 140px;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  height: 150px;
+
   overflow: hidden;
+
+  background: #f3f4f6;
+
+  border-bottom:
+    1px solid rgba(0,0,0,.05);
+
+  position: relative;
 }
 
+/* 🔥 IMAGEN */
 .producto-img-wrap ion-img{
+
   width: 100% !important;
+
   height: 100% !important;
+
+  display: block;
 }
 
+/* 🔥 FOTO HOMOGÉNEA */
 .producto-img-wrap ion-img::part(image){
-  object-fit: contain;
+
   width: 100%;
+
   height: 100%;
+
+  object-fit: cover;
+
+  object-position: center;
+
+  display: block;
 }
 
 /* INFO */
@@ -283,12 +303,20 @@
   background: #fff;
 }
 .producto-nombre {
+
   font-size: 13px;
   font-weight: 700;
   color: #2b3a4a;
-  white-space: nowrap;
+
+  line-height: 1.2;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 🔥 máximo 2 líneas */
+  -webkit-box-orient: vertical;
+
   overflow: hidden;
-  text-overflow: ellipsis;
+
+  min-height: 32px; /* 🔥 mantiene altura uniforme */
 }
 
 .producto-precio {
@@ -316,12 +344,7 @@
 /* =============================
    PANEL DERECHO
 ============================= */
-.right-panel{
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  height: 100%;
-  border-left: 1px solid rgba(0,0,0,.08);
-}
+
 .total-final{
   font-size: 18px;
   font-weight: bold;
@@ -348,7 +371,7 @@
 /* CONTROLES */
 .controls-soft{
   background: var(--ion-color-warning-tint);
-  padding: 12px 14px;
+  
   border-bottom: 4px solid #000;
 }
 
@@ -375,30 +398,35 @@
 .body-warning,
 .footer-warning{
   background: var(--ion-color-warning);
+  position: sticky;
+  bottom: 0;
+  background: var(--ion-color-warning);
+  z-index: 10;
 }
 
 .body-warning{
   padding: 5px 5px;
   overflow: auto;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.footer-warning{
-  padding: 12px 14px;
-}
+footer-warning
 
 /* Items */
 /* =============================
    CONTENEDOR ITEMS
 ============================= */
-.items{
+.items {
   flex: 1;
   overflow-y: auto;
 
+  padding: 8px;
+
   display: flex;
   flex-direction: column;
-  gap: 12px; /* 🔥 separación real */
 
-  padding: 10px;
+  gap: 12px;
 }
 
 /* =============================
@@ -532,15 +560,7 @@
 /* =============================
    RESPONSIVE
 ============================= */
-@media (max-width: 992px){
-  .pos-layout{
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-  .right-panel{
-    height: 520px;
-  }
-}
+
 .body-warning{
   display: flex;
   flex-direction: column;
@@ -617,13 +637,13 @@
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 10px;
+  
 }
 
 .sum-line{
   display: flex;
   justify-content: space-between;
-  align-items: center;
-
+  
   padding: 6px 0;
 
   font-size: 13px;
@@ -711,11 +731,8 @@
   -6px 0 16px rgba(0,0,0,.12);
   min-width: 420px;
 }
-@media (max-width: 992px){
-  .right-panel{
-    display: none;
-  }
-}
+
+
 .cart-fab ion-fab-button{
   --background: linear-gradient(135deg,#3b82f6,#2563eb);
   --box-shadow: 0 6px 18px rgba(37,99,235,.35);
@@ -1233,13 +1250,10 @@
   }
 
 }
-@media (max-width: 992px){
 
-  .right-panel{
-    display:none;
-  }
 
-}
+
+
 /* Desktop normal */
 @media (min-width:1200px){
   .producto-col{
@@ -1400,7 +1414,47 @@ ion-buttons[slot="end"] {
   background: #ffc107;
   color: #000;
 }
+.btn-amarillo {
+  --background: #ffc107;
+  --background-activated: #d39e00;
+  --color: #000;
+  --border-radius: 20px;
+  transition: all 0.15s ease;
+}
 
+/* 🔥 HOVER REAL */
+.btn-amarillo:hover {
+  --background: #e0a800;
+  transform: translateY(-1px);
+}
+
+/* 🔥 CLICK (FEEDBACK) */
+.btn-amarillo:active {
+  transform: scale(0.96);
+}
+.cliente-box {
+  background: #111827;
+  margin-top: 8px;
+}
+
+.cliente-select {
+  --background: #fff3cd;
+  border-radius: 10px;
+}
+
+.cliente-nombre {
+  font-weight: bold;
+  color: #111;
+}
+/* 🔥 FORZAR ICONO */
+.btn-amarillo ion-icon {
+  color: #000 !important;
+}
+
+/* 🔥 FORZAR TEXTO */
+.btn-amarillo {
+  color: #000 !important;
+}
 /* TOGGLE AJUSTE */
 .itbis-button ion-toggle {
   transform: scale(0.85);
@@ -1571,4 +1625,1115 @@ ion-buttons[slot="end"] {
 .btn-cancelar:hover{
   background: rgba(224,49,49,.1);
   text-decoration: underline;
+}
+.row-config {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.row-config .col {
+  flex: 1;
+}
+
+.tipo-doc {
+  margin-bottom: 10px;
+}
+
+.tipo-servicio {
+  margin-top: 10px;
+}
+.panel-header.header-warning {
+  background: #0f172a; /* negro azulado pro */
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.panel-header ion-segment {
+  --background: transparent;
+}
+
+.panel-header ion-segment-button {
+  --color: #9ca3af; /* gris */
+  --color-checked: #3b82f6; /* azul activo */
+}
+
+.panel-header ion-select {
+  --background: #1f2937;
+  --color: #fff;
+  border-radius: 8px;
+}
+
+.panel-header .row-config,
+.panel-header .tipo-servicio {
+  margin-top: 8px;
+}
+/* ============================
+   FIX FINAL MOVIL (NO ROMPE PC)
+============================ */
+@media (max-width: 992px){
+
+  /* layout 1 columna */
+  .pos-layout{
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 🔥 convierte carrito en modal */
+  .right-panel{
+    display: block !important;
+
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 95vh;
+
+    transform: translateY(100%);
+    transition: transform .28s ease;
+
+    z-index: 1002;
+
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -12px 30px rgba(0,0,0,.28);
+  }
+
+  .right-panel.open{
+    transform: translateY(0);
+  }
+
+  /* overlay */
+  .cart-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1001;
+  }
+
+  /* productos 2 columnas */
+  ion-col{
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  /* tarjetas más compactas */
+  .producto-card{
+    height: 170px;
+  }
+
+  .producto-img-wrap{
+    height: 100px;
+  }
+
+}
+/* 🔥 PANEL COMO FLEX */
+/* =========================================
+   🔥 FIX DEFINITIVO SCROLL (PC + MOVIL)
+   NO TOCA TU DISEÑO, SOLO ARREGLA EL FLUJO
+========================================= */
+
+/* 🔥 PANEL */
+.right-panel{
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* 🔥 BODY DEL CARRITO */
+.body-warning{
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+
+  /* ❌ evita doble scroll */
+  overflow: hidden !important;
+}
+
+/* 🔥 CONTROL TOTAL DE ION-CONTENT */
+.right-panel ion-content{
+  flex: 1 !important;
+  min-height: 0 !important;
+
+  /* 💣 desactiva scroll interno de Ionic */
+  --overflow: hidden !important;
+}
+
+/* 🔥 SOLO LOS ITEMS SCROLLEAN */
+.items{
+  flex: 1 !important;
+  min-height: 0 !important;
+
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 🔒 HEADER FIJO */
+.panel-header{
+  flex-shrink: 0 !important;
+}
+
+/* 🔒 FOOTER FIJO */
+.panel-footer{
+  flex-shrink: 0 !important;
+}
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+}
+/* 🔴 OCULTAR SEARCH SUPERIOR EN MÓVIL */
+@media (max-width: 768px) {
+  .search-top {
+    display: none !important;
+  }
+}
+@media (max-width: 768px){
+
+  .right-panel{
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+
+    border-radius: 0 !important;
+
+    z-index: 1002 !important;
+
+    transform: translateY(100%);
+    transition: transform .28s ease;
+  }
+.btn-close-cart{
+
+  position: absolute;
+
+  top: 14px;   /* antes estaba en 8px */
+  right: 12px;
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.12);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+
+  cursor: pointer;
+}
+.btn-cerrar-mobile{
+
+  color: #2563eb;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  padding: 4px 8px;
+
+  border-radius: 6px;
+
+  transition: all .2s ease;
+}
+
+.btn-cerrar-mobile:hover{
+
+  background: rgba(37,99,235,.1);
+
+}
+.btn-close-cart ion-icon{
+  font-size:24px;
+}
+
+.btn-close-cart:hover{
+  background:rgba(255,255,255,.18);
+}
+  .right-panel.open{
+    transform: translateY(0);
+  }
+
+}
+/* =========================================
+🔥 HEADER FACTURA
+========================================= */
+
+.panel-header.header-warning {
+
+  background:
+    linear-gradient(
+      180deg,
+      #0f172a,
+      #111827
+    );
+
+  padding: 10px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.08);
+}
+
+/* =========================================
+🔥 SEGMENT DOCUMENTO
+========================================= */
+
+.tipo-doc-header {
+
+  margin-bottom: 10px;
+}
+
+.tipo-doc-header ion-segment {
+
+  background:
+    rgba(255,255,255,.04);
+
+  border-radius: 12px;
+
+  padding: 4px;
+}
+
+.tipo-doc-header ion-segment-button {
+
+  --color: #9ca3af;
+
+  --color-checked: #3b82f6;
+
+  --indicator-color: #3b82f6;
+
+  min-height: 42px;
+
+  font-weight: 700;
+}
+
+/* =========================================
+🔥 CLIENTE
+========================================= */
+
+.cliente-box {
+
+  margin-top: 10px;
+}
+
+.cliente-select {
+
+  --background: #fff3cd;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  border:
+    1px solid #facc15;
+}
+
+.cliente-select ion-label {
+
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+
+  color:#111827;
+
+  font-weight:700;
+}
+
+.cliente-nombre {
+
+  font-weight: 800;
+
+  color: #111827;
+
+  font-size: 15px;
+}
+
+/* =========================================
+🔥 CONFIG FACTURA
+========================================= */
+
+.row-config {
+
+  display:flex;
+
+  gap:12px;
+
+  margin-top:12px;
+
+  align-items:center;
+}
+
+.row-config .col {
+
+  flex:1;
+}
+
+/* =========================================
+🔥 SELECT
+========================================= */
+
+.row-config ion-select {
+
+  --background:#1f2937;
+
+  --color:#fff;
+
+  border-radius:12px;
+
+  padding-left:10px;
+
+  font-weight:700;
+
+  min-height:46px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+}
+
+/* =========================================
+🔥 SEGMENT PAGO
+========================================= */
+
+.row-config ion-segment {
+
+  background:
+    rgba(255,255,255,.04);
+
+  border-radius:12px;
+
+  padding:4px;
+}
+
+.row-config ion-segment-button {
+
+  --color:#9ca3af;
+
+  --color-checked:#3b82f6;
+
+  --indicator-color:#3b82f6;
+
+  min-height:40px;
+
+  font-weight:700;
+}
+
+/* =========================================
+🔥 DATOS FISCALES
+========================================= */
+
+.row-fiscal {
+
+  display:flex;
+
+  gap:12px;
+
+  margin-top:12px;
+
+  align-items:end;
+}
+
+/* =========================================
+🔥 CAMPOS
+========================================= */
+
+.campo {
+
+  display:flex;
+
+  flex-direction:column;
+
+  flex:1;
+}
+
+/* =========================================
+🔥 LABEL
+========================================= */
+
+.campo label {
+
+  font-size:13px;
+
+  font-weight:700;
+
+  color:#d1d5db;
+
+  margin-bottom:4px;
+}
+
+/* =========================================
+🔥 INPUT
+========================================= */
+
+.campo input {
+
+  width:100%;
+
+  height:44px;
+
+  border:none;
+
+  border-radius:12px;
+
+  padding:0 12px;
+
+  background:#fff;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  color:#111827;
+
+  outline:none;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0,0,0,.15);
+}
+
+/* =========================================
+🔥 RNC
+========================================= */
+
+.campo-rnc {
+
+  flex:.9;
+}
+
+/* =========================================
+🔥 EMPRESA
+========================================= */
+
+.campo-empresa {
+
+  flex:1.4;
+}
+
+/* =========================================
+🔥 READONLY
+========================================= */
+
+.campo-empresa input[readonly] {
+
+  background:#f3f4f6;
+
+  color:#111827;
+}
+
+/* =========================================
+🔥 MENSAJE DGII
+========================================= */
+
+.rnc-estado {
+
+  margin-top:10px;
+
+  padding:10px 12px;
+
+  border-radius:12px;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+/* ✅ SUCCESS */
+
+.success {
+
+  background:#dcfce7;
+
+  color:#166534;
+}
+
+/* ❌ ERROR */
+
+.error {
+
+  background:#fee2e2;
+
+  color:#991b1b;
+}
+
+/* 🔍 LOADING */
+
+.loading {
+
+  background:#fef3c7;
+
+  color:#92400e;
+}
+
+/* =========================================
+🔥 TIPO SERVICIO
+========================================= */
+
+.tipo-servicio {
+
+  margin-top:12px;
+}
+
+.tipo-servicio ion-segment {
+
+  background:
+    rgba(255,255,255,.04);
+
+  border-radius:12px;
+
+  padding:4px;
+}
+
+.tipo-servicio ion-segment-button {
+
+  --color:#9ca3af;
+
+  --color-checked:#22c55e;
+
+  --indicator-color:#22c55e;
+
+  min-height:42px;
+
+  font-weight:700;
+}
+
+/* =========================================
+📱 MOBILE
+========================================= */
+
+@media(max-width:768px){
+
+  .row-config {
+
+    flex-direction:column;
+  }
+
+  .row-fiscal {
+
+    flex-direction:column;
+  }
+
+  .campo-rnc,
+  .campo-empresa {
+
+    width:100%;
+  }
+
+  .cliente-select {
+
+    --min-height:58px;
+  }
+
+  .cliente-nombre {
+
+    font-size:14px;
+  }
+}
+/* =========================================
+🔥 BOTÓN AMARILLO
+========================================= */
+
+.btn-amarillo {
+
+  --background:
+    linear-gradient(
+      135deg,
+      #facc15,
+      #f59e0b
+    );
+
+  --color: #111827;
+
+  --border-radius: 14px;
+
+  font-weight: 800;
+
+  letter-spacing: .3px;
+
+  text-transform: none;
+
+  min-height: 42px;
+
+  box-shadow:
+    0 6px 14px
+    rgba(245,158,11,.35);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+/* HOVER */
+.btn-amarillo:hover {
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 10px 18px
+    rgba(245,158,11,.45);
+}
+
+/* ICON */
+.btn-amarillo ion-icon {
+
+  font-size: 18px;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .btn-amarillo {
+
+    font-size: 13px;
+
+    min-height: 40px;
+  }
+}
+/* =========================================
+❌ ITBIS OFF
+========================================= */
+
+.btn-itbis-off {
+
+  --background:
+    linear-gradient(
+      135deg,
+      #374151,
+      #111827
+    );
+
+  --color: #fff;
+
+  --border-radius: 14px;
+
+  font-weight: 800;
+
+  text-transform: none;
+
+  box-shadow:
+    0 6px 14px
+    rgba(0,0,0,.25);
+}
+/* =========================================
+📱 OCULTAR FLECHAS CATEGORÍAS EN MÓVIL
+========================================= */
+
+@media (max-width: 768px){
+
+  .scroll-btn{
+    display: none !important;
+  }
+
+  .cats-row{
+    padding: 8px 10px !important;
+  }
+
+}
+/* =========================================
+🔥 BOTON FLOTANTE SOLO MOVIL
+========================================= */
+
+.cart-float{
+
+  display: none;
+}
+
+/* =========================================
+📱 MOSTRAR SOLO EN CELULAR
+========================================= */
+
+@media (max-width: 768px){
+
+  .cart-float{
+
+    display: flex;
+  }
+}
+.producto-img-wrap.no-img {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+  border-radius: 16px 16px 0 0;
+}
+
+.icon-placeholder {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.15);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-placeholder ion-icon {
+  font-size: 52px;
+  color: #d4a017;
+}
+.stock-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2e7d32;
+
+  background: rgba(46, 125, 50, 0.10);
+
+  padding: 4px 10px;
+
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* =========================================
+💻 DESKTOP
+========================================= */
+
+@media (min-width: 769px){
+
+  .pos-layout{
+    display:grid;
+    grid-template-columns: 1fr 450px;
+    height: calc(100vh - 56px);
+  }
+
+  .right-panel{
+
+    position: relative !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    width:450px !important;
+    min-width:450px !important;
+
+    height:100% !important;
+
+    transform:none !important;
+
+    border-radius:0 !important;
+
+    box-shadow:
+      -6px 0 16px rgba(0,0,0,.12);
+
+  }
+
+  .cart-overlay{
+    display:none !important;
+  }
+
+  .cart-float{
+    display:none !important;
+  }
+
+}
+/* =========================================
+📱 MOVIL
+========================================= */
+
+@media (max-width:768px){
+
+  .pos-layout{
+    grid-template-columns:1fr !important;
+    height:auto !important;
+  }
+
+  .right-panel{
+
+    position:fixed !important;
+
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+
+    width:100vw !important;
+    height:100vh !important;
+    max-height:100vh !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    transform:translateY(100%) !important;
+
+    transition:transform .28s ease;
+
+    z-index:1002 !important;
+
+    border-radius:0 !important;
+
+    box-shadow:
+      0 -12px 30px rgba(0,0,0,.28);
+
+  }
+
+  .right-panel.open{
+    transform:translateY(0) !important;
+  }
+
+  .cart-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:1001;
+  }
+
+  .cart-float{
+    display:flex;
+  }
+
+}
+/* Ocultar en escritorio */
+.btn-cerrar-mobile{
+  display: none;
+}
+
+/* Mostrar solo en móvil */
+@media (max-width: 768px){
+
+  .btn-cerrar-mobile{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+}
+/* =========================================
+🔥 FIX DEFINITIVO CARRITO
+========================================= */
+
+.right-panel{
+
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+.body-warning{
+
+  flex:1 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  min-height:0 !important;
+
+  overflow:hidden !important;
+}
+
+.items{
+
+  flex:1 !important;
+
+  min-height:0 !important;
+
+  overflow-y:auto !important;
+
+  -webkit-overflow-scrolling:touch;
+}
+
+
+/* FIX FONDO PANEL DERECHO */
+.right-panel{
+
+  background: linear-gradient(
+    180deg,
+    #f0cd54 0%,
+    #e4be3b 100%
+  ) !important;
+}
+
+.cart-grid,
+.cart-top,
+.cart-items-row,
+.cart-footer-row{
+
+  background: transparent !important;
+}
+
+.cart-items-row .items{
+
+  background: transparent !important;
+}
+
+.footer-warning{
+
+  background: transparent !important;
+}
+.cart-grid {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+}
+
+.cart-grid > .cart-top,
+.cart-grid > .cart-footer-row {
+  flex-shrink: 0;
+}
+
+.cart-grid > .cart-items-row {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cart-items-row .items {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--ion-color-warning) !important;
+  padding: 8px !important;
+}
+
+/* quitar padding default de ionic */
+.cart-grid ion-col {
+  padding: 0 !important;
+}
+
+.cart-top ion-grid,
+.cart-footer-row ion-grid {
+  padding: 0 !important;
+}
+
+/* items encima del fondo amarillo */
+.item {
+  background: #fff !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* resumen blanco completo */
+.invoice-summary {
+  background: rgba(255,255,255,.88) !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+/* ======================================
+   AJUSTE FOOTER CARRITO
+====================================== */
+
+.footer-warning {
+
+   margin-right: 20 !important;
+ 
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+.total-label{
+    font-size:15px;
+    font-weight:600;
+}
+
+.total-value{
+    font-size:24px;
+    font-weight:800;
+    color:#111;
+}
+/* Mismos márgenes que los items */
+
+.invoice-summary,
+.btn-vender {
+
+  width: 100% !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box;
+}
+
+/* Separar textos del borde */
+.bottom-row {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  width: 100%;
+
+  padding: 0 8px !important;
+
+  box-sizing: border-box;
+}
+.sum-line {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 10px 12px !important;
+
+}
+
+.sum-line strong {
+
+  padding-right: 12px !important;
+
+  text-align: right;
+
+  min-width: 110px;
+
+}
+
+/* Botón con mismos márgenes */
+
+.btn-vender {
+
+  margin: 0 0 12px 0 !important;
+
+  width: 100%;
+
+}
+
+/* Fila inferior */
+
+.bottom-row {
+
+  padding: 0 12px !important;
+
+}
+/* footer no transparente */
+.footer-warning {
+  background: var(--ion-color-warning) !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+.btn-vender::part(native) {
+
+  margin: 0 !important;
+
+  width: 100%;
+
 }

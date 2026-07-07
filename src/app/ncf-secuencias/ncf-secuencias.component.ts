@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NcfSecuenciasService } from 'src/app/servicios/ncf-secuencias.service';
 import { NCF_Secuencia } from '../models/NCF_Secuencia.models';
+import { ParametrosService } from 'src/app/servicios/parametros.service';
 
 @Component({
   selector: 'app-ncf-secuencias',
@@ -30,7 +31,7 @@ edit(item: any) {
 
   loading: boolean = false;
 
-  constructor(private service: NcfSecuenciasService) {}
+  constructor(private service: NcfSecuenciasService, private parametrosService: ParametrosService) {}
 
   ngOnInit(): void {
     this.getSecuencias();
@@ -40,7 +41,7 @@ edit(item: any) {
   getSecuencias(): void {
     this.loading = true;
 
-    this.service.getSecuencias(this.idEmpresa)
+    this.service.getSecuencias(this.parametrosService.IdEmpresa)
       .subscribe({
         next: (data) => {
           this.secuencias = data;
@@ -64,7 +65,7 @@ onTipoChange(event: any) {
   // 🔹 Guardar (crear o actualizar)
   save(): void {
 
-  this.secuencia.idEmpresa = this.idEmpresa;
+  this.secuencia.idEmpresa = this.parametrosService.IdEmpresa;
 
   if (this.secuencia.idSecuencia === 0) {
 
@@ -99,7 +100,7 @@ onTipoChange(event: any) {
 
   // 🔥 Generar NCF
   generar(tipoNCF: string): void {
-    this.service.generarNCF(this.idEmpresa, tipoNCF)
+    this.service.generarNCF(this.parametrosService.IdEmpresa, tipoNCF)
       .subscribe({
         next: (res) => {
           alert(`NCF generado: ${res.ncf || res.NCF}`);

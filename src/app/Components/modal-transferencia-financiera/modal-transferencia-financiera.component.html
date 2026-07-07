@@ -1,0 +1,413 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+  
+    <ion-title>
+      🔄 Transferencia Financiera
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        fill="clear"
+        (click)="cerrar()">
+
+        <ion-icon
+          name="close-outline">
+        </ion-icon>
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="form-layout">
+
+    <!-- =====================================
+    🔥 TOP CARD
+    ====================================== -->
+
+    <div class="top-card">
+
+      <div class="icon-transfer">
+
+        <ion-icon
+          name="swap-horizontal-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="top-info">
+
+        <h2>
+          Movimiento entre cuentas
+        </h2>
+
+        <span>
+
+          Transfiere dinero entre
+          cuentas financieras
+
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 CUENTA ORIGEN
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Cuenta Origen
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        fill="outline"
+
+        [(ngModel)]="cuentaOrigen">
+
+        <ion-select-option
+
+          *ngFor="
+            let cuenta of cuentas
+          "
+
+          [value]="
+            cuenta.idCuentaFinanciera
+          ">
+
+          {{ cuenta.nombre }}
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 PREVIEW ORIGEN
+    ====================================== -->
+
+    <div
+
+      class="cuenta-preview origen"
+
+      *ngIf="cuentaOrigen">
+
+      <div class="preview-icon">
+
+        <ion-icon
+          name="arrow-up-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="preview-info">
+
+        <h3>
+
+          {{
+            GetCuenta(cuentaOrigen)?.nombre
+          }}
+
+        </h3>
+
+        <span>
+
+          Cuenta que enviará
+          el dinero
+
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 CUENTA DESTINO
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Cuenta Destino
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        fill="outline"
+
+        [(ngModel)]="cuentaDestino">
+
+        <ion-select-option
+
+          *ngFor="
+            let cuenta of cuentas
+          "
+
+          [value]="
+            cuenta.idCuentaFinanciera
+          ">
+
+          {{ cuenta.nombre }}
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 PREVIEW DESTINO
+    ====================================== -->
+
+    <div
+
+      class="cuenta-preview destino"
+
+      *ngIf="cuentaDestino">
+
+      <div class="preview-icon">
+
+        <ion-icon
+          name="arrow-down-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="preview-info">
+
+        <h3>
+
+          {{
+            GetCuenta(cuentaDestino)?.nombre
+          }}
+
+        </h3>
+
+        <span>
+
+          Cuenta que recibirá
+          el dinero
+
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 MONTO
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Monto
+
+      </ion-label>
+
+      <ion-input
+
+        type="number"
+
+        fill="outline"
+
+        placeholder="0.00"
+
+        [(ngModel)]="monto">
+
+      </ion-input>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 MOTIVO
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Motivo
+
+      </ion-label>
+
+      <ion-input
+
+        fill="outline"
+
+        placeholder="Ej: Depositar efectivo"
+
+        [(ngModel)]="motivo">
+
+      </ion-input>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 OBSERVACION
+    ====================================== -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Observación
+
+      </ion-label>
+
+      <ion-textarea
+
+        autoGrow="true"
+
+        fill="outline"
+
+        placeholder="Detalle adicional..."
+
+        [(ngModel)]="observacion">
+
+      </ion-textarea>
+
+    </ion-item>
+
+    <!-- =====================================
+    🔥 RESUMEN
+    ====================================== -->
+
+    <div
+
+      class="resumen-box"
+
+      *ngIf="
+
+        cuentaOrigen
+
+        &&
+
+        cuentaDestino
+
+        &&
+
+        monto > 0
+      ">
+
+      <div class="resumen-item">
+
+        <span>
+          Sale de:
+        </span>
+
+        <strong>
+
+          {{
+            GetCuenta(cuentaOrigen)?.nombre
+          }}
+
+        </strong>
+
+      </div>
+
+      <div class="resumen-arrow">
+
+        <ion-icon
+          name="arrow-forward-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="resumen-item">
+
+        <span>
+          Entra a:
+        </span>
+
+        <strong>
+
+          {{
+            GetCuenta(cuentaDestino)?.nombre
+          }}
+
+        </strong>
+
+      </div>
+
+      <div class="monto-total">
+
+        {{
+          monto
+          |
+          currency:'DOP'
+        }}
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 BOTONES
+    ====================================== -->
+
+ 
+
+  </div>
+
+</ion-content>
+
+
+<ion-footer>
+
+  <ion-toolbar>
+
+    <div class="acciones-footer">
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="medium"
+        (click)="cerrar()">
+
+        Cancelar
+
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        color="primary"
+        [disabled]="guardando"
+        (click)="guardar()">
+
+        <ion-spinner
+          *ngIf="guardando"
+          name="crescent">
+        </ion-spinner>
+
+        <span *ngIf="!guardando">
+          Registrar Transferencia
+        </span>
+
+      </ion-button>
+
+    </div>
+
+  </ion-toolbar>
+
+</ion-footer>

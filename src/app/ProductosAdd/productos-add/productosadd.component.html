@@ -71,8 +71,56 @@
     <ion-label position="stacked">Costo</ion-label>
     <ion-input type="number" [(ngModel)]="form.Costo"></ion-input>
   </ion-item>
+  
 </ion-col>
+<!-- 🔥 COMPRA / VENTA -->
+<!-- 🔥 COMPRA / VENTA -->
+<!-- ===================================== -->
+<!-- 🔥 TIPO OPERACION -->
+<!-- ===================================== -->
 
+<ion-col
+  size="12"
+  size-md="6"
+  *ngIf="!form.esServicio">
+
+  <ion-item>
+
+    <ion-label position="stacked">
+
+      Tipo de Operación
+
+    </ion-label>
+
+    <ion-select
+      [(ngModel)]="form.tipoOperacion">
+
+      <!-- VENTA -->
+      <ion-select-option value="VENTA">
+
+        💰 Venta
+
+      </ion-select-option>
+
+      <!-- COMPRA -->
+      <ion-select-option value="COMPRA">
+
+        🛒 Compra
+
+      </ion-select-option>
+
+      <!-- AMBAS -->
+      <ion-select-option value="AMBAS">
+
+        🔄 Compra y Venta
+
+      </ion-select-option>
+
+    </ion-select>
+
+  </ion-item>
+
+</ion-col>
 <!-- Cantidad -->
 <ion-col size="12" size-md="6">
   <ion-item>

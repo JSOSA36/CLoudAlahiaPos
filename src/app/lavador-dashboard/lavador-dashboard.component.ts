@@ -3,7 +3,7 @@ import { LavadorConsumoService } from '../servicios/lavadorconsumo.services';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { Empleado } from '../models/empleado.models';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
-import { ToastController } from '@ionic/angular';
+import { ToastController,AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-lavador-dashboard',
@@ -36,9 +36,36 @@ export class LavadorDashboardComponent implements OnInit {
     private consumoService: LavadorConsumoService,
     private empleadosService: EmpleadosService,
     private parametro: ParametrosService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {}
+async eliminarConsumo(consumo: any) {
 
+  const alert = await this.alertCtrl.create({
+    header: 'Eliminar consumo',
+    message: '¿Seguro que deseas eliminar este consumo?',
+    buttons: [
+      {
+        text: 'Cancelar',
+        role: 'cancel'
+      },
+      {
+        text: 'Eliminar',
+        role: 'destructive',
+        handler: () => {
+      console.log('Eliminando consumo con id:', consumo); // 👉 LOG para verificar el ID del consumo
+          this.consumoService.deleteConsumo(consumo.idConsumo)
+            .subscribe(() => {
+              this.loadDashboard();
+            });
+
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+}
   ngOnInit() {
 
     const hoy = new Date();
@@ -77,7 +104,7 @@ export class LavadorDashboardComponent implements OnInit {
     ).subscribe({
 
       next: (resp: any) => {
-
+       console.log('Respuesta del servicio:', resp); // 👉 LOG para verificar la respuesta del servicio
         this.dashboard = resp || {
           consumos: [],
           totalConsumido: 0,

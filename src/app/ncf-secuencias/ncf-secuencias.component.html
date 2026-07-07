@@ -5,7 +5,7 @@
     </ion-buttons>
 
     <ion-title class="ion-text-center">
-      Configuración de e-CF
+      Configuración de Secuencias de NCF
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -95,16 +95,31 @@
                     (change)="onTipoChange($event)"
                     class="input">
               <option value="">Seleccione</option>
-              <option value="31">Factura de Crédito Fiscal Electrónica</option>
-              <option value="32">Factura de Consumo Electrónica</option>
-              <option value="33">Nota de Débito Electrónica</option>
-              <option value="34">Nota de Crédito Electrónica</option>
-              <option value="41">Comprobante Electrónico de Compras</option>
-              <option value="43">Gastos Menores</option>
-              <option value="44">Regímenes Especiales</option>
-              <option value="45">Gubernamental</option>
-              <option value="46">Exportaciones</option>
-              <option value="47">Pagos al Exterior</option>
+              <option value="FACT">Sin Comprobante</option>
+
+<option value="B01">
+  Crédito Fiscal
+</option>
+
+<option value="B02">
+  Consumidor Final
+</option>
+
+<option value="B04">
+  Nota de Crédito
+</option>
+
+<option value="B03">
+  Nota de Débito
+</option>
+
+<option value="B14">
+  Régimen Especial
+</option>
+
+<option value="B15">
+  Gubernamental
+</option>
             </select>
           </div>
 

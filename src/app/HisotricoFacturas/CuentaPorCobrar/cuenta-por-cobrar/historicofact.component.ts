@@ -3,8 +3,9 @@
 // =========================================
 
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonModal, ModalController,AlertController,ToastController } from '@ionic/angular';
+import { IonModal, ModalController,AlertController,ToastController ,LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { facturaheader } from 'src/app/models/facturaheader';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
@@ -26,9 +27,30 @@ export class HistoricofactComponent implements OnInit {
 
   NombreCliente: string = "";
   empleados: Empleado[] = [];
+  // 🔥 SEARCH
+
+searchText = '';
+
+// 🔥 BACKUP
+
+facturasOriginal:
+  facturaheader[] = [];
   CodigoEmpleado: string = "";
   accordionActivo: string | number | null = null;
 puedeEliminarOrden: boolean = false;
+cargando: boolean = false;
+// 🔥 FILTRO FECHA
+
+desde: string =
+  new Date()
+  .toISOString()
+  .split('T')[0];
+
+hasta: string =
+  new Date()
+  .toISOString()
+  .split('T')[0];
+
   constructor(
     private modal: ModalController,
     public _Parametro: ParametrosService,
@@ -38,22 +60,44 @@ puedeEliminarOrden: boolean = false;
       private alertController: AlertController,
       private empleadosService: EmpleadosService,
       private toastCtrl: ToastController,
-      private printService: PrintService
+      private printService: PrintService,
+      private loadingCtrl: LoadingController
       
   ) {}
-cargarEmpleadosEmpresa() {
+ loading?: HTMLIonLoadingElement;
+ async mostrarLoading(mensaje = 'Procesando...') {
+  this.loading = await this.loadingCtrl.create({
+    message: mensaje,
+    spinner: 'crescent',
+    backdropDismiss: false
+  });
+
+  await this.loading.present();
+}
+
+async ocultarLoading() {
+  if (this.loading) {
+    await this.loading.dismiss();
+  }
+}
+async cargarEmpleadosEmpresa() {
 
   const idEmpresa = this._Parametro.IdEmpresa;
 
-  this.empleadosService.getByEmpresa(idEmpresa).subscribe({
-    next: res => {
-      this.empleados = res || [];
-    },
-    error: () => {
-      this.toast('Error cargando empleados');
-    }
-  });
+  try {
 
+    const res = await firstValueFrom(
+      this.empleadosService.getByEmpresa(idEmpresa)
+    );
+
+    this.empleados = res || [];
+
+  } catch (error) {
+
+    this.toast('Error cargando empleados');
+    console.error(error);
+
+  }
 }
 actualizarPrecio(idDetalle:number, precio:number){
 
@@ -73,12 +117,25 @@ actualizarPrecio(idDetalle:number, precio:number){
       });
 
 }
-  ngOnInit() {
-    this.RefreshOrdenes();
-    this.cargarEmpleadosEmpresa();
-     this.puedeEliminarOrden =
-    this._Parametro.puedeEliminarOrden;
+ async ngOnInit() {
+
+  await this.mostrarLoading('Cargando datos...');
+
+  try {
+
+    await Promise.all([
+      this.RefreshOrdenes(),
+      this.cargarEmpleadosEmpresa()
+    ]);
+
+    this.puedeEliminarOrden = this._Parametro.puedeEliminarOrden;
+
+  } catch (error) {
+    console.error('Error cargando datos', error);
+  } finally {
+    await this.ocultarLoading();
   }
+}
   private async toast(message: string) {
 
   const t = await this.toastCtrl.create({
@@ -217,27 +274,129 @@ CargarListaFactura() {
 }
 
 
-RefreshOrdenes() {
+async RefreshOrdenes(
+  mostrarLoading: boolean = false
+) {
 
-  this.accordionActivo = null;
+  if (mostrarLoading) {
 
-  this._FacturaHeader
-    .GetListadoFacturas(this._Parametro.GetIdEmpresa())
-    .subscribe(c => {
+    await this.mostrarLoading(
+      'Actualizando...'
+    );
+  }
 
-      this._Parametro.ListadoFacturas =
-        [...c].sort((a, b) => b.idFacturaHeader - a.idFacturaHeader)
+  try {
 
-      console.log("📦 Facturas cargadas:", this._Parametro.ListadoFacturas)
+    this.accordionActivo = null;
 
-      // recalcular totales
-      this._Parametro.ListadoFacturas.forEach((_, i) => this.GetTotal(i))
+    const c =
+      await firstValueFrom(
 
-    });
+        this._FacturaHeader
+        .GetListadoOrdenesByFecha(
 
+          this._Parametro.GetIdEmpresa(),
+
+          this.desde,
+
+          this.hasta
+        )
+
+      );
+
+    // 🔥 ORDER
+
+    this._Parametro.ListadoFacturas =
+
+      [...(c || [])]
+      .sort(
+
+        (a, b) =>
+
+          b.idFacturaHeader -
+          a.idFacturaHeader
+      );
+
+    // 🔥 BACKUP
+
+    this.facturasOriginal =
+
+      [
+        ...this._Parametro
+        .ListadoFacturas
+      ];
+
+    console.log(
+      "📦 Facturas cargadas:",
+      this._Parametro
+      .ListadoFacturas
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+  } finally {
+
+    if (mostrarLoading) {
+
+      await this.ocultarLoading();
+    }
+  }
 }
+filtrarLocal() {
 
+  const value =
 
+    this.searchText
+    .toLowerCase()
+    .trim();
+
+  if (!value) {
+
+    this._Parametro
+    .ListadoFacturas =
+
+      [...this.facturasOriginal];
+
+    return;
+  }
+
+  this._Parametro
+  .ListadoFacturas =
+
+    this.facturasOriginal
+    .filter(x =>
+
+      (x.rnc || '')
+      .toLowerCase()
+      .includes(value)
+
+      ||
+
+      (x.nombreEmpresa || '')
+      .toLowerCase()
+      .includes(value)
+
+      ||
+
+      (x.ncf || '')
+      .toLowerCase()
+      .includes(value)
+
+      ||
+
+      (x.numeroDocumento || '')
+      .toLowerCase()
+      .includes(value)
+
+      ||
+
+      (x.formaPago || '')
+      .toLowerCase()
+      .includes(value)
+    );
+}
 //});
 
 //}
@@ -420,7 +579,7 @@ getPendiente(iten: any): number {
 
   SendPrintAccount(IdFact: number) {
    this.printService
-    .printLavador(IdFact)
+    .printTicket(IdFact,this._Parametro.IdEmpresa)
     .subscribe(() => {
 
         console.log("Factura enviada a impresión ✅");
@@ -428,40 +587,7 @@ getPendiente(iten: any): number {
     });
   }
 
-  LoadListaFactura() {
-
-  this.accordionActivo = null;
- this._Parametro.ListadoFacturas= [];
-  this._FacturaHeader
-    .GetListadoFacturas(this._Parametro.GetIdEmpresa())
-    .subscribe({
-
-      next: (resp) => {
-       console.log("📦 Facturas cargadas:", resp);
-        this._Parametro.ListadoFacturas = resp ? [...resp] : [];
-
-        if (this._Parametro.ListadoFacturas.length > 0) {
-
-          this._Parametro.ListadoFacturas.forEach((_, i) => {
-            this.GetTotal(i);
-          });
-
-        }
-
-      },
-
-      error: (err) => {
-
-        console.error('Error cargando facturas', err);
-
-        this._Parametro.ListadoOrdenes = [];
-
-        // opcional toast
-        // this.toastService.error("Error cargando facturas");
-
-      }
-
-    });
-
+ async LoadListaFactura() {
+  await this.RefreshOrdenes(true);
 }
 }

@@ -1,0 +1,654 @@
+<ion-header>
+
+  <!-- ===================================== -->
+  <!-- 🔥 TOOLBAR -->
+  <!-- ===================================== -->
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+
+  <ion-button
+
+    fill="clear"
+
+    color="light"
+
+    (click)="cerrarModal()">
+
+    <ion-icon
+      name="close-outline">
+
+    </ion-icon>
+
+  </ion-button>
+
+</ion-buttons>
+    <ion-title>
+
+      Movimiento Inventario
+
+    </ion-title>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<!-- ===================================== -->
+<!-- 🔥 CONTENT -->
+<!-- ===================================== -->
+
+<ion-content fullscreen="true">
+
+  <div class="container-movimiento">
+
+    <!-- ===================================== -->
+    <!-- 🔥 HEADER DOCUMENTO -->
+    <!-- ===================================== -->
+
+    <ion-card class="card-header">
+
+      <ion-card-content>
+
+        <ion-grid>
+
+          <ion-row>
+
+            <!-- ===================================== -->
+            <!-- 🔥 TIPO MOVIMIENTO -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Tipo Movimiento
+
+                </ion-label>
+
+                <ion-select
+                  [(ngModel)]="movimiento.tipoMovimiento">
+
+                  <ion-select-option
+                    value="ENTRADA">
+
+                    📥 Entrada
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="SALIDA">
+
+                    📤 Salida
+
+                  </ion-select-option>
+
+                </ion-select>
+
+              </ion-item>
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 MOTIVO -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Motivo
+
+                </ion-label>
+
+                <ion-select
+                  [(ngModel)]="movimiento.motivo">
+
+                  <ion-select-option
+                    value="COMPRA">
+
+                    Compra
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="AJUSTE">
+
+                    Ajuste
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="PERDIDA">
+
+                    Pérdida
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="PRODUCCION">
+
+                    Producción
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="DEVOLUCION">
+
+                    Devolución
+
+                  </ion-select-option>
+
+                  <ion-select-option
+                    value="CONSUMO_INTERNO">
+
+                    Consumo Interno
+
+                  </ion-select-option>
+
+                </ion-select>
+
+              </ion-item>
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 REFERENCIA -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Referencia
+
+                </ion-label>
+
+                <ion-input
+                  [(ngModel)]="movimiento.referencia">
+
+                </ion-input>
+
+              </ion-item>
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 OBSERVACION -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Observación
+
+                </ion-label>
+
+                <ion-input
+                  [(ngModel)]="movimiento.observacion">
+
+                </ion-input>
+
+              </ion-item>
+
+            </ion-col>
+
+          </ion-row>
+
+        </ion-grid>
+
+      </ion-card-content>
+
+    </ion-card>
+
+    <!-- ===================================== -->
+    <!-- 🔥 AGREGAR PRODUCTOS -->
+    <!-- ===================================== -->
+
+    <ion-card>
+
+      <ion-card-header>
+
+        <ion-card-title>
+
+          Agregar Productos
+
+        </ion-card-title>
+
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <ion-grid>
+
+          <ion-row>
+
+            <!-- ===================================== -->
+            <!-- 🔥 BUSCADOR -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="5">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Producto
+
+                </ion-label>
+
+                <ion-input
+
+                  [(ngModel)]="filtro"
+
+                  (ionInput)="filtrarProductos()"
+
+                  placeholder="Buscar producto">
+
+                </ion-input>
+
+              </ion-item>
+
+              <!-- ===================================== -->
+              <!-- 🔥 RESULTADOS -->
+              <!-- ===================================== -->
+
+              <div
+
+                class="resultado-productos"
+
+                *ngIf="productosFiltrados.length">
+
+                <div
+
+                  class="item-producto"
+
+                  *ngFor="
+                    let item of productosFiltrados
+                  "
+
+                  (click)="seleccionarProducto(item)">
+
+                  <!-- IMG -->
+                  <img
+
+                    *ngIf="item.imagen1"
+
+                    [src]="item.imagen1">
+
+                  <img
+
+                    *ngIf="!item.imagen1"
+
+                    src="./assets/botella.png">
+
+                  <!-- INFO -->
+                  <div>
+
+                    <h3>
+
+                      {{ item.nombre }}
+
+                    </h3>
+
+                    <p>
+
+                      Stock:
+                      {{ item.cantidad || 0 }}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 CANTIDAD -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="2">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Cantidad
+
+                </ion-label>
+
+                <ion-input
+
+                  type="number"
+
+                  [(ngModel)]="cantidad">
+
+                </ion-input>
+
+              </ion-item>
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 PRECIO -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="2">
+
+              
+
+            </ion-col>
+
+            <!-- ===================================== -->
+            <!-- 🔥 BOTON -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3"
+              class="btn-area">
+
+              <ion-button
+
+                expand="block"
+
+                color="success"
+
+                (click)="agregarProducto()">
+
+                <ion-icon
+                  name="add-outline"
+                  slot="start">
+
+                </ion-icon>
+
+                Agregar
+
+              </ion-button>
+
+            </ion-col>
+
+          </ion-row>
+
+        </ion-grid>
+
+      </ion-card-content>
+
+    </ion-card>
+
+    <!-- ===================================== -->
+    <!-- 🔥 DETALLE -->
+    <!-- ===================================== -->
+
+    <ion-card>
+
+      <ion-card-header>
+
+        <ion-card-title>
+
+          Detalle Movimiento
+
+        </ion-card-title>
+
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <!-- ===================================== -->
+        <!-- 🔥 EMPTY -->
+        <!-- ===================================== -->
+
+        <div
+
+          *ngIf="
+            !movimiento.detalles.length
+          "
+
+          class="empty-area">
+
+          <ion-icon
+            name="cube-outline">
+
+          </ion-icon>
+
+          <p>
+
+            No hay productos agregados
+
+          </p>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- 🔥 TABLA -->
+        <!-- ===================================== -->
+
+        <div
+          class="table-wrapper"
+
+          *ngIf="
+            movimiento.detalles.length
+          ">
+
+          <table>
+
+            <!-- HEADER -->
+            <thead>
+
+              <tr>
+
+                <th>
+                  Producto
+                </th>
+
+                <th>
+                  Actual
+                </th>
+
+                <th>
+                  Cantidad
+                </th>
+
+                <th>
+                  Nuevo
+                </th>
+
+                
+                <th>
+                  Total
+                </th>
+
+                <th>
+                  Acción
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <!-- BODY -->
+            <tbody>
+
+              <tr
+
+                *ngFor="
+                  let item of movimiento.detalles;
+                  let i = index
+                ">
+
+                <!-- PRODUCTO -->
+                <td>
+
+                  {{ item.producto?.nombre }}
+
+                </td>
+
+                <!-- STOCK -->
+                <td>
+
+                  {{ item.stockAnterior }}
+
+                </td>
+
+                <!-- CANTIDAD -->
+                <td>
+
+                  {{ item.cantidad }}
+
+                </td>
+
+                <!-- NUEVO -->
+                <td>
+
+                  {{ item.stockNuevo }}
+
+                </td>
+
+                <!-- PRECIO -->
+                
+                <!-- TOTAL -->
+                <td>
+
+                  {{ item.subTotal | currency }}
+
+                </td>
+
+                <!-- ACCIONES -->
+                <td>
+
+                  <ion-button
+
+                    color="danger"
+
+                    size="small"
+
+                    (click)="
+                      eliminarDetalle(i)
+                    ">
+
+                    <ion-icon
+                      name="trash-outline">
+
+                    </ion-icon>
+
+                  </ion-button>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </ion-card-content>
+
+    </ion-card>
+
+    <!-- ===================================== -->
+    <!-- 🔥 FOOTER -->
+    <!-- ===================================== -->
+
+    <ion-card class="footer-card">
+
+      <ion-card-content>
+
+        <div class="footer-resumen">
+
+          <!-- PRODUCTOS -->
+          <div>
+
+            <h3>
+
+              Productos
+
+            </h3>
+
+            <p>
+
+              {{ totalProductos }}
+
+            </p>
+
+          </div>
+
+          <!-- TOTAL -->
+          <div>
+
+            <h3>
+
+              Total General
+
+            </h3>
+
+            <p>
+
+              {{ totalGeneral | currency }}
+
+            </p>
+
+          </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- 🔥 GUARDAR -->
+        <!-- ===================================== -->
+
+        <ion-button
+
+          expand="block"
+
+          color="primary"
+
+          [disabled]="loading"
+
+          (click)="guardarMovimiento()">
+
+          <ion-spinner
+
+            *ngIf="loading"
+
+            slot="start">
+
+          </ion-spinner>
+
+          Guardar Movimiento
+
+        </ion-button>
+
+      </ion-card-content>
+
+    </ion-card>
+
+  </div>
+
+</ion-content>

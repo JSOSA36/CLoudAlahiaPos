@@ -1,0 +1,263 @@
+ion-content{
+
+  --background:
+  linear-gradient(
+    180deg,
+    #eef4ff,
+    #f8fbff
+  );
+}
+
+/* =====================================
+🔥 LAYOUT
+===================================== */
+
+.apertura-layout{
+
+  min-height:100%;
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  padding:20px;
+}
+
+/* =====================================
+🔥 CARD
+===================================== */
+
+.apertura-card{
+
+  width:100%;
+
+  max-width:500px;
+
+  background:#ffffff;
+
+  border-radius:24px;
+
+  padding:24px;
+
+  border:2px solid #facc15;
+
+  box-shadow:
+    0 10px 30px rgba(37,99,235,.10);
+}
+
+/* =====================================
+🔥 HEADER
+===================================== */
+
+.card-header{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:14px;
+
+  margin-bottom:24px;
+}
+
+.icon-box{
+
+  width:60px;
+
+  height:60px;
+
+  border-radius:18px;
+
+  background:
+  linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  font-size:28px;
+
+  color:#ffffff;
+
+  border:2px solid #facc15;
+}
+
+.card-header h1{
+
+  margin:0;
+
+  font-size:24px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+.card-header p{
+
+  margin:4px 0 0;
+
+  color:#64748b;
+
+  font-size:14px;
+}
+
+/* =====================================
+🔥 FORM
+===================================== */
+
+.form-group{
+
+  margin-bottom:18px;
+}
+
+.form-group label{
+
+  display:block;
+
+  margin-bottom:8px;
+
+  font-size:14px;
+
+  font-weight:800;
+
+  color:#334155;
+}
+
+/* =====================================
+🔥 INPUT
+===================================== */
+
+ion-input{
+
+  --background:#ffffff;
+
+  --border-radius:16px;
+
+  min-height:54px;
+
+  font-size:20px;
+
+  font-weight:900;
+
+  border:2px solid #dbeafe;
+
+  border-radius:16px;
+}
+
+/* =====================================
+🔥 TEXTAREA
+===================================== */
+
+ion-textarea{
+
+  --background:#ffffff;
+
+  border:2px solid #dbeafe;
+
+  border-radius:16px;
+
+  min-height:120px;
+}
+
+/* =====================================
+🔥 TOTAL BOX
+===================================== */
+
+.monto-box{
+
+  margin:24px 0;
+
+  padding:18px;
+
+  border-radius:18px;
+
+  background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  color:#ffffff;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  border:2px solid #facc15;
+}
+
+.monto-box span{
+
+  font-size:15px;
+
+  font-weight:700;
+}
+
+.monto-box strong{
+
+  font-size:28px;
+
+  font-weight:900;
+
+  color:#facc15;
+}
+
+/* =====================================
+🔥 BUTTON
+===================================== */
+
+ion-button{
+
+  height:54px;
+
+  font-size:16px;
+
+  font-weight:900;
+
+  --border-radius:18px;
+
+  --background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  --box-shadow:
+    0 10px 24px rgba(37,99,235,.25);
+}
+.modal-apertura-caja{
+
+  --width:500px;
+
+  --height:auto;
+
+  --border-radius:24px;
+}
+.modal-apertura-caja::part(content){
+
+  width:500px;
+
+  max-width:95vw;
+
+  border-radius:24px;
+
+  overflow:hidden;
+
+  background:transparent;
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.25);
+}

@@ -1,0 +1,465 @@
+/* ====================================================== */
+/* 🔥 CONTENT */
+/* ====================================================== */
+
+ion-content{
+
+  --background:#fffdf6;
+}
+
+/* ====================================================== */
+/* 🔥 TOOLBAR */
+/* ====================================================== */
+
+ion-toolbar{
+
+  --background:
+    linear-gradient(
+      180deg,
+      #ffd54f,
+      #fbc02d
+    );
+
+  --color:#000;
+}
+
+ion-title{
+
+  font-weight:800;
+}
+
+/* ====================================================== */
+/* 🔥 CARDS */
+/* ====================================================== */
+
+ion-card{
+
+  border-radius:18px;
+
+  border:2px solid #f3d36b;
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.08);
+
+  overflow:hidden;
+}
+
+/* ====================================================== */
+/* 🔥 HEADER CARD */
+/* ====================================================== */
+
+ion-card-header{
+
+  background:
+    linear-gradient(
+      180deg,
+      #fff8dc,
+      #fffdf6
+    );
+
+  border-bottom:
+    1px solid #f1d67a;
+}
+
+ion-card-title{
+
+  font-weight:800;
+
+  color:#3f2d00;
+}
+
+/* ====================================================== */
+/* 🔥 FILTROS */
+/* ====================================================== */
+
+.card-filtros ion-item{
+
+  --background:#fff;
+
+  border-radius:12px;
+
+  margin-bottom:10px;
+
+  border:1px solid #f1d67a;
+}
+
+/* ====================================================== */
+/* 🔥 BUTTON */
+/* ====================================================== */
+
+ion-button{
+
+  --border-radius:12px;
+
+  font-weight:700;
+
+  height:46px;
+}
+
+/* ====================================================== */
+/* 🔥 LOADING */
+/* ====================================================== */
+
+.loading-container{
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  padding:40px;
+}
+
+/* ====================================================== */
+/* 🔥 TABLA */
+/* ====================================================== */
+
+.tabla-container{
+
+  overflow-x:auto;
+}
+
+.tabla607{
+
+  width:100%;
+
+  border-collapse:collapse;
+
+  min-width:800px;
+}
+
+/* ====================================================== */
+/* 🔥 HEAD */
+/* ====================================================== */
+
+.tabla607 thead{
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffd54f,
+      #fbc02d
+    );
+}
+
+.tabla607 th{
+
+  padding:14px;
+
+  text-align:left;
+
+  color:#000;
+
+  font-size:14px;
+
+  font-weight:800;
+
+  border-bottom:
+    2px solid #e0b100;
+}
+
+/* ====================================================== */
+/* 🔥 BODY */
+/* ====================================================== */
+
+.tabla607 td{
+
+  padding:12px;
+
+  border-bottom:
+    1px solid #f3e2a0;
+
+  font-size:14px;
+
+  color:#111827;
+}
+
+/* ====================================================== */
+/* 🔥 HOVER */
+/* ====================================================== */
+
+.tabla607 tbody tr:hover{
+
+  background:#fff9e6;
+}
+
+/* ====================================================== */
+/* 🔥 NCF */
+/* ====================================================== */
+
+.ncf-text{
+
+  color:#0f766e;
+
+  font-weight:700;
+}
+
+/* ====================================================== */
+/* 🔥 ITBIS */
+/* ====================================================== */
+
+/* ====================================================== */
+/* 🔥 ITBIS */
+/* ====================================================== */
+
+.itbis-text{
+
+  color:#dc2626; /* 🔥 rojo fiscal */
+
+  font-weight:900;
+
+  font-size:16px;
+
+  letter-spacing:.3px;
+}
+
+/* ====================================================== */
+/* 🔥 TOTAL */
+/* ====================================================== */
+
+.total-text{
+
+  color:#16a34a;
+
+  font-weight:800;
+}
+
+/* ====================================================== */
+/* 🔥 TOTALES */
+/* ====================================================== */
+
+.total-item{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  padding:10px 0;
+
+  border-bottom:
+    1px dashed #ecd27c;
+
+  font-size:15px;
+}
+
+/* ====================================================== */
+/* 🔥 TOTAL GENERAL */
+/* ====================================================== */
+
+.total-general{
+
+  margin-top:8px;
+
+  padding-top:14px;
+
+  border-top:
+    2px solid #f3d36b;
+
+  border-bottom:none;
+
+  font-size:18px;
+
+  font-weight:800;
+}
+
+.total-general strong{
+
+  color:#16a34a;
+
+  font-size:22px;
+}
+
+/* ====================================================== */
+/* 🔥 MOBILE */
+/* ====================================================== */
+
+@media(max-width:768px){
+
+  .tabla607{
+
+    min-width:700px;
+  }
+
+  ion-card{
+
+    border-radius:14px;
+  }
+
+  .total-general{
+
+    font-size:16px;
+  }
+
+  .total-general strong{
+
+    font-size:20px;
+  }
+}
+/* ====================================================== */
+/* 🔥 RESPONSIVE */
+/* ====================================================== */
+
+.desktop-only{
+  display:block;
+}
+
+.mobile-only{
+  display:none;
+}
+
+/* ====================================================== */
+/* 🔥 MOBILE CARD */
+/* ====================================================== */
+
+.card607-mobile{
+
+  border-radius:18px;
+
+  border:2px solid #f3d36b;
+
+  overflow:hidden;
+
+  background:#fffdf6;
+
+  margin-bottom:14px;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ====================================================== */
+/* 🔥 HEADER */
+/* ====================================================== */
+
+.card607-header{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-start;
+
+  gap:12px;
+
+  padding:14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fff8dc,
+      #fffdf6
+    );
+
+  border-bottom:
+    1px dashed #f1d67a;
+}
+
+/* ====================================================== */
+/* 🔥 FECHA */
+/* ====================================================== */
+
+.fecha607{
+
+  font-size:13px;
+
+  color:#6b7280;
+
+  margin-bottom:4px;
+}
+
+/* ====================================================== */
+/* 🔥 NCF */
+/* ====================================================== */
+
+.ncf607{
+
+  font-size:16px;
+
+  font-weight:800;
+
+  color:#0f766e;
+}
+
+/* ====================================================== */
+/* 🔥 TOTAL */
+/* ====================================================== */
+
+.total607{
+
+  color:#16a34a;
+
+  font-size:24px;
+
+  font-weight:900;
+
+  text-align:right;
+}
+
+/* ====================================================== */
+/* 🔥 BODY */
+/* ====================================================== */
+
+.card607-body{
+
+  padding:14px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+}
+
+/* ====================================================== */
+/* 🔥 INFO */
+/* ====================================================== */
+
+.info607{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:10px;
+
+  font-size:14px;
+}
+
+.info607 span{
+
+  color:#6b7280;
+}
+
+.info607 strong{
+
+  color:#111827;
+}
+
+/* ====================================================== */
+/* 🔥 MOBILE */
+/* ====================================================== */
+
+@media(max-width:768px){
+
+  .desktop-only{
+    display:none;
+  }
+
+  .mobile-only{
+    display:block;
+  }
+
+  .card-filtros ion-card-content{
+    padding:10px;
+  }
+
+  ion-button{
+    height:40px;
+    font-size:14px;
+  }
+}

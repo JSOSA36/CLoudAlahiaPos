@@ -627,7 +627,7 @@ getHeaderClass(estado: string) {
  
   const modal = await this.modalCtrl.create({
     component: CitaAddComponent,
-     cssClass: 'modal-citas',
+     cssClass: 'modal-encargo-grande',
     componentProps: { cita, empresa: this.empresa, fromInicio: false },
     backdropDismiss: false
   });

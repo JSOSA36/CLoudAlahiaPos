@@ -1,0 +1,530 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+  <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      📑 Movimientos Financieros
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        fill="clear"
+        (click)="NuevaTransferencia()">
+
+        <ion-icon
+          slot="start"
+          name="swap-horizontal-outline">
+        </ion-icon>
+
+        Transferencia
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- =====================================
+  🔥 DASHBOARD
+  ====================================== -->
+
+  <div class="dashboard-grid">
+
+    <!-- ENTRADAS -->
+
+    <div class="dashboard-card entradas">
+
+      <div class="icon-box">
+
+        <ion-icon
+          name="arrow-down-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="info">
+
+        <span>
+          Entradas
+        </span>
+
+        <h2>
+
+          {{
+            totalEntradas
+            |
+            currency:'DOP'
+          }}
+
+        </h2>
+
+      </div>
+
+    </div>
+
+    <!-- SALIDAS -->
+
+    <div class="dashboard-card salidas">
+
+      <div class="icon-box">
+
+        <ion-icon
+          name="arrow-up-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="info">
+
+        <span>
+          Salidas
+        </span>
+
+        <h2>
+
+          {{
+            totalSalidas
+            |
+            currency:'DOP'
+          }}
+
+        </h2>
+
+      </div>
+
+    </div>
+
+    <!-- TRANSFERENCIAS -->
+
+    <div class="dashboard-card transferencias">
+
+      <div class="icon-box">
+
+        <ion-icon
+          name="swap-horizontal-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="info">
+
+        <span>
+          Transferencias
+        </span>
+
+        <h2>
+
+          {{
+            totalTransferencias
+            |
+            currency:'DOP'
+          }}
+
+        </h2>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================
+  🔥 FILTROS
+  ====================================== -->
+
+  <div class="filtros-box">
+
+    <!-- FECHA -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Desde
+
+      </ion-label>
+
+      <ion-input
+
+        type="date"
+
+        [(ngModel)]="fechaDesde">
+
+      </ion-input>
+
+    </ion-item>
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Hasta
+
+      </ion-label>
+
+      <ion-input
+
+        type="date"
+
+        [(ngModel)]="fechaHasta">
+
+      </ion-input>
+
+    </ion-item>
+
+    <!-- CUENTA -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Cuenta
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        [(ngModel)]="idCuenta"
+
+        (ionChange)="Filtrar()">
+
+        <ion-select-option
+          [value]="null">
+
+          Todas
+
+        </ion-select-option>
+
+        <ion-select-option
+
+          *ngFor="
+            let cuenta of cuentas
+          "
+
+          [value]="
+            cuenta.idCuentaFinanciera
+          ">
+
+          {{ cuenta.nombre }}
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- TIPO -->
+
+    <ion-item lines="none">
+
+      <ion-label position="stacked">
+
+        Tipo
+
+      </ion-label>
+
+      <ion-select
+
+        interface="popover"
+
+        [(ngModel)]="tipoMovimiento"
+
+        (ionChange)="Filtrar()">
+
+        <ion-select-option value="">
+
+          Todos
+
+        </ion-select-option>
+
+        <ion-select-option value="ENTRADA">
+
+          ENTRADA
+
+        </ion-select-option>
+
+        <ion-select-option value="SALIDA">
+
+          SALIDA
+
+        </ion-select-option>
+
+        <ion-select-option value="TRANSFERENCIA">
+
+          TRANSFERENCIA
+
+        </ion-select-option>
+
+      </ion-select>
+
+    </ion-item>
+
+    <!-- SEARCH -->
+
+    <ion-searchbar
+
+      placeholder="Buscar movimiento..."
+
+      [(ngModel)]="search"
+
+      (ionInput)="Filtrar()">
+
+    </ion-searchbar>
+
+    <!-- BOTON -->
+
+    <ion-button
+
+      color="primary"
+
+      (click)="CargarMovimientos()">
+
+      <ion-icon
+        slot="start"
+        name="search-outline">
+      </ion-icon>
+
+      Consultar
+
+    </ion-button>
+
+  </div>
+
+  <!-- =====================================
+  🔥 LOADING
+  ====================================== -->
+
+  <div
+
+    class="loading-box"
+
+    *ngIf="cargando">
+
+    <ion-spinner
+      name="crescent">
+    </ion-spinner>
+
+    <p>
+      Cargando movimientos...
+    </p>
+
+  </div>
+
+  <!-- =====================================
+  🔥 LISTADO
+  ====================================== -->
+
+  <div
+
+    class="movimientos-list"
+
+    *ngIf="!cargando">
+
+    <div
+
+      class="movimiento-card"
+
+      *ngFor="
+        let item of
+        movimientosFiltrados
+      ">
+
+      <!-- =====================================
+      🔥 ICONO
+      ====================================== -->
+
+      <div
+
+        class="tipo-icon"
+
+        [style.background]="
+          GetColor(
+            item.tipoMovimiento
+          )
+        ">
+
+        <ion-icon
+
+          [name]="
+            GetIcono(
+              item.tipoMovimiento
+            )
+          ">
+        </ion-icon>
+
+      </div>
+
+      <!-- =====================================
+      🔥 INFO
+      ====================================== -->
+
+      <div class="movimiento-info">
+
+        <div class="top-info">
+
+          <h2>
+
+            {{
+              item.tipoMovimiento
+            }}
+
+          </h2>
+
+          <span class="fecha">
+
+            {{
+
+              item.fechaMovimiento
+              |
+              date:
+              'dd/MM/yyyy hh:mm a'
+            }}
+
+          </span>
+
+        </div>
+
+        <!-- MOTIVO -->
+
+        <div class="motivo">
+
+          {{
+            item.motivo
+            ||
+            'Sin motivo'
+          }}
+
+        </div>
+
+        <!-- OBS -->
+
+        <div
+
+          class="obs"
+
+          *ngIf="
+            item.observacion
+          ">
+
+          {{
+            item.observacion
+          }}
+
+        </div>
+
+        <!-- CUENTAS -->
+
+        <div class="cuentas-info">
+
+          <!-- ORIGEN -->
+
+          <span
+
+            *ngIf="
+              item.idCuentaOrigen
+            ">
+
+            ⬆️
+
+            {{
+              GetNombreCuenta(
+                item.idCuentaOrigen
+              )
+            }}
+
+          </span>
+
+          <!-- DESTINO -->
+
+          <span
+
+            *ngIf="
+              item.idCuentaDestino
+            ">
+
+            ⬇️
+
+            {{
+              GetNombreCuenta(
+                item.idCuentaDestino
+              )
+            }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+      🔥 MONTO
+      ====================================== -->
+
+      <div class="monto-box">
+
+        <strong
+
+          [style.color]="
+            GetColor(
+              item.tipoMovimiento
+            )
+          ">
+
+          {{
+            item.monto
+            |
+            currency:'DOP'
+          }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================
+  🔥 EMPTY
+  ====================================== -->
+
+  <div
+
+    class="empty-box"
+
+    *ngIf="
+
+      !cargando
+
+      &&
+
+      movimientosFiltrados.length === 0
+    ">
+
+    <ion-icon
+      name="wallet-outline">
+    </ion-icon>
+
+    <h2>
+      No existen movimientos
+    </h2>
+
+    <p>
+
+      No se encontraron
+      movimientos financieros.
+
+    </p>
+
+  </div>
+
+</ion-content>

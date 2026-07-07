@@ -102,17 +102,26 @@
     <div class="lista-consumos">
 
       <div class="item-consumo"
-           *ngFor="let c of dashboard.consumos">
+     *ngFor="let c of dashboard.consumos">
 
-        <div class="concepto">
-          {{ c.fecha | date:'short' }} — {{ c.concepto }}
-        </div>
+  <div class="concepto">
+    {{ c.fecha | date:'short' }} — {{ c.concepto }}
+  </div>
 
-        <div class="monto">
-          RD$ {{ c.monto | number:'1.2-2' }}
-        </div>
+  <div class="monto">
+    RD$ {{ c.monto | number:'1.2-2' }}
+  </div>
 
-      </div>
+  <!-- 🔥 BOTON ELIMINAR -->
+  <ion-button
+    fill="clear"
+    color="danger"
+    size="small"
+    (click)="eliminarConsumo(c)">
+    <ion-icon name="trash-outline"></ion-icon>
+  </ion-button>
+
+</div>
 
     </div>
 

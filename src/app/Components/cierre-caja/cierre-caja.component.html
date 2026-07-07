@@ -1,0 +1,405 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">Cierre de Caja</ion-title>
+
+    <ion-buttons slot="start">
+      <ion-menu-button style="color:white;"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- 🔥 VALIDANDO -->
+<!-- =====================================
+🔥 VALIDANDO
+===================================== -->
+
+<div
+  class="loading-box"
+  *ngIf="validandoCaja">
+
+  <ion-spinner
+    name="crescent">
+  </ion-spinner>
+
+  <p>
+    Validando caja abierta...
+  </p>
+
+</div>
+
+<!-- =====================================
+🔥 NO HAY CAJA
+===================================== -->
+
+<div
+  class="empty-state"
+
+  *ngIf="!validandoCaja && !cajaAbierta">
+
+  <div class="empty-card">
+
+    <div class="empty-icon">
+
+      <ion-icon
+        name="lock-closed-outline">
+      </ion-icon>
+
+    </div>
+
+    <h1 class="empty-title">
+      No hay caja abierta
+    </h1>
+
+    <p class="empty-text">
+
+      Debes aperturar una caja antes
+      de poder realizar un cierre.
+
+    </p>
+
+    
+
+  </div>
+
+</div>
+
+  <!-- 🔥 NO HAY CAJA ABIERTA -->
+
+
+  <!-- 🔥 FORMULARIO SOLO SI HAY CAJA ABIERTA -->
+  <div
+    *ngIf="!validandoCaja && cajaAbierta"
+    class="cierre-layout">
+
+    <div class="top-grid">
+
+    <div class="card small-card">
+
+  <div class="card-header">
+    <h2>💰 Resumen Sistema</h2>
+  </div>
+
+  <!-- 🔥 NUEVO -->
+  <div class="line">
+    <span>Ventas Brutas</span>
+    <strong class="azul">
+      {{ ventasBrutas | currency:'DOP' }}
+    </strong>
+  </div>
+
+  <!-- 🔥 NUEVO -->
+  <div class="line">
+    <span>Descuentos</span>
+    <strong class="rojo">
+      -{{ totalDescuento | currency:'DOP' }}
+    </strong>
+  </div>
+<div
+  class="line"
+  *ngIf="entradasEfectivo > 0">
+
+  <span>Ingresos Caja</span>
+
+  <strong class="verde">
+
+    +{{ entradasEfectivo | currency:'DOP' }}
+
+  </strong>
+
+</div>
+  
+
+  <div
+  class="line"
+  *ngFor="let item of metodosPagoResumen">
+
+  <span>
+
+    {{ item.formaPago }}
+
+  </span>
+
+  <strong>
+
+    {{ item.total | currency:'DOP' }}
+
+  </strong>
+
+</div>
+
+  <div class="line">
+    <span>Gastos Caja</span>
+    <strong class="rojo">
+      {{ salidasEfectivo | currency:'DOP' }}
+    </strong>
+  </div>
+
+  <div class="line total">
+    <span>Ingresos Netos</span>
+    <strong>{{ totalGeneral | currency:'DOP' }}</strong>
+  </div>
+
+</div>
+
+      <div class="card small-card">
+
+        <div class="card-header">
+          <h2>💵 Cuadre Efectivo</h2>
+        </div>
+
+        <div class="line">
+          <span>Ventas Efectivo</span>
+          {{ getMetodoTotal('EFECTIVO') | currency:'DOP' }}
+        </div>
+<div
+  class="line"
+  *ngIf="cajaAbierta?.montoInicial > 0">
+
+  <span>+ Fondo Inicial</span>
+
+  <strong class="verde">
+
+    {{ cajaAbierta.montoInicial | currency:'DOP' }}
+
+  </strong>
+
+</div>
+        <div class="line" *ngIf="entradasEfectivo > 0">
+          <span>+ Ingresos Caja</span>
+          <strong class="verde">{{ entradasEfectivo | currency:'DOP' }}</strong>
+        </div>
+
+        <div class="line" *ngIf="salidasEfectivo > 0">
+          <span>- Gastos Caja</span>
+          <strong class="rojo">{{ salidasEfectivo | currency:'DOP' }}</strong>
+        </div>
+
+        <div class="line total">
+          <span>Debe Haber</span>
+          <strong class="azul">{{ efectivoEsperado | currency:'DOP' }}</strong>
+        </div>
+
+      </div>
+
+      <div class="resultado-card">
+
+        <div class="resultado-item">
+          <span>Total Contado</span>
+          <strong class="verde">{{ efectivoContado | currency:'DOP' }}</strong>
+        </div>
+
+        <div class="resultado-item">
+          <span>Esperado</span>
+          <strong class="azul">{{ efectivoEsperado | currency:'DOP' }}</strong>
+        </div>
+
+        <div class="resultado-item">
+          <span>Diferencia</span>
+
+          <strong
+            [class.rojo]="diferencia < 0"
+            [class.verde]="diferencia >= 0">
+
+            {{ diferencia | currency:'DOP' }}
+
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="conteo-grid">
+
+      <div class="card">
+
+        <div class="card-header">
+          <h2>🪙 Monedas</h2>
+        </div>
+
+        <div
+          class="denom-row"
+          *ngFor="let item of monedas">
+
+          <span>RD$ {{ item.valor }}</span>
+
+          <ion-input
+            type="number"
+            fill="outline"
+            min="0"
+            [(ngModel)]="item.cantidad">
+          </ion-input>
+
+          <strong>
+            {{ item.valor * item.cantidad | currency:'DOP' }}
+          </strong>
+
+        </div>
+
+        <div class="subtotal-box">
+          <span>Total</span>
+          <strong>{{ totalMonedas | currency:'DOP' }}</strong>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-header">
+          <h2>💵 Billetes</h2>
+        </div>
+
+        <div
+          class="denom-row"
+          *ngFor="let item of billetes">
+
+          <span>RD$ {{ item.valor }}</span>
+
+          <ion-input
+            type="number"
+            fill="outline"
+            min="0"
+            [(ngModel)]="item.cantidad">
+          </ion-input>
+
+          <strong>
+            {{ item.valor * item.cantidad | currency:'DOP' }}
+          </strong>
+
+        </div>
+
+        <div class="subtotal-box">
+          <span>Total</span>
+          <strong>{{ totalBilletes | currency:'DOP' }}</strong>
+        </div>
+
+      </div>
+
+      <div class="card observacion-card">
+
+        <div class="card-header">
+          <h2>📝 Observación</h2>
+        </div>
+
+        <ion-textarea
+          autoGrow="true"
+          fill="outline"
+          placeholder="Observación del cierre..."
+          [(ngModel)]="observacion">
+        </ion-textarea>
+
+      <!-- =====================================
+🔥 DIFERENCIA MENOR
+===================================== -->
+
+<div
+  class="alerta-warning"
+
+  *ngIf="
+    diferencia !== 0
+    &&
+    diferenciaPermitida
+  ">
+
+  ⚠️ Existe una diferencia menor de
+
+  <strong>
+    {{ diferencia | currency:'DOP' }}
+  </strong>
+
+  en caja.
+
+</div>
+
+<!-- =====================================
+🔥 DIFERENCIA GRAVE
+===================================== -->
+
+<!-- =====================================
+🔥 DIFERENCIA MENOR
+===================================== -->
+
+<!-- =====================================
+🔥 DIFERENCIA MENOR
+===================================== -->
+
+<div
+  class="alerta-warning"
+
+  *ngIf="
+    diferencia !== 0
+    &&
+    diferenciaPermitida
+  ">
+
+  ⚠️ Existe una diferencia menor de
+
+  <strong>
+    {{ diferencia | currency:'DOP' }}
+  </strong>
+
+  en caja.
+
+</div>
+
+<!-- =====================================
+🔥 DIFERENCIA GRAVE
+===================================== -->
+
+<div
+  class="alerta-diferencia"
+
+  *ngIf="
+    !diferenciaPermitida
+    &&
+    diferencia !== 0
+  ">
+
+  ❌ Existe una diferencia de
+
+  <strong>
+    {{ diferencia | currency:'DOP' }}
+  </strong>
+
+  en caja. Debe cuadrar antes de cerrar.
+
+</div>
+
+        <div
+          class="alerta-diferencia"
+          *ngIf="totalGeneral <= 0">
+
+          ⚠️ No hay ventas registradas para cerrar caja.
+
+        </div>
+
+        <div class="acciones">
+
+          <ion-button
+            color="medium"
+            fill="outline">
+
+            Cancelar
+
+          </ion-button>
+
+          <ion-button
+            color="primary"
+            [disabled]="!puedeCerrarCaja"
+            (click)="cerrarCaja()">
+
+            🔒 Cerrar Caja
+
+          </ion-button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>

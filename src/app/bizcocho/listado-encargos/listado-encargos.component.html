@@ -1,0 +1,329 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>
+      📋 Encargos Pendientes
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        fill="solid"
+        color="light"
+        (click)="nuevo()">
+
+        ➕ Nueva Orden
+
+      </ion-button>
+
+    <ion-button
+        fill="solid"
+        color="danger"
+        (click)="imprimirCierreEncargos()">
+
+       Generar Cierre Caja
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="container">
+
+  <!-- 🔥 LOADING -->
+  <div
+    *ngIf="cargando"
+    class="loading-container">
+
+    <ion-spinner name="crescent"></ion-spinner>
+
+    <p>
+      Cargando encargos...
+    </p>
+
+  </div>
+
+  <!-- 🔍 FILTROS -->
+
+  <div class="filtros">
+
+    <input
+      [(ngModel)]="filtroCliente"
+      placeholder="Buscar por cliente">
+
+    <input
+      [(ngModel)]="filtroCelular"
+      placeholder="Buscar por celular">
+
+    <input
+      type="date"
+      [(ngModel)]="filtroFechaDesde">
+
+    <input
+      type="date"
+      [(ngModel)]="filtroFechaHasta">
+
+  </div>
+
+  <!-- 🔥 LEYENDA -->
+
+  <div class="leyenda-pro">
+
+    <div
+      class="badge vencido"
+      [class.activo]="filtroEstado === 'vencido'"
+      (click)="filtrarEstado('vencido')">
+
+      🔥 Vencidos
+
+    </div>
+
+    <div
+      class="badge hoy"
+      [class.activo]="filtroEstado === 'hoy'"
+      (click)="filtrarEstado('hoy')">
+
+      ⚠ Hoy
+
+    </div>
+
+    <div
+      class="badge proximo"
+      [class.activo]="filtroEstado === 'proximo'"
+      (click)="filtrarEstado('proximo')">
+
+      🕒 Próximos
+
+    </div>
+
+    <div
+  class="badge entregado"
+  [class.activo]="filtroEstado === 'pagado'"
+  (click)="filtrarEstado('pagado')">
+
+  📦 Entregados
+
+</div>
+
+    <div
+      class="badge todos"
+      [class.activo]="filtroEstado === ''"
+      (click)="filtrarEstado('')">
+
+      📋  Todos
+
+    </div>
+
+  </div>
+
+  <!-- EMPTY -->
+
+  <div
+    *ngIf="!cargando && encargosFiltrados.length === 0"
+    class="empty-state">
+
+    <div class="emoji">🎂</div>
+
+    <h3>No hay encargos aún</h3>
+
+    <p>
+      Empieza creando tu primera orden
+    </p>
+
+  </div>
+
+  <!-- TABLA CON SCROLL -->
+
+  <div
+    *ngIf="!cargando && encargosFiltrados.length > 0"
+    class="tabla-container">
+
+    <table class="tabla-desktop desktop-view">
+
+      <thead>
+
+        <tr>
+
+          <th>#Documento</th>
+          <th>Cliente</th>
+          <th>Celular</th>
+          <th>Entrega</th>
+          <th>Lbs</th>
+          <th>Total</th>
+          <th>Abono</th>
+          <th>Pendiente</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr
+          *ngFor="let e of encargosFiltrados">
+
+          <td>{{ e.numeroDocumento || 'N/A' }}</td>
+
+          <td>{{ e.cliente || 'N/A' }}</td>
+
+          <td>{{ e.celular || 'N/A' }}</td>
+
+          <td>
+            {{ e.fechaEntrega | date:'dd/MM/yyyy hh:mm a' }}
+          </td>
+
+          <td>
+            {{ e.facturaDetalles?.[0]?.libras || 0 }}
+          </td>
+
+          <td>
+            <strong>
+              RD$ {{ total(e) | number:'1.2-2' }}
+            </strong>
+          </td>
+
+          <td>
+            <strong class="abono-text">
+              RD$ {{ e.abono | number:'1.2-2' }}
+            </strong>
+          </td>
+
+          <td>
+            <strong>
+              RD$ {{ pendiente(e) | number:'1.2-2' }}
+            </strong>
+          </td>
+
+          <td>
+
+            <span
+              class="estado-badge"
+              [ngClass]="getColor(e)">
+
+              <ng-container
+                [ngSwitch]="getColor(e)">
+
+                <span *ngSwitchCase="'pagado'">
+                  📦 Entregado
+                </span>
+
+                <span *ngSwitchCase="'vencido'">
+                  🔥 Vencido
+                </span>
+
+                <span *ngSwitchCase="'hoy'">
+                  ⚠ Hoy
+                </span>
+
+                <span *ngSwitchDefault>
+                  🕒 Próximo
+                </span>
+
+              </ng-container>
+
+            </span>
+
+          </td>
+
+          <td class="acciones">
+
+            <ion-button
+              color="warning"
+              size="small"
+              *ngIf="!estaPagado(e)"
+              (click)="editar(e)">
+
+              <ion-icon name="create-outline"></ion-icon>
+
+            </ion-button>
+
+            <ion-button
+              color="success"
+              size="small"
+              *ngIf="!estaPagado(e)"
+              (click)="pagar(e)">
+
+              <ion-icon name="cash-outline"></ion-icon>
+
+            </ion-button>
+
+            <ion-button
+              color="primary"
+              size="small"
+              *ngIf="estaPagado(e)"
+              (click)="entregar(e)">
+
+              <ion-icon name="cube-outline"></ion-icon>
+
+            </ion-button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+    <!-- MOBILE -->
+
+    <div class="mobile-view">
+
+      <!-- Tus cards aquí exactamente como las tienes -->
+
+    </div>
+
+  </div>
+
+</ion-content>
+
+<!-- FOOTER FUERA DEL ION-CONTENT -->
+
+<div class="footer-resumen">
+
+  <div class="card-resumen total">
+    <span>Total Encargos</span>
+    <strong>
+      RD$ {{ totalEncargos | number:'1.2-2' }}
+    </strong>
+  </div>
+
+  <div class="card-resumen abonado">
+    <span>Abonado</span>
+    <strong>
+      RD$ {{ totalAbonado | number:'1.2-2' }}
+    </strong>
+  </div>
+
+  <div class="card-resumen pendiente">
+    <span>Pendiente</span>
+    <strong>
+      RD$ {{ totalPendiente | number:'1.2-2' }}
+    </strong>
+  </div>
+
+  <div class="card-resumen pagados">
+    <span>Pagados</span>
+    <strong>
+      {{ totalPagados }}
+    </strong>
+  </div>
+
+  <div class="card-resumen activos">
+    <span>Pendientes</span>
+    <strong>
+      {{ totalPendientesCount }}
+    </strong>
+  </div>
+
+</div>

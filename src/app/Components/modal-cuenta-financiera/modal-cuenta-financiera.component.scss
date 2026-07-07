@@ -1,0 +1,343 @@
+:host{
+
+  display:block;
+
+  height:100%;
+}
+
+/* =====================================
+🔥 CONTENT
+===================================== */
+
+ion-content{
+
+  --background:
+    #f4f7fb;
+}
+
+/* =====================================
+🔥 LAYOUT
+===================================== */
+
+.form-layout{
+
+  max-width:700px;
+
+  margin:auto;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+}
+
+/* =====================================
+🔥 TOP CARD
+===================================== */
+
+.top-card{
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:25px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:20px;
+
+  box-shadow:
+    0 10px 30px
+    rgba(0,0,0,.06);
+
+  border:
+    1px solid
+    #e2e8f0;
+}
+
+/* =====================================
+🔥 ICON PREVIEW
+===================================== */
+
+.icon-preview{
+
+  width:85px;
+
+  height:85px;
+
+  border-radius:24px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:white;
+
+  font-size:42px;
+
+  flex-shrink:0;
+
+  box-shadow:
+    0 10px 25px
+    rgba(37,99,235,.25);
+}
+
+/* =====================================
+🔥 TOP INFO
+===================================== */
+
+.top-info{
+
+  flex:1;
+}
+
+.top-info h2{
+
+  margin:0;
+
+  font-size:28px;
+
+  font-weight:800;
+
+  color:#0f172a;
+}
+
+.top-info span{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  margin-top:8px;
+
+  padding:
+    6px 14px;
+
+  border-radius:999px;
+
+  background:#dbeafe;
+
+  color:#1d4ed8;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+/* =====================================
+🔥 ITEMS
+===================================== */
+
+ion-item{
+
+  --background:white;
+
+  --border-radius:20px;
+
+  padding:4px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 4px 15px
+    rgba(0,0,0,.03);
+}
+
+ion-label{
+
+  font-weight:700;
+
+  color:#334155;
+}
+
+ion-input,
+ion-select{
+
+  margin-top:8px;
+}
+
+/* =====================================
+🔥 ICONOS
+===================================== */
+
+.iconos-box{
+
+  background:white;
+
+  border-radius:24px;
+
+  padding:22px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  box-shadow:
+    0 6px 20px
+    rgba(0,0,0,.04);
+}
+
+.iconos-box h3{
+
+  margin:0 0 18px 0;
+
+  font-size:18px;
+
+  font-weight:800;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 ICONOS GRID
+===================================== */
+
+.iconos-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(70px,1fr)
+    );
+
+  gap:15px;
+}
+
+.icon-item{
+
+  height:70px;
+
+  border-radius:20px;
+
+  background:#f8fafc;
+
+  border:
+    2px solid
+    transparent;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  cursor:pointer;
+
+  transition:.25s;
+
+  font-size:30px;
+
+  color:#475569;
+}
+
+.icon-item:hover{
+
+  transform:
+    translateY(-2px);
+
+  background:#eff6ff;
+
+  color:#2563eb;
+}
+
+.icon-item.active{
+
+  border-color:#2563eb;
+
+  background:#dbeafe;
+
+  color:#2563eb;
+
+  box-shadow:
+    0 8px 20px
+    rgba(37,99,235,.18);
+}
+
+/* =====================================
+🔥 ACCIONES
+===================================== */
+
+.acciones{
+
+  display:flex;
+
+  gap:15px;
+
+  margin-top:10px;
+}
+
+.acciones ion-button{
+
+  flex:1;
+
+  height:52px;
+
+  --border-radius:18px;
+
+  font-size:15px;
+
+  font-weight:700;
+
+  text-transform:none;
+}
+
+/* =====================================
+🔥 TOGGLE
+===================================== */
+
+ion-toggle{
+
+  zoom:1.1;
+}
+
+/* =====================================
+🔥 MOBILE
+===================================== */
+
+@media(max-width:768px){
+
+  .top-card{
+
+    flex-direction:column;
+
+    text-align:center;
+  }
+
+  .top-info h2{
+
+    font-size:24px;
+  }
+
+  .acciones{
+
+    flex-direction:column;
+  }
+
+  .icon-preview{
+
+    width:75px;
+
+    height:75px;
+
+    font-size:36px;
+  }
+
+  .icon-item{
+
+    height:65px;
+
+    font-size:26px;
+  }
+}

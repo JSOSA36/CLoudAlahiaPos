@@ -1,0 +1,670 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">
+      Listado de Cierrres
+    </ion-title>
+
+    <ion-buttons slot="start">
+      <ion-menu-button
+        style="color: white;">
+      </ion-menu-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div class="listado-layout">
+
+    <!-- =====================================
+    🔥 FILTROS
+    ====================================== -->
+
+    <div class="filtros-box">
+
+      <ion-grid>
+
+        <ion-row>
+
+          <!-- DESDE -->
+
+          <ion-col
+            size="12"
+            sizeMd="5">
+
+            <ion-item>
+
+              <ion-label
+                position="stacked">
+
+                📅 Desde
+
+              </ion-label>
+
+              <ion-input
+                type="date"
+                [(ngModel)]="fechaDesde">
+              </ion-input>
+
+            </ion-item>
+
+          </ion-col>
+
+          <!-- HASTA -->
+
+          <ion-col
+            size="12"
+            sizeMd="5">
+
+            <ion-item>
+
+              <ion-label
+                position="stacked">
+
+                📅 Hasta
+
+              </ion-label>
+
+              <ion-input
+                type="date"
+                [(ngModel)]="fechaHasta">
+              </ion-input>
+
+            </ion-item>
+
+          </ion-col>
+
+          <!-- BOTON -->
+
+          <ion-col
+            size="12"
+            sizeMd="2"
+            class="btn-filtrar">
+
+            <ion-button
+
+              expand="block"
+
+              color="primary"
+
+              (click)="CargarListadoCaja()">
+
+              Buscar
+
+            </ion-button>
+
+          </ion-col>
+
+        </ion-row>
+
+      </ion-grid>
+
+    </div>
+
+    <!-- =====================================
+    🔥 RESUMEN
+    ====================================== -->
+
+    <div class="resume-grid">
+
+      <!-- TOTAL VENTAS -->
+
+      <div class="resume-card azul-card">
+
+        <div class="resume-icon">
+          💰
+        </div>
+
+        <div>
+
+          <span>
+            Total Ventas
+          </span>
+
+          <strong>
+
+            {{
+              totalVentas
+              |
+              currency:'DOP'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <!-- ABIERTAS -->
+
+      <div class="resume-card naranja-card">
+
+        <div class="resume-icon">
+          🟠
+        </div>
+
+        <div>
+
+          <span>
+            Cajas Abiertas
+          </span>
+
+          <strong>
+
+            {{ cajasAbiertas }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <!-- CERRADAS -->
+
+      <div class="resume-card verde-card">
+
+        <div class="resume-icon">
+          ✅
+        </div>
+
+        <div>
+
+          <span>
+            Cajas Cerradas
+          </span>
+
+          <strong>
+
+            {{ cajasCerradas }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <!-- DIFERENCIA -->
+
+      <div class="resume-card rojo-card">
+
+        <div class="resume-icon">
+          ⚠️
+        </div>
+
+        <div>
+
+          <span>
+            Diferencias
+          </span>
+
+          <strong>
+
+            {{
+              totalDiferencia
+              |
+              currency:'DOP'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- =====================================
+    🔥 LISTADO
+    ====================================== -->
+
+    <ion-accordion-group>
+
+      <ion-accordion
+
+        *ngFor="
+          let caja of listadoCaja
+        "
+
+        [value]="
+          caja.idCajaApertura
+        ">
+
+        <!-- =====================================
+        🔥 HEADER
+        ====================================== -->
+
+        <ion-item
+          slot="header"
+          class="caja-header">
+
+          <ion-label>
+
+            <div class="header-top">
+
+             <h2>
+
+  {{ caja.estado === 'ABIERTA' ? '📂 Caja' : '🧾 Cierre' }}
+
+  #{{ caja.idCajaApertura }}
+
+</h2>
+
+              <ion-badge
+
+                [color]="
+                  GetEstadoColor(
+                    caja.estado
+                  )
+                ">
+
+                {{ caja.estado }}
+
+              </ion-badge>
+
+            </div>
+
+            <div class="header-info">
+
+              <span>
+
+                🕒 Apertura:
+                {{
+                  caja.fechaApertura
+                  |
+                  date:'short'
+                }}
+
+              </span>
+
+              <span
+                *ngIf="
+                  caja.fechaCierre
+                ">
+
+                🔒 Cierre:
+                {{
+                  caja.fechaCierre
+                  |
+                  date:'short'
+                }}
+
+              </span>
+
+            </div>
+
+            <!-- USUARIOS -->
+
+            <div class="usuarios-box">
+
+              <span
+                *ngIf="
+                  caja.usuarioApertura
+                ">
+
+                🟠 Abrió:
+
+                <strong>
+                  {{ caja.usuarioApertura }}
+                </strong>
+
+              </span>
+
+              <span
+                *ngIf="
+                  caja.usuarioCierre
+                ">
+
+                🔒 Cerró:
+
+                <strong>
+                  {{ caja.usuarioCierre }}
+                </strong>
+
+              </span>
+
+            </div>
+
+          </ion-label>
+
+        </ion-item>
+
+        <!-- =====================================
+        🔥 CONTENT
+        ====================================== -->
+
+        <div
+          slot="content"
+          class="detalle-box">
+
+          <!-- =====================================
+          🔥 RESUMEN
+          ====================================== -->
+
+          <div class="detalle-grid">
+
+            <!-- FONDO -->
+
+            <div class="detalle-card">
+
+              <span>
+                Fondo Inicial
+              </span>
+
+              <strong class="azul">
+
+                {{
+                  caja.montoInicial
+                  |
+                  currency:'DOP'
+                }}
+
+              </strong>
+
+            </div>
+
+            <!-- MONTO REAL -->
+
+            <div class="detalle-card">
+
+              <span>
+                Monto Real
+              </span>
+
+              <strong class="verde">
+
+                {{
+                  caja.montoRealCaja
+                  |
+                  currency:'DOP'
+                }}
+
+              </strong>
+
+            </div>
+
+            <!-- DIFERENCIA -->
+
+            <div class="detalle-card">
+
+              <span>
+                Diferencia
+              </span>
+
+              <strong
+
+                [ngClass]="
+                  GetDiferenciaClass(
+                    caja.diferencia
+                  )
+                ">
+
+                {{
+                  caja.diferencia
+                  |
+                  currency:'DOP'
+                }}
+
+              </strong>
+
+            </div>
+
+            <!-- TOTAL -->
+
+            <div class="detalle-card">
+
+              <span>
+                Total Ventas
+              </span>
+
+              <strong class="morado">
+
+                {{ caja.totalIngresosNetos | currency:'DOP' }}
+
+              </strong>
+
+            </div>
+
+          </div>
+
+          <!-- =====================================
+          🔥 DETALLE CIERRE
+          ====================================== -->
+
+          <div
+
+            class="detalle-cierre"
+
+            *ngIf="
+              caja.estado === 'CERRADA'
+            ">
+
+            <div class="section-title">
+
+              📊 Resumen de Cierre
+
+            </div>
+
+          <div class="line">
+
+  <span>Ventas Brutas</span>
+
+  <strong>
+
+    {{ caja.ventasBrutas | currency:'DOP' }}
+
+  </strong>
+
+</div>
+
+<div class="line">
+
+  <span>Descuentos</span>
+
+  <strong class="rojo">
+
+    -{{ caja.totalDescuento | currency:'DOP' }}
+
+  </strong>
+
+</div>
+
+<div class="line">
+
+  <span>Ingresos Caja</span>
+
+  <strong class="verde">
+
+    +{{ caja.totalIngresosExtra | currency:'DOP' }}
+
+  </strong>
+
+</div>
+
+<div class="line">
+
+  <span>Gastos Caja</span>
+
+  <strong class="rojo">
+
+    -{{ caja.totalGastos | currency:'DOP' }}
+
+  </strong>
+
+</div>
+
+<div class="line total">
+
+  <span>Ingresos Netos</span>
+
+  <strong>
+
+    {{ caja.totalIngresosNetos | currency:'DOP' }}
+
+  </strong>
+
+</div>
+<div class="section-title">
+
+  💳 Métodos de Pago
+
+</div>
+
+<div
+
+  class="line"
+
+  *ngFor="let metodo of caja.metodosPago">
+
+  <span>
+
+    {{ metodo.formaPago }}
+
+  </span>
+
+  <strong>
+
+    {{ metodo.total | currency:'DOP' }}
+
+  </strong>
+
+</div>
+            
+            <!-- CREDITO -->
+
+
+          </div>
+<!-- =====================================
+🔥 PRODUCTOS VENDIDOS
+===================================== -->
+
+<div
+
+  class="productos-box"
+
+  *ngIf="
+    caja.productosVendidos
+    &&
+    caja.productosVendidos.length > 0
+  ">
+
+  <div class="section-title">
+
+    📦 Productos Vendidos
+
+  </div>
+
+  <!-- HEADER -->
+
+  <div class="producto-header">
+
+    <span>
+      Producto
+    </span>
+
+    <span>
+      Cant.
+    </span>
+
+    <span>
+      Exist.
+    </span>
+
+    <span>
+      Total
+    </span>
+
+  </div>
+
+  <!-- ITEMS -->
+
+  <div
+
+    class="producto-line"
+
+    *ngFor="
+      let p of caja.productosVendidos
+    ">
+
+    <!-- PRODUCTO -->
+
+    <span class="producto-nombre">
+
+      {{ p.producto }}
+
+    </span>
+
+    <!-- CANTIDAD -->
+
+    <span class="cantidad">
+
+      {{ p.cantidadVendida }}
+
+    </span>
+
+    <!-- EXISTENCIA -->
+
+    <span
+
+      class="existencia"
+
+      [ngClass]="{
+
+        'critico':
+        p.existenciaActual <= 5
+
+      }">
+
+      {{ p.existenciaActual }}
+
+    </span>
+
+    <!-- TOTAL -->
+
+    <span class="total">
+
+      {{
+        p.totalVendido
+        |
+        currency:'DOP'
+      }}
+
+    </span>
+
+  </div>
+
+</div>
+          <!-- =====================================
+          🔥 OBSERVACION
+          ====================================== -->
+
+          <div
+            class="observacion-box"
+
+            *ngIf="
+              caja.observacion
+            ">
+
+            <div class="section-title">
+
+              📝 Observación
+
+            </div>
+
+            <p>
+
+              {{ caja.observacion }}
+
+            </p>
+
+          </div>
+
+        </div>
+
+      </ion-accordion>
+
+    </ion-accordion-group>
+
+  </div>
+
+</ion-content>

@@ -14,7 +14,7 @@ export class ClienteVozComponent implements OnInit {
   clientesEncontrados: any[] = [];
   cargando: boolean = false;
   busquedaRealizada: boolean = false;
-
+telefonoCliente: string = "";
   constructor(
     private modalCtrl: ModalController,
     private clienteSrv: ClienteService,
@@ -69,8 +69,8 @@ buscarCliente() {
       idCliente: 0,
       nombreComercial: this.nombreCliente.trim(),
       cedulaRNC: "",
-      telefono: "",
-      celular: "",
+      telefono: this.telefonoCliente.trim(),
+celular: this.telefonoCliente.trim(),
       fechaNacimiento: null,
       email: "",
       direccion: "",

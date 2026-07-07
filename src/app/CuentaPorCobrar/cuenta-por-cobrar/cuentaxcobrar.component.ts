@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { facturaheader } from 'src/app/models/facturaheader';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { Input } from '@angular/core';
 import { FactDetalleService } from 'src/app/servicios/fact-detalle.service';
 import { CuentaxPagarComponent } from 'src/app/CuentaxPagar/cuentax-pagar/cuentaxpagar.component';
 import { ClienteVozComponent } from 'src/app/modals/cliente-voz/cliente-voz.component';
@@ -15,19 +16,24 @@ import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component'
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
+import { PrinterComponent } from 'src/app/printer/printer.component';
 @Component({
   selector: 'app-cuenta-por-cobrar',
   templateUrl: './cuentaxcobrar.component.html',
   styleUrls: ['./cuentaxcobrar.component.scss'],
 })
+
 export class CuentaPorCobrarComponent implements OnInit {
 
   @ViewChild(IonModal) _modal!: IonModal;
+  @Input() modo: 'editar' | 'seleccionar' = 'editar';
 procesandoPago = false;
   NombreCliente: string = "";
   empleados: Empleado[] = [];
   CodigoEmpleado: string = "";
   accordionActivo: string | number | null = null;
+  @Input() tipoDocumento: 'Orden' | 'Cotizacion' = 'Orden';
+  @Input() esModal: boolean = false;
 puedeEliminarOrden: boolean = false;
   constructor(
     private modal: ModalController,
@@ -41,6 +47,14 @@ puedeEliminarOrden: boolean = false;
       private printService: PrintService
       
   ) {}
+  seleccionarOrden(orden: any) {
+  if (this.modo === 'seleccionar') {
+    this.modal.dismiss({ ordenSeleccionada: orden });
+    return;
+  }
+
+  // modo editar (móvil) se queda como ya lo tienes
+}
 cargarEmpleadosEmpresa() {
 
   const idEmpresa = this._Parametro.IdEmpresa;
@@ -174,7 +188,9 @@ async openModalVoz() {
     this._Parametro.NombreCliente = cliente.nombreComercial;
     this._Parametro.IdCliente = cliente.idCliente;
 
-    this._Router.navigateByUrl('/Categoria');
+    if (this.modo === 'editar') {
+  this._Router.navigateByUrl('/Categoria');
+}
   });
 
 }
@@ -216,16 +232,40 @@ CargarListaFactura() {
   
 }
 
+imprimirOrden(idFactura: number, event?: Event) {
 
+  event?.stopPropagation();
+
+  this.printService
+    .printTicket(
+      idFactura,
+      this._Parametro.IdEmpresa
+    )
+    .subscribe({
+      next: () => {
+        this.toast('Orden enviada a imprimir 🖨️');
+      },
+      error: (err) => {
+        console.error('❌ Error imprimiendo orden:', err);
+        this.toast('Error imprimiendo orden');
+      }
+    });
+}
 RefreshOrdenes() {
   this.accordionActivo = null;
 
-  this._FacturaHeader.GetListadoOrdenes(this._Parametro.GetIdEmpresa()).subscribe(c => {
-    this._Parametro.ListadoOrdenes = [...c];
-     console.log("📦 Ordenes cargadas:", this._Parametro.ListadoOrdenes);
-    // recalcular totales para que salga el descuento general
-    this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
-  });
+  this._FacturaHeader.GetListadoOrdenes(this._Parametro.IdEmpresa)
+    .subscribe({
+     
+      next: c => {
+         console.log("📦 Órdenes recibidas:", c),
+        this._Parametro.ListadoOrdenes = [...c];
+        this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
+      },
+      error: () => {
+        this.toast('Error cargando órdenes');
+      }
+    });
 }
 
 
@@ -305,7 +345,6 @@ getPendiente(iten: any): number {
     return;
   }
 
-  // 🔥 CALCULAR PENDIENTE
   const total = Number(factura.total ?? 0);
   const pagado = Number(factura.pagado ?? 0);
   const pendiente = Math.max(0, total - pagado);
@@ -325,14 +364,15 @@ getPendiente(iten: any): number {
 
   if (role === 'ok' && data) {
 
-    // ================= VALIDACIÓN =================
-    if (!data.pagos || data.pagos.length === 0) {
+    const tipo = (data.tipoFactura || '').trim().toLowerCase();
+
+    if (tipo === 'contado' && (!data.pagos || data.pagos.length === 0)) {
       console.warn("⚠️ No hay pagos");
       this.procesandoPago = false;
       return;
     }
 
-    // ================= DTO =================
+    // 🔥 TU DTO ORIGINAL (SIN TOCAR)
     const dto: any = {
       idFactura: factura.idFacturaHeader,
       tipoFactura: data.tipoFactura,
@@ -356,37 +396,46 @@ getPendiente(iten: any): number {
 
     console.log("📦 DTO enviado:", dto);
 
-    // ================= API =================
     this._FacturaHeader.GenerateFacts(dto)
       .subscribe({
-        next: async () => {
+        next: async (resp) => {
 
           console.log("✅ Factura procesada");
 
-          // ================= IMPRESIÓN 🔥 =================
           try {
 
-            // 🔥 siempre lavador
+            // 🔥 lavador (igual que antes)
             this.printService.printLavador(dto.idFactura)
               .subscribe({
                 next: () => console.log("🧾 Lavador impreso"),
                 error: err => console.error("❌ Error lavador", err)
               });
-
-            // 🔥 solo si cliente quiere factura
+       
+            // 🔥 NUEVO → abrir modal de impresión
             if (dto.imprimirFactura) {
-              this.printService.printFactura(dto.idFactura)
-                .subscribe({
-                  next: () => console.log("🧾 Factura cliente impresa"),
-                  error: err => console.error("❌ Error factura", err)
-                });
+
+              this.printService.printTicket(dto.idFactura, this._Parametro.IdEmpresa)
+              .subscribe({
+                next: () => console.log("🧾 Factura impresa"),
+                error: err => console.error("❌ Error factura", err)
+              });
+
+              // const modalPrint = await this.modal.create({
+              //   component: PrinterComponent,
+              //   cssClass: 'modal-print',
+              //   componentProps: {
+              //     factura: resp?.factura || factura // 🔥 fallback seguro
+              //   }
+              // });
+
+             // await modalPrint.present();
             }
 
           } catch (error) {
             console.error("❌ Error impresión:", error);
           }
 
-          // ================= LIMPIAR LISTA =================
+          // limpiar lista
           const index = this._Parametro.ListadoOrdenes
             .findIndex(c => c.idFacturaHeader == IdFact);
 
@@ -394,14 +443,13 @@ getPendiente(iten: any): number {
             this._Parametro.ListadoOrdenes.splice(index, 1);
           }
 
-          // ================= UI =================
           const toast = await this.toastCtrl.create({
             message: 'Factura procesada correctamente',
             duration: 1500,
             color: 'success'
           });
 
-          toast.present();
+          await toast.present();
 
           this.procesandoPago = false;
         },
@@ -416,7 +464,7 @@ getPendiente(iten: any): number {
             color: 'danger'
           });
 
-          toast.present();
+          await toast.present();
 
           this.procesandoPago = false;
         }
@@ -426,7 +474,6 @@ getPendiente(iten: any): number {
     this.procesandoPago = false;
   }
 }
-
   // ============================================================
   // 🔥 AJUSTADO — DESCUENTO REAL (NO PORCENTAJE)
   // ============================================================
@@ -472,9 +519,12 @@ getPendiente(iten: any): number {
  
 
   AumetarCantidad(indexHeader: number, indexdetalle: number, IdFactDetalle: number) {
+
+  if (this.modo === 'seleccionar') return; // 🔥 protección
+
   const detalle = this._Parametro.ListadoOrdenes[indexHeader].facturaDetalles[indexdetalle];
   detalle.cantidad++;
-  this.GetAmount(indexHeader, indexdetalle); // ✅
+  this.GetAmount(indexHeader, indexdetalle);
   this._FactDetalle.ActualizarCantidad(IdFactDetalle, detalle.cantidad);
 }
 

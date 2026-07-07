@@ -155,3 +155,511 @@
   font-size: 12px;
   font-weight: 600;
 }
+.flags-producto {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.flag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 🛒 COMPRA */
+.flag-buy {
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+}
+
+/* 💰 VENTA */
+.flag-sell {
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+}
+
+/* 🏷️ ALQUILER */
+.flag-rent {
+  background: rgba(255, 152, 0, 0.12);
+  color: #ef6c00;
+}
+.filtros-rapidos {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  padding: 10px 12px;
+
+  background: #fff;
+
+  border-bottom: 1px solid #ececec;
+}
+
+.filtros-rapidos ion-chip {
+
+  cursor: pointer;
+
+  transition: .2s ease;
+
+  font-weight: 600;
+}
+
+.filtros-rapidos ion-chip:hover {
+
+  transform: scale(1.03);
+}
+/* ===================================== */
+/* 🔥 STOCK MOBILE */
+/* ===================================== */
+
+.stock-mobile {
+
+  display: flex;
+
+  gap: 8px;
+
+  margin-top: 8px;
+
+  flex-wrap: wrap;
+}
+
+/* ===================================== */
+/* 🔥 BADGES STOCK */
+/* ===================================== */
+
+.badge-stock {
+
+  padding: 4px 10px;
+
+  border-radius: 12px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+/* ===================================== */
+/* 🔥 ACTUAL */
+/* ===================================== */
+
+.badge-actual {
+
+  background: #d1ecf1;
+
+  color: #0c5460;
+}
+
+/* ===================================== */
+/* 🔥 STOCK MINIMO */
+/* ===================================== */
+
+.badge-minimo {
+
+  background: #fff3cd;
+
+  color: #856404;
+}
+
+/* ===================================== */
+/* 🔥 STOCK BAJO */
+/* ===================================== */
+
+/* ===================================== */
+/* 🔥 STOCK BAJO */
+/* ===================================== */
+
+.stock-bajo {
+
+  background: #fff0f0 !important;
+
+  border-left: 4px solid #dc3545 !important;
+
+  border-right: 3px solid #f7c948;
+
+  transition: background 0.2s ease;
+}
+
+/* Hover elegante */
+
+.stock-bajo:hover {
+
+  background: #ffe5e5 !important;
+}
+
+/* ===================================== */
+/* 🔥 COLUMNA STOCK */
+/* ===================================== */
+
+.stock-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  font-weight: 600;
+}
+
+/* ===================================== */
+/* 🔥 COLUMNA ACTUAL */
+/* ===================================== */
+
+.actual-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  font-weight: 600;
+}
+
+/* ===================================== */
+/* 🔥 NUMERO EN ROJO SI STOCK BAJO */
+/* ===================================== */
+
+.stock-bajo .actual-cell {
+
+  color: #c62828;
+
+  font-weight: 700;
+}
+
+/* ===================================== */
+/* 🔥 TD GENERAL */
+/* ===================================== */
+
+td {
+
+  text-align: center;
+
+  vertical-align: middle;
+}
+
+/* ===================================== */
+/* 🔥 HEADERS */
+/* ===================================== */
+
+.header-row div {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+/* ===================================== */
+/* 🔥 TABLA */
+/* ===================================== */
+
+.tabla-wrapper {
+
+  overflow-x: auto;
+}
+
+.tabla-productos {
+
+  min-width: 1200px;
+}
+
+/* ===================================== */
+/* 🔥 HEADER */
+/* ===================================== */
+
+.header-row {
+
+  background: #f0c541;
+
+  color: #000;
+
+  font-weight: bold;
+
+  border-bottom: 2px solid #e0b52f;
+
+  padding: 10px 0;
+}
+
+/* ===================================== */
+/* 🔥 FILAS */
+/* ===================================== */
+
+.data-row {
+
+  border-bottom: 1px solid #f0d26c;
+
+  align-items: center;
+
+  min-height: 70px;
+}
+
+/* ===================================== */
+/* 🔥 IMAGEN */
+/* ===================================== */
+
+.table-img {
+
+  width: 48px;
+
+  height: 48px;
+
+  object-fit: cover;
+
+  border-radius: 8px;
+}
+
+/* ===================================== */
+/* 🔥 CELDAS */
+/* ===================================== */
+
+.cell-center {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+.nombre-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  font-weight: 500;
+}
+
+.precio-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  color: #2e7d32;
+
+  font-weight: bold;
+}
+
+.codigo-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  color: #666;
+}
+
+/* ===================================== */
+/* 🔥 TIPO */
+/* ===================================== */
+
+.tipo-col {
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  gap: 4px;
+}
+
+/* ===================================== */
+/* 🔥 BADGES */
+/* ===================================== */
+
+.badge-servicio {
+
+  background: #377dff;
+
+  color: white;
+
+  padding: 4px 10px;
+
+  border-radius: 12px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  width: fit-content;
+}
+
+.badge-producto {
+
+  background: #ececec;
+
+  color: #444;
+
+  padding: 4px 10px;
+
+  border-radius: 12px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  width: fit-content;
+}
+
+/* ===================================== */
+/* 🔥 FLAGS */
+/* ===================================== */
+
+.flags-producto {
+
+  display: flex;
+
+  gap: 6px;
+
+  flex-wrap: wrap;
+}
+
+.flag {
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  padding: 2px 8px;
+
+  border-radius: 10px;
+}
+
+.flag-operacion {
+
+  background: #eef2ff;
+
+  color: #374151;
+}
+
+/* ===================================== */
+/* 🔥 ACCIONES */
+/* ===================================== */
+
+.acciones-cell {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+}
+
+.acciones-mobile {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+/* ===================================== */
+/* 🔥 MOBILE */
+/* ===================================== */
+
+.producto-card {
+
+  margin: 10px;
+
+  border-radius: 14px;
+}
+
+.producto-avatar img {
+
+  object-fit: cover;
+}
+
+.producto-info h2 {
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  margin-bottom: 6px;
+}
+
+.producto-precio {
+
+  color: #2e7d32;
+
+  font-weight: bold;
+
+  margin-bottom: 4px;
+}
+
+.producto-extra {
+
+  color: #666;
+
+  font-size: 13px;
+
+  margin-bottom: 4px;
+}
+
+.tipo-area {
+
+  margin-top: 8px;
+
+  margin-bottom: 6px;
+}
+td {
+    text-align: center;
+    vertical-align: middle;
+}
+/* ===================================== */
+/* 🔥 BOTON AGREGAR */
+/* ===================================== */
+
+.fab-add-producto {
+
+  position: fixed;
+
+  right: 20px;
+
+  bottom: 20px;
+
+  z-index: 9999;
+}
+
+/* ===================================== */
+/* 🔥 HEADER */
+/* ===================================== */
+
+.filtros-rapidos {
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 50;
+
+  background: #fff;
+}

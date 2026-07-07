@@ -1,107 +1,406 @@
 <ion-header [translucent]="true">
+
+  <!-- ===================================== -->
+  <!-- 🔥 TOPBAR -->
+  <!-- ===================================== -->
+
   <ion-toolbar color="primary">
+
     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;"></ion-menu-button>
+
+      <ion-menu-button
+        style="color: white;">
+
+      </ion-menu-button>
+
     </ion-buttons>
 
+    <ion-title>
+
+      Productos
+
+    </ion-title>
+
+  </ion-toolbar>
+
+  <!-- ===================================== -->
+  <!-- 🔍 BUSCADOR -->
+  <!-- ===================================== -->
+
+  <ion-toolbar>
+
     <ion-searchbar
-      color="primary"
+
+      color="light"
+
       placeholder="Buscar producto..."
+
       [(ngModel)]="filtro"
+
       (ionInput)="aplicarFiltros()"
+
       debounce="300">
+
     </ion-searchbar>
 
   </ion-toolbar>
 
-  <!-- 🧭 Filtro por Área -->
-  <ion-item>
-    <ion-icon name="filter-outline" slot="start"></ion-icon>
+  <!-- ===================================== -->
+  <!-- 🔥 FILTROS -->
+  <!-- ===================================== -->
 
-    <ion-select
-      placeholder="Filtrar por área"
-      interface="popover"
-      [value]="selectedAreaId === null ? 'all' : selectedAreaId.toString()"
-      (ionChange)="onAreaChange($any($event).detail.value)">
+  <div class="filtros-rapidos">
 
-      <ion-select-option value="all">Todas</ion-select-option>
+    <!-- ===================================== -->
+    <!-- 🔥 FILTRO PRINCIPAL -->
+    <!-- ===================================== -->
 
-      <ion-select-option
-        *ngFor="let a of areas"
-        [value]="a.idArea.toString()">
-        {{ a.nombre }}
-      </ion-select-option>
+    <div class="grupo-filtro-principal">
 
-    </ion-select>
-  </ion-item>
-</ion-header>
+      <!-- SERVICIOS -->
+      <ion-chip
 
-<ion-content>
+        [outline]="!mostrarServicios"
 
-  <!-- 📱 VISTA MOBILE -->
-  <div class="mobile-view">
-    <ion-list>
+        color="primary"
 
-      <ion-card
-        *ngFor="let producto of productosFiltrados | slice:0:itemsToShow"
-        class="producto-card">
+        (click)="aplicarFiltros('servicios')">
 
-        <ion-item lines="none">
+        <ion-icon
+          name="construct-outline">
 
-          <ion-avatar slot="start" class="producto-avatar">
-            <img *ngIf="!producto.imagen1" src="./assets/botella.png">
-            <img *ngIf="producto.imagen1" [src]="producto.imagen1">
-          </ion-avatar>
+        </ion-icon>
 
-          <ion-label class="producto-info">
+        <ion-label>
 
-            <h2>{{ producto.nombre }}</h2>
+          Servicios
 
-            <p class="producto-precio">
-              Precio: {{ producto.precioVenta | currency }}
-            </p>
+        </ion-label>
 
-            <p class="producto-extra">
-              Código Barra: {{ producto.codigoBarra || 'N/A' }}
-            </p>
+      </ion-chip>
 
-            <p class="producto-extra">
-              ITBIS:
-              <span
-                [class.badge-success]="producto.itbis"
-                [class.badge-danger]="!producto.itbis">
-                {{ producto.itbis ? 'Sí' : 'No' }}
-              </span>
-            </p>
+      <!-- PRODUCTOS -->
+      <ion-chip
 
-            <p class="producto-stock">
-              <span class="badge-servicio" *ngIf="producto.esServicio">
-                🚿 Servicio CarWash
-              </span>
+        [outline]="!mostrarProductos"
 
-              <span class="badge-producto" *ngIf="!producto.esServicio">
-                📦 Producto
-              </span>
-            </p>
+        color="success"
+
+        (click)="aplicarFiltros('productos')">
+
+        <ion-icon
+          name="cube-outline">
+
+        </ion-icon>
+
+        <ion-label>
+
+          Productos
+
+        </ion-label>
+
+      </ion-chip>
+<!-- STOCK BAJO -->
+<ion-chip
+
+  [outline]="!mostrarStockBajo"
+
+  color="danger"
+
+  (click)="toggleStockBajo()">
+
+  <ion-icon
+    name="warning-outline">
+
+  </ion-icon>
+
+  <ion-label>
+
+    Stock Bajo
+
+  </ion-label>
+
+</ion-chip>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- 🔥 FILTRO OPERACION -->
+    <!-- ===================================== -->
+
+    <div class="grupo-filtro-secundario">
+
+      <ion-segment
+
+        [(ngModel)]="tipoOperacion"
+
+        (ionChange)="aplicarFiltros()"
+
+        mode="ios">
+
+        <!-- TODOS -->
+        <ion-segment-button value="todos">
+
+          <ion-label>
+
+            Todos
 
           </ion-label>
 
+        </ion-segment-button>
+
+        <!-- VENTA -->
+        <ion-segment-button value="venta">
+
+          <ion-icon
+            name="cash-outline">
+
+          </ion-icon>
+
+          <ion-label>
+
+            Venta
+
+          </ion-label>
+
+        </ion-segment-button>
+
+        <!-- COMPRA -->
+        <ion-segment-button value="compra">
+
+          <ion-icon
+            name="cart-outline">
+
+          </ion-icon>
+
+          <ion-label>
+
+            Compra
+
+          </ion-label>
+
+        </ion-segment-button>
+
+      </ion-segment>
+
+    </div>
+
+  </div>
+
+</ion-header>
+
+<!-- ===================================== -->
+<!-- 🔥 CONTENT -->
+<!-- ===================================== -->
+
+<ion-content>
+
+  <!-- ===================================== -->
+  <!-- 📱 MOBILE -->
+  <!-- ===================================== -->
+
+  <div class="mobile-view">
+
+    <ion-list>
+
+      <ion-card
+
+        *ngFor="let producto of productosFiltrados"
+
+        class="producto-card"
+
+        [class.stock-bajo]="
+          producto.controlarStock &&
+          producto.cantidad <= producto.stock
+        ">
+
+        <ion-item lines="none">
+
+          <!-- IMG -->
+          <ion-avatar
+            slot="start"
+            class="producto-avatar">
+
+            <img
+
+              *ngIf="!producto.imagen1"
+
+              src="./assets/botella.png">
+
+            <img
+
+              *ngIf="producto.imagen1"
+
+              [src]="producto.imagen1">
+
+          </ion-avatar>
+
+          <!-- INFO -->
+          <ion-label class="producto-info">
+
+            <!-- NOMBRE -->
+            <h2>
+
+              {{ producto.nombre }}
+
+            </h2>
+
+            <!-- PRECIO -->
+            <p class="producto-precio">
+
+              {{ producto.precioVenta | currency }}
+
+            </p>
+
+            <!-- CODIGO -->
+            <p class="producto-extra">
+
+              Código:
+              {{ producto.codigoBarra || 'N/A' }}
+
+            </p>
+
+            <!-- ===================================== -->
+            <!-- 🔥 STOCK -->
+            <!-- ===================================== -->
+
+            <div
+
+              *ngIf="producto.controlarStock"
+
+              class="stock-mobile">
+
+              <!-- ACTUAL -->
+              <span class="badge-stock badge-actual">
+
+                Actual:
+                {{ producto.cantidad || 0 }}
+
+              </span>
+
+              <!-- STOCK -->
+              <span class="badge-stock badge-minimo">
+
+                Stock:
+                {{ producto.stock || 0 }}
+
+              </span>
+
+            </div>
+
+            <!-- ===================================== -->
+            <!-- 🔥 TIPO -->
+            <!-- ===================================== -->
+
+            <div class="tipo-area">
+
+              <!-- SERVICIO -->
+              <span
+
+                class="badge-servicio"
+
+                *ngIf="producto.esServicio">
+
+                🚿 Servicio
+
+              </span>
+
+              <!-- PRODUCTO -->
+              <span
+
+                class="badge-producto"
+
+                *ngIf="!producto.esServicio">
+
+                📦 Producto
+
+              </span>
+
+            </div>
+
+            <!-- ===================================== -->
+            <!-- 🔥 OPERACION -->
+            <!-- ===================================== -->
+
+            <div
+
+              *ngIf="!producto.esServicio"
+
+              class="flags-producto">
+
+              <span class="flag flag-operacion">
+
+                <ng-container
+                  [ngSwitch]="producto.tipoOperacion">
+
+                  <!-- COMPRA -->
+                  <span *ngSwitchCase="'COMPRA'">
+
+                    🛒 Compra
+
+                  </span>
+
+                  <!-- VENTA -->
+                  <span *ngSwitchCase="'VENTA'">
+
+                    💰 Venta
+
+                  </span>
+
+                  <!-- AMBAS -->
+                  <span *ngSwitchCase="'AMBAS'">
+
+                    🔄 Compra y Venta
+
+                  </span>
+
+                </ng-container>
+
+              </span>
+
+            </div>
+
+          </ion-label>
+
+          <!-- ===================================== -->
+          <!-- 🔥 ACCIONES -->
+          <!-- ===================================== -->
+
           <div class="acciones-mobile">
 
+            <!-- EDITAR -->
             <ion-button
+
               (click)="openModal(producto)"
+
               color="primary"
+
               size="small"
+
               fill="solid">
-              <ion-icon name="pencil-outline"></ion-icon>
+
+              <ion-icon
+                name="pencil-outline">
+
+              </ion-icon>
+
             </ion-button>
 
+            <!-- ELIMINAR -->
             <ion-button
+
               (click)="eliminarProducto(producto)"
+
               color="danger"
+
               size="small"
+
               fill="solid">
-              <ion-icon name="trash-outline"></ion-icon>
+
+              <ion-icon
+                name="trash-outline">
+
+              </ion-icon>
+
             </ion-button>
 
           </div>
@@ -111,91 +410,288 @@
       </ion-card>
 
     </ion-list>
+
   </div>
 
-  <!-- 💻 VISTA DESKTOP -->
+  <!-- ===================================== -->
+  <!-- 💻 DESKTOP -->
+  <!-- ===================================== -->
+
   <div class="desktop-view">
+
     <div class="tabla-wrapper">
 
       <ion-grid class="tabla-productos">
 
+        <!-- HEADER -->
         <ion-row class="header-row">
-          <ion-col size="1">Img</ion-col>
-          <ion-col size="3">Producto</ion-col>
-          <ion-col size="1.5">Precio</ion-col>
-          <ion-col size="2">CódigoBarra</ion-col>
-          <ion-col size="1">ITBIS</ion-col>
-          <ion-col size="1">Stock</ion-col>
-          <ion-col size="1.5">Tipo / Servicio</ion-col>
-          <ion-col size="1">Acciones</ion-col>
+
+          <ion-col size="1">
+
+            Img
+
+          </ion-col>
+
+          <ion-col size="3">
+
+            Producto
+
+          </ion-col>
+
+          <ion-col size="1.5">
+
+            Precio
+
+          </ion-col>
+
+          <ion-col size="2">
+
+            Código
+
+          </ion-col>
+
+          <ion-col size="1">
+
+            Actual
+
+          </ion-col>
+
+          <ion-col size="1">
+
+            Stock
+
+          </ion-col>
+
+          <ion-col size="1.5">
+
+            Tipo
+
+          </ion-col>
+
+          <ion-col size="1">
+
+            Acciones
+
+          </ion-col>
+
         </ion-row>
 
+        <!-- DATA -->
         <ion-row
-          *ngFor="let producto of productosFiltrados | slice:0:itemsToShow"
-          class="data-row">
 
-          <ion-col size="1" class="cell-center">
-            <img *ngIf="!producto.imagen1"
-                 src="./assets/botella.png"
-                 class="table-img">
+          *ngFor="let producto of productosFiltrados"
 
-            <img *ngIf="producto.imagen1"
-                 [src]="producto.imagen1"
-                 class="table-img">
+          class="data-row"
+
+          [class.stock-bajo]="
+            producto.controlarStock &&
+            producto.cantidad <= producto.stock
+          ">
+
+          <!-- IMG -->
+          <ion-col
+
+            size="1"
+
+            class="cell-center">
+
+            <img
+
+              *ngIf="!producto.imagen1"
+
+              src="./assets/botella.png"
+
+              class="table-img">
+
+            <img
+
+              *ngIf="producto.imagen1"
+
+              [src]="producto.imagen1"
+
+              class="table-img">
+
           </ion-col>
 
-          <ion-col size="3" class="nombre-cell">
+          <!-- NOMBRE -->
+          <ion-col
+
+            size="3"
+
+            class="nombre-cell">
+
             {{ producto.nombre }}
+
           </ion-col>
 
-          <ion-col size="1.5" class="precio-cell">
+          <!-- PRECIO -->
+          <ion-col
+
+            size="1.5"
+
+            class="precio-cell">
+
             {{ producto.precioVenta | currency }}
+
           </ion-col>
 
-          <ion-col size="2" class="codigo-cell">
+          <!-- CODIGO -->
+          <ion-col
+
+            size="2"
+
+            class="codigo-cell">
+
             {{ producto.codigoBarra || 'N/A' }}
+
           </ion-col>
 
-          <ion-col size="1" class="cell-center">
-            <span class="badge"
-                  [class.badge-success]="producto.itbis"
-                  [class.badge-danger]="!producto.itbis">
-              {{ producto.itbis ? 'Sí' : 'No' }}
-            </span>
+          <!-- STOCK ACTUAL -->
+          <ion-col
+
+            size="1"
+
+            class="codigo-cell">
+
+            {{ producto.controlarStock
+                ? (producto.cantidad || 0)
+                : '-' }}
+
           </ion-col>
 
-          <ion-col size="1" class="cell-center">
-            {{ producto.controlarStock ? (producto.cantidad || 0) : '-' }}
+          <!-- STOCK MINIMO -->
+          <ion-col
+
+            size="1"
+
+            class="codigo-cell">
+
+            {{ producto.controlarStock
+                ? (producto.stock || 0)
+                : '-' }}
+
           </ion-col>
 
-          <ion-col size="1.5" class="cell-center">
+          <!-- ===================================== -->
+          <!-- 🔥 TIPO -->
+          <!-- ===================================== -->
 
-            <span class="badge-servicio" *ngIf="producto.esServicio">
+          <ion-col
+
+            size="1.5"
+
+            class="tipo-col">
+
+            <!-- SERVICIO -->
+            <span
+
+              class="badge-servicio"
+
+              *ngIf="producto.esServicio">
+
               Servicio
+
             </span>
 
-            <span class="badge-producto" *ngIf="!producto.esServicio">
+            <!-- PRODUCTO -->
+            <span
+
+              class="badge-producto"
+
+              *ngIf="!producto.esServicio">
+
               Producto
+
             </span>
+
+            <!-- ===================================== -->
+            <!-- 🔥 OPERACION -->
+            <!-- ===================================== -->
+
+            <div
+
+              *ngIf="!producto.esServicio"
+
+              class="flags-producto">
+
+              <span class="flag flag-operacion">
+
+                <ng-container
+                  [ngSwitch]="producto.tipoOperacion">
+
+                  <!-- COMPRA -->
+                  <span *ngSwitchCase="'COMPRA'">
+
+                    🛒 Compra
+
+                  </span>
+
+                  <!-- VENTA -->
+                  <span *ngSwitchCase="'VENTA'">
+
+                    💰 Venta
+
+                  </span>
+
+                  <!-- AMBAS -->
+                  <span *ngSwitchCase="'AMBAS'">
+
+                    🔄 Compra y Venta
+
+                  </span>
+
+                </ng-container>
+
+              </span>
+
+            </div>
 
           </ion-col>
 
-          <ion-col size="1" class="acciones-cell">
+          <!-- ===================================== -->
+          <!-- 🔥 ACCIONES -->
+          <!-- ===================================== -->
 
+          <ion-col
+
+            size="1"
+
+            class="acciones-cell">
+
+            <!-- EDITAR -->
             <ion-button
+
               size="small"
+
               color="primary"
+
               fill="solid"
+
               (click)="openModal(producto)">
-              <ion-icon name="pencil-outline"></ion-icon>
+
+              <ion-icon
+                name="pencil-outline">
+
+              </ion-icon>
+
             </ion-button>
 
+            <!-- ELIMINAR -->
             <ion-button
+
               size="small"
+
               color="danger"
+
               fill="solid"
+
               (click)="eliminarProducto(producto)">
-              <ion-icon name="trash-outline"></ion-icon>
+
+              <ion-icon
+                name="trash-outline">
+
+              </ion-icon>
+
             </ion-button>
 
           </ion-col>
@@ -205,32 +701,21 @@
       </ion-grid>
 
     </div>
+
   </div>
+<ion-fab
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  class="fab-add-producto">
 
-  <!-- Infinite scroll -->
-  <ion-infinite-scroll
-    threshold="100px"
-    (ionInfinite)="loadMore($event)"
-    [disabled]="itemsToShow >= productosFiltrados.length">
+  <ion-fab-button
+    color="primary"
+     (click)="openModal(null)">
 
-    <ion-infinite-scroll-content
-      loadingSpinner="bubbles"
-      loadingText="Cargando más productos...">
-    </ion-infinite-scroll-content>
+    <ion-icon name="add-outline"></ion-icon>
 
-  </ion-infinite-scroll>
+  </ion-fab-button>
 
-  <!-- FAB -->
-  <ion-fab
-    (click)="openModal(null)"
-    vertical="bottom"
-    horizontal="end"
-    slot="fixed">
-
-    <ion-fab-button color="primary">
-      <ion-icon name="add-outline"></ion-icon>
-    </ion-fab-button>
-
-  </ion-fab>
-
+</ion-fab>
 </ion-content>

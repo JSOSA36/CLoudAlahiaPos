@@ -405,3 +405,46 @@ h3 {
   opacity: 1;
   border-color: #ffffff;
 }
+.custom-alert {
+  --backdrop-opacity: 0.4;
+
+  .alert-wrapper {
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .alert-head {
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .alert-message {
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 10px;
+  }
+
+  .alert-button-group {
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .btn-aceptar {
+    font-weight: 600;
+  }
+}
+
+/* 🎨 Colores por tipo */
+.custom-alert.success .alert-wrapper {
+  border-top: 4px solid #2dd36f; // verde
+}
+
+.custom-alert.warning .alert-wrapper {
+  border-top: 4px solid #ffc409; // amarillo
+}
+
+.custom-alert.danger .alert-wrapper {
+  border-top: 4px solid #eb445a; // rojo
+}

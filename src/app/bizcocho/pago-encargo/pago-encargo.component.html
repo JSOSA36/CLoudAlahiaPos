@@ -1,0 +1,223 @@
+<ion-content>
+
+  <!-- 🔵 HEADER -->
+  <div class="header">
+    💳 Registrar Pago
+  </div>
+
+  <!-- 📦 CONTENIDO -->
+  <div
+    class="content"
+    *ngIf="encargo">
+
+    <!-- 💰 INFO -->
+    <div class="info">
+
+      <h2>
+        RD$
+        {{ encargo.total | number:'1.2-2' }}
+      </h2>
+
+      <p>
+        <strong>
+          🧾 Abono previo:
+        </strong>
+
+        RD$
+        {{ encargo.abono | number:'1.2-2' }}
+      </p>
+
+      <p class="pendiente">
+
+        <strong>
+          ⛔ Pendiente:
+        </strong>
+
+        RD$
+        {{ pendiente | number:'1.2-2' }}
+      </p>
+
+      <!-- 🔥 ITBIS -->
+      <div
+        class="itbis-box"
+
+        *ngIf="
+          form.value.tipoComprobante !==
+          'Sin Comprobante'
+        ">
+
+        <p>
+
+          <strong>
+            🧾 ITBIS (18%)
+          </strong>
+
+          RD$
+          {{ itbis | number:'1.2-2' }}
+        </p>
+
+        <p class="total-fiscal">
+
+          <strong>
+            💰 Total Fiscal:
+          </strong>
+
+          RD$
+          {{ totalFiscal | number:'1.2-2' }}
+        </p>
+
+        <p class="pendiente-final">
+
+          <strong>
+            ⛔ Pendiente Final:
+          </strong>
+
+          RD$
+          {{ pendienteFiscal | number:'1.2-2' }}
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- 🔥 FORM -->
+    <form [formGroup]="form">
+
+      <!-- 💳 FORMA PAGO -->
+     <!-- 💳 FORMA PAGO -->
+<div class="campo">
+
+  <label>
+
+    Forma de Pago
+
+  </label>
+
+  <select
+    formControlName="formaPago">
+
+    <option
+
+      *ngFor="
+        let metodo of
+        metodosPago
+      "
+
+      [value]="
+        metodo.metodoPago
+      ">
+
+      {{ metodo.metodoPago }}
+
+    </option>
+
+  </select>
+
+</div>
+
+      <!-- 🔥 SOLO PAGO FINAL -->
+      <div *ngIf="esPagoFinal">
+
+        <!-- 🧾 COMPROBANTE -->
+        <div class="campo">
+
+          <label>
+            Tipo de Comprobante (e-CF)
+          </label>
+
+          <select
+            formControlName="tipoComprobante">
+
+            <option value="Sin Comprobante">
+              FACT
+            </option>
+
+            <option value="Consumidor Final">
+              Consumidor Final Electrónico
+            </option>
+
+            <option value="Credito Fiscal">
+              Crédito Fiscal Electronico
+            </option>
+
+          </select>
+
+        </div>
+
+        <!-- 🔥 SOLO CRÉDITO FISCAL -->
+        <div
+          class="row-fiscal"
+
+          *ngIf="
+            form.value.tipoComprobante ===
+            'Credito Fiscal'
+          ">
+
+          <!-- 🔥 RNC -->
+          <div class="campo campo-rnc">
+
+            <label>
+              RNC
+            </label>
+
+            <input
+              type="text"
+              formControlName="rnc"
+              placeholder="Ingrese RNC"
+              (keydown.enter)="consultarRnc()">
+
+          </div>
+
+          <!-- 🔥 EMPRESA -->
+          <div class="campo campo-empresa">
+
+            <label>
+              Nombre Empresa
+            </label>
+
+            <input
+              type="text"
+              readonly
+              formControlName="nombreEmpresa"
+              placeholder="Empresa encontrada">
+
+          </div>
+
+        </div>
+
+        <!-- 🔥 MENSAJE RNC -->
+        <div
+          *ngIf="mensajeRnc"
+          class="rnc-estado"
+          [ngClass]="estadoRnc">
+
+          {{ mensajeRnc }}
+
+        </div>
+
+      </div>
+
+    </form>
+
+    <!-- 🔥 BOTONES -->
+    <div class="acciones">
+
+      <button
+        class="btn volver"
+        (click)="cerrar()">
+
+        ← Volver
+      </button>
+
+      <button
+        class="btn confirmar"
+        (click)="confirmar()">
+
+        Confirmar Pago ✔
+      </button>
+
+    </div>
+
+  </div>
+
+</ion-content>

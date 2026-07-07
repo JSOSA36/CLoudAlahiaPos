@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastController, LoadingController } from '@ionic/angular';
+import { ToastController, LoadingController, ModalController} from '@ionic/angular';
 import { Ingresos } from '../models/ingresos.models';
 import { IngresosService } from 'src/app/servicios/ingresos.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { MetodoPagoCuentaService } from 'src/app/servicios/metodo-pago-cuenta.service';
 
 @Component({
   selector: 'app-ingresos-add',
@@ -13,7 +14,7 @@ export class IngresosAddComponent implements OnInit {
 
   ingreso: Ingresos = new Ingresos();
   cargando = false;
-
+metodosPago:any[] = [];
   categorias: string[] = [
     'Abono a Factura',
     'Pago de Contado',
@@ -36,14 +37,53 @@ export class IngresosAddComponent implements OnInit {
     private ingresoSrv: IngresosService,
     private parametro: ParametrosService,
     private toastCtrl: ToastController,
-    private loadingCtrl: LoadingController
-  ) {}
+    private loadingCtrl: LoadingController,
+    private modalCtrl: ModalController,
+    private metodoPagoCuentaService: MetodoPagoCuentaService
+  ) {
+    this.CargarMetodosPago();
+  }
 
   ngOnInit() {
     // ✅ Inicializar datos base
     this.inicializarIngreso();
   }
+cerrar() {
+  this.modalCtrl.dismiss();
+}
+CargarMetodosPago(): void {
 
+  this.metodoPagoCuentaService
+  .getByEmpresa(
+
+    this.parametro
+    .GetIdEmpresa()
+
+  )
+  .subscribe({
+
+    next:(resp:any[])=>{
+
+      this.metodosPago =
+
+        (resp || [])
+        .filter(
+
+          x => x.activo
+        );
+
+      console.log(
+        'METODOS:',
+        this.metodosPago
+      );
+    },
+
+    error:(err)=>{
+
+      console.error(err);
+    }
+  });
+}
   /** 🔹 Inicializa el modelo con valores por defecto */
   inicializarIngreso() {
     this.ingreso = new Ingresos();

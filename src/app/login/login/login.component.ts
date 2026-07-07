@@ -104,7 +104,7 @@ private async validarPoliticasAntesDeEntrar(): Promise<boolean> {
   await this.mostrarPoliticas();
 
   // 🔥 volver a revisar después de cerrar el modal
-  return localStorage.getItem('politicas_aceptadas') === 'true';
+  return this.parametros.PoliticasAceptadas ==true;
 }
 async mostrarPoliticas(): Promise<void> {
   const modal = await this.modalCtrl.create({
@@ -153,17 +153,17 @@ async login() {
     return;
   }
 
-  const aceptoPoliticas = await this.validarPoliticasAntesDeEntrar();
+  // const aceptoPoliticas = await this.validarPoliticasAntesDeEntrar();
 
-  if (!aceptoPoliticas) {
-    await this.mostrarMensaje(
-      'Políticas requeridas',
-      'Debes aceptar las políticas del servicio para continuar.',
-      'alert-circle-outline',
-      false
-    );
-    return;
-  }
+  // if (!aceptoPoliticas) {
+  //   await this.mostrarMensaje(
+  //     'Políticas requeridas',
+  //     'Debes aceptar las políticas del servicio para continuar.',
+  //     'alert-circle-outline',
+  //     false
+  //   );
+  //   return;
+  // }
 
   const loading = await this.loadingCtrl.create({
     message: 'Iniciando sesión...',
@@ -214,54 +214,59 @@ async login() {
         const modulos = resp?.modulos || [];
 
         // 🔔 ALERTA (MANDADA POR BACKEND)
-        if (resp?.alertaPlan) {
+        // if (resp?.alertaPlan) {
 
-          const alerta = resp.alertaPlan;
+        //   const alerta = resp.alertaPlan;
 
-          // 🔴 CRÍTICO = BLOQUEO
-          if (alerta.tipo === 'critico') {
+        //   // 🔴 CRÍTICO = BLOQUEO
+        //   if (alerta.tipo === 'critico') {
 
-            await loading.dismiss();
+        //     await loading.dismiss();
 
-            await this.mostrarMensaje(
-              'Servicio suspendido',
-              alerta.mensaje,
-              'alert-circle-outline',
-              false
-            );
+        //     await this.mostrarMensaje(
+        //       'Servicio suspendido',
+        //       alerta.mensaje,
+        //       'alert-circle-outline',
+        //       false
+        //     );
 
-            return; // ❌ NO entra
-          }
+        //     return; // ❌ NO entra
+        //   }
 
-          // 🟡 / 🔵 SOLO MOSTRAR
-          setTimeout(async () => {
+        //   // 🟡 / 🔵 SOLO MOSTRAR
+        //   setTimeout(async () => {
 
-            await this.mostrarMensaje(
-              alerta.tipo === 'advertencia'
-                ? 'Aviso importante'
-                : 'Recordatorio',
-              alerta.mensaje,
-              alerta.tipo === 'advertencia'
-                ? 'warning-outline'
-                : 'information-circle-outline',
-              false,
-              true
-            );
+        //     await this.mostrarMensaje(
+        //       alerta.tipo === 'advertencia'
+        //         ? 'Aviso importante'
+        //         : 'Recordatorio',
+        //       alerta.mensaje,
+        //       alerta.tipo === 'advertencia'
+        //         ? 'warning-outline'
+        //         : 'information-circle-outline',
+        //       false,
+        //       true
+        //     );
 
-          }, 500);
-        }
+        //   }, 500);
+        // }
 
         // 🔐 TOKEN
         if (resp?.token) {
           localStorage.setItem('token_sesion', resp.token);
         }
 
+        
         // 📦 PARAMETROS
         this.parametros.ApiPrint = empresa.apiPrint || '';
         this.parametros.IdEmpresa = empresa.idEmpresa || 0;
         this.parametros.NombreEmpresa = empresa.nombreComercial || '';
         this.parametros.nombrePlan = empresa.nombrePlan || '';
         this.parametros.puedeEliminarOrden = usuario.puedeEliminarOrden || false;
+        this.parametros.PuedeEliminarItemCarrito = usuario.puedeEliminarItemCarrito || false;
+        this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false; 
+
+
 
         localStorage.setItem('menu_modulos', JSON.stringify(modulos));
 
@@ -344,25 +349,56 @@ private redirigirSegunModulos(modulos: any[]) {
 
   const ids = modulos.map(m => m.moduloId);
 
-  // 🔹 Suponiendo:
-  // 1 = Dashboard
-  // 2 = Ordenes
-  // Ajusta según tus IDs reales
+  // 🍰 Bizcocho
+  const tieneBizcocho = ids.includes(28);
 
-  if (ids.includes(1)) {
-    this.router.navigateByUrl('/folder/Inbox', { replaceUrl: true });
+  // 📊 Dashboard
+  const tieneDashboard = ids.includes(1);
+
+  // 🛒 POS
+  const tienePos = ids.includes(22);
+
+  // 🔥 PRIORIDADES
+
+  // 1. Si tiene Dashboard, siempre entra ahí
+  if (tieneDashboard) {
+
+    this.router.navigateByUrl(
+      '/folder/Inbox',
+      { replaceUrl: true }
+    );
+
     return;
   }
 
-  if (ids.includes(2)) {
-    this.router.navigateByUrl('/Ordenes', { replaceUrl: true });
+  // 2. Si no tiene Dashboard pero tiene POS
+  if (tienePos) {
+
+    this.router.navigateByUrl(
+      '/pos',
+      { replaceUrl: true }
+    );
+
     return;
   }
 
-  // 🔥 fallback de seguridad
-  this.router.navigateByUrl('/Ordenes', { replaceUrl: true });
+  // 3. Si solo tiene Bizcocho
+  if (tieneBizcocho) {
+
+    this.router.navigateByUrl(
+      '/bizcocho',
+      { replaceUrl: true }
+    );
+
+    return;
+  }
+
+  // 🚫 Sin módulo conocido
+  this.router.navigateByUrl(
+    '/acceso-denegado',
+    { replaceUrl: true }
+  );
 }
-
   // ===============================
   // 📱 DEVICE ID (ESTABLE)
   // ===============================

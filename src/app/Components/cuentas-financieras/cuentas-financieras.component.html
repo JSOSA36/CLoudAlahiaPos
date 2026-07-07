@@ -1,0 +1,381 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+<ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      🏦 Cuentas Financieras
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        fill="clear"
+        (click)="NuevaCuenta()">
+
+        <ion-icon
+          slot="start"
+          name="add-outline">
+        </ion-icon>
+
+        Nueva
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- =====================================
+  🔥 DASHBOARD
+  ====================================== -->
+
+  <div class="top-dashboard">
+
+    <!-- TOTAL -->
+
+    <div class="dashboard-card total-card">
+
+      <div class="icon-box">
+
+        <ion-icon
+          name="wallet-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="info">
+
+        <span>
+          Balance General
+        </span>
+
+        <h2>
+
+          {{
+            totalGeneral
+            |
+            currency:'DOP'
+          }}
+
+        </h2>
+
+      </div>
+
+    </div>
+
+    <!-- TOTAL CUENTAS -->
+
+    <div class="dashboard-card">
+
+      <div class="icon-box azul">
+
+        <ion-icon
+          name="business-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="info">
+
+        <span>
+          Total Cuentas
+        </span>
+
+        <h2>
+          {{ cuentas.length }}
+        </h2>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================
+  🔥 SEARCH
+  ====================================== -->
+
+  <div class="search-box">
+
+    <ion-searchbar
+
+      placeholder="Buscar cuenta..."
+
+      [(ngModel)]="search"
+
+      (ionInput)="Filtrar()">
+
+    </ion-searchbar>
+
+  </div>
+
+  <!-- =====================================
+  🔥 LOADING
+  ====================================== -->
+
+  <div
+
+    class="loading-box"
+
+    *ngIf="cargando">
+
+    <ion-spinner
+      name="crescent">
+    </ion-spinner>
+
+    <p>
+      Cargando cuentas...
+    </p>
+
+  </div>
+
+  <!-- =====================================
+  🔥 GRID
+  ====================================== -->
+
+  <div
+
+    class="cuentas-grid"
+
+    *ngIf="!cargando">
+
+    <div
+
+      class="cuenta-card"
+
+      *ngFor="
+        let cuenta of
+        cuentasFiltradas
+      ">
+
+      <!-- =====================================
+      🔥 TOP
+      ====================================== -->
+
+      <div class="card-top">
+
+        <div
+
+          class="cuenta-icon"
+
+          [style.background]="
+            cuenta.color
+            ||
+            GetColorTipo(
+              cuenta.tipoCuenta
+            )
+          ">
+
+          <ion-icon
+
+            [name]="
+              cuenta.icono
+              ||
+              'wallet-outline'
+            ">
+          </ion-icon>
+
+        </div>
+
+        <div class="menu-actions">
+
+          <ion-button
+
+            fill="clear"
+
+            color="medium"
+
+            (click)="EditarCuenta(cuenta)">
+
+            <ion-icon
+              name="create-outline">
+            </ion-icon>
+
+          </ion-button>
+
+          <ion-button
+
+            fill="clear"
+
+            color="danger"
+
+            (click)="EliminarCuenta(cuenta)">
+
+            <ion-icon
+              name="trash-outline">
+            </ion-icon>
+
+          </ion-button>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+      🔥 INFO
+      ====================================== -->
+
+      <div class="card-info">
+
+        <h2>
+          {{ cuenta.nombre }}
+        </h2>
+
+        <span
+          class="tipo-badge">
+
+          {{ cuenta.tipoCuenta }}
+
+        </span>
+
+        <div
+
+          class="banco"
+
+          *ngIf="cuenta.banco">
+
+          🏦 {{ cuenta.banco }}
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+      🔥 BALANCE
+      ====================================== -->
+
+      <div class="balance-box">
+
+        <span>
+          Balance Actual
+        </span>
+
+        <h1>
+
+          {{
+            cuenta.balanceActual || 0
+            |
+            currency:'DOP'
+          }}
+
+        </h1>
+
+      </div>
+
+      <!-- =====================================
+      🔥 FOOTER
+      ====================================== -->
+
+      <div class="footer-info">
+
+        <div class="item">
+
+          <span>
+            Balance Inicial
+          </span>
+
+          <strong>
+
+            {{
+              cuenta.balanceInicial
+              |
+              currency:'DOP'
+            }}
+
+          </strong>
+
+        </div>
+
+        <div class="item">
+
+          <span>
+            Estado
+          </span>
+
+          <strong
+
+            [class.verde]="
+              cuenta.activa
+            "
+
+            [class.rojo]="
+              !cuenta.activa
+            ">
+
+            {{
+
+              cuenta.activa
+
+              ?
+
+              'ACTIVA'
+
+              :
+
+              'INACTIVA'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =====================================
+  🔥 EMPTY
+  ====================================== -->
+
+  <div
+
+    class="empty-box"
+
+    *ngIf="
+
+      !cargando
+
+      &&
+
+      cuentasFiltradas.length === 0
+    ">
+
+    <ion-icon
+      name="wallet-outline">
+    </ion-icon>
+
+    <h2>
+      No existen cuentas
+    </h2>
+
+    <p>
+
+      Crea tu primera cuenta
+      financiera para comenzar.
+
+    </p>
+
+    <ion-button
+      color="primary"
+      (click)="NuevaCuenta()">
+
+      <ion-icon
+        slot="start"
+        name="add-outline">
+      </ion-icon>
+
+      Nueva Cuenta
+
+    </ion-button>
+
+  </div>
+
+</ion-content>

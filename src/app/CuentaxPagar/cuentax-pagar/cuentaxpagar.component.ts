@@ -3,7 +3,9 @@ import { ModalController, ToastController, AlertController } from '@ionic/angula
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component';
-
+import {
+  MetodoPagoCuentaService
+} from 'src/app/servicios/metodo-pago-cuenta.service';
 @Component({
   selector: 'app-cuentax-pagar',
   templateUrl: './cuentaxpagar.component.html',
@@ -12,10 +14,13 @@ import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component'
 export class CuentaxPagarComponent implements OnInit {
   procesandoFactura = false;
 
+  modalPagoAbierto = false;
+campoPagoActual: 'pago1' | 'pago2' = 'pago1';
   @Input() IdFactPay!: number;
   @Input() TotalFactura!: number;
   @Input() Subtotal!: number;
   @Input() Itbis!: number;
+ 
   @Input() TipoOrden!: string;
 cambio: number = 0;
   _TipoComprobante: string = 'Consumo';
@@ -32,7 +37,11 @@ cambio: number = 0;
   _MostrarQR: boolean = false;
   qrData: string = '';
   _PagoMixto: boolean = false;
+/* =====================================
+🔥 VARIABLES
+===================================== */
 
+metodosPago:any[] = [];
   _ConAbonoCredito: boolean = false;
   _MontoAbonoCredito: number = 0;
   _FormaPagoAbonoCredito: string = '';
@@ -51,19 +60,62 @@ cambio: number = 0;
 
   _MontoPago1: number = 0;
   _PagosMixtos: any[] = [];
-  ImprimirFacturaCliente: boolean = true;
+  ImprimirFacturaCliente: boolean = false;
   _MetodoPago2: string = '';
   _MontoPago2: number = 0;
 
+
+MontoPago1 = 0;
+MontoPago2 = 0;
+
+
+
+totalPagado = 0;
+restante = 0;
+
+// 🔹 PAGO NORMALpuedeProcesar
+calcularPagoNormal() {
+
+  const recibido = this.EfectivoRecibido || this.TotalFactura;
+
+  this.cambio = recibido - this.TotalFactura;
+}
+
+// 🔥 PAGO MIXTO
+calcularPagoMixto() {
+  this.totalPagado =
+    (this.MontoPago1 || 0) +
+    (this.MontoPago2 || 0);
+
+  this.restante = this.TotalFactura - this.totalPagado;
+}
+
+// 🔒 VALIDACIÓN
+puedeProcesar(): boolean {
+
+  if (!this._PagoMixto) {
+
+    if (this._FormaPago === 'Efectivo') {
+      return true; // 🔥 NO obligar efectivo
+    }
+
+    return true;
+  }
+
+  return this.restante === 0;
+}
   constructor(
     private modalCtrl: ModalController,
     private _Parametro: ParametrosService,
     private toastCtrl: ToastController,
     private _ClientesService: ClienteService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private metodoPagoCuentaService: MetodoPagoCuentaService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+     this.CargarMetodosPago();
+  }
 
  calcularCambio() {
 
@@ -77,7 +129,43 @@ cambio: number = 0;
   }
 
 }
+/* =====================================
+🔥 CARGAR MÉTODOS
+===================================== */
 
+CargarMetodosPago(): void {
+
+  this.metodoPagoCuentaService
+  .getByEmpresa(
+
+    this._Parametro
+    .GetIdEmpresa()
+
+  )
+  .subscribe({
+
+    next:(resp:any[])=>{
+
+      this.metodosPago =
+
+        (resp || [])
+        .filter(
+
+          x => x.activo
+        );
+
+      console.log(
+        'METODOS:',
+        this.metodosPago
+      );
+    },
+
+    error:(err)=>{
+
+      console.error(err);
+    }
+  });
+}
   sumarEfectivo(monto: number) {
     this.EfectivoRecibido = monto;
     this.calcularCambio();
@@ -386,9 +474,35 @@ setMonto(valor: number) {
     await alert.present();
   }
 
-  seleccionarPago(pago: string) {
+ abrirMetodosPago(campo: 'pago1' | 'pago2') {
+  this.campoPagoActual = campo;
+  this.modalPagoAbierto = true;
+}
+
+seleccionarPago(pago: string) {
+
+  // 🔹 PAGO NORMAL
+  if (!this._PagoMixto) {
     this._FormaPago = pago;
   }
+
+  // 🔥 PAGO MIXTO
+  else {
+    if (this.campoPagoActual === 'pago1') {
+      this._MetodoPago1 = pago;
+    } else {
+      this._MetodoPago2 = pago;
+    }
+  }
+
+  this.modalPagoAbierto = false;
+
+  // 🔥 AUTOMÁTICO PARA APPS
+  if (pago === 'UberEats' || pago === 'PedidosYa') {
+    this.EfectivoRecibido = this.TotalFactura;
+    this.cambio = 0;
+  }
+}
 validarClienteAutomatico() {
 
   if (this._TipoFactura === 'Contado' && this._TipoComprobante === 'Consumo') {

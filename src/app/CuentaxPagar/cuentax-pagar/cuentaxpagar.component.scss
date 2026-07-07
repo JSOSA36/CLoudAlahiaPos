@@ -631,3 +631,63 @@ border:none;
 
   margin-top: 4px;
 }
+.header-dark {
+  background: #0f172a;
+  color: #fff;
+}
+
+.multi-pago {
+  margin-top: 10px;
+  padding: 10px;
+  background: #111827;
+  border-radius: 10px;
+}
+
+.resumen-pago {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.resumen-pago div {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.ok {
+  color: #22c55e;
+}
+
+.error {
+  color: #ef4444;
+}
+.uber-option {
+  color: #06C167; /* verde Uber Eats */
+  font-weight: 600;
+}
+
+.pedidosya-option {
+  color: #ef4444; /* rojo PedidosYa */
+  font-weight: 600;
+}
+.select-pago-modal .modal-wrapper {
+  width: 90% !important;
+  max-width: 500px !important;
+  height: 80% !important;
+  border-radius: 12px;
+}
+
+.select-pago-modal ion-content {
+  --background: #111827; /* oscuro pro */
+}
+
+.select-pago-modal ion-item {
+  --background: transparent;
+  color: #fff;
+}
+
+
+.modal-pago-grande ion-content {
+  --background: #111827;
+  color: #fff;
+}

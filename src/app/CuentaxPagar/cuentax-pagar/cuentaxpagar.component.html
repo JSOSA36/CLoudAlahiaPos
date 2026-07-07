@@ -1,215 +1,417 @@
+<!-- =====================================
+🔥 MÉTODO DE PAGO
+===================================== -->
+
+<ion-card-header color="warning">
+
+  <ion-card-title class="ion-text-center">
+
+    Método de Pago
+
+  </ion-card-title>
+
+</ion-card-header>
+
 <ion-card class="factura-card">
 
-  <!-- HEADER -->
-  <ion-card-header color="primary">
-    <ion-card-title class="ion-text-center">
-      Finalizar Documento
-    </ion-card-title>
-  </ion-card-header>
-
   <div class="factura-scroll">
+
     <ion-card-content>
 
-      <!-- ================= TIPO FACTURA ================= -->
-      <div class="grupo-opciones" *ngIf="_TipoDocumento === 'Factura'">
+      <!-- =====================================
+      🔥 TOGGLE MIXTO
+      ====================================== -->
 
-        <div class="titulo-opcion">Tipo Factura</div>
+      <ion-item lines="none">
 
-        <div class="opciones-grid">
+        <ion-checkbox
 
-          <button
-            class="opcion"
-            [class.activa]="_TipoFactura==='Contado'"
-            (click)="_TipoFactura='Contado'; validarClienteAutomatico()">
-            💵 Contado
-          </button>
+          slot="start"
 
-          <button
-            class="opcion"
-            [class.activa]="_TipoFactura==='Credito'"
-            (click)="_TipoFactura='Credito'; validarClienteAutomatico()">
-            🧾 Crédito
-          </button>
+          [(ngModel)]="_PagoMixto">
 
-        </div>
-      </div>
+        </ion-checkbox>
 
-      <!-- ================= TIPO COMPROBANTE ================= -->
-      <div class="grupo-opciones" *ngIf="_TipoDocumento === 'Factura'">
+        <ion-label>
 
-        <div class="titulo-opcion">Tipo de Comprobante</div>
+          Pago Mixto
 
-        <div class="opciones-grid">
+        </ion-label>
 
-          <button
-            class="opcion"
-            [class.activa]="_TipoComprobante==='Consumo'"
-            (click)="_TipoComprobante='Consumo'; validarClienteAutomatico()">
-            🧾 Consumo
-          </button>
+      </ion-item>
 
-          <button
-            class="opcion"
-            [class.activa]="_TipoComprobante==='CreditoFiscal'"
-            (click)="_TipoComprobante='CreditoFiscal'; validarClienteAutomatico()">
-            🏢 Crédito Fiscal
-          </button>
+      <!-- =====================================
+      🔥 PAGO NORMAL
+      ====================================== -->
 
-        </div>
-      </div>
-
-      <!-- ================= CLIENTE (CUANDO APLICA) ================= -->
-     <!-- ================= CLIENTE ================= -->
-
-<!-- 🔹 CRÉDITO FISCAL = buscar por RNC/Cédula -->
-<div
-  *ngIf="_TipoDocumento === 'Factura' && _TipoComprobante === 'CreditoFiscal'"
-  class="cliente-selector">
-
-  <ion-icon name="person-circle-outline"></ion-icon>
-
-  <div class="cliente-texto">
-
-    <div *ngIf="!_ClienteSeleccionado" class="rnc-search">
-      <ion-input
-        placeholder="RNC o Cédula"
-        [(ngModel)]="rncCliente"
-        (keyup.enter)="buscarCliente()">
-      </ion-input>
-
-      <ion-button color="success" size="small" (click)="buscarCliente()">
-        <ion-icon name="search-outline"></ion-icon>
-      </ion-button>
-    </div>
-
-    <div *ngIf="_ClienteSeleccionado" class="rnc-result">
-      <div class="cliente-info">
-        <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong><br>
-        <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
-      </div>
-
-      <ion-button fill="clear" color="danger" (click)="limpiarCliente()">
-        <ion-icon name="close-outline"></ion-icon>
-      </ion-button>
-    </div>
-
-  </div>
-</div>
-
-<!-- 🔹 CRÉDITO = seleccionar cliente por modal -->
-<div
-  *ngIf="_TipoDocumento === 'Factura' && _TipoFactura === 'Credito' && _TipoComprobante !== 'CreditoFiscal'"
-  class="cliente-selector"
-  (click)="abrirModalClientes()">
-
-  <ion-icon name="person-circle-outline"></ion-icon>
-
-  <div class="cliente-texto">
-    <div *ngIf="_ClienteSeleccionado">
-      <strong>{{ _ClienteSeleccionado.nombreComercial }}</strong><br>
-      <small>{{ _ClienteSeleccionado.cedulaRNC }}</small>
-    </div>
-
-    <div *ngIf="!_ClienteSeleccionado">
-      Seleccionar cliente
-    </div>
-  </div>
-</div>
-
-<!-- 🔹 CONTADO + CONSUMO = al portador -->
-<div
-  *ngIf="_TipoDocumento === 'Factura' 
-        && _TipoFactura === 'Contado' 
-        && _TipoComprobante === 'Consumo'"
-  class="cliente-selector">
-
-  <ion-icon name="person-outline"></ion-icon>
-
-  <div class="cliente-texto">
-    Cliente: <strong>Al portador</strong>
-  </div>
-</div>
-
-    
-
-      <!-- ================= FORMA DE PAGO ================= -->
-      <ng-container *ngIf="_TipoDocumento === 'Factura' && _TipoFactura==='Contado'">
+      <div *ngIf="!_PagoMixto">
 
         <ion-item>
-          <ion-label>Forma de Pago</ion-label>
 
-          <ion-select [(ngModel)]="_FormaPago">
+          <ion-label>
 
-            <ion-select-option value="Efectivo">💵 Efectivo</ion-select-option>
-            <ion-select-option value="Tarjeta">💳 Tarjeta</ion-select-option>
-            <ion-select-option value="Transferencia BHD">🏦 BHD</ion-select-option>
-            <ion-select-option value="Transferencia Popular">🏦 Popular</ion-select-option>
+            Forma de Pago
+
+          </ion-label>
+
+          <ion-select
+
+            [(ngModel)]="_FormaPago"
+
+            interface="modal"
+
+            cssClass="select-pago-modal">
+
+            <ion-select-option
+
+              *ngFor="
+                let metodo of
+                metodosPago
+              "
+
+              [value]="
+                metodo.metodoPago
+              ">
+
+              {{ metodo.metodoPago }}
+
+            </ion-select-option>
 
           </ion-select>
+
         </ion-item>
 
-        <!-- PAGO MIXTO -->
-        <ion-item lines="none">
-          <ion-checkbox slot="start" [(ngModel)]="_PagoMixto"></ion-checkbox>
-          <ion-label>Pago Mixto</ion-label>
-        </ion-item>
+        <!-- =====================================
+        🔥 EFECTIVO
+        ====================================== -->
 
-        <!-- EFECTIVO -->
-        <div *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
+        <div *ngIf="_FormaPago === 'EFECTIVO'">
 
           <ion-item>
-            <ion-label position="stacked">💵 Efectivo recibido</ion-label>
+
+            <ion-label position="stacked">
+
+              💵 Efectivo recibido
+
+            </ion-label>
+
             <ion-input
-  type="number"
-  [(ngModel)]="EfectivoRecibido"
-  (ionInput)="calcularCambio()"
-  (keyup.enter)="calcularCambio()"
-  (ionBlur)="calcularCambio()">
-</ion-input>
+
+              type="number"
+
+              [(ngModel)]="EfectivoRecibido"
+
+              (ionInput)="calcularPagoNormal()"
+
+              placeholder="Pago exacto">
+
+            </ion-input>
+
           </ion-item>
 
         </div>
 
-        <!-- IMPRIMIR -->
-        <ion-item lines="none">
-          <ion-checkbox slot="start" [(ngModel)]="ImprimirFacturaCliente"></ion-checkbox>
-          <ion-label>🧾 Imprimir factura al cliente</ion-label>
+      </div>
+
+      <!-- =====================================
+      🔥 PAGO MIXTO
+      ====================================== -->
+
+      <div
+        *ngIf="_PagoMixto"
+
+        class="multi-pago">
+
+        <!-- =====================================
+        🔥 MÉTODO 1
+        ====================================== -->
+
+        <ion-item>
+
+          <ion-label>
+
+            Método 1
+
+          </ion-label>
+
+          <ion-select
+
+            [(ngModel)]="_MetodoPago1"
+
+            interface="modal"
+
+            cssClass="select-pago-modal">
+
+            <ion-select-option
+
+              *ngFor="
+                let metodo of
+                metodosPago
+              "
+
+              [value]="
+                metodo.metodoPago
+              ">
+
+              {{ metodo.metodoPago }}
+
+            </ion-select-option>
+
+          </ion-select>
+
         </ion-item>
 
-      </ng-container>
+        <ion-item>
+
+          <ion-label position="stacked">
+
+            Monto 1
+
+          </ion-label>
+
+          <ion-input
+
+            type="number"
+
+            [(ngModel)]="MontoPago1"
+
+            (ionInput)="calcularPagoMixto()">
+
+          </ion-input>
+
+        </ion-item>
+
+        <!-- =====================================
+        🔥 MÉTODO 2
+        ====================================== -->
+
+        <ion-item>
+
+          <ion-label>
+
+            Método 2
+
+          </ion-label>
+
+          <ion-select
+
+            [(ngModel)]="_MetodoPago2"
+
+            interface="modal"
+
+            cssClass="select-pago-modal">
+
+            <ion-select-option
+
+              *ngFor="
+                let metodo of
+                metodosPago
+              "
+
+              [value]="
+                metodo.metodoPago
+              ">
+
+              {{ metodo.metodoPago }}
+
+            </ion-select-option>
+
+          </ion-select>
+
+        </ion-item>
+
+        <ion-item>
+
+          <ion-label position="stacked">
+
+            Monto 2
+
+          </ion-label>
+
+          <ion-input
+
+            type="number"
+
+            [(ngModel)]="MontoPago2"
+
+            (ionInput)="calcularPagoMixto()">
+
+          </ion-input>
+
+        </ion-item>
+
+        <!-- =====================================
+        🔥 RESUMEN
+        ====================================== -->
+
+        <div class="resumen-pago">
+
+          <div>
+
+            <span>
+
+              Total ingresado:
+
+            </span>
+
+            <strong>
+
+              {{
+                totalPagado
+                | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+          <div>
+
+            <span>
+
+              Restante:
+
+            </span>
+
+            <strong
+
+              [class.ok]="
+                restante === 0
+              "
+
+              [class.error]="
+                restante !== 0
+              ">
+
+              {{
+                restante
+                | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
 
     </ion-card-content>
+
   </div>
+
 </ion-card>
 
-<!-- ================= FOOTER ================= -->
+<!-- =====================================
+🔥 FOOTER
+===================================== -->
+
 <ion-footer class="factura-footer">
-<div class="cambio-box" *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
-  
-  
 
-</div>
   <div class="total-footer">
-    <div class="total-label">TOTAL A PAGAR</div>
-    <div class="total-value">
-      RD$ {{ TotalFactura | number:'1.2-2' }}
+
+    <div class="total-label">
+
+      TOTAL A PAGAR
+
     </div>
+
+    <div class="total-value">
+
+      RD$
+      {{
+        TotalFactura
+        | number:'1.2-2'
+      }}
+
+    </div>
+
   </div>
-<div class="cambio-box" *ngIf="_FormaPago === 'Efectivo' && !_PagoMixto">
 
-  <div class="cambio-label">CAMBIO</div>
+  <!-- =====================================
+  🔥 CAMBIO
+  ====================================== -->
 
-  <div class="cambio-valor">
-    RD$ {{ cambio | number:'1.2-2' }}
+  <div
+
+    class="cambio-box"
+
+    *ngIf="
+      _FormaPago === 'EFECTIVO'
+      &&
+      !_PagoMixto
+    ">
+
+    <div class="cambio-label">
+
+      CAMBIO
+
+    </div>
+
+    <div class="cambio-valor">
+
+      RD$
+      {{
+        cambio
+        | number:'1.2-2'
+      }}
+
+    </div>
+
   </div>
 
-</div>
-  <ion-button expand="block" color="success" (click)="CloseModal()">
-    Procesar
+  <!-- =====================================
+  🔥 IMPRIMIR
+  ====================================== -->
+
+  <ion-item lines="none">
+
+    <ion-checkbox
+
+      slot="start"
+
+      [(ngModel)]="
+        ImprimirFacturaCliente
+      ">
+
+    </ion-checkbox>
+
+    <ion-label>
+
+      🧾 Imprimir factura cliente
+
+    </ion-label>
+
+  </ion-item>
+
+  <!-- =====================================
+  🔥 BOTÓN
+  ====================================== -->
+
+  <ion-button
+
+    expand="block"
+
+    color="success"
+
+    (click)="CloseModal()"
+
+    [disabled]="!puedeProcesar()">
+
+    Procesar Pago
+
   </ion-button>
 
-  <ion-button expand="block" fill="outline" (click)="CerrarModal()">
+  <ion-button
+
+    expand="block"
+
+    fill="outline"
+
+    (click)="CerrarModal()">
+
     Cancelar
+
   </ion-button>
 
 </ion-footer>

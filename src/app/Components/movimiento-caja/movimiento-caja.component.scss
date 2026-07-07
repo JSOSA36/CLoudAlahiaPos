@@ -1,0 +1,341 @@
+.movimiento-wrapper{
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  min-height:100%;
+
+  padding:24px;
+
+  background:#f4f7fb;
+}
+
+/* =====================================
+🔥 CARD
+===================================== */
+
+.movimiento-card{
+
+  width:100%;
+
+  max-width:700px;
+
+  background:#fff;
+
+  border-radius:28px;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+  border:1px solid #edf1f7;
+}
+
+/* =====================================
+🔥 HEADER
+===================================== */
+
+.header{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:18px;
+
+  padding:28px;
+
+  color:#fff;
+}
+
+.header-entrada{
+
+  background:linear-gradient(
+    135deg,
+    #16a34a,
+    #22c55e
+  );
+}
+
+.header-salida{
+
+  background:linear-gradient(
+    135deg,
+    #dc2626,
+    #ef4444
+  );
+}
+
+/* =====================================
+🔥 ICON
+===================================== */
+
+.icon-box{
+
+  width:70px;
+
+  height:70px;
+
+  min-width:70px;
+
+  border-radius:20px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  background:rgba(255,255,255,.18);
+
+  backdrop-filter:blur(10px);
+}
+
+.icon-box ion-icon{
+
+  font-size:38px;
+
+  color:#fff;
+}
+
+/* =====================================
+🔥 TEXTOS
+===================================== */
+
+.header-info h2{
+
+  margin:0;
+
+  font-size:30px;
+
+  font-weight:900;
+
+  letter-spacing:.3px;
+}
+
+.header-info p{
+
+  margin-top:6px;
+
+  opacity:.9;
+
+  font-size:15px;
+}
+
+/* =====================================
+🔥 BALANCE
+===================================== */
+
+.balance-box{
+
+  margin:24px;
+
+  padding:18px 22px;
+
+  border-radius:18px;
+
+  background:#f8fafc;
+
+  border:1px solid #e5e7eb;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+}
+
+.balance-box span{
+
+  font-size:15px;
+
+  color:#64748b;
+
+  font-weight:600;
+}
+
+.balance-box strong{
+
+  font-size:28px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 FORM
+===================================== */
+
+.form-grid{
+
+  padding:0 24px 10px;
+}
+
+/* =====================================
+🔥 INPUTS
+===================================== */
+
+.custom-item{
+
+  --background:#fff;
+
+  --border-color:#e5e7eb;
+
+  --border-radius:16px;
+
+  --padding-start:16px;
+
+  --padding-end:16px;
+
+  margin-bottom:18px;
+
+  border:1px solid #e5e7eb;
+
+  border-radius:16px;
+
+  transition:.2s;
+}
+
+.custom-item.item-has-focus{
+
+  border-color:#2563eb;
+
+  box-shadow:
+    0 0 0 4px rgba(37,99,235,.12);
+}
+
+.custom-item ion-label{
+
+  font-weight:700;
+
+  color:#475569;
+
+  margin-bottom:8px;
+}
+
+.custom-item ion-input,
+.custom-item ion-textarea{
+
+  font-size:17px;
+
+  font-weight:600;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 ALERTA
+===================================== */
+
+.alerta-error{
+
+  margin:0 24px;
+
+  margin-top:8px;
+
+  padding:16px;
+
+  border-radius:14px;
+
+  background:#fef2f2;
+
+  color:#dc2626;
+
+  border:1px solid #fecaca;
+
+  font-weight:700;
+
+  font-size:14px;
+}
+
+/* =====================================
+🔥 BOTONES
+===================================== */
+
+.acciones{
+
+  display:flex;
+
+  justify-content:flex-end;
+
+  gap:14px;
+
+  padding:24px;
+
+  border-top:1px solid #f1f5f9;
+
+  background:#fafcff;
+}
+
+.acciones ion-button{
+
+  height:52px;
+
+  font-weight:800;
+
+  letter-spacing:.4px;
+
+  --border-radius:14px;
+
+  min-width:160px;
+}
+
+/* =====================================
+📱 MOBILE
+===================================== */
+
+@media(max-width:768px){
+
+  .movimiento-wrapper{
+
+    padding:12px;
+  }
+
+  .movimiento-card{
+
+    border-radius:22px;
+  }
+
+  .header{
+
+    padding:22px;
+
+    flex-direction:column;
+
+    text-align:center;
+  }
+
+  .header-info h2{
+
+    font-size:25px;
+  }
+
+  .balance-box{
+
+    flex-direction:column;
+
+    gap:8px;
+
+    text-align:center;
+  }
+
+  .balance-box strong{
+
+    font-size:24px;
+  }
+
+  .acciones{
+
+    flex-direction:column;
+  }
+
+  .acciones ion-button{
+
+    width:100%;
+  }
+}

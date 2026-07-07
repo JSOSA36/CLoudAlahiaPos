@@ -1,0 +1,947 @@
+/* =====================================
+🔥 ION CONTENT
+===================================== */
+
+ion-content{
+
+  --background:#f4f7fb;
+
+  --padding-top:0;
+
+  --padding-bottom:0;
+}
+
+/* =====================================
+🔥 ROOT
+===================================== */
+
+.cierre-layout{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:12px;
+
+  padding:10px;
+
+  min-height:100%;
+}
+
+/* =====================================
+🔥 GRID TOP
+===================================== */
+
+.top-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1fr
+    .9fr;
+
+  gap:10px;
+
+  align-items:start;
+}
+
+/* =====================================
+🔥 GRID CONTEO
+===================================== */
+
+.conteo-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1fr
+    .8fr;
+
+  gap:10px;
+
+  align-items:start;
+}
+
+/* =====================================
+🔥 CARD
+===================================== */
+
+.card{
+
+  background:#ffffff;
+
+  border-radius:16px;
+
+  padding:10px 12px;
+
+  border:1px solid #dbeafe;
+
+  box-shadow:
+    0 4px 12px rgba(37,99,235,.05);
+
+  overflow:hidden;
+
+  position:relative;
+}
+
+/* =====================================
+🔥 TOP BORDER
+===================================== */
+
+.card::before{
+
+  content:'';
+
+  position:absolute;
+
+  top:0;
+
+  left:0;
+
+  width:100%;
+
+  height:3px;
+
+  background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #facc15
+  );
+}
+
+/* =====================================
+🔥 HEADER
+===================================== */
+
+.card-header{
+
+  margin-bottom:6px;
+}
+
+.card-header h2{
+
+  margin:0;
+
+  font-size:15px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 LINE
+===================================== */
+
+.line{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  min-height:28px;
+
+  padding:4px 0;
+
+  border-bottom:1px dashed #e2e8f0;
+
+  font-size:13px;
+}
+
+.line span{
+
+  color:#334155;
+
+  font-weight:600;
+}
+
+.line strong{
+
+  font-size:13px;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 TOTAL
+===================================== */
+
+.total{
+
+  margin-top:4px;
+
+  padding-top:8px;
+
+  border-top:1px solid #cbd5e1;
+}
+
+/* =====================================
+🔥 COLORS
+===================================== */
+
+.verde{
+
+  color:#059669;
+}
+
+.azul{
+
+  color:#2563eb;
+}
+
+.rojo{
+
+  color:#dc2626;
+}
+
+.morado{
+
+  color:#7c3aed;
+}
+
+.naranja{
+
+  color:#ea580c;
+}
+
+/* =====================================
+🔥 RESULTADO
+===================================== */
+
+.resultado-card{
+
+  display:grid;
+
+  grid-template-columns:1fr;
+
+  gap:8px;
+}
+
+.resultado-item{
+
+  background:#ffffff;
+
+  border-radius:14px;
+
+  padding:10px;
+
+  border:1px solid #dbeafe;
+
+  text-align:center;
+}
+
+.resultado-item span{
+
+  display:block;
+
+  margin-bottom:4px;
+
+  font-size:11px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+.resultado-item strong{
+
+  font-size:20px;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 DENOM ROW
+===================================== */
+
+.denom-row{
+
+  display:grid;
+
+  grid-template-columns:
+    70px
+    80px
+    1fr;
+
+  align-items:center;
+
+  gap:6px;
+
+  min-height:36px;
+
+  padding:3px 0;
+
+  border-bottom:1px solid #edf2f7;
+}
+
+.denom-row span{
+
+  font-size:12px;
+
+  font-weight:800;
+
+  color:#1e293b;
+}
+
+.denom-row strong{
+
+  text-align:right;
+
+  font-size:12px;
+
+  font-weight:900;
+
+  color:#0f172a;
+}
+
+/* =====================================
+🔥 INPUT
+===================================== */
+
+ion-input{
+
+  --background:#ffffff;
+
+  --border-radius:10px;
+
+  --padding-start:6px;
+
+  --padding-end:6px;
+
+  min-height:34px;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  text-align:center;
+
+  border:1px solid #dbeafe;
+
+  border-radius:10px;
+}
+
+/* =====================================
+🔥 SUBTOTAL
+===================================== */
+
+.subtotal-box{
+
+  margin-top:8px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  color:#ffffff;
+
+  border-radius:12px;
+
+  padding:10px;
+
+  font-size:13px;
+
+  font-weight:900;
+}
+
+.subtotal-box strong{
+
+  color:#facc15 !important;
+
+  font-size:15px;
+}
+
+/* =====================================
+🔥 OBSERVACION
+===================================== */
+
+.observacion-card{
+
+  display:flex;
+
+  flex-direction:column;
+
+  height:100%;
+}
+
+/* =====================================
+🔥 TEXTAREA
+===================================== */
+
+ion-textarea{
+
+  --background:#ffffff;
+
+  --border-radius:12px;
+
+  --padding-top:8px;
+
+  --padding-bottom:8px;
+
+  --padding-start:8px;
+
+  --padding-end:8px;
+
+  border:1px solid #dbeafe;
+
+  border-radius:12px;
+
+  font-size:13px;
+
+  min-height:110px;
+}
+
+/* =====================================
+🔥 ACCIONES
+===================================== */
+
+.acciones{
+
+  display:flex;
+
+  gap:8px;
+
+  margin-top:10px;
+}
+
+.acciones ion-button{
+
+  flex:1;
+
+  height:40px;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  --border-radius:12px;
+}
+
+/* =====================================
+🔥 RESPONSIVE
+===================================== */
+
+@media(max-width:900px){
+
+  .top-grid,
+  .conteo-grid{
+
+    grid-template-columns:1fr;
+  }
+
+  .acciones{
+
+    flex-direction:column;
+  }
+
+  .acciones ion-button{
+
+    width:100%;
+  }
+}
+/* =====================================
+🔥 CARD
+===================================== */
+
+.card{
+
+  background:#ffffff;
+
+  border-radius:18px;
+
+  padding:10px 12px;
+
+  border:2px solid #facc15;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,.06);
+
+  overflow:hidden;
+
+  position:relative;
+
+  transition:.2s;
+}
+
+.card:hover{
+
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 10px 22px rgba(37,99,235,.12);
+}
+
+/* =====================================
+🔥 HEADER CARD
+===================================== */
+
+.card-header{
+
+  margin:
+  -10px
+  -12px
+  10px
+  -12px;
+
+  padding:
+    10px
+    14px;
+
+  background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  border-bottom:
+    2px solid #facc15;
+}
+
+.card-header h2{
+
+  margin:0;
+
+  font-size:15px;
+
+  font-weight:900;
+
+  color:#ffffff;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+
+  letter-spacing:.2px;
+}
+
+/* =====================================
+🔥 RESULTADO CARD
+===================================== */
+
+.resultado-item{
+
+  background:
+  linear-gradient(
+    180deg,
+    #ffffff,
+    #f8fbff
+  );
+
+  border-radius:16px;
+
+  padding:14px;
+
+  border:2px solid #facc15;
+
+  box-shadow:
+    0 4px 12px rgba(37,99,235,.06);
+
+  text-align:center;
+}
+
+.resultado-item span{
+
+  display:block;
+
+  margin-bottom:5px;
+
+  font-size:11px;
+
+  color:#64748b;
+
+  font-weight:700;
+}
+
+.resultado-item strong{
+
+  font-size:22px;
+
+  font-weight:900;
+}
+
+/* =====================================
+🔥 SUBTOTAL
+===================================== */
+
+.subtotal-box{
+
+  margin-top:10px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  color:#ffffff;
+
+  border-radius:12px;
+
+  padding:10px 12px;
+
+  font-size:13px;
+
+  font-weight:900;
+
+  border:2px solid #facc15;
+}
+
+.subtotal-box strong{
+
+  color:#facc15 !important;
+
+  font-size:15px;
+}
+
+/* =====================================
+🔥 INPUT
+===================================== */
+
+ion-input{
+
+  --background:#ffffff;
+
+  --border-radius:10px;
+
+  min-height:34px;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  text-align:center;
+
+  border:2px solid #cbd5e1;
+
+  border-radius:10px;
+
+  transition:.2s;
+}
+
+ion-input:focus-within{
+
+  border:2px solid #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37,99,235,.12);
+}
+
+/* =====================================
+🔥 TEXTAREA
+===================================== */
+
+ion-textarea{
+
+  --background:#ffffff;
+
+  border:2px solid #cbd5e1;
+
+  border-radius:12px;
+
+  font-size:13px;
+
+  min-height:110px;
+}
+
+/* =====================================
+🔥 BOTONES
+===================================== */
+
+.acciones{
+
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:10px;
+
+  margin-top:14px;
+
+  width:100%;
+}
+.acciones ion-button{
+
+  width:100%;
+
+  height:42px;
+
+  font-size:13px;
+
+  font-weight:900;
+
+  --border-radius:12px;
+
+  margin:0;
+}
+
+/* =====================================
+🔥 CANCELAR
+===================================== */
+
+.acciones ion-button[color="medium"]{
+
+  --border-color:#cbd5e1;
+
+  --color:#475569;
+}
+
+/* =====================================
+🔥 CERRAR CAJA
+===================================== */
+
+.acciones ion-button[color="primary"]{
+
+  --background:
+  linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  --color:#ffffff;
+
+  --box-shadow:
+    0 6px 18px rgba(37,99,235,.25);
+}
+.acciones ion-button::part(native){
+
+  width:100%;
+}
+.alerta-diferencia{
+
+  margin-top:16px;
+
+  background:#fef2f2;
+
+  border:1px solid #fecaca;
+
+  color:#b91c1c;
+
+  padding:14px;
+
+  border-radius:14px;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  line-height:1.5;
+}
+/* =========================================
+🔥 EMPTY STATE
+========================================= */
+
+.empty-state{
+
+  height: calc(100vh - 80px);
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  padding:24px;
+}
+
+.empty-card{
+
+  width:100%;
+
+  max-width:500px;
+
+  background:#ffffff;
+
+  border-radius:28px;
+
+  padding:40px 30px;
+
+  text-align:center;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+  border:2px solid #e5e7eb;
+
+  animation:fadeIn .25s ease;
+}
+
+.empty-icon{
+
+  width:110px;
+
+  height:110px;
+
+  margin:0 auto 20px auto;
+
+  border-radius:50%;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  background:linear-gradient(
+    135deg,
+    #3b82f6,
+    #1d4ed8
+  );
+
+  box-shadow:
+    0 10px 25px rgba(59,130,246,.35);
+
+  ion-icon{
+
+    font-size:52px;
+
+    color:#fff;
+  }
+}
+
+.empty-title{
+
+  font-size:32px;
+
+  font-weight:800;
+
+  color:#111827;
+
+  margin-bottom:12px;
+}
+
+.empty-text{
+
+  font-size:17px;
+
+  line-height:1.6;
+
+  color:#6b7280;
+
+  margin-bottom:30px;
+}
+
+.empty-actions{
+
+  display:flex;
+
+  justify-content:center;
+
+  gap:12px;
+
+  flex-wrap:wrap;
+}
+
+.btn-abrir{
+
+  --background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+
+  --border-radius:16px;
+
+  height:52px;
+
+  font-size:16px;
+
+  font-weight:700;
+
+  min-width:220px;
+
+  text-transform:none;
+
+  box-shadow:
+    0 8px 20px rgba(37,99,235,.30);
+}
+
+.btn-volver{
+
+  --border-radius:16px;
+
+  height:52px;
+
+  font-size:16px;
+
+  font-weight:700;
+
+  min-width:180px;
+
+  text-transform:none;
+}
+
+/* =========================================
+🔥 LOADING
+========================================= */
+
+.loading-box{
+
+  height: calc(100vh - 80px);
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:16px;
+
+  color:#64748b;
+}
+
+.loading-box ion-spinner{
+
+  transform:scale(1.5);
+}
+
+/* =========================================
+🔥 ANIMACION
+========================================= */
+
+@keyframes fadeIn{
+
+  from{
+
+    opacity:0;
+
+    transform:
+      translateY(10px)
+      scale(.98);
+  }
+
+  to{
+
+    opacity:1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}

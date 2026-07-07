@@ -6,4 +6,5 @@ export class categorias
     descripcion:string="";
     tipo:string="";
     isActiva:boolean=false;
+  tipoOperacion: string = 'AMBAS';
 }

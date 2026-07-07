@@ -17,7 +17,29 @@
       (ionInput)="buscarCliente()">
     </ion-input>
   </ion-item>
+<ion-item
+  *ngIf="
+    nombreCliente.trim() !== ''
+    &&
+    !cargando
+    &&
+    clientesEncontrados.length === 0">
 
+  <ion-label position="floating">
+
+    Teléfono
+
+  </ion-label>
+
+  <ion-input
+
+    type="tel"
+
+    [(ngModel)]="telefonoCliente">
+
+  </ion-input>
+
+</ion-item>
   <!-- LOADER -->
   <ion-spinner 
     *ngIf="cargando" 
@@ -73,7 +95,7 @@
       color="success" 
       shape="round" 
       (click)="crearCliente()">
-      Crear Cliente "{{ nombreCliente }}"
+      Guardar Cliente "{{ nombreCliente }}"
     </ion-button>
 
   </div>

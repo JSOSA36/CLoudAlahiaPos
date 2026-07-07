@@ -1,9 +1,8 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title class="ion-text-center">Reporte de Comisiones</ion-title>
-     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;" ></ion-menu-button>
-
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -11,95 +10,108 @@
 <ion-content class="ion-padding">
 
   <!-- FILTRO DE FECHAS -->
-  
-
-  <!-- RESUMEN POR FORMA DE PAGO -->
   <ion-card>
     <ion-card-header color="primary">
-      <ion-card-title class="ion-text-center"><strong>Filtre por Fechas</strong> </ion-card-title>
-       </ion-card-header>
-      <ion-item color="primary">
-    <ion-label>Desde</ion-label>
-    <ion-datetime-button datetime="iniciocomisiones">
-       <span slot="date-target">
-      {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
-    </span>
-    </ion-datetime-button>
-  </ion-item>
-  <ion-modal [keepContentsMounted]="true">
-    <ng-template>
-      <ion-datetime id="iniciocomisiones" presentation="date"
-       [(ngModel)]="fechaInicio"></ion-datetime>
-    </ng-template>
-  </ion-modal>
+      <ion-card-title class="ion-text-center">
+        <strong>Filtre por Fechas</strong>
+      </ion-card-title>
+    </ion-card-header>
 
-  <!-- Fecha fin -->
-  <ion-item color="primary">
-    <ion-label>Hasta</ion-label>
-    <ion-datetime-button datetime="fincomisiones" >
-       <span slot="date-target">
-      {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
-    </span>
-    </ion-datetime-button>
-  </ion-item>
-  <ion-modal [keepContentsMounted]="true">
-    <ng-template>
-      <ion-datetime id="fincomisiones" presentation="date"
-       [(ngModel)]="fechaFin"></ion-datetime>
-    </ng-template>
-  </ion-modal>
-<ion-button (click)="CargarCierre()" shape="round" color="warning" expand="block" >
-    <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
-    <p style="color: black;">Buscar</p>
-  </ion-button>
-   
-    <ion-card-content>
+    <!-- Fecha inicio -->
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="iniciocomisiones">
+        <span slot="date-target">
+          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
 
- <ion-card 
-  *ngFor="let iten of ListadoCimisiones"
-  class="card-lavador">
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="iniciocomisiones" presentation="date"
+          [(ngModel)]="fechaInicio">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
 
-  <!-- HEADER -->
-  <div class="header-lavador">
-    {{ iten.empleados }}
-  </div>
+    <!-- Fecha fin -->
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="fincomisiones">
+        <span slot="date-target">
+          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
 
-  <!-- BODY -->
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="fincomisiones" presentation="date"
+          [(ngModel)]="fechaFin">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <!-- BOTÓN -->
+    <ion-button (click)="CargarCierre()" shape="round" color="warning" expand="block">
+      <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
+      <p style="color: black;">Buscar</p>
+    </ion-button>
+
+  </ion-card>
+
+  <!-- 🔥 LISTA DE COMISIONES EN UN SOLO CARD -->
+ <!-- 🔥 LISTA DE COMISIONES -->
+<ion-card *ngIf="ListadoCimisiones.length > 0">
+
+  <ion-card-header>
+    <ion-card-title class="ion-text-center">
+      Comisiones por Empleado
+    </ion-card-title>
+  </ion-card-header>
+
   <ion-card-content>
 
-    <div class="fila">
-      <span class="label verde">Comisiones</span>
-      <span class="valor">{{ iten.totalComisiones | currency }}</span>
-    </div>
+    <div *ngFor="let item of ListadoCimisiones" class="card-empleado">
 
-    <div class="fila">
-      <span class="label rojo">Consumo</span>
-      <span class="valor">- {{ iten.totalConsumo | currency }}</span>
-    </div>
+      <!-- 👤 NOMBRE -->
+      <div class="nombre">
+        {{ item.empleados }}
+      </div>
 
-    <div class="fila neto">
-      <span class="label azul">Neto a Pagar</span>
-      <span class="valor netoValor">
-        {{ iten.netoPagar | currency }}
-      </span>
+      <!-- 💰 DETALLES -->
+      <div class="detalle">
+        <span>Comisión:</span>
+        <strong>{{ item.totalComisiones | currency }}</strong>
+      </div>
+
+      <div class="detalle consumo">
+        <span>Consumo:</span>
+        <strong>{{ item.totalConsumo | currency }}</strong>
+      </div>
+
+      <div class="detalle neto">
+        <span>Neto a pagar:</span>
+        <strong>{{ item.netoPagar | currency }}</strong>
+      </div>
+
     </div>
 
   </ion-card-content>
 
 </ion-card>
 
-</ion-card-content>
-  </ion-card>
-
   <!-- TOTAL GENERAL -->
   <ion-card color="light">
     <ion-card-header>
       <ion-card-title>Total General</ion-card-title>
     </ion-card-header>
+
     <ion-card-content>
       <h2 class="ion-text-end ion-padding">
         <strong style="font-size: 1.4rem; color: var(--ion-color-primary);">
-         {{this.TotalGenetal| currency }}
+          {{ TotalGenetal | currency }}
         </strong>
       </h2>
     </ion-card-content>
