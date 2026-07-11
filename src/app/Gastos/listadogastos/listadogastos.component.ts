@@ -85,7 +85,9 @@ export class ListadogastosComponent implements OnInit {
     this.gastosFiltrados = this.gastosFiltrados.filter(g => {
       return (
         (g.tipoGasto && g.tipoGasto.toLowerCase().includes(term)) ||
+        (g.formaPago && g.formaPago.toLowerCase().includes(term)) ||
         (g.orien && g.orien.toLowerCase().includes(term)) ||
+        (g.referencia && g.referencia.toLowerCase().includes(term)) ||
         (g.detalle && g.detalle.toLowerCase().includes(term)) ||
         (g.monto && g.monto.toString().includes(term)) ||
         (g.fechaInseccion && g.fechaInseccion.split('T')[0].includes(term))

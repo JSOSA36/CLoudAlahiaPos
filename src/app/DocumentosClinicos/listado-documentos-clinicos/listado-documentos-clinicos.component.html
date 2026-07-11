@@ -1,0 +1,251 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">
+      Documentos Clínicos
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center">
+        <strong>Filtros</strong>
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-item>
+      <ion-label position="stacked">Cliente</ion-label>
+      <ion-select
+        [(ngModel)]="filtroClienteId"
+        interface="popover"
+        placeholder="Todos los clientes">
+
+        <ion-select-option [value]="0">
+          Todos
+        </ion-select-option>
+
+        <ion-select-option
+          *ngFor="let c of clientes"
+          [value]="c.idCliente">
+
+          {{ c.nombreComercial }}
+
+        </ion-select-option>
+
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Tipo de documento</ion-label>
+      <ion-select
+        [(ngModel)]="filtroTipoDocumento"
+        interface="popover"
+        placeholder="Todos los tipos">
+
+        <ion-select-option value="">
+          Todos
+        </ion-select-option>
+
+        <ion-select-option
+          *ngFor="let tipo of tiposDocumento"
+          [value]="tipo">
+
+          {{ tipo }}
+
+        </ion-select-option>
+
+      </ion-select>
+    </ion-item>
+
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioDocClinico">
+        <span slot="date-target">
+          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime
+          id="inicioDocClinico"
+          presentation="date"
+          [(ngModel)]="fechaInicio">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finDocClinico">
+        <span slot="date-target">
+          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+        </span>
+      </ion-datetime-button>
+    </ion-item>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime
+          id="finDocClinico"
+          presentation="date"
+          [(ngModel)]="fechaFin">
+        </ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-button
+      expand="block"
+      shape="round"
+      color="warning"
+      (click)="aplicarFiltros()">
+
+      <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
+      <span style="color: black;">Buscar</span>
+
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="clear"
+      color="medium"
+      (click)="limpiarFiltros()">
+
+      Limpiar filtros
+
+    </ion-button>
+
+  </ion-card>
+
+  <ion-grid>
+    <ion-row>
+
+      <ion-col
+        size="12"
+        size-sm="6"
+        size-md="4"
+        size-lg="3"
+        *ngFor="let doc of documentosFiltrados; trackBy: trackById">
+
+        <ion-card class="doc-card">
+          <ion-card-header>
+            <ion-card-title class="ion-text-center">
+              {{ doc.tipoDocumento }}
+            </ion-card-title>
+            <ion-card-subtitle class="ion-text-center">
+              N° {{ doc.numeroDocumento }}
+            </ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <p>
+              <ion-icon name="person-outline"></ion-icon>
+              <strong>Paciente:</strong>
+              {{ getNombreCliente(doc) }}
+            </p>
+
+            <p>
+              <ion-icon name="calendar-outline"></ion-icon>
+              <strong>Emisión:</strong>
+              {{ doc.fechaEmision | date:'dd/MM/yyyy' }}
+            </p>
+
+            <p *ngIf="doc.nombreDoctor">
+              <ion-icon name="medkit-outline"></ion-icon>
+              <strong>Doctor:</strong>
+              {{ doc.nombreDoctor }}
+            </p>
+
+            <p>
+              <ion-badge [color]="getEstadoColor(doc.estado)">
+                {{ doc.estado }}
+              </ion-badge>
+            </p>
+
+            <div class="acciones">
+              <ion-button
+                size="small"
+                color="medium"
+                (click)="consultarDocumento(doc)">
+
+                <ion-icon slot="start" name="eye-outline"></ion-icon>
+                Ver
+
+              </ion-button>
+
+              <ion-button
+                size="small"
+                color="primary"
+                (click)="editarDocumento(doc)"
+                [disabled]="doc.estado === 'ANULADO'">
+
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Editar
+
+              </ion-button>
+
+              <ion-button
+                size="small"
+                color="warning"
+                (click)="anularDocumento(doc)"
+                *ngIf="doc.estado !== 'ANULADO'">
+
+                <ion-icon slot="start" name="ban-outline"></ion-icon>
+                Anular
+
+              </ion-button>
+
+              <ion-button
+                size="small"
+                color="danger"
+                (click)="eliminarDocumento(doc)">
+
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Eliminar
+
+              </ion-button>
+
+            </div>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+
+  <div
+    class="ion-text-center ion-padding"
+    *ngIf="documentosFiltrados.length === 0">
+
+    <ion-icon name="document-text-outline" size="large"></ion-icon>
+    <p>No hay documentos clínicos para mostrar.</p>
+
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="secondary" (click)="crearDocumento()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar color="light">
+    <ion-title class="ion-text-end">
+      Total:
+      <strong style="color: var(--ion-color-primary); font-size: 1.2rem;">
+        {{ documentosFiltrados.length }}
+      </strong>
+    </ion-title>
+  </ion-toolbar>
+</ion-footer>

@@ -37,6 +37,8 @@ PoliticasAceptadas: boolean = false;
 public PuedeEliminarItemCarrito: boolean = false;
 
 public PuedeDisminuirCantidadCarrito: boolean = false;
+
+public PuedeEditarPrecioCarrito: boolean = false;
   public NombreCliente = '';
   public NombreEmpresa = '';
   public NumeroMesa = '';
@@ -135,6 +137,7 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     localStorage.setItem('Usuario', usuario);
     localStorage.setItem('Password', password);
     localStorage.setItem('IdEmpresa', idEmpresa.toString());
+    localStorage.setItem('IdUsuario', idUsuario.toString());
     localStorage.setItem('token', token || 'ok');
 
     const expiry = Date.now() + this.SESSION_MINUTES * 60 * 1000;

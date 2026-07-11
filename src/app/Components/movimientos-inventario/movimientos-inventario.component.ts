@@ -29,6 +29,15 @@ import {
   MovimientosInventarioService
 } from 'src/app/servicios/MovimientosInventarioService.models';
 
+import { AlmacenesService }
+from 'src/app/servicios/almacenes.service';
+
+import { Almacen }
+from 'src/app/models/almacenes.model';
+
+import { ParametrosService }
+from 'src/app/servicios/parametros.service';
+
 @Component({
   selector: 'app-movimientos-inventario',
   templateUrl:
@@ -68,6 +77,12 @@ export class MovimientosInventarioComponent
 
   filtro: string = '';
 
+  almacenes: Almacen[] = [];
+
+  stockAlmacenSeleccionado: number | null = null;
+
+  idEmpresa: number = 0;
+
   // ======================================================
   // 🔥 LOADING
   // ======================================================
@@ -85,6 +100,12 @@ export class MovimientosInventarioComponent
 
     private movimientosService:
       MovimientosInventarioService,
+
+    private almacenesService:
+      AlmacenesService,
+
+    private parametros:
+      ParametrosService,
 
     private toastController:
       ToastController,
@@ -105,7 +126,16 @@ cerrarModal(): void {
 }
   ngOnInit(): void {
 
+    this.idEmpresa =
+      Number(
+        localStorage.getItem(
+          'IdEmpresa'
+        )
+      );
+
     this.cargarProductos();
+
+    this.cargarAlmacenes();
 
     // =============================================
     // 🔥 DEFAULTS
@@ -116,6 +146,154 @@ cerrarModal(): void {
 
     this.movimiento.motivo =
       'COMPRA';
+  }
+
+  get esTransferencia(): boolean {
+    return (
+      this.movimiento.tipoMovimiento
+      === 'TRANSFERENCIA'
+    );
+  }
+
+  get almacenesDestino(): Almacen[] {
+    return this.almacenes.filter(
+      x =>
+        x.idAlmacen
+        !== this.movimiento.idAlmacen
+    );
+  }
+
+  onTipoMovimientoChange(): void {
+
+    if (this.esTransferencia) {
+
+      this.movimiento.motivo =
+        'TRANSFERENCIA';
+
+      if (
+        this.movimiento.idAlmacenDestino
+        === this.movimiento.idAlmacen
+      ) {
+
+        this.movimiento.idAlmacenDestino =
+          0;
+      }
+    }
+    else if (
+      this.movimiento.motivo
+      === 'TRANSFERENCIA'
+    ) {
+
+      this.movimiento.motivo =
+        'COMPRA';
+    }
+
+    this.onAlmacenChange();
+  }
+
+  onAlmacenOrigenChange(): void {
+
+    if (
+      this.movimiento.idAlmacenDestino
+      === this.movimiento.idAlmacen
+    ) {
+
+      this.movimiento.idAlmacenDestino =
+        0;
+    }
+
+    this.onAlmacenChange();
+  }
+
+  // ======================================================
+  // 🔥 CARGAR ALMACENES
+  // ======================================================
+
+  cargarAlmacenes(): void {
+
+    this.almacenesService
+      .getAlmacenes(this.idEmpresa)
+      .subscribe({
+
+        next: (data) => {
+
+          this.almacenes =
+            (data || [])
+              .filter(x => x.activo);
+
+          const principal =
+            this.almacenes
+              .find(x => x.esPrincipal);
+
+          if (principal) {
+
+            this.movimiento.idAlmacen =
+              principal.idAlmacen;
+          }
+          else if (this.almacenes.length) {
+
+            this.movimiento.idAlmacen =
+              this.almacenes[0].idAlmacen;
+          }
+        },
+
+        error: (err) => {
+
+          console.log(err);
+        }
+      });
+  }
+
+  onAlmacenChange(): void {
+
+    if (
+      this.productoSeleccionado
+        ?.idProducto
+    ) {
+
+      this.cargarStockAlmacen(
+        this.productoSeleccionado
+          .idProducto
+      );
+    }
+  }
+
+  cargarStockAlmacen(
+    idProducto: number
+  ): void {
+
+    if (
+      !this.movimiento.idAlmacen
+      ||
+      !idProducto
+    ) {
+
+      this.stockAlmacenSeleccionado =
+        null;
+
+      return;
+    }
+
+    this.almacenesService
+      .getExistenciaEnAlmacen(
+        this.movimiento.idAlmacen,
+        idProducto,
+        this.idEmpresa
+      )
+      .subscribe({
+
+        next: (res) => {
+
+          this.stockAlmacenSeleccionado =
+            res?.cantidad ?? 0;
+        },
+
+        error: () => {
+
+          this.stockAlmacenSeleccionado =
+            0;
+        }
+      });
   }
 
   // ======================================================
@@ -190,6 +368,10 @@ cerrarModal(): void {
       item.nombre || '';
 
     this.productosFiltrados = [];
+
+    this.cargarStockAlmacen(
+      item.idProducto
+    );
   }
 
   // ======================================================
@@ -197,6 +379,34 @@ cerrarModal(): void {
   // ======================================================
 
   agregarProducto(): void {
+
+    // =============================================
+    // 🔥 VALIDAR ALMACEN
+    // =============================================
+
+    if (!this.movimiento.idAlmacen) {
+
+      this.showToast(
+        this.esTransferencia
+          ? 'Seleccione el almacén origen'
+          : 'Seleccione un almacén'
+      );
+
+      return;
+    }
+
+    if (
+      this.esTransferencia
+      &&
+      !this.movimiento.idAlmacenDestino
+    ) {
+
+      this.showToast(
+        'Seleccione el almacén destino'
+      );
+
+      return;
+    }
 
     // =============================================
     // 🔥 VALIDAR PRODUCTO
@@ -227,95 +437,193 @@ cerrarModal(): void {
       return;
     }
 
-    // =============================================
-    // 🔥 STOCK ACTUAL
-    // =============================================
+    const idProducto =
+      this.productoSeleccionado
+        .idProducto;
 
-    const actual =
+    const cantidad =
+      this.cantidad;
+
+    const tipo =
+      this.movimiento
+        .tipoMovimiento;
+
+    const productoRef =
+      { ...this.productoSeleccionado };
+
+    const stockAlmacen =
       Number(
-        this.productoSeleccionado
-          .cantidad || 0
+        this.stockAlmacenSeleccionado ?? 0
       );
 
-    let nuevo =
-      actual;
-
     // =============================================
-    // 🔥 ENTRADA
+    // 🔥 ENTRADA: no requiere consultar API
     // =============================================
 
-    if (
-      this.movimiento
-        .tipoMovimiento
-      === 'ENTRADA'
-    ) {
+    if (tipo === 'ENTRADA') {
 
-      nuevo =
-        actual +
-        this.cantidad;
+      this.confirmarAgregarProducto(
+        stockAlmacen,
+        productoRef,
+        idProducto,
+        cantidad,
+        tipo
+      );
+
+      return;
     }
 
     // =============================================
-    // 🔥 SALIDA
+    // 🔥 SALIDA: validar stock en almacén
     // =============================================
 
-    else {
+    if (this.stockAlmacenSeleccionado !== null) {
 
-      nuevo =
-        actual -
-        this.cantidad;
-
-      if (nuevo < 0) {
+      if (stockAlmacen - cantidad < 0) {
 
         this.showToast(
-          'Stock insuficiente'
+          'Stock insuficiente en el almacén seleccionado'
         );
 
         return;
       }
+
+      this.confirmarAgregarProducto(
+        stockAlmacen,
+        productoRef,
+        idProducto,
+        cantidad,
+        tipo
+      );
+
+      return;
     }
 
-    // =============================================
-    // 🔥 DETALLE
-    // =============================================
+    if (!this.idEmpresa) {
+
+      this.idEmpresa =
+        Number(
+          localStorage.getItem(
+            'IdEmpresa'
+          )
+        );
+    }
+
+    this.almacenesService
+      .getExistenciaEnAlmacen(
+        this.movimiento.idAlmacen,
+        idProducto,
+        this.idEmpresa
+      )
+      .subscribe({
+
+        next: (resAlmacen) => {
+
+          const stock =
+            Number(
+              resAlmacen?.cantidad ?? 0
+            );
+
+          if (stock - cantidad < 0) {
+
+            this.showToast(
+              'Stock insuficiente en el almacén seleccionado'
+            );
+
+            return;
+          }
+
+          this.confirmarAgregarProducto(
+            stock,
+            productoRef,
+            idProducto,
+            cantidad,
+            tipo
+          );
+        },
+
+        error: () => {
+
+          this.showToast(
+            'No se pudo validar la existencia'
+          );
+        }
+      });
+  }
+
+  private confirmarAgregarProducto(
+    _stockAlmacen: number,
+    productoRef: productos,
+    idProducto: number,
+    cantidad: number,
+    tipo: string
+  ): void {
+
+    const stockTotal =
+      Number(
+        productoRef.cantidad || 0
+      );
+
+    let stockNuevoTotal =
+      stockTotal;
+
+    if (tipo === 'ENTRADA') {
+
+      stockNuevoTotal =
+        stockTotal + cantidad;
+    }
+    else if (tipo === 'SALIDA') {
+
+      stockNuevoTotal =
+        stockTotal - cantidad;
+    }
 
     const detalle =
       new MovimientosInventarioDetalle();
 
     detalle.idProducto =
-      this.productoSeleccionado
-        .idProducto;
+      idProducto;
 
     detalle.producto =
-      this.productoSeleccionado;
+      productoRef as productos;
 
     detalle.cantidad =
-      this.cantidad;
+      cantidad;
 
     detalle.precio =
       this.precio;
 
     detalle.subTotal =
-      this.cantidad *
+      cantidad *
       this.precio;
 
     detalle.stockAnterior =
-      actual;
+      stockTotal;
 
     detalle.stockNuevo =
-      nuevo;
-
-    // =============================================
-    // 🔥 AGREGAR
-    // =============================================
+      stockNuevoTotal;
 
     this.movimiento
       .detalles
       .push(detalle);
 
-    // =============================================
-    // 🔥 RESET
-    // =============================================
+    productoRef.cantidad =
+      stockNuevoTotal;
+
+    const idx =
+      this.productos
+        .findIndex(
+          p =>
+            p.idProducto
+            === idProducto
+        );
+
+    if (idx >= 0) {
+
+      this.productos[idx]
+        .cantidad =
+        stockNuevoTotal;
+    }
 
     this.productoSeleccionado =
       new productos();
@@ -325,6 +633,9 @@ cerrarModal(): void {
     this.precio = 0;
 
     this.filtro = '';
+
+    this.stockAlmacenSeleccionado =
+      null;
 
     this.productosFiltrados =
       [];
@@ -375,7 +686,9 @@ cerrarModal(): void {
   // 🔥 GUARDAR
   // ======================================================
 
-guardarMovimiento(): void {
+guardarMovimiento(
+  imprimir = false
+): void {
 
   // =============================================
   // 🔥 VALIDAR
@@ -394,22 +707,55 @@ guardarMovimiento(): void {
     return;
   }
 
+  if (!this.movimiento.idAlmacen) {
+
+    this.showToast(
+      this.esTransferencia
+        ? 'Seleccione el almacén origen'
+        : 'Seleccione un almacén'
+    );
+
+    return;
+  }
+
+  if (this.esTransferencia) {
+
+    if (!this.movimiento.idAlmacenDestino) {
+
+      this.showToast(
+        'Seleccione el almacén destino'
+      );
+
+      return;
+    }
+
+    if (
+      this.movimiento.idAlmacenDestino
+      === this.movimiento.idAlmacen
+    ) {
+
+      this.showToast(
+        'Origen y destino deben ser diferentes'
+      );
+
+      return;
+    }
+  }
+
   // =============================================
   // 🔥 EMPRESA
   // =============================================
 
   this.movimiento.idEmpresa =
-    Number(
-      localStorage.getItem(
-        'IdEmpresa'
-      )
-    );
+    this.idEmpresa;
 
   // =============================================
   // 🔥 USUARIO
   // =============================================
 
   this.movimiento.idUsuario =
+    this.parametros.IdUsuario
+    ||
     Number(
       localStorage.getItem(
         'IdUsuario'
@@ -445,6 +791,15 @@ guardarMovimiento(): void {
     idUsuario:
       this.movimiento
         .idUsuario,
+
+    idAlmacen:
+      this.movimiento
+        .idAlmacen,
+
+    idAlmacenDestino:
+      this.esTransferencia
+        ? this.movimiento.idAlmacenDestino
+        : null,
 
     activo: true,
 
@@ -489,7 +844,7 @@ guardarMovimiento(): void {
     )
     .subscribe({
 
-      next: () => {
+      next: async (resp: any) => {
 
         this.loading = false;
 
@@ -497,37 +852,17 @@ guardarMovimiento(): void {
           'Movimiento guardado'
         );
 
-        // =====================================
-        // 🔥 CERRAR MODAL
-        // =====================================
+        const printData =
+          imprimir
+            ? this.armarMovimientoParaImprimir(
+                resp?.idMovimiento
+              )
+            : null;
 
-        this.modalCtrl.dismiss(true);
-
-        // =====================================
-        // 🔥 RESET
-        // =====================================
-
-        this.movimiento =
-          new MovimientosInventario();
-
-        this.movimiento
-          .tipoMovimiento =
-          'ENTRADA';
-
-        this.movimiento
-          .motivo =
-          'COMPRA';
-
-        this.productoSeleccionado =
-          new productos();
-
-        this.cantidad = 1;
-
-        this.precio = 0;
-
-        this.filtro = '';
-
-        this.productosFiltrados = [];
+        await this.modalCtrl.dismiss({
+          refresh: true,
+          imprimir: printData
+        });
       },
 
       error: (err) => {
@@ -537,11 +872,103 @@ guardarMovimiento(): void {
         console.log(err);
 
         this.showToast(
-          'Error guardando'
+          err?.error?.message
+            || err?.error
+            || 'Error guardando'
         );
       }
     });
 }
+  private armarMovimientoParaImprimir(
+    idMovimiento?: number
+  ): any {
+
+    const almacen =
+      this.almacenes.find(
+        x =>
+          x.idAlmacen
+          === this.movimiento.idAlmacen
+      );
+
+    const almacenDestino =
+      this.almacenes.find(
+        x =>
+          x.idAlmacen
+          === this.movimiento.idAlmacenDestino
+      );
+
+    return {
+      id: idMovimiento || 0,
+      tipoMovimiento:
+        this.movimiento.tipoMovimiento,
+      motivo:
+        this.movimiento.motivo,
+      referencia:
+        this.movimiento.referencia,
+      observacion:
+        this.movimiento.observacion,
+      fecha: new Date().toISOString(),
+      usuario:
+        this.obtenerNombreUsuarioActual(),
+      nombreAlmacen:
+        almacen?.nombre || '',
+      idAlmacen:
+        this.movimiento.idAlmacen,
+      idAlmacenDestino:
+        this.movimiento.idAlmacenDestino || null,
+      nombreAlmacenDestino:
+        almacenDestino?.nombre || '',
+      detalles:
+        this.movimiento.detalles.map(x => ({
+          producto:
+            x.producto?.nombre || '',
+          cantidad: x.cantidad,
+          stockAnterior: x.stockAnterior,
+          stockNuevo: x.stockNuevo,
+          precio: x.precio,
+          subTotal: x.subTotal
+        }))
+    };
+  }
+
+  private obtenerNombreUsuarioActual(): string {
+
+    const raw =
+      localStorage.getItem('usuario');
+
+    if (raw) {
+
+      try {
+
+        const parsed =
+          JSON.parse(raw);
+
+        if (parsed?.nombre?.trim()) {
+
+          return parsed.nombre.trim();
+        }
+
+        if (parsed?.userName?.trim()) {
+
+          return parsed.userName.trim();
+        }
+      }
+      catch {
+        // ignore
+      }
+    }
+
+    return (
+      this.parametros.UserName
+      ||
+      localStorage.getItem('Usuario')
+      ||
+      localStorage.getItem('UserName')
+      ||
+      ''
+    ).trim();
+  }
+
   // ======================================================
   // 🔥 TOAST
   // ======================================================

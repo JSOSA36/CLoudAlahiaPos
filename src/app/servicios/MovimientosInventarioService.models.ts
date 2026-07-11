@@ -249,7 +249,9 @@ FiltrarHistorial(
 
   motivo?: string,
 
-  idUsuario?: number
+  idUsuario?: number,
+
+  idProducto?: number
 
 ): Observable<MovimientosInventario[]> {
 
@@ -307,6 +309,12 @@ FiltrarHistorial(
 
     url +=
       `&idUsuario=${idUsuario}`;
+  }
+
+  if (idProducto) {
+
+    url +=
+      `&idProducto=${idProducto}`;
   }
 
   return this.httpClient.get<

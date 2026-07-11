@@ -64,9 +64,73 @@ export class GastoFormPage implements OnInit {
       this._Para.IdUsuario;
 
     this.gasto.formaPago =
-      this.gasto.formaPago || 'EFECTIVO';
+      this.gasto.formaPago ||
+      this.gasto.orien ||
+      'EFECTIVO';
+
+    if (!this.isEdit && !this.gasto.tipoGasto) {
+      this.gasto.tipoGasto = 'Otros';
+    }
 
     this.CargarMetodosPago();
+  }
+
+  private armarGastoParaGuardar(): Gastos {
+    const formaPago =
+      (this.gasto.formaPago || this.gasto.orien || 'EFECTIVO').trim();
+
+    return {
+      idGasto: this.gasto.idGasto || 0,
+      idEmpresa: this._Para.GetIdEmpresa(),
+      idUsuario: this._Para.IdUsuario,
+      idEmpleado: this.gasto.idEmpleado ?? null,
+      tipoGasto: (this.gasto.tipoGasto || '').trim(),
+      monto: Number(this.gasto.monto) || 0,
+      orien: formaPago,
+      detalle: (this.gasto.detalle || '').trim(),
+      formaPago,
+      idCuentaFinanciera: this.gasto.idCuentaFinanciera ?? null,
+      referencia: (this.gasto.referencia || '').trim(),
+      estaAnulado: this.gasto.estaAnulado ?? false,
+      fechaRegistro: this.gasto.fechaRegistro ?? new Date(),
+    };
+  }
+
+  private async validarGasto(): Promise<boolean> {
+    if (!this.gasto.tipoGasto?.trim()) {
+      (
+        await this.toastCtrl.create({
+          message: 'Seleccione un tipo de gasto.',
+          duration: 2000,
+          color: 'warning',
+        })
+      ).present();
+      return false;
+    }
+
+    if (!this.gasto.monto || Number(this.gasto.monto) <= 0) {
+      (
+        await this.toastCtrl.create({
+          message: 'Ingrese un monto válido mayor a cero.',
+          duration: 2000,
+          color: 'warning',
+        })
+      ).present();
+      return false;
+    }
+
+    if (!(this.gasto.formaPago || this.gasto.orien)?.trim()) {
+      (
+        await this.toastCtrl.create({
+          message: 'Seleccione un método de pago.',
+          duration: 2000,
+          color: 'warning',
+        })
+      ).present();
+      return false;
+    }
+
+    return true;
   }
 
   /* =====================================
@@ -112,16 +176,17 @@ export class GastoFormPage implements OnInit {
 
 async guardar(): Promise<void> {
 
-  this.gasto.idEmpresa =
-    this._Para.GetIdEmpresa();
+  if (!(await this.validarGasto())) {
+    return;
+  }
 
-  this.gasto.idUsuario =
-    this._Para.IdUsuario;
+  const gastoParaGuardar =
+    this.armarGastoParaGuardar();
 
   if (this.isEdit) {
 
     this.gastosSrv
-      .actualizarGasto(this.gasto)
+      .actualizarGasto(gastoParaGuardar)
       .subscribe(async (resp: any) => {
 
         if (!resp.success) {
@@ -172,7 +237,7 @@ async guardar(): Promise<void> {
   }
 
   this.gastosSrv
-    .crearGasto(this.gasto)
+    .crearGasto(gastoParaGuardar)
     .subscribe(async (resp: any) => {
 
       if (!resp.success) {

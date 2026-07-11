@@ -49,6 +49,8 @@
 
   class="btn-amarillo"
 
+  (click)="abrirCotizacionesModal()"
+
   shape="round">
 
   <ion-icon
@@ -464,11 +466,7 @@ class="right-panel"
     <div
       class="cliente-box"
 
-      *ngIf="
-      tipoDocumento !== 'Factura'
-      ||
-      tipoComprobante !== 'Crédito Fiscal'
-      ">
+      *ngIf="mostrarSelectorCliente()">
 
       <ion-item
         (click)="abrirClientes()"
@@ -535,6 +533,12 @@ class="right-panel"
 
           </ion-select-option>
 
+          <ion-select-option value="Gubernamental">
+
+            Gubernamental
+
+          </ion-select-option>
+
         </ion-select>
 
       </div>
@@ -568,7 +572,7 @@ class="right-panel"
 
       *ngIf="
       tipoDocumento === 'Factura' &&
-      tipoComprobante === 'Crédito Fiscal'
+      requiereDatosFiscales()
       ">
 
       <div class="campo campo-rnc">
@@ -663,10 +667,27 @@ class="right-panel"
 
         </div>
 
-        <div class="sub">
+        <div class="precio-row">
 
-          Precio:
-          {{ item.precio | currency }}
+          <div class="sub">
+
+            Precio:
+            {{ getPrecioUnitarioItem(item) | currency:'DOP':'symbol':'1.2-2' }}
+
+          </div>
+
+          <button
+            class="btn-edit-precio"
+            type="button"
+            title="Editar precio"
+            *ngIf="parametro.PuedeEditarPrecioCarrito"
+            (click)="editarPrecioItem(item)">
+
+            <ion-icon
+              name="create-outline">
+            </ion-icon>
+
+          </button>
 
         </div>
 
@@ -860,6 +881,19 @@ class="right-panel"
   [disabled]="carrito.length === 0">
 
   {{ getTextoBoton() }}
+
+</ion-button>
+
+<ion-button
+  *ngIf="tipoDocumento === 'Cotizacion'"
+  expand="block"
+  fill="outline"
+  color="warning"
+  class="btn-vender"
+  (click)="openModalCobro(true)"
+  [disabled]="carrito.length === 0">
+
+  Guardar e imprimir
 
 </ion-button>
 

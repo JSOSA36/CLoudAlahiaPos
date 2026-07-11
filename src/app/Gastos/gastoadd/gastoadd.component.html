@@ -12,8 +12,12 @@
       <!-- Tipo de gasto -->
       <ion-item lines="full">
         <ion-icon name="pricetag-outline" slot="start" color="primary"></ion-icon>
-        <ion-label position="floating">Tipo de Gasto</ion-label>
-        <ion-select [(ngModel)]="gasto.tipoGasto">
+        <ion-label position="stacked">Tipo de Gasto</ion-label>
+        <ion-select
+          name="tipoGasto"
+          [(ngModel)]="gasto.tipoGasto"
+          interface="popover"
+          placeholder="Seleccione tipo">
           <ion-select-option value="Servicios">Servicios</ion-select-option>
           <ion-select-option value="Insumos">Insumos</ion-select-option>
           <ion-select-option value="Publicidad">Publicidad</ion-select-option>
@@ -26,7 +30,12 @@
       <ion-item lines="full">
         <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
         <ion-label position="floating">Monto</ion-label>
-        <ion-input type="number" [(ngModel)]="gasto.monto"></ion-input>
+        <ion-input
+          name="monto"
+          type="number"
+          min="0"
+          [(ngModel)]="gasto.monto">
+        </ion-input>
       </ion-item>
 
       <!-- Origen -->
@@ -37,11 +46,12 @@
     color="tertiary">
   </ion-icon>
 
-  <ion-label position="floating">
+  <ion-label position="stacked">
     Método de Pago
   </ion-label>
 
   <ion-select
+    name="formaPago"
     [(ngModel)]="gasto.formaPago"
     interface="popover"
     placeholder="Seleccione método">
@@ -70,6 +80,7 @@
   </ion-label>
 
   <ion-input
+    name="referencia"
     [(ngModel)]="gasto.referencia">
   </ion-input>
 
@@ -77,8 +88,12 @@
       <!-- Detalle -->
       <ion-item lines="full">
         <ion-icon name="document-text-outline" slot="start" color="warning"></ion-icon>
-        <ion-label position="floating">Detalle</ion-label>
-        <ion-textarea [(ngModel)]="gasto.detalle"></ion-textarea>
+        <ion-label position="stacked">Detalle</ion-label>
+        <ion-textarea
+          name="detalle"
+          autoGrow="true"
+          [(ngModel)]="gasto.detalle">
+        </ion-textarea>
       </ion-item>
 
       <!-- Botón Guardar / Actualizar -->

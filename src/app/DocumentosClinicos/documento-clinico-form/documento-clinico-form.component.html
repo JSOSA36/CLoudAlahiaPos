@@ -1,0 +1,180 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">{{ titulo }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Modo consulta -->
+<ng-container *ngIf="soloLectura">
+
+  <ion-content class="vista-consulta-content">
+    <div class="vista-meta">
+      {{ form.tipoDocumento }} · N° {{ form.numeroDocumento }} · {{ form.estado }}
+    </div>
+
+    <div class="vista-documento" *ngIf="vistaHtmlDocumento; else sinDocumento">
+      <iframe
+        #docIframe
+        class="iframe-documento"
+        [srcdoc]="vistaHtmlDocumento"
+        title="Vista del documento clínico"
+        frameborder="0">
+      </iframe>
+    </div>
+
+        <ng-template #sinDocumento>
+          <p class="sin-contenido">
+            No se pudo mostrar el documento. Verifique que la plantilla
+            <strong>Receta Médica</strong> esté registrada correctamente en la base de datos.
+          </p>
+        </ng-template>
+  </ion-content>
+
+  <ion-footer class="vista-consulta-footer">
+    <ion-toolbar>
+      <ion-button
+        expand="block"
+        color="primary"
+        [disabled]="!vistaHtmlDocumento"
+        (click)="imprimir()">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        Imprimir
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        color="medium"
+        fill="outline"
+        (click)="cerrar()">
+        Cerrar
+      </ion-button>
+    </ion-toolbar>
+  </ion-footer>
+
+</ng-container>
+
+<!-- Modo crear / editar -->
+<ng-container *ngIf="!soloLectura">
+
+  <ion-content class="ion-padding">
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Datos del paciente</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label>
+            <h3>{{ clienteSeleccionado?.nombreComercial || 'Sin paciente seleccionado' }}</h3>
+            <p *ngIf="clienteSeleccionado?.cedulaRNC">
+              Cédula: {{ clienteSeleccionado?.cedulaRNC }}
+            </p>
+          </ion-label>
+
+          <ion-button slot="end" (click)="seleccionarCliente()">
+            <ion-icon slot="start" name="person-outline"></ion-icon>
+            Seleccionar
+          </ion-button>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Información del documento</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <ion-item>
+          <ion-label position="stacked">Tipo de documento</ion-label>
+
+          <ion-select
+            *ngIf="puedeCambiarTipo"
+            [(ngModel)]="form.tipoDocumento"
+            (ionChange)="onTipoDocumentoChange()"
+            interface="popover"
+            placeholder="Seleccione tipo">
+            <ion-select-option *ngFor="let tipo of tiposDocumento" [value]="tipo">
+              {{ tipo }}
+            </ion-select-option>
+          </ion-select>
+
+          <ion-input *ngIf="!puedeCambiarTipo" [value]="form.tipoDocumento" readonly>
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Número de documento</ion-label>
+          <ion-input [(ngModel)]="form.numeroDocumento"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Fecha de emisión</ion-label>
+          <ion-input type="date" [(ngModel)]="form.fechaEmision"></ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="modo !== 'crear'">
+          <ion-label position="stacked">Estado</ion-label>
+          <ion-select [(ngModel)]="form.estado" interface="popover">
+            <ion-select-option *ngFor="let e of estados" [value]="e">
+              {{ e }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Nombre del doctor</ion-label>
+          <ion-input [(ngModel)]="form.nombreDoctor"></ion-input>
+        </ion-item>
+
+        <ng-container *ngIf="esCertificado">
+          <ion-item>
+            <ion-label position="stacked">Procedimiento</ion-label>
+            <ion-input [(ngModel)]="form.procedimiento"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Horas de reposo</ion-label>
+            <ion-input type="number" min="0" [(ngModel)]="form.horasReposo"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Observaciones</ion-label>
+            <ion-textarea [(ngModel)]="form.observaciones" rows="3"></ion-textarea>
+          </ion-item>
+        </ng-container>
+
+        <ng-container *ngIf="esReceta">
+          <ion-item>
+            <ion-label position="stacked">Medicamentos</ion-label>
+            <ion-textarea [(ngModel)]="form.medicamentos" rows="5"></ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Indicaciones</ion-label>
+            <ion-textarea [(ngModel)]="form.indicaciones" rows="4"></ion-textarea>
+          </ion-item>
+        </ng-container>
+
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="success" (click)="guardar()">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      {{ modo === 'editar' ? 'Guardar cambios' : 'Generar documento' }}
+    </ion-button>
+
+    <ion-button expand="block" color="medium" fill="outline" (click)="cerrar()">
+      Cerrar
+    </ion-button>
+
+  </ion-content>
+
+</ng-container>

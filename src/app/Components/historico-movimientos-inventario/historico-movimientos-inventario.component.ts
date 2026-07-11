@@ -5,6 +5,7 @@ import {
 import {
   ModalController
 } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 import {
   MovimientosInventario
@@ -14,6 +15,18 @@ import { MovimientosInventarioComponent } from '../movimientos-inventario/movimi
 import {
   MovimientosInventarioService
 } from 'src/app/servicios/MovimientosInventarioService.models';
+
+import { PrintService }
+from 'src/app/servicios/print.services';
+
+import { ParametrosService }
+from 'src/app/servicios/parametros.service';
+
+import { ProductosService }
+from 'src/app/servicios/productos.service';
+
+import { productos }
+from 'src/app/models/productos';
 
 @Component({
   selector:
@@ -48,6 +61,14 @@ implements OnInit {
 
   motivo: string = '';
 
+  idProducto: number = 0;
+
+  filtroProducto: string = '';
+
+  productosFiltrados: productos[] = [];
+
+  productos: productos[] = [];
+
   idUsuario?: number;
 
   // ======================================================
@@ -64,8 +85,21 @@ implements OnInit {
 
     private movimientosService:
       MovimientosInventarioService,
-       private modalCtrl:
-    ModalController
+
+    private modalCtrl:
+      ModalController,
+
+    private printService:
+      PrintService,
+
+    private parametros:
+      ParametrosService,
+
+    private productosService:
+      ProductosService,
+
+    private router:
+      Router
   ) { }
 // ======================================================
 // 🔥 NUEVO MOVIMIENTO
@@ -96,9 +130,17 @@ async nuevoMovimiento()
   } =
   await modal.onDidDismiss();
 
-  if (data) {
+  if (data?.refresh) {
 
     this.buscar();
+  }
+
+  if (data?.imprimir) {
+
+    await this.printService
+      .openMovimientoInventarioCarta(
+        data.imprimir
+      );
   }
 }
   // ======================================================
@@ -106,6 +148,99 @@ async nuevoMovimiento()
   // ======================================================
 
   ngOnInit(): void {
+
+    this.cargarProductos();
+
+    this.buscar();
+  }
+
+  cargarProductos(): void {
+
+    this.productosService
+      .GetProductos(
+        this.parametros.GetIdEmpresa()
+      )
+      .subscribe({
+
+        next: (data) => {
+
+          this.productos =
+            (data || [])
+              .filter(
+                p => !p.esServicio
+              )
+              .sort((a, b) =>
+                (a.nombre || '')
+                  .localeCompare(
+                    b.nombre || ''
+                  )
+              );
+        },
+
+        error: (err) => {
+
+          console.log(err);
+        }
+      });
+  }
+
+  filtrarProductos(): void {
+
+    const texto =
+      this.filtroProducto
+        .trim()
+        .toLowerCase();
+
+    if (!texto) {
+
+      this.idProducto = 0;
+
+      this.productosFiltrados = [];
+
+      return;
+    }
+
+    this.idProducto = 0;
+
+    this.productosFiltrados =
+      this.productos
+        .filter(p =>
+
+          (p.nombre || '')
+            .toLowerCase()
+            .includes(texto)
+
+          ||
+
+          (p.codigoBarra || '')
+            .toLowerCase()
+            .includes(texto)
+        )
+        .slice(0, 25);
+  }
+
+  seleccionarProducto(
+    item: productos
+  ): void {
+
+    this.idProducto =
+      item.idProducto;
+
+    this.filtroProducto =
+      item.nombre || '';
+
+    this.productosFiltrados = [];
+
+    this.buscar();
+  }
+
+  limpiarProductoFiltro(): void {
+
+    this.idProducto = 0;
+
+    this.filtroProducto = '';
+
+    this.productosFiltrados = [];
 
     this.buscar();
   }
@@ -138,7 +273,11 @@ async nuevoMovimiento()
 
         this.motivo,
 
-        this.idUsuario
+        this.idUsuario,
+
+        this.idProducto > 0
+          ? this.idProducto
+          : undefined
       )
       .subscribe({
 
@@ -173,6 +312,12 @@ async nuevoMovimiento()
 
     this.motivo = '';
 
+    this.idProducto = 0;
+
+    this.filtroProducto = '';
+
+    this.productosFiltrados = [];
+
     this.idUsuario = undefined;
 
     this.buscar();
@@ -185,5 +330,57 @@ async nuevoMovimiento()
   get totalMovimientos(): number {
 
     return this.movimientos.length;
+  }
+
+  imprimirMovimiento(
+    item: MovimientosInventario
+  ): void {
+
+    this.printService
+      .openMovimientoInventarioCarta(item);
+  }
+
+  abrirReportePerdidas(): void {
+
+    this.router.navigate(['/reporteperdidas']);
+  }
+
+  nombreUsuario(
+    item: MovimientosInventario | any
+  ): string {
+
+    if (item?.nombreUsuario?.trim()) {
+
+      return item.nombreUsuario.trim();
+    }
+
+    if (item?.NombreUsuario?.trim()) {
+
+      return item.NombreUsuario.trim();
+    }
+
+    const usuario = item?.usuario;
+
+    if (typeof usuario === 'string' && usuario.trim()) {
+
+      return usuario.trim();
+    }
+
+    if (usuario?.nombre?.trim()) {
+
+      return usuario.nombre.trim();
+    }
+
+    if (usuario?.userName?.trim()) {
+
+      return usuario.userName.trim();
+    }
+
+    if (item?.Usuario?.trim()) {
+
+      return item.Usuario.trim();
+    }
+
+    return this.parametros.UserName?.trim() || 'Usuario';
   }
 }

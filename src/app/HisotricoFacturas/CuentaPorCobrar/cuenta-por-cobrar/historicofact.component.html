@@ -451,6 +451,22 @@
 
               </ion-button>
 
+              <!-- 🔥 DEVOLUCIÓN -->
+
+              <ion-button
+                size="small"
+                color="warning"
+                fill="solid"
+                (click)="abrirDevolucion(iten)"
+                [disabled]="iten.estaCancelada">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="return-down-back-outline">
+                </ion-icon>
+
+              </ion-button>
+
               <!-- 🔥 ANULAR -->
 
               <ion-button

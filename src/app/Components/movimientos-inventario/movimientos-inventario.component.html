@@ -55,6 +55,76 @@
           <ion-row>
 
             <!-- ===================================== -->
+            <!-- 🔥 ALMACEN -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="3">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  {{ esTransferencia ? 'Almacén origen' : 'Almacén' }}
+
+                </ion-label>
+
+                <ion-select
+                  [(ngModel)]="movimiento.idAlmacen"
+                  (ionChange)="onAlmacenOrigenChange()">
+
+                  <ion-select-option
+                    *ngFor="let alm of almacenes"
+                    [value]="alm.idAlmacen">
+
+                    {{ alm.nombre }}
+                    <ng-container *ngIf="alm.esPrincipal">
+                      (Principal)
+                    </ng-container>
+
+                  </ion-select-option>
+
+                </ion-select>
+
+              </ion-item>
+
+            </ion-col>
+
+            <ion-col
+              size="12"
+              size-md="3"
+              *ngIf="esTransferencia">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Almacén destino
+
+                </ion-label>
+
+                <ion-select
+                  [(ngModel)]="movimiento.idAlmacenDestino">
+
+                  <ion-select-option
+                    *ngFor="let alm of almacenesDestino"
+                    [value]="alm.idAlmacen">
+
+                    {{ alm.nombre }}
+                    <ng-container *ngIf="alm.esPrincipal">
+                      (Principal)
+                    </ng-container>
+
+                  </ion-select-option>
+
+                </ion-select>
+
+              </ion-item>
+
+            </ion-col>
+
+            <!-- ===================================== -->
             <!-- 🔥 TIPO MOVIMIENTO -->
             <!-- ===================================== -->
 
@@ -71,7 +141,8 @@
                 </ion-label>
 
                 <ion-select
-                  [(ngModel)]="movimiento.tipoMovimiento">
+                  [(ngModel)]="movimiento.tipoMovimiento"
+                  (ionChange)="onTipoMovimientoChange()">
 
                   <ion-select-option
                     value="ENTRADA">
@@ -87,6 +158,13 @@
 
                   </ion-select-option>
 
+                  <ion-select-option
+                    value="TRANSFERENCIA">
+
+                    🔄 Transferencia
+
+                  </ion-select-option>
+
                 </ion-select>
 
               </ion-item>
@@ -99,7 +177,8 @@
 
             <ion-col
               size="12"
-              size-md="3">
+              size-md="3"
+              *ngIf="!esTransferencia">
 
               <ion-item>
 
@@ -312,7 +391,7 @@
 
                     <p>
 
-                      Stock:
+                      Total:
                       {{ item.cantidad || 0 }}
 
                     </p>
@@ -322,6 +401,19 @@
                 </div>
 
               </div>
+
+              <p
+                class="stock-almacen-hint"
+                *ngIf="
+                  productoSeleccionado.idProducto
+                  &&
+                  stockAlmacenSeleccionado !== null
+                ">
+
+                {{ esTransferencia ? 'En origen:' : 'En este almacén:' }}
+                {{ stockAlmacenSeleccionado }}
+
+              </p>
 
             </ion-col>
 
@@ -468,7 +560,7 @@
                 </th>
 
                 <th>
-                  Actual
+                  Total ant.
                 </th>
 
                 <th>
@@ -476,7 +568,7 @@
                 </th>
 
                 <th>
-                  Nuevo
+                  Total nuevo
                 </th>
 
                 
@@ -623,27 +715,53 @@
         <!-- 🔥 GUARDAR -->
         <!-- ===================================== -->
 
-        <ion-button
+        <div class="botones-guardar">
 
-          expand="block"
+          <ion-button
 
-          color="primary"
+            expand="block"
 
-          [disabled]="loading"
+            color="primary"
 
-          (click)="guardarMovimiento()">
+            [disabled]="loading"
 
-          <ion-spinner
+            (click)="guardarMovimiento(false)">
 
-            *ngIf="loading"
+            <ion-spinner
 
-            slot="start">
+              *ngIf="loading"
 
-          </ion-spinner>
+              slot="start">
 
-          Guardar Movimiento
+            </ion-spinner>
 
-        </ion-button>
+            Guardar Movimiento
+
+          </ion-button>
+
+          <ion-button
+
+            expand="block"
+
+            color="success"
+
+            fill="outline"
+
+            [disabled]="loading"
+
+            (click)="guardarMovimiento(true)">
+
+            <ion-icon
+              name="print-outline"
+              slot="start">
+
+            </ion-icon>
+
+            Guardar e imprimir
+
+          </ion-button>
+
+        </div>
 
       </ion-card-content>
 

@@ -4,7 +4,10 @@
     <!-- LOGO -->
     <div class="logo-container">
       <ion-avatar class="logo-avatar">
-        <ion-img src="/assets/Logo.png"></ion-img>
+        <ion-img
+          [src]="logoUrl"
+          (ionError)="onLogoError()">
+        </ion-img>
       </ion-avatar>
     </div>
 

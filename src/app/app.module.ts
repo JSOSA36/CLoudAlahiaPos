@@ -29,6 +29,8 @@ import { ListadoMesasComponent } from './listado_mesas/listadomesas.component';
 import { CategoriasComponent } from './categorias/categorias.component';
 import { LoginkdsComponent } from './loginkds/loginkds.component';
 import { PrinterComponent } from './printer/printer.component';
+import { CotizacionPrintComponent } from './cotizacion-print/cotizacion-print.component';
+import { MovimientoInventarioPrintComponent } from './movimiento-inventario-print/movimiento-inventario-print.component';
 import { CartComponent } from './cart/cart.component';
 import { ClientesAddComponent } from './Modales/clientesadd.component';
 import { ClientesComponent } from './Clientes/clientes/clientes.component';
@@ -43,7 +45,10 @@ import { CitaAddComponent } from './Citas/citasadd/citasadd.component';
 import { CitasComponent } from './Citas/citas/citas.component';
 import { GastoFormPage } from './Gastos/gastoadd/gastoadd.component';
 import { ListadogastosComponent } from './Gastos/listadogastos/listadogastos.component';
+import { ListadoDocumentosClinicosComponent } from './DocumentosClinicos/listado-documentos-clinicos/listado-documentos-clinicos.component';
+import { DocumentoClinicoFormComponent } from './DocumentosClinicos/documento-clinico-form/documento-clinico-form.component';
 import { AreaComponent } from './Areas/area/area.component';
+import { ListadoAlmacenesComponent } from './Almacenes/listado-almacenes/listado-almacenes.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './servicios/interceptorauth.services';
 import { ModalmesasComponent } from './Modales/modalmesas.component';
@@ -82,9 +87,11 @@ import { FormEncargosComponent } from './bizcocho/form-encargos/form-encargos.co
 import { WhatsappPlanesComponent } from './whatsapp-planes/whatsapp-planes.component';
 import { ParametrosConfigComponent } from './parametros-config/parametros-config.component';
 import { LavadorDashboardComponent } from './lavador-dashboard/lavador-dashboard.component';
+import { DevolucionFacturaComponent } from './Modales/devolucion-factura/devolucion-factura.component';
 import { HistoricofactComponent } from './HisotricoFacturas/CuentaPorCobrar/cuenta-por-cobrar/historicofact.component';
 import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.component';
 import { Reporte607Component } from './Components/reporte607/reporte607.component';
+import { ReportePerdidasComponent } from './Components/reporte-perdidas/reporte-perdidas.component';
 import { PagosListComponent } from './pagos/pagos-list/pagos-list.component';
 import { CierreCajaComponent } from './Components/cierre-caja/cierre-caja.component';
 import { ListadoEncargosComponent } from './bizcocho/listado-encargos/listado-encargos.component';
@@ -121,6 +128,7 @@ import { HistoricoMovimientosInventarioComponent } from './Components/historico-
     FormEncargosComponent,
     ListadoEncargosComponent,
     Reporte607Component,
+    ReportePerdidasComponent,
     PagosListComponent,
     ListadoCajaComponent,
     ClienteVozComponent,
@@ -129,9 +137,11 @@ import { HistoricoMovimientosInventarioComponent } from './Components/historico-
     NcfSecuenciasComponent,
     ForgotPasswordComponent,
     HistoricofactComponent,
+    DevolucionFacturaComponent,
     ListadoEmpleadosComponent,
     LavadorDashboardComponent,
     AreaComponent,
+    ListadoAlmacenesComponent,
     WhatsappPlanesComponent,
     PagoEncargoComponent,
     PoliticasComponent,
@@ -162,6 +172,8 @@ import { HistoricoMovimientosInventarioComponent } from './Components/historico-
     CitasComponent,
     GastoFormPage,
     ListadogastosComponent,
+    ListadoDocumentosClinicosComponent,
+    DocumentoClinicoFormComponent,
     CartComponent,
     ClientesComponent,
     PosComponent,
@@ -170,6 +182,8 @@ import { HistoricoMovimientosInventarioComponent } from './Components/historico-
     CategoriasComponent,
     
     PrinterComponent,
+    CotizacionPrintComponent,
+    MovimientoInventarioPrintComponent,
     TurnosComponent,
     ComisionesComponent,
     ListadocategoriasComponent,

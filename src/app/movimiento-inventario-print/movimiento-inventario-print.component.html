@@ -1,0 +1,134 @@
+<ion-content>
+  <div class="movimiento-page" #movimientoPage *ngIf="movimiento">
+
+    <header class="doc-header">
+      <div class="empresa-block">
+        <img
+          *ngIf="empresa?.logoUrl"
+          [src]="empresa?.logoUrl"
+          alt="Logo"
+          class="logo" />
+
+        <h1>{{ nombreComercial }}</h1>
+        <p *ngIf="empresa?.direccion">{{ empresa?.direccion }}</p>
+        <p *ngIf="empresa?.telefono">Tel: {{ empresa?.telefono }}</p>
+        <p *ngIf="empresa?.rnc">RNC: {{ empresa?.rnc }}</p>
+      </div>
+
+      <div class="doc-meta"
+        [class.entrada]="esEntrada"
+        [class.salida]="esSalida"
+        [class.transferencia]="esTransferencia">
+        <h2>{{ tituloDocumento }}</h2>
+        <p><strong>No.:</strong> {{ numeroMovimiento }}</p>
+        <p>
+          <strong>Fecha:</strong>
+          {{ movimiento.fecha | date:'dd/MM/yyyy hh:mm a' }}
+        </p>
+      </div>
+    </header>
+
+    <section class="info-block">
+      <div class="info-grid">
+        <p *ngIf="!esTransferencia">
+          <strong>Almacén:</strong> {{ nombreAlmacen }}
+        </p>
+        <p *ngIf="esTransferencia">
+          <strong>Origen:</strong> {{ nombreAlmacen }}
+        </p>
+        <p *ngIf="esTransferencia">
+          <strong>Destino:</strong> {{ nombreAlmacenDestino }}
+        </p>
+        <p><strong>Motivo:</strong> {{ movimiento.motivo || '—' }}</p>
+        <p><strong>Referencia:</strong> {{ movimiento.referencia || '—' }}</p>
+        <p><strong>Registrado por:</strong> {{ usuarioRegistro }}</p>
+      </div>
+      <p *ngIf="movimiento.observacion" class="observacion">
+        <strong>Observación:</strong> {{ movimiento.observacion }}
+      </p>
+    </section>
+
+    <table class="detalle">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th>Producto</th>
+          <th class="col-qty">Cant.</th>
+          <th class="col-qty">Stock ant.</th>
+          <th class="col-qty">Stock nuevo</th>
+          <th class="col-money">Precio</th>
+          <th class="col-money">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of detalles; let i = index">
+          <td class="col-num">{{ i + 1 }}</td>
+          <td>{{ nombreProducto(item) }}</td>
+          <td class="col-qty">{{ item.cantidad }}</td>
+          <td class="col-qty">{{ item.stockAnterior }}</td>
+          <td class="col-qty">{{ item.stockNuevo }}</td>
+          <td class="col-money">{{ item.precio | number:'1.2-2' }}</td>
+          <td class="col-money">{{ item.subTotal | number:'1.2-2' }}</td>
+        </tr>
+        <tr *ngIf="!detalles.length">
+          <td colspan="7" class="empty-row">Sin productos</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="totales" *ngIf="totalGeneral > 0">
+      <div class="totales-box">
+        <p class="total-final">
+          <span>TOTAL</span>
+          <strong>RD$ {{ totalGeneral | number:'1.2-2' }}</strong>
+        </p>
+      </div>
+    </section>
+
+    <section class="firmas">
+      <div class="firma-box">
+        <div class="firma-linea"></div>
+        <p class="firma-titulo">Entrega</p>
+        <p class="firma-hint">Nombre y firma de quien entrega</p>
+      </div>
+
+      <div class="firma-box">
+        <div class="firma-linea"></div>
+        <p class="firma-titulo">Recibe</p>
+        <p class="firma-hint">Nombre y firma de quien recibe</p>
+      </div>
+    </section>
+
+    <footer class="doc-footer">
+      <p>Documento de control interno de inventario.</p>
+      <p *ngIf="empresa?.nota">{{ empresa?.nota }}</p>
+    </footer>
+
+  </div>
+</ion-content>
+
+<ion-footer class="no-print">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-button
+        color="success"
+        [disabled]="exportandoPdf"
+        (click)="exportarPdf()">
+        <ion-icon name="document-outline" slot="start"></ion-icon>
+        {{ exportandoPdf ? 'Generando...' : 'Exportar PDF' }}
+      </ion-button>
+      <ion-button color="warning" (click)="imprimir()">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        Imprimir
+      </ion-button>
+      <ion-button
+        fill="solid"
+        color="light"
+        class="btn-cerrar"
+        (click)="cerrar()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cerrar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

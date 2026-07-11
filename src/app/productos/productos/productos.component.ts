@@ -17,6 +17,13 @@ from 'src/app/servicios/parametros.service';
 import { ProductosService }
 from 'src/app/servicios/productos.service';
 
+import { AlmacenesService }
+from 'src/app/servicios/almacenes.service';
+
+import {
+  AlmacenExistenciaDetalle
+} from 'src/app/models/almacen-existencia.model';
+
 @Component({
   selector: 'app-productos',
   templateUrl: './productos.component.html',
@@ -42,10 +49,6 @@ tipoOperacion = 'todos';
 
   mostrarProductos = false;
 
-  mostrarVenta = false;
-
-  mostrarCompra = false;
-
   // =====================================
   // 📄 PAGINADO
   // =====================================
@@ -55,6 +58,16 @@ tipoOperacion = 'todos';
   infiniteDisabled = false;
 
   cargando = false;
+
+  existenciaModalAbierto = false;
+
+  cargandoExistencia = false;
+
+  productoExistenciaNombre = '';
+
+  existenciaTotal = 0;
+
+  existenciaDetalle: AlmacenExistenciaDetalle[] = [];
 
   // =====================================
   // 🔥 CONSTRUCTOR
@@ -70,13 +83,33 @@ tipoOperacion = 'todos';
 
     private toastCtrl: ToastController,
 
-    private parametro: ParametrosService
+    private parametro: ParametrosService,
+
+    private almacenesService: AlmacenesService
 
   ) {}
 toggleStockBajo(): void {
 
   this.mostrarStockBajo =
     !this.mostrarStockBajo;
+
+  this.aplicarFiltros();
+}
+
+filtrarServicios(): void {
+
+  this.mostrarServicios = true;
+
+  this.mostrarProductos = false;
+
+  this.aplicarFiltros();
+}
+
+filtrarProductos(): void {
+
+  this.mostrarProductos = true;
+
+  this.mostrarServicios = false;
 
   this.aplicarFiltros();
 }
@@ -109,134 +142,83 @@ toggleStockBajo(): void {
   // 🔥 FILTRO GENERAL
   // =====================================
 
-aplicarFiltros(tipo?: string): void {
+  aplicarFiltros(): void {
 
-  // =====================================
-  // 🔥 FILTROS PRINCIPALES
-  // =====================================
+    let lista = [...this.ListadoProductos];
 
-  switch (tipo) {
+    const texto =
+      (this.filtro || '')
+        .trim()
+        .toLowerCase();
 
-    // =====================================
-    // SERVICIOS
-    // =====================================
+    if (texto) {
 
-    case 'servicios':
+      lista = lista.filter(p =>
 
-      this.mostrarServicios = true;
+        (p.nombre || '')
+          .toLowerCase()
+          .includes(texto)
 
-      this.mostrarProductos = false;
+        ||
 
-      break;
+        (p.codigoBarra || '')
+          .toLowerCase()
+          .includes(texto)
+      );
+    }
 
-    // =====================================
-    // PRODUCTOS
-    // =====================================
+    if (this.mostrarServicios) {
 
-    case 'productos':
+      lista = lista.filter(p =>
+        !!p.esServicio
+      );
 
-      this.mostrarProductos = true;
+    } else if (this.mostrarProductos) {
 
-      this.mostrarServicios = false;
+      lista = lista.filter(p =>
+        !p.esServicio
+      );
+    }
 
-      break;
+    const operacion =
+      (this.tipoOperacion || 'todos')
+        .toUpperCase();
+
+    if (operacion !== 'TODOS') {
+
+      lista = lista.filter(p => {
+
+        if (p.esServicio) {
+
+          return operacion === 'VENTA';
+        }
+
+        const tipo =
+          (p.tipoOperacion || '')
+            .toUpperCase()
+            .trim();
+
+        return tipo === operacion;
+      });
+    }
+
+    if (this.mostrarStockBajo) {
+
+      lista = lista.filter(p =>
+
+        !p.esServicio
+
+        && p.controlarStock
+
+        && Number(p.cantidad || 0)
+          <= Number(p.stock || 0)
+      );
+    }
+
+    this.productosFiltrados = lista;
+
+    this.resetPaging();
   }
-
-  // =====================================
-  // 🔥 LISTA BASE
-  // =====================================
-
-  let lista = [...this.ListadoProductos];
-
-  // =====================================
-  // 🔍 FILTRO TEXTO
-  // =====================================
-
-  const texto =
-
-    (this.filtro || '')
-      .trim()
-      .toLowerCase();
-
-  if (texto) {
-
-    lista = lista.filter(p =>
-
-      (p.nombre || '')
-        .toLowerCase()
-        .includes(texto)
-    );
-  }
-
-  // =====================================
-  // 🔥 FILTRO PRINCIPAL
-  // =====================================
-
-  // SOLO SERVICIOS
-  if (this.mostrarServicios) {
-
-    lista = lista.filter(p =>
-
-      p.esServicio == true
-    );
-  }
-
-  // SOLO PRODUCTOS
-  if (this.mostrarProductos) {
-
-    lista = lista.filter(p =>
-
-      p.esServicio == false
-    );
-  }
-
-  // =====================================
-  // 🔥 TIPO OPERACION
-  // =====================================
-
-  // =====================================
-// 🔥 TIPO OPERACION
-// =====================================
-
-const operacion =
-  (this.tipoOperacion || 'todos')
-    .toUpperCase();
-
-if (operacion !== 'TODOS') {
-
-  lista = lista.filter(p => {
-
-    const tipo =
-      ((p as any).tipoOperacion || '')
-        .toUpperCase()
-        .trim();
-
-    return tipo === operacion;
-  });
-}
-
-  // =====================================
-  // 🔥 RESULTADO
-  // =====================================
-// =====================================
-// 🔥 STOCK BAJO
-// =====================================
-
-if (this.mostrarStockBajo) {
-
-  lista = lista.filter(p =>
-
-    p.controlarStock &&
-
-    Number(p.cantidad || 0)
-      <=
-    Number(p.stock || 0)
-  );
-}
-  this.productosFiltrados = lista;
-
-  this.resetPaging();
-}
 
   // =====================================
   // 📄 LOAD MORE
@@ -461,5 +443,112 @@ console.log('Productos cargados:', res);
   ) {
 
     return item.idProducto;
+  }
+
+  abrirExistenciaPorAlmacen(
+    producto: productos,
+    event?: Event
+  ): void {
+
+    event?.stopPropagation();
+
+    if (
+      !producto.controlarStock
+      ||
+      producto.esServicio
+    ) {
+      return;
+    }
+
+    this.productoExistenciaNombre =
+      producto.nombre || '';
+
+    this.existenciaModalAbierto = true;
+
+    this.cargandoExistencia = true;
+
+    this.existenciaDetalle = [];
+
+    this.existenciaTotal =
+      Number(producto.cantidad || 0);
+
+    this.almacenesService
+      .getExistenciasPorProducto(
+        producto.idProducto,
+        this.parametro.GetIdEmpresa()
+      )
+      .subscribe({
+
+        next: (res) => {
+
+          this.existenciaTotal =
+            Number(res?.total ?? 0);
+
+          this.existenciaDetalle =
+            res?.detalle ?? [];
+
+          this.cargandoExistencia = false;
+        },
+
+        error: async () => {
+
+          this.cargandoExistencia = false;
+
+          const toast =
+            await this.toastCtrl.create({
+
+              message:
+                'No se pudo cargar la existencia por almacén.',
+
+              duration: 2000,
+
+              color: 'danger',
+
+              position: 'bottom',
+            });
+
+          toast.present();
+        },
+      });
+  }
+
+  cerrarExistenciaModal(): void {
+
+    this.existenciaModalAbierto = false;
+  }
+
+  get resumenInventario(): {
+    totalProductos: number;
+    totalServicios: number;
+    valorInventario: number;
+  } {
+
+    const inventario =
+      this.ListadoProductos
+        .filter(p => !p.esServicio);
+
+    const servicios =
+      this.ListadoProductos
+        .filter(p => p.esServicio);
+
+    let valorInventario = 0;
+
+    for (const p of inventario) {
+
+      const cantidad =
+        Number(p.cantidad || 0);
+
+      const costo =
+        Number(p.precioCompra || 0);
+
+      valorInventario +=
+        costo * cantidad;
+    }
+
+    return {
+      totalProductos: inventario.length,
+      totalServicios: servicios.length,
+      valorInventario,
+    };
   }
 }

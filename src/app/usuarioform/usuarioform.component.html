@@ -88,6 +88,33 @@
     </ion-item>
 
     <!-- ========================= -->
+    <!-- PERMISOS POS / CARRITO -->
+    <!-- ========================= -->
+    <ion-list-header>
+      <ion-label>Permisos del carrito (POS)</ion-label>
+    </ion-list-header>
+
+    <ion-item>
+      <ion-label>Disminuir cantidad en carrito</ion-label>
+      <ion-toggle formControlName="puedeDisminuirCantidadCarrito"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Eliminar ítems del carrito</ion-label>
+      <ion-toggle formControlName="puedeEliminarItemCarrito"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Editar precio en carrito</ion-label>
+      <ion-toggle formControlName="puedeEditarPrecioCarrito"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Eliminar órdenes</ion-label>
+      <ion-toggle formControlName="puedeEliminarOrden"></ion-toggle>
+    </ion-item>
+
+    <!-- ========================= -->
     <!-- BOTONES -->
     <!-- ========================= -->
     <ion-button

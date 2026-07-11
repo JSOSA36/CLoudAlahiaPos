@@ -1,0 +1,169 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      Devolución de factura
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon
+          slot="icon-only"
+          name="close-outline">
+        </ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card>
+
+    <ion-card-header>
+
+      <ion-card-title>
+
+        {{ factura?.numeroDocumento || ('Fact-' + factura?.idFacturaHeader) }}
+
+      </ion-card-title>
+
+      <ion-card-subtitle>
+
+        {{ factura?.nombreEmpresa || 'Cliente' }}
+
+      </ion-card-subtitle>
+
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <p>
+
+        Seleccione los productos y cantidades
+        a devolver. Se generará una nota de
+        crédito e impresión POS.
+
+      </p>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <ion-list *ngIf="lineas.length; else sinLineas">
+
+    <ion-item
+      *ngFor="let linea of lineas"
+      lines="full">
+
+      <ion-checkbox
+        slot="start"
+        [(ngModel)]="linea.seleccionado"
+        (ionChange)="onLineaChange(linea)">
+      </ion-checkbox>
+
+      <ion-label>
+
+        <h2>
+
+          {{ nombreProducto(linea.detalle) }}
+
+        </h2>
+
+        <p>
+
+          Vendido:
+          {{ linea.detalle.cantidad }}
+          · Disponible:
+          {{ linea.maxDisponible }}
+
+        </p>
+
+        <p>
+
+          Precio unit.:
+          {{ linea.precioUnitario | currency }}
+
+        </p>
+
+      </ion-label>
+
+      <ion-input
+        slot="end"
+        type="number"
+        class="input-cantidad"
+        [(ngModel)]="linea.cantidadDevolver"
+        (ionInput)="cambiarCantidad(linea)"
+        [disabled]="!linea.seleccionado"
+        min="0"
+        [max]="linea.maxDisponible">
+      </ion-input>
+
+    </ion-item>
+
+  </ion-list>
+
+  <ng-template #sinLineas>
+
+    <ion-card>
+
+      <ion-card-content
+        class="ion-text-center">
+
+        No hay productos disponibles
+        para devolver en esta factura.
+
+      </ion-card-content>
+
+    </ion-card>
+
+  </ng-template>
+
+  <ion-item>
+
+    <ion-label position="stacked">
+
+      Observación
+
+    </ion-label>
+
+    <ion-textarea
+      [(ngModel)]="observacion"
+      rows="2"
+      placeholder="Motivo de la devolución (opcional)">
+    </ion-textarea>
+
+  </ion-item>
+
+  <div class="total-box">
+
+    <span>
+
+      Total nota de crédito
+
+    </span>
+
+    <strong>
+
+      {{ totalDevolucion | currency }}
+
+    </strong>
+
+  </div>
+
+  <ion-button
+    expand="block"
+    color="danger"
+    class="btn-confirmar"
+    [disabled]="procesando || !hayLineasSeleccionadas"
+    (click)="confirmarDevolucion()">
+
+    <ion-spinner
+      *ngIf="procesando"
+      name="crescent"
+      slot="start">
+    </ion-spinner>
+
+    Generar nota de crédito e imprimir
+
+  </ion-button>
+
+</ion-content>

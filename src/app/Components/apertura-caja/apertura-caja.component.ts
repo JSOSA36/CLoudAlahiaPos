@@ -75,17 +75,22 @@ export class AperturaCajaComponent {
 
   abrirCaja(){
 
-    if(this.montoInicial <= 0){
+    const monto =
+      Number(this.montoInicial ?? 0);
+
+    if (isNaN(monto) || monto < 0) {
 
       this.MostrarMensaje(
 
-        'Debe ingresar un monto inicial',
+        'El monto inicial no puede ser negativo',
 
         'warning'
       );
 
       return;
     }
+
+    this.montoInicial = monto;
 
     this.cargando = true;
 

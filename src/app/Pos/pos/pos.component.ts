@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { PrinterComponent } from 'src/app/printer/printer.component';
-import { IonModal, ModalController,AlertController,IonSearchbar } from '@ionic/angular';
+import { IonModal, ModalController,AlertController,IonSearchbar, ToastController } from '@ionic/angular';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
 import { ProductosService } from 'src/app/servicios/productos.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
@@ -74,6 +74,7 @@ aplicarITBIS: boolean = true;
   "FACT"
   | "Crédito Fiscal"
   | "Consumidor Final"
+  | "Gubernamental"
 = "FACT";
   comisionEmpleado: boolean = false;
   carrito: ItemCarrito[] = [];
@@ -123,6 +124,7 @@ facturacionElectronica: boolean = false;
     private descuentoSrv: DescuentoHeaderService,
     private empleadosService: EmpleadosService,
     private alertCtrl: AlertController,
+    private toastCtrl: ToastController,
     private parametroConfigService: ParametroConfigService,
      private modal: ModalController,
      private router: Router,
@@ -194,10 +196,13 @@ getTextoBoton(): string {
       return 'Guardar';
 
     case 'Cotizacion':
-      return 'Imprimir';
+      return 'Guardar';
 
     case 'Factura':
-      return 'Cobrar';
+
+      return this.tipoPago === 'CREDITO'
+        ? 'Guardar'
+        : 'Cobrar';
 
     default:
       return 'Continuar';
@@ -478,207 +483,135 @@ async validarCajaAbierta(){
         }
       });
   }
-async openModalCobro() {
+async openModalCobro(imprimirCotizacion = false) {
 
-
-  
   if (!this.carrito.length) return;
 
   // =====================================
-  // 🔥 ORDEN → GUARDAR DIRECTO
+  // 🔥 ORDEN → GUARDAR DIRECT
   // =====================================
 
-  if (this.tipoDocumento === 'Orden') {
+  if (this.tipoDocumento === 'Orden' || this.tipoDocumento === 'Cotizacion') {
 
     const header = new facturaheader();
-header.idFacturaHeader =
-  this.parametro.IdFacturaHeader;
-    header.iDCliente =
-      this.clienteSeleccionado?.id || 0;
 
-    header.moneda =
-      this.parametro.Moneda;
-
-    header.idEmpresa =
-      this.parametro.IdEmpresa;
-
+    header.idFacturaHeader = this.parametro.IdFacturaHeader;
+    header.iDCliente = this.clienteSeleccionado?.id || 0;
+    header.moneda = this.parametro.Moneda;
+    header.idEmpresa = this.parametro.IdEmpresa;
     header.idMesa = 1;
-
-    header.idMoso =
-      this.parametro.IdUsuario;
-
-    header.nombreCuenta =
-      this.clienteSeleccionado?.nombre || 'Al Portador';
-
-    header.nota =
-      this.clienteSeleccionado?.nombre || '';
-
-    header.idTipoDocumentos = 10;
-
+    header.idMoso = this.parametro.IdUsuario;
+    header.nombreCuenta = this.clienteSeleccionado?.nombre || 'Al Portador';
+    header.nota = this.clienteSeleccionado?.nombre || '';
+    header.idTipoDocumentos =
+      this.tipoDocumento === 'Cotizacion' ? 2 : 10;
     header.total = this.total;
+    header.subTotal = this.subtotalProductos;
+    header.totalItbis = this.montoItbis;
+    header.totalDescuento = this.montoDescuento;
 
     this.carrito.forEach(item => {
 
       const det = new facturadetalles();
 
-      det.idProducto =
-        item.idProducto;
-
-      det.cantidad =
-        item.cantidad;
-      det.idEmpleadoComision= item.idEmpleadoComision || 0,
-      det.subTotal =
-        item.subtotal;
-
-      det.precioOferta =
-        item.precioBase ?? item.precio;
-
+      det.idProducto = item.idProducto;
+      det.cantidad = item.cantidad;
+      det.subTotal = item.subtotal;
+      det.precioOferta = item.precioBase ?? item.precio;
       det.descuento = 0;
-
-      det.itbis =
-        item.itbisProducto || 0;
-
-      det.idEmpresa =
-        this.parametro.IdEmpresa;
-
-      det.idEmpleadoComision =
-        item.idEmpleadoComision || 0;
+      det.itbis = item.itbisProducto || 0;
+      det.idEmpresa = this.parametro.IdEmpresa;
+      det.idEmpleadoComision = item.idEmpleadoComision || 0;
 
       header.facturaDetalles.push(det);
 
     });
 
-    console.log(
-      '📦 ORDEN:',
-      header
-    );
-
-    this._FacturaHeader
-      .Enviarorden(header)
+    this._FacturaHeader.Enviarorden(header)
       .subscribe({
 
-       next: (resp: any) => {
+        next: async (resp: any) => {
 
-  console.log(
-    '✅ Orden guardada:',
-    resp
-  );
-this.resetPOS();
-  // =====================================
-  // 🔥 OBTENER ID DE LA ORDEN
-  // =====================================
+          const idOrden =
+            resp?.idFacturaHeader ??
+            resp?.idFactura ??
+            resp?.id ??
+            resp;
 
-  const idOrden =
-    resp?.idFacturaHeader ??
-    resp?.idFactura ??
-    resp?.id ??
-    resp;
+          const numeroDocumento =
+            resp?.numeroDocumento ?? '';
 
-  // =====================================
-  // 🔥 IMPRIMIR SEGÚN PARÁMETROS
-  // =====================================
-console.log("IMPRIMIR_ORDEN:", this.imprimirOrden);
-console.log("COPIAS:", this.cantidadCopiasOrden);
-console.log("ID ORDEN:", idOrden);
-  if (
-    this.imprimirOrden &&
-    idOrden
-  ) {
-if (this.imprimirOrden && idOrden) {
-
-  console.log("🔥 ENTRÓ A IMPRIMIR");
-
-  
-}
-    for (
-      let i = 0;
-      i < this.cantidadCopiasOrden;
-      i++
-    ) {
-
-      this._printService
-        .printTicket(
-          idOrden,
-          this.parametro.IdEmpresa
-        )
-        .subscribe({
-
-          next: () => {
-
-
-          
-            console.log(
-              `🖨️ Copia ${i + 1} enviada`
+          if (
+            this.tipoDocumento === 'Cotizacion' &&
+            idOrden &&
+            imprimirCotizacion
+          ) {
+            this._printService.openCotizacionCarta(
+              this.armarCotizacionParaImprimir(
+                header,
+                idOrden,
+                numeroDocumento
+              )
             );
+          } else if (
+            this.tipoDocumento === 'Cotizacion' &&
+            idOrden
+          ) {
+            (
+              await this.toastCtrl.create({
+                message: numeroDocumento
+                  ? `Cotización ${numeroDocumento} guardada correctamente`
+                  : `Cotización #${idOrden} guardada correctamente`,
+                duration: 2000,
+                color: 'success',
+                position: 'top'
+              })
+            ).present();
+          } else if (this.imprimirOrden && idOrden) {
 
-          },
+            for (let i = 0; i < this.cantidadCopiasOrden; i++) {
 
-          error: (err) => {
+              this._printService
+                .printTicket(
+                  idOrden,
+                  this.parametro.IdEmpresa
+                )
+                .subscribe();
 
-            console.error(
-              '❌ Error imprimiendo orden:',
-              err
-            );
+            }
 
           }
 
-        });
+          this.resetPOS();
 
-    }
-
-  }
-
-  // =====================================
-  // 🔥 LIMPIAR POS
-  // =====================================
-
- 
-
-},
+        },
 
         error: (err) => {
-
-          console.error(
-            '❌ Error guardando orden:',
-            err
-          );
+          console.error(err);
         }
+
       });
 
     return;
   }
 
   // =====================================
-  // 🔥 SOLO FACTURA LLEGA AQUÍ
+  // 🔥 FACTURA A CRÉDITO
   // =====================================
 
-  const modal = await this.modal.create({
-    component: CuentaxPagarComponent,
-    cssClass: 'modal-factura-full',
-    componentProps: {
-      Items: this.carrito,
-      Subtotal: this.subtotalProductos,
-      Itbis: this.montoItbis,
-      TotalFactura: this.total
-    }
-  });
+  if (
+      this.tipoDocumento === 'Factura' &&
+      this.tipoPago === 'CREDITO'
+  ) {
 
-  await modal.present();
+    const facturaDTO = this.armarFacturaDTO({
 
-  const { data, role } = await modal.onDidDismiss();
+      tipoFactura: 'CREDITO',
 
-  if (role === 'ok') {
+      imprimir: true,
 
-    console.log("💰 Data modal:", data);
-
-    if (!data?.pagos || data.pagos.length === 0) {
-      console.warn("⚠️ No hay pagos");
-      return;
-    }
-
-    const facturaDTO = this.armarFacturaDTO(data);
-
-    console.log("📦 DTO listo:", facturaDTO);
+      pagos: [] // 👈 Sin pagos
+    });
 
     this._FacturaHeader
       .createFacturaDirecta(facturaDTO)
@@ -687,69 +620,122 @@ if (this.imprimirOrden && idOrden) {
 
         next: (resp: any) => {
 
-          console.log(
-            "✅ Factura creada:",
-            resp
-          );
-this.resetPOS();
-          // =====================================
-          // 🔥 IMPRIMIR
-          // =====================================
+          this.resetPOS();
 
           const idFactura =
-
-            resp?.idFactura ||
-            resp?.id ||
+            resp?.idFactura ??
+            resp?.id ??
             resp;
 
           if (idFactura) {
 
             this._printService
               .printTicket(
-
                 idFactura,
-
                 this.parametro.IdEmpresa
               )
+              .subscribe();
 
-              .subscribe({
-
-                next: () => {
-
-                  console.log(
-                    "🖨️ Ticket enviado"
-                  );
-                },
-
-                error: (err) => {
-
-                  console.error(
-                    "❌ Error imprimiendo",
-                    err
-                  );
-                }
-              });
           }
 
-          // =====================================
-          // 🔥 LIMPIAR
-          // =====================================
+          this.parametro.IdFacturaHeader = 0;
 
-         
-
-this.parametro.IdFacturaHeader = 0;
         },
 
         error: (err) => {
 
           console.error(
-            "❌ Error creando factura:",
+            '❌ Error creando factura crédito',
             err
           );
+
         }
+
       });
+
+    return;
   }
-    
+
+  // =====================================
+  // 🔥 FACTURA CONTADO
+  // =====================================
+
+  const modal = await this.modal.create({
+
+    component: CuentaxPagarComponent,
+
+    cssClass: 'modal-factura-full',
+
+    componentProps: {
+
+      Items: this.carrito,
+
+      Subtotal: this.subtotalProductos,
+
+      Itbis: this.montoItbis,
+
+      TotalFactura: this.total
+
+    }
+
+  });
+
+  await modal.present();
+
+  const { data, role } = await modal.onDidDismiss();
+
+  if (role !== 'ok') return;
+
+  if (!data?.pagos || data.pagos.length === 0) {
+
+    console.warn("⚠️ No hay pagos");
+
+    return;
+
+  }
+
+  const facturaDTO = this.armarFacturaDTO(data);
+
+  this._FacturaHeader
+    .createFacturaDirecta(facturaDTO)
+
+    .subscribe({
+
+      next: (resp: any) => {
+
+        this.resetPOS();
+
+        const idFactura =
+          resp?.idFactura ??
+          resp?.id ??
+          resp;
+
+        if (idFactura) {
+
+          this._printService
+            .printTicket(
+              idFactura,
+              this.parametro.IdEmpresa
+            )
+            .subscribe();
+
+        }
+
+        this.parametro.IdFacturaHeader = 0;
+
+      },
+
+      error: (err) => {
+
+        console.error(
+          '❌ Error creando factura',
+          err
+        );
+
+      }
+
+    });
+
 }
 private resetPOS() {
 
@@ -785,10 +771,15 @@ private resetPOS() {
 }
 cargarOrdenEnPOS(orden: any) {
 
-  console.log("🧾 Orden recibida:", orden);
+  console.log("🧾 Documento recibido:", orden);
 
-  // 🔥 HEADER
-  this.tipoDocumento = orden.tipoDocumento || 'Orden';
+  if (orden.idTipoDocumentos === 2) {
+    this.tipoDocumento = 'Cotizacion';
+  } else if (orden.idTipoDocumentos === 10) {
+    this.tipoDocumento = 'Orden';
+  } else {
+    this.tipoDocumento = orden.tipoDocumento || 'Orden';
+  }
   this.tipoOrden = orden.tipoOrden || 'Llevar';
   this.tipoPago = orden.tipoFactura || 'CONTADO';
 this.parametro.IdFacturaHeader =
@@ -820,14 +811,67 @@ this.parametro.IdFacturaHeader =
 
   this.recalcularTotales();
 }
+
+private armarCotizacionParaImprimir(
+  header: facturaheader,
+  idFacturaHeader: number,
+  numeroDocumento = ''
+) {
+  return {
+    ...header,
+    idFacturaHeader,
+    numeroDocumento: numeroDocumento || header.numeroDocumento,
+    totalDescuento: header.totalDescuento,
+    fechaInseccion: new Date(),
+    clientes: {
+      nombreComercial:
+        this.clienteSeleccionado?.nombre || 'Al Portador',
+      celular: this.clienteSeleccionado?.celular || '',
+      rnc: this.clienteSeleccionado?.rnc || ''
+    },
+    facturaDetalles: this.carrito.map(item => ({
+      cantidad: item.cantidad,
+      precioOferta: item.precioBase ?? item.precio,
+      subTotal: item.subtotal,
+      itbis: item.itbisProducto || 0,
+      productos: {
+        nombre: item.nombre,
+        descripcion: item.nombre
+      }
+    }))
+  };
+}
+
 async abrirOrdenesModal() {
 
   const modal = await this.modal.create({
     component: CuentaPorCobrarComponent,
     cssClass: 'modal-fullscreen',
     componentProps: {
-      modo: 'seleccionar' ,// 🔥 CLAVE
-        esModal: true
+      modo: 'seleccionar',
+      esModal: true,
+      tipoDocumento: 'Orden'
+    }
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data?.ordenSeleccionada) {
+    this.cargarOrdenEnPOS(data.ordenSeleccionada);
+  }
+}
+
+async abrirCotizacionesModal() {
+
+  const modal = await this.modal.create({
+    component: CuentaPorCobrarComponent,
+    cssClass: 'modal-fullscreen',
+    componentProps: {
+      modo: 'seleccionar',
+      esModal: true,
+      tipoDocumento: 'Cotizacion'
     }
   });
 
@@ -846,6 +890,8 @@ private armarFacturaDTO(dataModal: any) {
       ? 1
       : this.tipoDocumento === 'Orden'
       ? 10
+      : this.tipoDocumento === 'Cotizacion'
+      ? 2
       : 14;
 
   return {
@@ -854,7 +900,7 @@ private armarFacturaDTO(dataModal: any) {
       idUsuario: this.parametro.IdUsuario,
 
       idCliente: this.clienteSeleccionado?.id || null,
-
+tipoFactura: this.tipoPago, // 👈 AGREGAR
       rnc: this.rncFiscal || null,
       nombreEmpresa: this.nombreFiscal || null,
  idFacturaHeader:
@@ -911,8 +957,30 @@ onTipoComprobanteChange() {
       true;
   }
 
+  if (!this.requiereDatosFiscales()) {
+    this.rncFiscal = '';
+    this.nombreFiscal = '';
+    this.mensajeRnc = '';
+    this.estadoRnc = '';
+  }
+
   // 🔥 RECALCULAR
   this.recalcularTotales();
+}
+
+requiereDatosFiscales(): boolean {
+  return (
+    this.tipoComprobante === 'Crédito Fiscal' ||
+    this.tipoComprobante === 'Gubernamental'
+  );
+}
+
+mostrarSelectorCliente(): boolean {
+  if (this.tipoDocumento !== 'Factura') {
+    return true;
+  }
+
+  return !this.requiereDatosFiscales();
 }
 recalcularTotales() {
 
@@ -1522,6 +1590,97 @@ if (
     }
 
     item.subtotal = +(item.cantidad * item.precio).toFixed(2);
+    this.recalcularTotales();
+  }
+
+  getPrecioUnitarioItem(item: ItemCarrito): number {
+    const base = item.precioBase ?? item.precio;
+    const usarITBIS =
+      this.facturarITBIS &&
+      this.aplicarITBIS;
+
+    if (usarITBIS) {
+      return +(
+        base + (item.itbisProducto ?? 0)
+      ).toFixed(2);
+    }
+
+    return base;
+  }
+
+  async editarPrecioItem(item: ItemCarrito) {
+
+    if (!this.parametro.PuedeEditarPrecioCarrito) {
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Editar precio',
+      message: item.nombre,
+      inputs: [
+        {
+          name: 'precio',
+          type: 'number',
+          min: 0,
+          value: this.getPrecioUnitarioItem(item),
+          placeholder: 'Nuevo precio unitario'
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Guardar',
+          handler: (data) => {
+            const nuevoPrecio = Number(data.precio);
+
+            if (
+              data.precio === '' ||
+              data.precio === null ||
+              isNaN(nuevoPrecio) ||
+              nuevoPrecio < 0
+            ) {
+              return false;
+            }
+
+            this.aplicarPrecioManual(item, nuevoPrecio);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private aplicarPrecioManual(
+    item: ItemCarrito,
+    nuevoPrecioUnitario: number
+  ) {
+
+    const usarITBIS =
+      this.facturarITBIS &&
+      this.aplicarITBIS;
+
+    if (usarITBIS) {
+
+      const precioBase = +(
+        nuevoPrecioUnitario / (1 + this.tasaITBIS)
+      ).toFixed(2);
+
+      item.precioBase = precioBase;
+      item.precio = precioBase;
+
+    }
+    else {
+
+      const precioBase =
+        +nuevoPrecioUnitario.toFixed(2);
+
+      item.precioBase = precioBase;
+      item.precio = precioBase;
+
+    }
+
     this.recalcularTotales();
   }
 

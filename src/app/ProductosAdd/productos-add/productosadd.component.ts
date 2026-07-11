@@ -152,7 +152,10 @@ formData.append(
 
     formData.append('precio', String(this.form.precioVenta || 0));
     formData.append('costo', String(this.form.costo || 0));
-    formData.append('cantidad', String(this.form.cantidad || 0));
+    formData.append(
+      'cantidad',
+      String(this.obtenerCantidadParaGuardar())
+    );
     formData.append('codigoBarra', this.form.codigoBarra || 'N/A');
     formData.append('controlarStock', String(this.form.controlarStock ?? false));
   }
@@ -203,5 +206,13 @@ formData.append(
 
   onToggleStock(event: CustomEvent) {
     this.form.controlarStock = event.detail.checked;
+  }
+
+  private obtenerCantidadParaGuardar(): number {
+    if (this.form.idproducto > 0) {
+      return Number(this.producto?.cantidad ?? this.form.cantidad ?? 0);
+    }
+
+    return 0;
   }
 }

@@ -9,11 +9,17 @@ export interface UsuarioDto {
 
   rol: string;             // rol: Admin, User, Manager
   estado: boolean;         // estado activo/inactivo
+  activo?: boolean;
 
   direccion?: string;      // opcional
   celular?: string;        // opcional
   userPassoword?: string;  // opcional
  puedeEliminarOrden: boolean ;
+  puedeEliminarItemCarrito?: boolean;
+  puedeDisminuirCantidadCarrito?: boolean;
+  puedeEditarPrecioCarrito?: boolean;
+  idEmpleado?: number;
+  idPerfil?: number;
   // 🔹 nuevo campo para FCM
   
 }

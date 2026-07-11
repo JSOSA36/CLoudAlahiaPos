@@ -30,13 +30,24 @@
 
   <ng-container *ngIf="!cargando">
 
-    <ion-accordion-group>
+    <ion-note
+      *ngIf="datosCargados"
+      color="medium"
+      class="resumen-carga">
+      Empresa: {{ parametrosEmpresa.length }} parámetro(s) |
+      POS {{ codigoPOS }}: {{ parametrosPOS.length }} parámetro(s)
+    </ion-note>
+
+    <ion-accordion-group value="empresa">
 
       <!-- PARAMETROS EMPRESA -->
       <ion-accordion value="empresa">
 
         <ion-item slot="header">
-          <ion-label><strong>Parámetros de Empresa</strong></ion-label>
+          <ion-label>
+            <strong>Parámetros de Empresa</strong>
+            ({{ parametrosEmpresa.length }})
+          </ion-label>
 
           <ion-button
             size="small"
@@ -49,6 +60,14 @@
         </ion-item>
 
         <div class="ion-padding" slot="content">
+
+          <ion-item
+            lines="none"
+            *ngIf="parametrosEmpresa.length === 0">
+            <ion-label class="ion-text-wrap">
+              No hay parámetros de empresa para esta compañía.
+            </ion-label>
+          </ion-item>
 
           <ion-grid>
             <ion-row>
@@ -106,7 +125,10 @@
       <ion-accordion value="pos">
 
         <ion-item slot="header">
-          <ion-label><strong>Parámetros del POS</strong></ion-label>
+          <ion-label>
+            <strong>Parámetros del POS</strong>
+            ({{ parametrosPOS.length }})
+          </ion-label>
 
           <ion-button
             size="small"
@@ -119,6 +141,15 @@
         </ion-item>
 
         <div class="ion-padding" slot="content">
+
+          <ion-item
+            lines="none"
+            *ngIf="parametrosPOS.length === 0">
+            <ion-label class="ion-text-wrap">
+              No hay parámetros con Código POS "{{ codigoPOS }}".
+              Los parámetros actuales están guardados a nivel empresa.
+            </ion-label>
+          </ion-item>
 
           <ion-grid>
             <ion-row>

@@ -1,0 +1,212 @@
+.cotizacion-page {
+  width: 100%;
+  max-width: 8.5in;
+  margin: 0 auto;
+  padding: 0.6in 0.55in;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: #111;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.cotizacion-page.pdf-capture {
+  min-height: auto;
+  width: 8.5in;
+  max-width: 8.5in;
+  margin: 0;
+  padding: 0.45in;
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.empresa-block {
+  flex: 1;
+
+  .logo {
+    max-height: 72px;
+    max-width: 180px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 2px 0;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+.doc-meta {
+  min-width: 220px;
+  text-align: right;
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    letter-spacing: 1px;
+    color: #1a4f8b;
+  }
+
+  p {
+    margin: 4px 0;
+    font-size: 12px;
+  }
+}
+
+.cliente-block {
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  border: 1px solid #d7d7d7;
+  border-radius: 6px;
+  background: #fafafa;
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    margin: 3px 0;
+  }
+}
+
+.detalle {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+
+  th,
+  td {
+    border: 1px solid #cfcfcf;
+    padding: 8px 6px;
+    vertical-align: top;
+  }
+
+  th {
+    background: #f0f4f8;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  td {
+    font-size: 12px;
+  }
+
+  .col-num {
+    width: 36px;
+    text-align: center;
+  }
+
+  .col-qty {
+    width: 56px;
+    text-align: center;
+  }
+
+  .col-money {
+    width: 90px;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .empty-row {
+    text-align: center;
+    padding: 18px;
+    color: #666;
+  }
+}
+
+.totales {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 32px;
+}
+
+.totales-box {
+  width: 280px;
+
+  p {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 6px 0;
+    font-size: 13px;
+  }
+
+  .total-final {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #1a1a1a;
+    font-size: 16px;
+  }
+}
+
+.doc-footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid #ccc;
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+  line-height: 1.5;
+}
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.45in;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  ion-content {
+    --background: #fff;
+  }
+
+  .cotizacion-page {
+    width: 100%;
+    max-width: none;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+ion-content {
+  --padding-bottom: 80px;
+}
+
+.no-print ion-toolbar {
+  --min-height: 56px;
+}
+
+.btn-cerrar-cotizacion {
+  --color: #1a1a1a;
+  font-weight: 700;
+  margin-left: 8px;
+}

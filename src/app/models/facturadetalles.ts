@@ -12,6 +12,7 @@ export class facturadetalles
     itbis:number=0;
     subTotal:number=0;
     descuento:number=0;
+    cantidadDevuelta:number=0;
     precioOferta :number=0;
     idEmpleadoComision:number=0;
     enviadococina:boolean=false;

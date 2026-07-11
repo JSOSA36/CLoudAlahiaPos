@@ -51,6 +51,8 @@
 
   <div class="filtros-rapidos">
 
+    <div class="filtros-fila-principal">
+
     <!-- ===================================== -->
     <!-- 🔥 FILTRO PRINCIPAL -->
     <!-- ===================================== -->
@@ -64,7 +66,7 @@
 
         color="primary"
 
-        (click)="aplicarFiltros('servicios')">
+        (click)="filtrarServicios()">
 
         <ion-icon
           name="construct-outline">
@@ -86,7 +88,7 @@
 
         color="success"
 
-        (click)="aplicarFiltros('productos')">
+        (click)="filtrarProductos()">
 
         <ion-icon
           name="cube-outline">
@@ -184,6 +186,100 @@
 
     </div>
 
+    </div>
+
+    <!-- ===================================== -->
+    <!-- 🔥 RESUMEN INVENTARIO -->
+    <!-- ===================================== -->
+
+    <div
+      class="grupo-resumen-inventario"
+      *ngIf="
+        resumenInventario.totalProductos > 0
+        ||
+        resumenInventario.totalServicios > 0
+      ">
+
+      <div class="resumen-inventario-item">
+
+        <ion-icon
+          name="cube-outline"
+          color="success">
+
+        </ion-icon>
+
+        <div class="resumen-inventario-texto">
+
+          <span class="resumen-inventario-label">
+
+            Productos
+
+          </span>
+
+          <strong>
+
+            {{ resumenInventario.totalProductos }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="resumen-inventario-item">
+
+        <ion-icon
+          name="construct-outline"
+          color="primary">
+
+        </ion-icon>
+
+        <div class="resumen-inventario-texto">
+
+          <span class="resumen-inventario-label">
+
+            Servicios
+
+          </span>
+
+          <strong>
+
+            {{ resumenInventario.totalServicios }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="resumen-inventario-item resumen-inventario-valor">
+
+        <ion-icon
+          name="cash-outline"
+          color="warning">
+
+        </ion-icon>
+
+        <div class="resumen-inventario-texto">
+
+          <span class="resumen-inventario-label">
+
+            Valor inventario
+
+          </span>
+
+          <strong>
+
+            {{ resumenInventario.valorInventario | currency }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 </ion-header>
@@ -269,18 +365,19 @@
 
               class="stock-mobile">
 
-              <!-- ACTUAL -->
-              <span class="badge-stock badge-actual">
+              <button
+                type="button"
+                class="badge-stock badge-actual existencia-link"
+                (click)="abrirExistenciaPorAlmacen(producto, $event)">
 
-                Actual:
+                Existencia:
                 {{ producto.cantidad || 0 }}
 
-              </span>
+              </button>
 
-              <!-- STOCK -->
               <span class="badge-stock badge-minimo">
 
-                Stock:
+                Mínimo:
                 {{ producto.stock || 0 }}
 
               </span>
@@ -452,13 +549,13 @@
 
           <ion-col size="1">
 
-            Actual
+            Existencia
 
           </ion-col>
 
           <ion-col size="1">
 
-            Stock
+            Mínimo
 
           </ion-col>
 
@@ -546,16 +643,24 @@
 
           </ion-col>
 
-          <!-- STOCK ACTUAL -->
+          <!-- EXISTENCIA TOTAL -->
           <ion-col
 
             size="1"
 
-            class="codigo-cell">
+            class="codigo-cell existencia-cell">
 
-            {{ producto.controlarStock
-                ? (producto.cantidad || 0)
-                : '-' }}
+            <button
+              type="button"
+              class="existencia-link"
+              *ngIf="producto.controlarStock"
+              (click)="abrirExistenciaPorAlmacen(producto, $event)">
+
+              {{ producto.cantidad || 0 }}
+
+            </button>
+
+            <span *ngIf="!producto.controlarStock">-</span>
 
           </ion-col>
 
@@ -717,5 +822,125 @@
 
   </ion-fab-button>
 
-</ion-fab>
+  </ion-fab>
+
 </ion-content>
+
+  <!-- ===================================== -->
+  <!-- 🔥 MODAL EXISTENCIA POR ALMACEN -->
+  <!-- ===================================== -->
+
+  <ion-modal
+    [isOpen]="existenciaModalAbierto"
+    (didDismiss)="cerrarExistenciaModal()"
+    cssClass="modal-existencia-almacen">
+
+    <ng-template>
+
+      <ion-header>
+
+        <ion-toolbar color="primary">
+
+          <ion-title>
+
+            Existencia por almacén
+
+          </ion-title>
+
+          <ion-buttons slot="end">
+
+            <ion-button
+              (click)="cerrarExistenciaModal()">
+
+              <ion-icon
+                name="close-outline">
+
+              </ion-icon>
+
+            </ion-button>
+
+          </ion-buttons>
+
+        </ion-toolbar>
+
+      </ion-header>
+
+      <ion-content class="ion-padding existencia-modal-content">
+
+        <h2 class="existencia-producto-nombre">
+
+          {{ productoExistenciaNombre }}
+
+        </h2>
+
+        <div class="existencia-total-box">
+
+          <span class="existencia-total-titulo">
+
+            Total existencia
+
+          </span>
+
+          <span class="existencia-total-valor">
+
+            {{ existenciaTotal }}
+
+          </span>
+
+        </div>
+
+        <div
+          *ngIf="cargandoExistencia"
+          class="existencia-loading">
+
+          <ion-spinner
+            name="crescent">
+
+          </ion-spinner>
+
+        </div>
+
+        <ion-list
+          *ngIf="!cargandoExistencia"
+          class="existencia-lista">
+
+          <ion-item
+            *ngFor="let item of existenciaDetalle"
+            class="existencia-item"
+            lines="full">
+
+            <ion-label>
+
+              <h3 class="existencia-almacen-nombre">
+
+                {{ item.nombreAlmacen }}
+
+                <span
+                  *ngIf="item.esPrincipal"
+                  class="badge-principal">
+
+                  Principal
+
+                </span>
+
+              </h3>
+
+            </ion-label>
+
+            <span
+              slot="end"
+              class="existencia-cantidad-valor">
+
+              {{ item.cantidad }}
+
+            </span>
+
+          </ion-item>
+
+        </ion-list>
+
+      </ion-content>
+
+    </ng-template>
+
+  </ion-modal>

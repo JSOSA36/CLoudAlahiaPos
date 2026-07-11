@@ -1,6 +1,17 @@
 /* ===================================== */
-/* 🔥 CONTAINER */
+/* 🔥 STOCK ALMACEN HINT */
 /* ===================================== */
+
+.stock-almacen-hint {
+
+  margin: 8px 0 0 16px;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #0c5460;
+}
 
 .container-movimiento {
 
@@ -476,6 +487,15 @@ ion-button {
   margin-bottom: 14px;
 
   color: #f4c542;
+}
+
+.botones-guardar {
+
+  display: grid;
+
+  gap: 10px;
+
+  margin-top: 8px;
 }
 
 /* ===================================== */

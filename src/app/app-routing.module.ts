@@ -68,6 +68,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'reporteperdidas',
+    loadChildren: () => import('./Components/reporte-perdidas/reporte-perdidas.module').then(m => m.ReportePerdidasModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'bizcocho',
     loadChildren: () => import('./bizcocho/listado-encargos/listado-encargos.module').then(m => m.ListadoEncargosModule),
     canActivate: [AuthGuard]
@@ -115,6 +120,11 @@ const routes: Routes = [
   {
     path: 'area',
     loadChildren: () => import('./Areas/area/area.module').then(m => m.AreaModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'almacenes',
+    loadChildren: () => import('./Almacenes/listado-almacenes/listado-almacenes.module').then(m => m.ListadoAlmacenesModule),
     canActivate: [AuthGuard]
   },
   
@@ -311,6 +321,12 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   
+  {
+    path: 'documentosclinicos',
+    loadChildren: () => import('./DocumentosClinicos/listado-documentos-clinicos/listado-documentos-clinicos.module')
+      .then(m => m.ListadoDocumentosClinicosModule),
+    canActivate: [AuthGuard]
+  },
   {
     path: 'cart',
     loadChildren: () => import('./cart/cart.module').then(m => m.CartModule),

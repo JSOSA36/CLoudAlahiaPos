@@ -1,0 +1,64 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+ion-card-title {
+  font-size: 1rem;
+}
+
+.vista-consulta-content {
+  --padding-top: 8px;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --padding-bottom: 8px;
+}
+
+.vista-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.vista-documento {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: calc(100% - 28px);
+  min-height: 420px;
+}
+
+.iframe-documento {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border: none;
+  background: #fff;
+}
+
+.sin-contenido {
+  color: #64748b;
+  font-style: italic;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.vista-consulta-footer ion-toolbar {
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+.vista-consulta-footer ion-button {
+  margin-bottom: 6px;
+}
+
+.vista-consulta-footer ion-button:last-child {
+  margin-bottom: 0;
+}

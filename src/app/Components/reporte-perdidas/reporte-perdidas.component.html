@@ -1,0 +1,409 @@
+<ion-header class="no-print">
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+
+      <ion-menu-button>
+
+      </ion-menu-button>
+
+    </ion-buttons>
+
+    <ion-title>
+
+      Reporte de Pérdidas
+
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button
+        (click)="imprimir()"
+        [disabled]="!lineas.length">
+
+        <ion-icon
+          slot="icon-only"
+          name="print-outline">
+
+        </ion-icon>
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding reporte-perdidas-content">
+
+  <ion-card class="card-filtros no-print">
+
+    <ion-card-header>
+
+      <ion-card-title>
+
+        Filtrar por fecha
+
+      </ion-card-title>
+
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-grid>
+
+        <ion-row>
+
+          <ion-col size="12" size-md="4">
+
+            <ion-item lines="none">
+
+              <ion-label position="stacked">
+
+                Desde
+
+              </ion-label>
+
+              <ion-input
+                type="date"
+                [(ngModel)]="desde">
+
+              </ion-input>
+
+            </ion-item>
+
+          </ion-col>
+
+          <ion-col size="12" size-md="4">
+
+            <ion-item lines="none">
+
+              <ion-label position="stacked">
+
+                Hasta
+
+              </ion-label>
+
+              <ion-input
+                type="date"
+                [(ngModel)]="hasta">
+
+              </ion-input>
+
+            </ion-item>
+
+          </ion-col>
+
+          <ion-col
+            size="12"
+            size-md="4"
+            class="col-botones">
+
+            <ion-button
+              expand="block"
+              color="primary"
+              (click)="cargarReporte()">
+
+              <ion-icon
+                slot="start"
+                name="search-outline">
+
+              </ion-icon>
+
+              Consultar
+
+            </ion-button>
+
+            <ion-button
+              expand="block"
+              fill="outline"
+              color="medium"
+              (click)="limpiarFiltros()">
+
+              Limpiar
+
+            </ion-button>
+
+          </ion-col>
+
+        </ion-row>
+
+      </ion-grid>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <div
+    *ngIf="cargando"
+    class="loading-area no-print">
+
+    <ion-spinner
+      name="crescent">
+
+    </ion-spinner>
+
+  </div>
+
+  <div
+    id="area-reporte"
+    class="area-reporte"
+    *ngIf="!cargando">
+
+    <div class="reporte-encabezado">
+
+      <h1>
+
+        Reporte de Pérdidas de Inventario
+
+      </h1>
+
+      <p>
+
+        Salidas por motivo PERDIDA
+
+      </p>
+
+      <p class="rango-fechas">
+
+        Del
+        {{ formatearFecha(desde) }}
+        al
+        {{ formatearFecha(hasta) }}
+
+      </p>
+
+    </div>
+
+    <div
+      class="resumen-totales"
+      *ngIf="lineas.length">
+
+      <div class="tarjeta-total">
+
+        <span class="etiqueta">
+
+          Registros
+
+        </span>
+
+        <strong>
+
+          {{ lineas.length }}
+
+        </strong>
+
+      </div>
+
+      <div class="tarjeta-total">
+
+        <span class="etiqueta">
+
+          Unidades perdidas
+
+        </span>
+
+        <strong>
+
+          {{ totalUnidades | number:'1.0-2' }}
+
+        </strong>
+
+      </div>
+
+      <div class="tarjeta-total tarjeta-total-principal">
+
+        <span class="etiqueta">
+
+          Total pérdida
+
+        </span>
+
+        <strong>
+
+          {{ totalPerdida | currency }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+    <ion-card
+      *ngIf="!lineas.length"
+      class="card-empty">
+
+      <ion-card-content
+        class="ion-text-center">
+
+        No hay pérdidas registradas
+        en el rango seleccionado.
+
+      </ion-card-content>
+
+    </ion-card>
+
+    <div
+      class="tabla-wrapper"
+      *ngIf="lineas.length">
+
+      <table class="tabla-perdidas">
+
+        <thead>
+
+          <tr>
+
+            <th>
+
+              Fecha
+
+            </th>
+
+            <th>
+
+              Producto
+
+            </th>
+
+            <th>
+
+              Cantidad
+
+            </th>
+
+            <th>
+
+              Costo
+
+            </th>
+
+            <th>
+
+              Valor pérdida
+
+            </th>
+
+            <th class="col-oculta-print">
+
+              Almacén
+
+            </th>
+
+            <th class="col-oculta-print">
+
+              Observación
+
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="let item of lineas">
+
+            <td>
+
+              {{ item.fecha | date:'dd/MM/yyyy hh:mm a' }}
+
+            </td>
+
+            <td>
+
+              {{ item.producto }}
+
+            </td>
+
+            <td class="col-num">
+
+              {{ item.cantidad | number:'1.0-2' }}
+
+            </td>
+
+            <td class="col-money">
+
+              {{ item.costo | currency }}
+
+            </td>
+
+            <td class="col-money col-perdida">
+
+              {{ item.valorPerdida | currency }}
+
+            </td>
+
+            <td class="col-oculta-print">
+
+              {{ item.almacen || '—' }}
+
+            </td>
+
+            <td class="col-oculta-print">
+
+              {{ item.observacion || '—' }}
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+        <tfoot>
+
+          <tr>
+
+            <td colspan="2">
+
+              <strong>
+
+                TOTAL
+
+              </strong>
+
+            </td>
+
+            <td class="col-num">
+
+              <strong>
+
+                {{ totalUnidades | number:'1.0-2' }}
+
+              </strong>
+
+            </td>
+
+            <td>
+
+            </td>
+
+            <td class="col-money col-perdida">
+
+              <strong>
+
+                {{ totalPerdida | currency }}
+
+              </strong>
+
+            </td>
+
+            <td
+              colspan="2"
+              class="col-oculta-print">
+
+            </td>
+
+          </tr>
+
+        </tfoot>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</ion-content>

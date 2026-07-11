@@ -22,6 +22,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   REPORTE_SERVICIOS: '/reporteservicios',
   REPORTE_COMISIONES: '/comisiones',
   MOVIMIENTO_INVENTARIO: '/movimientosinventario',
+  REPORTE_PERDIDAS: '/reporteperdidas',
   CATEGORIAS: '/Listadocategorias',
   PRODUCTOS: '/listproducto',
   CLIENTES: '/clientemodal',
@@ -34,6 +35,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   HORARIO_ESTILISTA: '/horarioestilista',
   CONSUMO_LAVADORES: '/consumolavador',
   AREAS: '/area',
+  ALMACENES: '/almacenes',
   CIERRE_CAJA: '/cierrecaja',
   EMPLEADOS_COMISION: '/listadoempleadocomision',
   HISTORICO_FACTURAS: '/historicofact',
@@ -51,7 +53,8 @@ export const MODULO_RUTAS: Record<string, string> = {
   PARAMETROS: '/ParametrosConfig',
   EMPLEADOS: '/empleados',
   USUARIOS: '/usuarios',
-  PERFILES: '/perfiles'
+  PERFILES: '/perfiles',
+  DOCUMENTOS_CLINICOS: '/documentosclinicos'
 };
 
 // ===============================
@@ -78,6 +81,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   PARAMETROS: 'gift',
   LISTADO_CAJA: 'wallet',
   MOVIMIENTO_INVENTARIO: 'box-open',
+  REPORTE_PERDIDAS: 'exclamation-triangle',
   GASTOS: 'wallet',
   INGRESOS: 'cash-register',
   HISTORICO_FACTURAS: 'file-invoice',
@@ -86,6 +90,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   LISTADO_PAGOS: 'list',
   BIZCOCHO_ENCARGO: 'birthday-cake',
   AREAS: 'layer-group',
+  ALMACENES: 'warehouse',
   EMPLEADOS_COMISION: 'percentage',
   CIERRE_CAJA: 'cash-register',
   CUENTAS_COBRAR: 'file-invoice',
@@ -95,7 +100,8 @@ export const MODULO_ICONOS: Record<string, string> = {
 
   EMPLEADOS: 'user-tie',
   USUARIOS: 'user',
-  PERFILES: 'user-shield'
+  PERFILES: 'user-shield',
+  DOCUMENTOS_CLINICOS: 'file-medical'
 };
 
 @Component({

@@ -46,7 +46,11 @@ export class UsuarioformComponent implements OnInit {
       idEmpleados: [null, Validators.required],
       idPerfil: [null, Validators.required],
       activo: [true],
-      password: ['']
+      password: [''],
+      puedeEliminarOrden: [false],
+      puedeEliminarItemCarrito: [false],
+      puedeDisminuirCantidadCarrito: [false],
+      puedeEditarPrecioCarrito: [false]
     });
 
     if (this.usuario) {
@@ -58,7 +62,11 @@ export class UsuarioformComponent implements OnInit {
 
       this.form.patchValue({
         correo: this.usuario.correo,
-        activo: this.usuario.activo
+        activo: this.usuario.activo ?? this.usuario.estado,
+        puedeEliminarOrden: this.usuario.puedeEliminarOrden || false,
+        puedeEliminarItemCarrito: this.usuario.puedeEliminarItemCarrito || false,
+        puedeDisminuirCantidadCarrito: this.usuario.puedeDisminuirCantidadCarrito || false,
+        puedeEditarPrecioCarrito: this.usuario.puedeEditarPrecioCarrito || false
       });
     } else {
       this.form.get('password')?.setValidators([
@@ -125,7 +133,11 @@ compareById = (a: any, b: any) => {
     idPerfil: this.form.value.idPerfil,
     correo: this.form.value.correo,
     userName: this.form.value.correo,
-    activo: this.form.value.activo
+    activo: this.form.value.activo,
+    puedeEliminarOrden: this.form.value.puedeEliminarOrden,
+    puedeEliminarItemCarrito: this.form.value.puedeEliminarItemCarrito,
+    puedeDisminuirCantidadCarrito: this.form.value.puedeDisminuirCantidadCarrito,
+    puedeEditarPrecioCarrito: this.form.value.puedeEditarPrecioCarrito
   };
 
   if (this.form.value.password) {

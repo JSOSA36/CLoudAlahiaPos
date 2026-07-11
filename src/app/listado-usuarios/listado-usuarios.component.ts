@@ -57,16 +57,21 @@ export class ListadoUsuariosComponent implements OnInit {
           // 🔥 SIN FILTROS POR ROL
           this.usuarios = lista.map((u: any): UsuarioDto => ({
             idusuario: u.idUsuario,
-            nombre: u.empleadoNombre ?? u.userName,
+            nombre: u.empleadoNombre ?? u.empleado?.nombre ?? u.userName,
             correo: u.correo ?? u.userName,
-          rol: u.perfil?.nombre ?? 'Sin perfil',
-
+            rol: u.perfil?.nombre ?? 'Sin perfil',
             estado: u.estado,
+            activo: u.estado,
             idEmpresa: u.idEmpresa,
+            idEmpleado: u.idEmpleado,
+            idPerfil: u.idPerfil,
             direccion: u.direccion,
             celular: u.celular,
             password: '',
-            puedeEliminarOrden: u.puedeEliminarOrden || false
+            puedeEliminarOrden: u.puedeEliminarOrden || false,
+            puedeEliminarItemCarrito: u.puedeEliminarItemCarrito || false,
+            puedeDisminuirCantidadCarrito: u.puedeDisminuirCantidadCarrito || false,
+            puedeEditarPrecioCarrito: u.puedeEditarPrecioCarrito || false
           }));
 
           await loading.dismiss();

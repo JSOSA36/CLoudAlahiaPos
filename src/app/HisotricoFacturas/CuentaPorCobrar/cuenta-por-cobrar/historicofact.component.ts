@@ -16,6 +16,7 @@ import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component'
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
+import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
 @Component({
   selector: 'app-historicofact',
   templateUrl: './historicofact.component.html',
@@ -585,6 +586,31 @@ getPendiente(iten: any): number {
         console.log("Factura enviada a impresión ✅");
 
     });
+  }
+
+  async abrirDevolucion(
+    factura: facturaheader
+  ): Promise<void> {
+
+    if (factura.estaCancelada) {
+      return;
+    }
+
+    const modal = await this.modal.create({
+      component: DevolucionFacturaComponent,
+      cssClass: 'modal-producto-grande',
+      componentProps: {
+        factura
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.refresh) {
+      this.LoadListaFactura();
+    }
   }
 
  async LoadListaFactura() {

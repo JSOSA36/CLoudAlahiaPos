@@ -120,35 +120,48 @@ implements OnInit {
   // =====================================================
   // 🔥 FACTURAS
   // =====================================================
+cargarClientesConDeuda() {
 
-  async cargarFacturas() {
+  const clientesMap = new Map<number, clientes>();
 
-    this.cargando = true;
+  this.facturas.forEach(f => {
 
-    const idCliente =
+    const pendiente = Number(f.pendiente || f.total || 0);
 
-      this.clienteSeleccionado || 0;
+    if (pendiente <= 0) return;
 
-    const idEmpresa =
-      this._parametro.IdEmpresa;
+    const idCliente = Number(f.iDCliente || 0);
 
-    this._facturaSrv
-    .GetAllFacturaPendiente(
-      idCliente,
-      idEmpresa
-    )
+    if (idCliente <= 0) return;
+
+    const cliente = this.clientes.find(c => c.idCliente === idCliente);
+
+    if (cliente) {
+      clientesMap.set(cliente.idCliente, cliente);
+    }
+  });
+
+  this.clientes = Array.from(clientesMap.values());
+}
+ async cargarFacturas() {
+
+  this.cargando = true;
+
+  const idCliente = this.clienteSeleccionado || 0;
+  const idEmpresa = this._parametro.IdEmpresa;
+
+  this._facturaSrv
+    .GetAllFacturaPendiente(idCliente, idEmpresa)
     .subscribe({
 
       next: (res) => {
 
-        this.facturas =
-          res || [];
+        this.facturas = res || [];
+        this.facturasFiltradas = [...this.facturas];
 
-        this.facturasFiltradas =
-          [...this.facturas];
+        this.cargarClientesConDeuda();
 
         this.cargando = false;
-
         this.calcularTotalGeneral();
       },
 
@@ -158,19 +171,14 @@ implements OnInit {
 
         (
           await this.toastCtrl.create({
-
-            message:
-              'Error cargando facturas pendientes',
-
+            message: 'Error cargando facturas pendientes',
             duration: 1500,
-
             color: 'danger'
           })
-
         ).present();
       }
     });
-  }
+}
 
   // =====================================================
   // 🔥 FILTRAR

@@ -96,14 +96,19 @@ size-lg="2.4"
         <ion-card class="gasto-card">
           <ion-card-header>
             <ion-card-title class="ion-text-center">
-              {{ g.tipoGasto }} - {{ g.monto | currency }}
+              {{ g.tipoGasto || 'Sin tipo' }} - {{ g.monto | currency }}
             </ion-card-title>
           </ion-card-header>
 
           <ion-card-content>
             <p>
               <ion-icon name="cash-outline"></ion-icon>
-              <strong>Origen:</strong> {{ g.orien }}
+              <strong>Origen:</strong> {{ g.formaPago || g.orien || '—' }}
+            </p>
+
+            <p *ngIf="g.referencia">
+              <ion-icon name="document-outline"></ion-icon>
+              <strong>Referencia:</strong> {{ g.referencia }}
             </p>
 
             <p>

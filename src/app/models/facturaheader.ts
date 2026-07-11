@@ -39,6 +39,6 @@ export class facturaheader
     rnc:string="";
     nombreEmpresa:string="";
     ncf:string="";
-     clientes?: clientes;
+    clientes?: clientes;
     
 }

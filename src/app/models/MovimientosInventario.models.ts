@@ -20,7 +20,8 @@ export class MovimientosInventario {
   // =========================================
 
   tipoMovimiento: string = 'ENTRADA';
-  usuario:usuarios=new usuarios();
+  usuario: usuarios = new usuarios();
+  nombreUsuario?: string;
   // =========================================
   // 🔥 MOTIVO
   // =========================================
@@ -56,6 +57,14 @@ export class MovimientosInventario {
   // =========================================
 
   idEmpresa: number = 0;
+
+  idAlmacen: number = 0;
+
+  idAlmacenDestino: number = 0;
+
+  nombreAlmacen?: string;
+
+  nombreAlmacenDestino?: string;
 
   // =========================================
   // 🔥 ACTIVO

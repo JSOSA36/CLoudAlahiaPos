@@ -44,6 +44,12 @@ export class FacturaHeaderService {
     `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}`
   );
 }
+
+  GetListadoCotizaciones(IdEmpresa: number): Observable<facturaheader[]> {
+    return this.httpClient.get<facturaheader[]>(
+      `${this.baseUrl}/GetAllCotizaciones?IdEmpresa=${IdEmpresa}`
+    );
+  }
  GetListadoFacturas(IdEmpresa: number): Observable<facturaheader[]> {
   return this.httpClient.get<facturaheader[]>(
     `${this.baseUrl}/GetAllFacturas?IdEmpresa=${IdEmpresa}`

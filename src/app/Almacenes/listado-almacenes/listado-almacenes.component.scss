@@ -1,0 +1,30 @@
+.almacen-card,
+.form-card {
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.18);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+ion-item h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+ion-item p {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}
+
+.badge-principal {
+  color: var(--ion-color-success) !important;
+  font-weight: 600;
+}
+
+.badge-inactivo {
+  color: var(--ion-color-danger) !important;
+  font-weight: 600;
+}
+
+.btn-guardar {
+  margin-top: 20px;
+}

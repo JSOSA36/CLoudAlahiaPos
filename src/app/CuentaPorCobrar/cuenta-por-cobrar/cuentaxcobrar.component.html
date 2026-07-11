@@ -4,8 +4,19 @@
     <ion-buttons slot="start">
       <ion-menu-button *ngIf="!esModal" style="color: white;"></ion-menu-button>
 
-      <ion-button (click)="LoadListaFactura()" size="small">
-        <ion-icon slot="icon-only" ios="logo-apple" md="refresh"></ion-icon>
+      <ion-button
+        *ngIf="esModal"
+        (click)="cancelm()"
+        size="small"
+        color="light">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button
+        *ngIf="!esModal"
+        (click)="LoadListaFactura()"
+        size="small">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
 
@@ -20,7 +31,11 @@
 
   <!-- SIN DATOS -->
   <ion-item *ngIf="_Parametro.ListadoOrdenes.length == 0">
-    <ion-title class="ion-text-center">No hay Ordenes que Mostrar</ion-title>
+    <ion-title class="ion-text-center">
+      {{ tipoDocumento === 'Cotizacion'
+        ? 'No hay cotizaciones que mostrar'
+        : 'No hay órdenes que mostrar' }}
+    </ion-title>
   </ion-item>
 
   <ion-accordion-group 
@@ -43,10 +58,16 @@
 
         <ion-label class="label-orden">
           <div>
-            <strong>
-              Ord#: {{ iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
-            </strong>
-          </div>
+  <strong>
+    {{ tipoDocumento === 'Cotizacion' ? 'Cot#' : 'Ord#' }}:
+    {{ iten.numeroDocumento || iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
+  </strong>
+</div>
+
+<div *ngIf="$any(iten.clientes).celular">
+  <ion-icon name="call-outline"></ion-icon>
+  {{ $any(iten.clientes).celular }}
+</div>
 
           <div>
             <ion-icon name="calendar-outline"></ion-icon>
@@ -84,7 +105,10 @@
         <ion-row *ngIf="modo === 'editar'">
           <ion-col>
 
-            <ion-button (click)="PagarFact(iten.idFacturaHeader)" color="primary">
+            <ion-button
+              *ngIf="tipoDocumento === 'Orden'"
+              (click)="PagarFact(iten.idFacturaHeader)"
+              color="primary">
               <ion-icon slot="icon-only" name="cash"></ion-icon>
             </ion-button> 
 

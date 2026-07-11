@@ -1,0 +1,45 @@
+.total-box {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin: 16px 0;
+
+  padding: 16px;
+
+  border-radius: 14px;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+
+  font-weight: 700;
+
+  strong {
+
+    color: #dc2626;
+
+    font-size: 22px;
+  }
+}
+
+.input-cantidad {
+
+  max-width: 80px;
+
+  text-align: center;
+
+  --background: #f8fafc;
+
+  border-radius: 10px;
+}
+
+.btn-confirmar {
+
+  margin-top: 8px;
+
+  margin-bottom: 24px;
+}

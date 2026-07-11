@@ -23,6 +23,8 @@ export class LoginComponent implements OnInit {
 
   Usuario = '';
   PassWord = '';
+  logoUrl = 'assets/Logo.png';
+  logoFallback = 'assets/favicon.svg';
 
   constructor(
     private router: Router,
@@ -35,6 +37,12 @@ export class LoginComponent implements OnInit {
 
   // ❌ NO limpiar sesión aquí
   ngOnInit() {}
+
+  onLogoError(): void {
+    if (this.logoUrl !== this.logoFallback) {
+      this.logoUrl = this.logoFallback;
+    }
+  }
 async abrirPlanesWhatsApp() {
     const modal = await this.modalCtrl.create({
       component: WhatsappPlanesComponent,
@@ -264,7 +272,8 @@ async login() {
         this.parametros.nombrePlan = empresa.nombrePlan || '';
         this.parametros.puedeEliminarOrden = usuario.puedeEliminarOrden || false;
         this.parametros.PuedeEliminarItemCarrito = usuario.puedeEliminarItemCarrito || false;
-        this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false; 
+        this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false;
+        this.parametros.PuedeEditarPrecioCarrito = usuario.puedeEditarPrecioCarrito || false;
 
 
 

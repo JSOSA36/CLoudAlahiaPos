@@ -70,6 +70,24 @@
 
   </ion-button>
 
+  <ion-button
+
+    color="danger"
+
+    fill="outline"
+
+    (click)="abrirReportePerdidas()">
+
+    <ion-icon
+      name="document-text-outline"
+      slot="start">
+
+    </ion-icon>
+
+    Reporte Pérdidas
+
+  </ion-button>
+
 </div>
         <ion-grid>
 
@@ -170,6 +188,13 @@
 
                   </ion-select-option>
 
+                  <ion-select-option
+                    value="TRANSFERENCIA">
+
+                    🔄 Transferencia
+
+                  </ion-select-option>
+
                 </ion-select>
 
               </ion-item>
@@ -239,6 +264,101 @@
                 </ion-select>
 
               </ion-item>
+
+            </ion-col>
+
+          </ion-row>
+
+          <ion-row>
+
+            <!-- ===================================== -->
+            <!-- 🔥 PRODUCTO -->
+            <!-- ===================================== -->
+
+            <ion-col
+              size="12"
+              size-md="9"
+              class="col-producto-filtro">
+
+              <ion-item>
+
+                <ion-label position="stacked">
+
+                  Producto
+
+                </ion-label>
+
+                <ion-input
+
+                  [(ngModel)]="filtroProducto"
+
+                  (ionInput)="filtrarProductos()"
+
+                  placeholder="Buscar por nombre o código de barras"
+                  clearInput="true"
+                  (ionClear)="limpiarProductoFiltro()">
+
+                </ion-input>
+
+              </ion-item>
+
+              <div
+
+                class="resultado-productos"
+
+                *ngIf="
+                  filtroProducto.trim()
+                  &&
+                  productosFiltrados.length
+                  &&
+                  !idProducto
+                ">
+
+                <div
+
+                  class="item-producto"
+
+                  *ngFor="
+                    let item of productosFiltrados
+                  "
+
+                  (click)="seleccionarProducto(item)">
+
+                  <div class="info-producto">
+
+                    <h3>
+
+                      {{ item.nombre }}
+
+                    </h3>
+
+                    <p
+                      *ngIf="item.codigoBarra">
+
+                      Código:
+                      {{ item.codigoBarra }}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              <ion-note
+                class="nota-producto"
+                *ngIf="
+                  filtroProducto.trim()
+                  &&
+                  !idProducto
+                  &&
+                  productosFiltrados.length === 0
+                ">
+
+                No se encontraron productos
+
+              </ion-note>
 
             </ion-col>
 
@@ -419,6 +539,19 @@
 
             </span>
 
+            <span
+
+              class="badge-transferencia"
+
+              *ngIf="
+                item.tipoMovimiento
+                == 'TRANSFERENCIA'
+              ">
+
+              🔄 Transferencia
+
+            </span>
+
           </h2>
 
           <p class="motivo">
@@ -433,6 +566,20 @@
 
         <div class="info-header">
 
+          <ion-button
+            fill="clear"
+            color="primary"
+            class="btn-imprimir-mov"
+            (click)="imprimirMovimiento(item)">
+
+            <ion-icon
+              name="print-outline"
+              slot="icon-only">
+
+            </ion-icon>
+
+          </ion-button>
+
           <p>
 
             {{ item.fecha | date:
@@ -443,8 +590,21 @@
           <p>
 
             👤
-            {{ item.usuario?.nombre
-            || 'Usuario' }}
+            {{ nombreUsuario(item) }}
+
+          </p>
+
+          <p *ngIf="item.nombreAlmacen">
+
+            🏪
+            <ng-container *ngIf="item.tipoMovimiento === 'TRANSFERENCIA'">
+              {{ item.nombreAlmacen }}
+              →
+              {{ item.nombreAlmacenDestino }}
+            </ng-container>
+            <ng-container *ngIf="item.tipoMovimiento !== 'TRANSFERENCIA'">
+              {{ item.nombreAlmacen }}
+            </ng-container>
 
           </p>
 
@@ -556,6 +716,19 @@
                   ">
 
                   -{{ det.cantidad }}
+
+                </span>
+
+                <span
+
+                  class="cantidad-transferencia"
+
+                  *ngIf="
+                    item.tipoMovimiento
+                    == 'TRANSFERENCIA'
+                  ">
+
+                  {{ det.cantidad }}
 
                 </span>
 

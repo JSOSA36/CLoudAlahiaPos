@@ -21,4 +21,6 @@ export class usuarios
      PuedeEliminarItemCarrito: boolean = false;
 
  PuedeDisminuirCantidadCarrito: boolean = false;
+
+ PuedeEditarPrecioCarrito: boolean = false;
 }

@@ -236,6 +236,20 @@ imprimirOrden(idFactura: number, event?: Event) {
 
   event?.stopPropagation();
 
+  if (this.tipoDocumento === 'Cotizacion') {
+    const cotizacion =
+      this._Parametro.ListadoOrdenes
+        .find(x => x.idFacturaHeader === idFactura);
+
+    if (!cotizacion) {
+      this.toast('No se encontró la cotización');
+      return;
+    }
+
+    this.printService.openCotizacionCarta(cotizacion);
+    return;
+  }
+
   this.printService
     .printTicket(
       idFactura,
@@ -254,16 +268,31 @@ imprimirOrden(idFactura: number, event?: Event) {
 RefreshOrdenes() {
   this.accordionActivo = null;
 
-  this._FacturaHeader.GetListadoOrdenes(this._Parametro.IdEmpresa)
-    .subscribe({
-     
+  const peticion =
+    this.tipoDocumento === 'Cotizacion'
+      ? this._FacturaHeader.GetListadoCotizaciones(this._Parametro.IdEmpresa)
+      : this._FacturaHeader.GetListadoOrdenes(this._Parametro.IdEmpresa);
+
+  peticion.subscribe({
       next: c => {
-         console.log("📦 Órdenes recibidas:", c),
+         console.log(
+           this.tipoDocumento === 'Cotizacion'
+             ? '📦 Cotizaciones recibidas:'
+             : '📦 Órdenes recibidas:',
+           c
+         ),
         this._Parametro.ListadoOrdenes = [...c];
-        this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
+
+        if (this.tipoDocumento !== 'Cotizacion') {
+          this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
+        }
       },
       error: () => {
-        this.toast('Error cargando órdenes');
+        this.toast(
+          this.tipoDocumento === 'Cotizacion'
+            ? 'Error cargando cotizaciones'
+            : 'Error cargando órdenes'
+        );
       }
     });
 }
@@ -478,28 +507,52 @@ getPendiente(iten: any): number {
   // 🔥 AJUSTADO — DESCUENTO REAL (NO PORCENTAJE)
   // ============================================================
   GetTotal(indexH: number) {
-  let subtotal = 0;
-  let descuentoItems = 0;
+    let subtotal = 0;
+    let descuentoItems = 0;
 
-  const factura = this._Parametro.ListadoOrdenes[indexH];
+    const factura = this._Parametro.ListadoOrdenes[indexH];
+    const descuentoHeaderOriginal =
+      Number(factura.totalDescuento ?? 0);
+    const totalOriginal =
+      Number(factura.total ?? 0);
+    const itbisOriginal =
+      Number(factura.totalItbis ?? 0);
 
-  factura.facturaDetalles.forEach(det => {
-    const precioBase = det.cantidad * (det.productos.precioVenta || 0);
-    
-    // 👇 DESCUENTO UNITARIO x CANTIDAD
-    const descUnitario = det.descuento || 0;
-    const descTotalItem = descUnitario * det.cantidad;
+    factura.facturaDetalles.forEach(det => {
+      const precioUnit =
+        det.precioOferta ||
+        det.productos?.precioVenta ||
+        0;
+      const precioBase = det.cantidad * precioUnit;
+      const descUnitario = det.descuento || 0;
+      const descTotalItem = descUnitario * det.cantidad;
 
-    det.subTotal = precioBase - descTotalItem;
+      det.subTotal = precioBase - descTotalItem;
+      subtotal += det.subTotal;
+      descuentoItems += descTotalItem;
+    });
 
-    subtotal += det.subTotal;
-    descuentoItems += descTotalItem;
-  });
+    factura.subTotal = subtotal;
 
-  factura.subTotal = subtotal;
-  factura.totalDescuento = descuentoItems;
-  factura.total = subtotal;
-}
+    if (descuentoItems > 0) {
+      factura.totalDescuento = descuentoItems;
+      factura.total = subtotal;
+      return;
+    }
+
+    if (descuentoHeaderOriginal > 0) {
+      factura.totalDescuento = descuentoHeaderOriginal;
+      factura.total = totalOriginal > 0
+        ? totalOriginal
+        : subtotal + itbisOriginal - descuentoHeaderOriginal;
+      return;
+    }
+
+    factura.totalDescuento = 0;
+    factura.total = totalOriginal > 0
+      ? totalOriginal
+      : subtotal;
+  }
 
  GetAmount(indexheader: number, indexdetalle: number) {
   this.GetTotal(indexheader);
@@ -564,7 +617,6 @@ getPendiente(iten: any): number {
  
 
   LoadListaFactura() {
-    this.accordionActivo = null;
-    this._Parametro.LoadListaFactura();
+    this.RefreshOrdenes();
   }
 }

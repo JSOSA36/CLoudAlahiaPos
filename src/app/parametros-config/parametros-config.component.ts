@@ -1,59 +1,87 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 
 import { AlertController, ToastController } from '@ionic/angular';
 import { Parametros } from '../models/parametros.models';
 import { ParametroConfigService } from '../servicios/parametrosconfig.service';
+import { ParametrosService } from '../servicios/parametros.service';
+
 @Component({
   selector: 'app-parametros-config',
   templateUrl: './parametros-config.component.html',
   styleUrls: ['./parametros-config.component.scss'],
 })
-export class ParametrosConfigComponent  implements OnInit {
+export class ParametrosConfigComponent implements OnInit {
 
- idEmpresa: number = 1;
-  codigoPOS: string = 'POS01';
+  idEmpresa = 0;
+  codigoPOS = 'POS01';
 
   parametrosEmpresa: Parametros[] = [];
   parametrosPOS: Parametros[] = [];
 
   cargando = false;
+  datosCargados = false;
 
   constructor(
     private parametroService: ParametroConfigService,
+    private parametros: ParametrosService,
     private toastController: ToastController,
     private alertController: AlertController
   ) {}
 
   ngOnInit(): void {
+    this.idEmpresa = this.parametros.GetIdEmpresa();
     this.cargarParametros();
   }
 
   cargarParametros() {
+    const idEmpresa = Number(this.idEmpresa) || 0;
+
+    if (!idEmpresa) {
+      this.mostrarToast('Debe indicar un IdEmpresa válido');
+      return;
+    }
+
     this.cargando = true;
+    this.datosCargados = false;
 
-    this.parametroService.getParametrosEmpresa(this.idEmpresa).subscribe({
-      next: (empresaParams) => {
-        console.log('Parámetros de empresa cargados:', empresaParams);
-        this.parametrosEmpresa = empresaParams ?? [];
+    forkJoin({
+      empresa: this.parametroService.getParametrosEmpresa(idEmpresa),
+      pos: this.parametroService.getParametrosPOS(idEmpresa, this.codigoPOS || 'POS01')
+    }).subscribe({
+      next: ({ empresa, pos }) => {
+        this.parametrosEmpresa = this.normalizarLista(empresa);
+        this.parametrosPOS = this.normalizarLista(pos);
+        this.cargando = false;
+        this.datosCargados = true;
 
-        this.parametroService.getParametrosPOS(this.idEmpresa, this.codigoPOS).subscribe({
-          next: (posParams) => {
-            this.parametrosPOS = posParams ?? [];
-            this.cargando = false;
-          },
-          error: async (err) => {
-            this.cargando = false;
-            console.error(err);
-            await this.mostrarToast('Error cargando parámetros POS');
-          }
-        });
+        console.log('Parámetros empresa:', this.parametrosEmpresa);
+        console.log('Parámetros POS:', this.parametrosPOS);
+
+        if (!this.parametrosEmpresa.length && !this.parametrosPOS.length) {
+          this.mostrarToast(
+            `No se encontraron parámetros para la empresa ${idEmpresa}`
+          );
+        }
       },
       error: async (err) => {
         this.cargando = false;
+        this.datosCargados = true;
         console.error(err);
-        await this.mostrarToast('Error cargando parámetros de empresa');
+        await this.mostrarToast('Error cargando parámetros');
       }
     });
+  }
+
+  private normalizarLista(lista: Parametros[] | null | undefined): Parametros[] {
+    return (lista || []).map(item => ({
+      idParametro: item.idParametro,
+      idEmpresa: item.idEmpresa || this.idEmpresa,
+      codigoPOS: item.codigoPOS ?? null,
+      clave: item.clave || (item as any).Clave || '',
+      valor: item.valor ?? (item as any).Valor ?? '',
+      descripcion: item.descripcion ?? (item as any).Descripcion ?? ''
+    }));
   }
 
   agregarParametroEmpresa() {
