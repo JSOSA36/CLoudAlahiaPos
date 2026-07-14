@@ -1,0 +1,63 @@
+.info-card {
+  margin: 0 0 12px;
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.pendiente {
+  color: #b45309;
+}
+
+.hint {
+  margin: 4px 4px 12px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.saldo-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 10px 0 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.saldo-box ion-icon {
+  font-size: 1.4rem;
+  color: #0284c7;
+  margin-top: 2px;
+}
+
+.saldo-box strong {
+  display: block;
+  color: #0f172a;
+}
+
+.saldo-box small {
+  display: block;
+  color: #0369a1;
+  margin-top: 2px;
+}
+
+.btn-pagar {
+  margin-top: 18px;
+  --border-radius: 12px;
+  font-weight: 700;
+}

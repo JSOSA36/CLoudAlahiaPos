@@ -1,0 +1,170 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ titulo }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="page-header">
+    <h2>{{ titulo }}</h2>
+    <p>{{ subtitulo }}</p>
+  </div>
+
+  <ion-card>
+    <ion-card-content>
+
+      <div class="filtros">
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Desde</ion-label>
+          <ion-input
+            type="date"
+            [(ngModel)]="desde">
+          </ion-input>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Hasta</ion-label>
+          <ion-input
+            type="date"
+            [(ngModel)]="hasta">
+          </ion-input>
+        </ion-item>
+
+      </div>
+
+      <ion-button
+        expand="block"
+        (click)="cargar()"
+        [disabled]="cargando">
+        <ion-icon
+          name="search-outline"
+          slot="start">
+        </ion-icon>
+        Consultar
+      </ion-button>
+
+      <ion-searchbar
+        [(ngModel)]="busqueda"
+        (ionInput)="filtrar()"
+        placeholder="Buscar NC, factura, cliente o NCF"
+        debounce="200">
+      </ion-searchbar>
+
+    </ion-card-content>
+  </ion-card>
+
+  <div
+    class="empty"
+    *ngIf="!cargando && notasFiltradas.length === 0">
+    No hay registros para mostrar.
+  </div>
+
+  <ion-spinner
+    *ngIf="cargando"
+    class="loader">
+  </ion-spinner>
+
+  <ion-card
+    class="nc-card"
+    *ngFor="let item of notasFiltradas">
+
+    <ion-card-header>
+      <div class="nc-top">
+        <div>
+          <ion-card-title>
+            {{ item.numeroDocumento }}
+          </ion-card-title>
+          <ion-card-subtitle>
+            {{ item.nombreCliente || 'Cliente' }}
+          </ion-card-subtitle>
+        </div>
+
+        <strong class="total">
+          RD$ {{ item.total | number:'1.2-2' }}
+        </strong>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <div class="info-grid">
+        <div>
+          <span>Factura</span>
+          <strong>{{ item.numeroFactura }}</strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>
+            {{ item.fechaInseccion | date:'dd/MM/yyyy HH:mm' }}
+          </strong>
+        </div>
+
+        <div>
+          <span>e-CF NC</span>
+          <strong
+            [class.sin-ncf]="!item.ncf">
+            {{ item.ncf || 'Sin comprobante' }}
+          </strong>
+        </div>
+
+        <div>
+          <span>NCF modificado</span>
+          <strong>
+            {{ item.ncfModificado || 'N/A' }}
+          </strong>
+        </div>
+
+        <div class="productos-devueltos">
+          <span>Producto devuelto</span>
+          <strong>{{ item.productosDevueltos || '—' }}</strong>
+        </div>
+
+        <div>
+          <span>ITBIS</span>
+          <strong>
+            RD$ {{ item.totalItbis | number:'1.2-2' }}
+          </strong>
+        </div>
+      </div>
+
+      <p
+        class="observacion"
+        *ngIf="item.observacion">
+        {{ item.observacion }}
+      </p>
+
+      <div class="acciones">
+        <ion-button
+          size="small"
+          color="primary"
+          (click)="verPreview(item)">
+          <ion-icon
+            name="eye-outline"
+            slot="start">
+          </ion-icon>
+          Vista previa
+        </ion-button>
+
+        <ion-button
+          size="small"
+          color="warning"
+          (click)="imprimirPos(item)">
+          <ion-icon
+            name="print-outline"
+            slot="start">
+          </ion-icon>
+          Imprimir POS
+        </ion-button>
+      </div>
+
+    </ion-card-content>
+
+  </ion-card>
+
+</ion-content>

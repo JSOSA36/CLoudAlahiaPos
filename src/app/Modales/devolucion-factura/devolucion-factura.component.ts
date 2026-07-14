@@ -3,9 +3,12 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { facturaheader } from 'src/app/models/facturaheader';
 import { facturadetalles } from 'src/app/models/facturadetalles';
-import { NotasCreditoService } from 'src/app/servicios/notas-credito.service';
+import {
+  NotasCreditoService,
+  TicketNotaCredito
+} from 'src/app/servicios/notas-credito.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
-import { PrintService } from 'src/app/servicios/print.services';
+import { NotaCreditoPreviewComponent } from 'src/app/nota-credito-preview/nota-credito-preview.component';
 
 interface LineaDevolucion {
   detalle: facturadetalles;
@@ -35,7 +38,6 @@ export class DevolucionFacturaComponent implements OnInit {
     private modalCtrl: ModalController,
     private notasCreditoService: NotasCreditoService,
     private parametros: ParametrosService,
-    private printService: PrintService,
     private toastCtrl: ToastController
   ) {}
 
@@ -56,9 +58,7 @@ export class DevolucionFacturaComponent implements OnInit {
           Number(det.cantidad || 0);
 
         const devuelta =
-          Number(
-            (det as any).cantidadDevuelta || 0
-          );
+          Number(det.cantidadDevuelta || 0);
 
         const maxDisponible =
           Math.max(vendida - devuelta, 0);
@@ -159,6 +159,87 @@ export class DevolucionFacturaComponent implements OnInit {
     this.modalCtrl.dismiss();
   }
 
+  async verVistaPrevia(): Promise<void> {
+
+    if (!this.hayLineasSeleccionadas) {
+      await this.mostrarToast(
+        'Seleccione productos y cantidades a devolver.',
+        'warning'
+      );
+      return;
+    }
+
+    const modal = await this.modalCtrl.create({
+      component: NotaCreditoPreviewComponent,
+      cssClass: 'modal-fullscreen',
+      componentProps: {
+        ticket: this.construirTicketPreview()
+      }
+    });
+
+    await modal.present();
+  }
+
+  private construirTicketPreview(): TicketNotaCredito {
+    const lineas = this.lineas.filter(
+      l => l.seleccionado && l.cantidadDevolver > 0
+    );
+
+    const subTotal = lineas.reduce((sum, linea) => {
+      const factor =
+        linea.detalle.cantidad > 0
+          ? linea.cantidadDevolver / linea.detalle.cantidad
+          : 0;
+
+      const lineaSubTotal =
+        Number(linea.detalle.subTotal || 0) * factor;
+
+      const lineaItbis =
+        Number(linea.detalle.itbis || 0) * factor;
+
+      return sum + (lineaSubTotal - lineaItbis);
+    }, 0);
+
+    const totalItbis = lineas.reduce((sum, linea) => {
+      const factor =
+        linea.detalle.cantidad > 0
+          ? linea.cantidadDevolver / linea.detalle.cantidad
+          : 0;
+
+      return sum + Number(linea.detalle.itbis || 0) * factor;
+    }, 0);
+
+    const total = subTotal + totalItbis;
+
+    return {
+      esPreview: true,
+      numeroDocumento: 'PREVIEW',
+      numeroFactura:
+        this.factura?.numeroDocumento
+        || `Fact-${this.factura?.idFacturaHeader}`,
+      ncfModificado: this.factura?.ncf || '',
+      fecha: new Date(),
+      cliente:
+        this.factura?.nombreCuenta
+        || this.factura?.nombreEmpresa
+        || 'Cliente',
+      rnc: this.factura?.rnc || '',
+      subTotal: +subTotal.toFixed(2),
+      totalItbis: +totalItbis.toFixed(2),
+      total: +total.toFixed(2),
+      nombreEmpresa: this.parametros.NombreEmpresa,
+      telefonoEmpresa: this.parametros._Empresa?.telefono || '',
+      direccionEmpresa: this.parametros._Empresa?.direccion || '',
+      observacion: this.observacion,
+      detalles: lineas.map(linea => ({
+        cantidad: linea.cantidadDevolver,
+        descripcion: this.nombreProducto(linea.detalle),
+        precio: linea.precioUnitario,
+        subTotal: linea.valorLinea
+      }))
+    };
+  }
+
   async confirmarDevolucion(): Promise<void> {
 
     if (!this.hayLineasSeleccionadas) {
@@ -215,18 +296,26 @@ export class DevolucionFacturaComponent implements OnInit {
           );
 
           try {
-
-            await firstValueFrom(
-              this.printService.printNotaCredito(
+            const ticket = await firstValueFrom(
+              this.notasCreditoService.getTicket(
                 res.idNotaCredito,
                 this.parametros.GetIdEmpresa()
               )
             );
 
+            const preview = await this.modalCtrl.create({
+              component: NotaCreditoPreviewComponent,
+              cssClass: 'modal-fullscreen',
+              componentProps: { ticket }
+            });
+
+            await preview.present();
+            await preview.onDidDismiss();
+
           } catch {
 
             await this.mostrarToast(
-              'NC creada, pero no se pudo imprimir.',
+              'NC creada, pero no se pudo abrir la vista previa.',
               'warning'
             );
           }

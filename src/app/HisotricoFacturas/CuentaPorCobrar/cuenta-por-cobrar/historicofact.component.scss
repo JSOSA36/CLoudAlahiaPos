@@ -301,6 +301,15 @@ ion-item[slot="header"]::part(native){
   color:#b91c1c;
 }
 
+.badge.motivo-anulacion{
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
 /* ======================================================= */
 /* 🔥 ACCIONES */
 /* ======================================================= */

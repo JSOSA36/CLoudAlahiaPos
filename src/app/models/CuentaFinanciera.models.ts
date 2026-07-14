@@ -24,6 +24,8 @@ export interface CuentaFinanciera {
 
   balanceInicial:number;
 
+  saldoDisponible?:number;
+
   activa:boolean;
 
   color?:string;

@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-title>
+      Anular gasto
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()" [disabled]="procesando">
+        <ion-icon
+          slot="icon-only"
+          name="close-outline">
+        </ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{ gasto?.tipoGasto || 'Gasto' }} - {{ gasto?.monto | currency }}
+      </ion-card-title>
+      <ion-card-subtitle>
+        {{ gasto?.formaPago || gasto?.orien || 'Sin forma de pago' }}
+      </ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        Esta acción marcará el gasto como anulado
+        y devolverá el monto a la cuenta financiera.
+        Indique el motivo para continuar.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-item lines="full">
+    <ion-label position="stacked">
+      Motivo de anulación *
+    </ion-label>
+    <ion-textarea
+      [(ngModel)]="motivo"
+      rows="4"
+      maxlength="500"
+      placeholder="Ej: Error en el monto, gasto duplicado, registro incorrecto...">
+    </ion-textarea>
+  </ion-item>
+
+  <ion-button
+    expand="block"
+    color="danger"
+    class="btn-confirmar"
+    [disabled]="procesando || !motivo.trim()"
+    (click)="confirmar()">
+
+    <ion-spinner
+      *ngIf="procesando"
+      name="crescent">
+    </ion-spinner>
+
+    <span *ngIf="!procesando">
+      Confirmar anulación
+    </span>
+
+  </ion-button>
+
+</ion-content>

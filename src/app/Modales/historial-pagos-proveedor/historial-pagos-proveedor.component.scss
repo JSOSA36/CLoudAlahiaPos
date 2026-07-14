@@ -1,0 +1,109 @@
+.resumen-card {
+  margin: 0 0 14px;
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.ok {
+  color: #166534;
+}
+
+.warn {
+  color: #b45309;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: 36px 12px;
+  color: #64748b;
+}
+
+.empty ion-icon {
+  font-size: 42px;
+  color: #1976d2;
+  opacity: 0.75;
+}
+
+.empty h3 {
+  margin: 8px 0 4px;
+  color: #1e293b;
+}
+
+.section-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.pago-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #22c55e;
+}
+
+.pago-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.pago-top strong {
+  font-size: 1.05rem;
+  color: #166534;
+}
+
+.fecha {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.pago-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #3730a3;
+  text-transform: uppercase;
+}
+
+.cuenta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #0369a1;
+}
+
+.nota {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}

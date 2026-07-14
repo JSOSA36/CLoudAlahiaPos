@@ -531,3 +531,180 @@ ion-button {
     min-width: 820px;
   }
 }
+
+/* ===================================== */
+/* RECEPCIÓN DESDE COMPRA */
+/* ===================================== */
+
+.card-recepcion-compra .recepcion-hint {
+  margin: 6px 0 0;
+  padding: 0 16px 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.recepcion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 14px;
+  padding: 0 4px;
+}
+
+.recepcion-actions ion-button {
+  margin: 0;
+  --padding-start: 12px;
+  --padding-end: 14px;
+  min-height: 36px;
+  font-weight: 600;
+}
+
+.recepcion-loading,
+.empty-facturas {
+  padding: 12px 8px;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.lista-facturas-recepcion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.resultado-facturas-recepcion {
+  margin-top: 8px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  max-height: 320px;
+  overflow: auto;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.resultado-facturas-recepcion .item-factura-recepcion {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 0;
+  background: transparent;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.resultado-facturas-recepcion .item-factura-recepcion:last-child {
+  border-bottom: 0;
+}
+
+.resultado-facturas-recepcion .item-factura-recepcion:hover {
+  background: #eff6ff;
+}
+
+.factura-rec-main h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #0f172a;
+}
+
+.factura-rec-main p {
+  margin: 2px 0 0;
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+.factura-rec-main small {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.factura-rec-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.factura-rec-badge.parcial {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.item-factura-recepcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.item-factura-recepcion:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.item-factura-recepcion strong {
+  color: #0f172a;
+}
+
+.item-factura-recepcion span,
+.item-factura-recepcion small {
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.item-factura-recepcion .estado-rec {
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.factura-seleccionada {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.factura-seleccionada p {
+  margin: 4px 0 0;
+  color: #047857;
+  font-size: 0.88rem;
+}
+
+.recepcion-manual-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input-cant-recepcion {
+  max-width: 90px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}

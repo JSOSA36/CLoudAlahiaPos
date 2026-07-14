@@ -1,0 +1,108 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-content {
+  --background: #f3f6fb;
+}
+
+.arbol-card {
+  border-radius: 20px;
+  border: 2px solid #facc15;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+}
+
+.arbol-contenedor {
+  padding: 0;
+}
+
+.fila-cuenta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.15s ease;
+}
+
+.fila-agrupacion {
+  background: #eef2ff;
+  color: #1e3a8a;
+}
+
+.fila-agrupacion .titulo-cuenta {
+  font-weight: 700;
+}
+
+.fila-movimiento {
+  background: #fff;
+  color: #334155;
+}
+
+.fila-movimiento .titulo-cuenta {
+  font-weight: 500;
+}
+
+.fila-coincide {
+  box-shadow: inset 4px 0 0 #facc15;
+}
+
+.btn-expandir {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.btn-expandir.espacio {
+  visibility: hidden;
+}
+
+.prefijo {
+  width: 14px;
+  flex-shrink: 0;
+  color: #2563eb;
+  font-size: 0.75rem;
+}
+
+.prefijo.movimiento {
+  color: #94a3b8;
+}
+
+.info-cuenta {
+  flex: 1;
+  min-width: 0;
+}
+
+.titulo-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 1.3;
+}
+
+.meta-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.acciones-cuenta {
+  flex-shrink: 0;
+}
+
+.sin-resultados {
+  color: #64748b;
+}

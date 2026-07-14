@@ -1,0 +1,144 @@
+<ion-header class="cxp-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="cxp-title-wrap">
+        <span>Cuentas por pagar</span>
+        <small *ngIf="!cargando">{{ totalDocumentos }} pendiente(s)</small>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="irEstadoCuenta()">
+        <ion-icon slot="start" name="document-text-outline"></ion-icon>
+        Estado de cuenta
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cxp-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="cxp-page">
+    <div class="cxp-toolbar">
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        placeholder="Buscar por factura, proveedor o NCF..."
+        debounce="250"
+        show-clear-button="focus">
+      </ion-searchbar>
+    </div>
+
+    <div class="cxp-summary" *ngIf="filtradas.length">
+      <div class="cxp-summary-item">
+        <span class="label">Facturas</span>
+        <strong>{{ totalDocumentos }}</strong>
+      </div>
+      <div class="cxp-summary-item pending">
+        <span class="label">Total por pagar</span>
+        <strong>{{ totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <div class="cxp-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando cuentas por pagar…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="cxp-empty" *ngIf="!filtradas.length">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <h3 *ngIf="!facturas.length">No hay facturas pendientes</h3>
+        <h3 *ngIf="facturas.length">Sin resultados</h3>
+        <p *ngIf="!facturas.length">Todas las compras a crédito están al día.</p>
+        <p *ngIf="facturas.length">Prueba otra búsqueda.</p>
+      </div>
+
+      <ion-grid class="cxp-grid" *ngIf="filtradas.length">
+        <ion-row>
+          <ion-col
+            size="12"
+            size-sm="6"
+            size-md="4"
+            size-lg="3"
+            size-xl="2.4"
+            *ngFor="let f of filtradas">
+
+            <article class="cxp-card" [class.has-pagos]="f.pagado > 0">
+              <header class="cxp-card-top">
+                <div>
+                  <strong>{{ f.numeroDocumento || ('#' + f.idOrdenCompraHeader) }}</strong>
+                  <span class="fecha" *ngIf="f.fechaDocumento">
+                    {{ f.fechaDocumento | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+                <span class="badge" [ngClass]="claseEstado(f.estado)">
+                  {{ etiquetaEstado(f.estado) }}
+                </span>
+              </header>
+
+              <div class="cxp-body">
+                <div class="proveedor">
+                  <ion-icon name="business-outline"></ion-icon>
+                  <div>
+                    <strong>{{ f.proveedorNombre || 'Sin proveedor' }}</strong>
+                    <small *ngIf="f.numeroComprobanteProveedor">
+                      {{ f.numeroComprobanteProveedor }}
+                    </small>
+                  </div>
+                </div>
+
+                <div class="meta">
+                  <span class="pill" [class.credito]="esCredito(f)">
+                    {{ esCredito(f) ? 'Crédito' : 'Contado' }}
+                  </span>
+                  <span class="pill ghost" *ngIf="f.fechaVencimiento">
+                    Vence {{ f.fechaVencimiento | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+
+                <div class="montos">
+                  <div>
+                    <span class="label">Total</span>
+                    <strong>{{ f.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                  </div>
+                  <div>
+                    <span class="label">Pagado</span>
+                    <strong class="ok">{{ f.pagado | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                  </div>
+                  <div>
+                    <span class="label">Pendiente</span>
+                    <strong class="warn">{{ f.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <footer class="cxp-actions">
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  color="primary"
+                  (click)="verHistorial(f, $event)">
+                  <ion-icon slot="start" name="time-outline"></ion-icon>
+                  Historial
+                </ion-button>
+                <ion-button
+                  size="small"
+                  color="success"
+                  [disabled]="procesando"
+                  (click)="registrarPago(f, $event)">
+                  <ion-icon slot="start" name="cash-outline"></ion-icon>
+                  Pagar
+                </ion-button>
+              </footer>
+            </article>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+  </div>
+</ion-content>

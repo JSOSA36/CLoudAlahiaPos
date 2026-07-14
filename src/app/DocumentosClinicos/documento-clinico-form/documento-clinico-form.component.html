@@ -37,22 +37,24 @@
 
   <ion-footer class="vista-consulta-footer">
     <ion-toolbar>
-      <ion-button
-        expand="block"
-        color="primary"
-        [disabled]="!vistaHtmlDocumento"
-        (click)="imprimir()">
-        <ion-icon name="print-outline" slot="start"></ion-icon>
-        Imprimir
-      </ion-button>
+      <div class="acciones-footer">
+        <ion-button
+          expand="block"
+          class="btn-accion btn-imprimir"
+          [disabled]="!vistaHtmlDocumento"
+          (click)="imprimir()">
+          <ion-icon name="print-outline" slot="start"></ion-icon>
+          Imprimir
+        </ion-button>
 
-      <ion-button
-        expand="block"
-        color="medium"
-        fill="outline"
-        (click)="cerrar()">
-        Cerrar
-      </ion-button>
+        <ion-button
+          expand="block"
+          class="btn-accion btn-cerrar"
+          (click)="cerrar()">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          Cerrar
+        </ion-button>
+      </div>
     </ion-toolbar>
   </ion-footer>
 

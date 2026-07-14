@@ -1,0 +1,43 @@
+ion-content {
+  --background: #f3f6fb;
+}
+
+.seccion {
+  margin-bottom: 1rem;
+}
+
+.seccion h3 {
+  color: #1e40af;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.linea {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.resultado-linea {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding: 0.75rem 0;
+  border-top: 2px solid #2563eb;
+  margin: 0.5rem 0;
+}
+
+.resultado-linea.total {
+  font-size: 1.1rem;
+  color: #1e3a8a;
+}

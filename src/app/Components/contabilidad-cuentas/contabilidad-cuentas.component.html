@@ -1,0 +1,185 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+
+      <ion-menu-button style="color: white;"></ion-menu-button>
+
+    </ion-buttons>
+
+    <ion-title>Catálogo de Cuentas</ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button fill="clear" (click)="cargarCatalogoDefault()" *ngIf="cuentas.length === 0">
+
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+
+        Estándar
+
+      </ion-button>
+
+      <ion-button fill="clear" (click)="nuevaCuenta()">
+
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+
+        Nueva
+
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+
+
+<ion-content class="ion-padding">
+
+  <ion-searchbar
+
+    placeholder="Buscar por código o nombre..."
+
+    [(ngModel)]="search"
+
+    (ionInput)="aplicarFiltro()"
+
+    debounce="250"
+
+    show-clear-button="always">
+
+  </ion-searchbar>
+
+
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+
+    <ion-spinner></ion-spinner>
+
+  </div>
+
+
+
+  <ion-card *ngIf="!cargando && cuentas.length === 0">
+
+    <ion-card-content class="ion-text-center">
+
+      No hay cuentas contables. Use <strong>Estándar</strong> para cargar el catálogo por defecto.
+
+    </ion-card-content>
+
+  </ion-card>
+
+
+
+  <ion-card *ngIf="!cargando && cuentas.length > 0" class="arbol-card">
+
+    <ion-card-content class="arbol-contenedor">
+
+      <div
+
+        *ngFor="let nodo of nodosVisibles"
+
+        class="fila-cuenta"
+
+        [class.fila-agrupacion]="!nodo.cuenta.permiteMovimiento"
+
+        [class.fila-movimiento]="nodo.cuenta.permiteMovimiento"
+
+        [class.fila-coincide]="nodo.coincideBusqueda && search"
+
+        [style.padding-left.px]="padding(nodo)">
+
+
+
+        <button
+
+          *ngIf="nodo.tieneHijos"
+
+          type="button"
+
+          class="btn-expandir"
+
+          (click)="toggleExpandir(nodo, $event)">
+
+          <ion-icon [name]="nodo.expandido ? 'caret-down' : 'caret-forward'"></ion-icon>
+
+        </button>
+
+        <span *ngIf="!nodo.tieneHijos" class="btn-expandir espacio"></span>
+
+
+
+        <span class="prefijo" *ngIf="!nodo.cuenta.permiteMovimiento">▼</span>
+
+        <span class="prefijo movimiento" *ngIf="nodo.cuenta.permiteMovimiento">•</span>
+
+
+
+        <div class="info-cuenta">
+
+          <div class="titulo-cuenta">
+
+            <strong>{{ nodo.cuenta.codigo }}</strong>
+
+            <span>{{ nodo.cuenta.nombre }}</span>
+
+          </div>
+
+          <div class="meta-cuenta">
+
+            <span class="tipo">{{ nodo.cuenta.tipoCuenta }}</span>
+
+            <ion-badge [color]="nodo.cuenta.permiteMovimiento ? 'success' : 'primary'">
+
+              {{ nodo.cuenta.permiteMovimiento ? 'Movimiento' : 'Agrupación' }}
+
+            </ion-badge>
+
+            <ion-badge [color]="nodo.cuenta.activa ? 'medium' : 'danger'">
+
+              {{ nodo.cuenta.activa ? 'Activa' : 'Inactiva' }}
+
+            </ion-badge>
+
+          </div>
+
+        </div>
+
+
+
+        <ion-buttons class="acciones-cuenta">
+
+          <ion-button fill="clear" (click)="editarCuenta(nodo.cuenta)">
+
+            <ion-icon name="create-outline"></ion-icon>
+
+          </ion-button>
+
+          <ion-button fill="clear" color="danger" (click)="eliminarCuenta(nodo.cuenta, $event)">
+
+            <ion-icon name="trash-outline"></ion-icon>
+
+          </ion-button>
+
+        </ion-buttons>
+
+      </div>
+
+
+
+      <div *ngIf="nodosVisibles.length === 0" class="ion-text-center ion-padding sin-resultados">
+
+        No se encontraron cuentas con ese criterio.
+
+      </div>
+
+    </ion-card-content>
+
+  </ion-card>
+
+</ion-content>
+
+

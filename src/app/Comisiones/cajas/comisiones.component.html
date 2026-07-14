@@ -1,120 +1,72 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">Reporte de Comisiones</ion-title>
     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;"></ion-menu-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <ion-title>Reporte de comisiones</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="rpt-content">
+  <div class="rpt-page">
 
-  <!-- FILTRO DE FECHAS -->
-  <ion-card>
-    <ion-card-header color="primary">
-      <ion-card-title class="ion-text-center">
-        <strong>Filtre por Fechas</strong>
-      </ion-card-title>
-    </ion-card-header>
-
-    <!-- Fecha inicio -->
-    <ion-item color="primary">
-      <ion-label>Desde</ion-label>
-      <ion-datetime-button datetime="iniciocomisiones">
-        <span slot="date-target">
-          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
-
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime id="iniciocomisiones" presentation="date"
-          [(ngModel)]="fechaInicio">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
-
-    <!-- Fecha fin -->
-    <ion-item color="primary">
-      <ion-label>Hasta</ion-label>
-      <ion-datetime-button datetime="fincomisiones">
-        <span slot="date-target">
-          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
-
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime id="fincomisiones" presentation="date"
-          [(ngModel)]="fechaFin">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
-
-    <!-- BOTÓN -->
-    <ion-button (click)="CargarCierre()" shape="round" color="warning" expand="block">
-      <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
-      <p style="color: black;">Buscar</p>
-    </ion-button>
-
-  </ion-card>
-
-  <!-- 🔥 LISTA DE COMISIONES EN UN SOLO CARD -->
- <!-- 🔥 LISTA DE COMISIONES -->
-<ion-card *ngIf="ListadoCimisiones.length > 0">
-
-  <ion-card-header>
-    <ion-card-title class="ion-text-center">
-      Comisiones por Empleado
-    </ion-card-title>
-  </ion-card-header>
-
-  <ion-card-content>
-
-    <div *ngFor="let item of ListadoCimisiones" class="card-empleado">
-
-      <!-- 👤 NOMBRE -->
-      <div class="nombre">
-        {{ item.empleados }}
+    <section class="rpt-filtros">
+      <div class="rpt-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="fechaInicio"></ion-input>
       </div>
-
-      <!-- 💰 DETALLES -->
-      <div class="detalle">
-        <span>Comisión:</span>
-        <strong>{{ item.totalComisiones | currency }}</strong>
+      <div class="rpt-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="fechaFin"></ion-input>
       </div>
-
-      <div class="detalle consumo">
-        <span>Consumo:</span>
-        <strong>{{ item.totalConsumo | currency }}</strong>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="CargarCierre()">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
       </div>
+    </section>
 
-      <div class="detalle neto">
-        <span>Neto a pagar:</span>
-        <strong>{{ item.netoPagar | currency }}</strong>
+    <section class="rpt-resumen" *ngIf="ListadoCimisiones.length">
+      <div>
+        <span class="label">Empleados</span>
+        <strong>{{ ListadoCimisiones.length }}</strong>
       </div>
+      <div class="accent">
+        <span class="label">Total comisiones</span>
+        <strong>{{ TotalGenetal | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </section>
 
+    <p class="rpt-hint">
+      Resumen de comisiones por empleado. Solo incluye facturas con comisión configurada
+      y, en crédito, la parte ya cobrada.
+    </p>
+
+    <div class="rpt-empty" *ngIf="!ListadoCimisiones.length">
+      No hay comisiones en este rango.
     </div>
 
-  </ion-card-content>
+    <div class="rpt-table-wrap" *ngIf="ListadoCimisiones.length">
+      <table class="rpt-table">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th class="num">Comisión</th>
+            <th class="num">Consumo</th>
+            <th class="num">Neto a pagar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of ListadoCimisiones">
+            <td>{{ item.empleados }}</td>
+            <td class="num">{{ item.totalComisiones | number:'1.2-2' }}</td>
+            <td class="num">{{ item.totalConsumo | number:'1.2-2' }}</td>
+            <td class="num">{{ item.netoPagar | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-</ion-card>
-
-  <!-- TOTAL GENERAL -->
-  <ion-card color="light">
-    <ion-card-header>
-      <ion-card-title>Total General</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <h2 class="ion-text-end ion-padding">
-        <strong style="font-size: 1.4rem; color: var(--ion-color-primary);">
-          {{ TotalGenetal | currency }}
-        </strong>
-      </h2>
-    </ion-card-content>
-  </ion-card>
-
+  </div>
 </ion-content>

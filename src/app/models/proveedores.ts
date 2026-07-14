@@ -1,13 +1,11 @@
-export class proveedores
-{
-    public IidProveedor:number=0;
-    public rNC :string="";
-    public nombreComercial :string="";
-
-    public telefono :string="";
-
-    public isActivo:boolean=false;
-    public direccion :string="";
-    public nota :string="";
-    public email :string="";
+export class Proveedor {
+  idProveedor = 0;
+  idEmpresa = 0;
+  rnc = '';
+  nombreComercial = '';
+  telefono = '';
+  isActivo = true;
+  direccion = '';
+  nota = '';
+  email = '';
 }

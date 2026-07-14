@@ -1,0 +1,102 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Historial de Servicios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center">Filtros</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>
+          <h3>{{ clienteSeleccionado?.nombreComercial || 'Seleccione un paciente' }}</h3>
+          <p *ngIf="clienteSeleccionado?.cedulaRNC">Cédula: {{ clienteSeleccionado?.cedulaRNC }}</p>
+        </ion-label>
+        <ion-button slot="end" (click)="seleccionarCliente()">
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          Paciente
+        </ion-button>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Desde</ion-label>
+        <ion-input type="date" [(ngModel)]="fechaDesde"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Hasta</ion-label>
+        <ion-input type="date" [(ngModel)]="fechaHasta"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" color="warning" shape="round" (click)="buscar()" [disabled]="cargando">
+        <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+        <span style="color: black;">Buscar</span>
+      </ion-button>
+
+      <ion-button expand="block" fill="clear" color="medium" (click)="limpiarFiltros()">
+        Limpiar filtros
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando historial...</p>
+  </div>
+
+  <ion-card *ngIf="!cargando && servicios.length > 0">
+    <ion-card-header>
+      <ion-card-title>
+        Servicios de {{ clienteSeleccionado?.nombreComercial }}
+      </ion-card-title>
+      <ion-card-subtitle>Total: {{ servicios.length }}</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content class="tabla-wrap">
+      <table class="tabla-historial">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Factura</th>
+            <th>Servicio</th>
+            <th class="num">Cant.</th>
+            <th class="num">Precio</th>
+            <th class="num">Total</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of servicios; trackBy: trackById">
+            <td>{{ s.fechaServicio | date:'dd/MM/yyyy' }}</td>
+            <td>{{ s.numeroFactura }}</td>
+            <td>{{ s.nombreServicio }}</td>
+            <td class="num">{{ s.cantidad }}</td>
+            <td class="num">{{ s.precioUnitario | number:'1.2-2' }}</td>
+            <td class="num">{{ s.total | number:'1.2-2' }}</td>
+            <td>{{ s.nombreUsuario || '—' }}</td>
+            <td>
+              <ion-badge [color]="getEstadoColor(s.estadoFactura)">
+                {{ s.estadoFactura }}
+              </ion-badge>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="!cargando && servicios.length === 0 && clienteSeleccionado" class="sin-resultados ion-text-center ion-padding">
+    <ion-icon name="clipboard-outline" size="large"></ion-icon>
+    <p>No hay servicios registrados para este paciente en el rango seleccionado.</p>
+  </div>
+
+</ion-content>

@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      Historial — {{ factura?.numeroDocumento || ('#' + factura?.idOrdenCompraHeader) }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card class="resumen-card">
+    <ion-card-content>
+      <div class="row">
+        <span>Proveedor</span>
+        <strong>{{ factura?.proveedorNombre || '—' }}</strong>
+      </div>
+      <div class="row">
+        <span>Total factura</span>
+        <strong>{{ factura?.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+      <div class="row">
+        <span>Pagado</span>
+        <strong class="ok">{{ (factura?.pagado || totalPagado) | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+      <div class="row">
+        <span>Pendiente</span>
+        <strong class="warn">{{ factura?.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="loading" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando pagos…</p>
+  </div>
+
+  <div class="empty" *ngIf="!cargando && !pagos.length">
+    <ion-icon name="receipt-outline"></ion-icon>
+    <h3>Sin pagos registrados</h3>
+    <p>Todavía no se ha abonado esta factura.</p>
+  </div>
+
+  <div class="timeline" *ngIf="!cargando && pagos.length">
+    <h3 class="section-title">Pagos realizados ({{ pagos.length }})</h3>
+
+    <article class="pago-item" *ngFor="let p of pagos">
+      <div class="pago-top">
+        <strong>{{ p.monto | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        <span class="fecha">{{ p.fechaInseccion | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="pago-meta">
+        <span class="pill">{{ p.formaPago || '—' }}</span>
+        <span class="cuenta">
+          <ion-icon name="wallet-outline"></ion-icon>
+          {{ nombreCuenta(p.idCuentaFinanciera) }}
+        </span>
+      </div>
+      <p class="nota" *ngIf="p.nota">{{ p.nota }}</p>
+    </article>
+  </div>
+
+</ion-content>

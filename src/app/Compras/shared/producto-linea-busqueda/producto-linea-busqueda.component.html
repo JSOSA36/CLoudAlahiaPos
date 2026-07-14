@@ -1,0 +1,80 @@
+<div class="fc-producto-busqueda" [class.is-disabled]="disabled">
+  <div class="fc-busqueda-toolbar">
+    <div class="fc-busqueda-input-wrap">
+      <ion-searchbar
+        #inputBusqueda
+        class="fc-busqueda-input"
+        [(ngModel)]="busqueda"
+        [disabled]="disabled"
+        placeholder="Buscar por nombre, código interno o código de barras..."
+        debounce="0"
+        (ionInput)="onBuscarInput()"
+        (ionClear)="limpiarBusqueda()"
+        (keydown.enter)="$event.preventDefault(); procesarEnter()">
+      </ion-searchbar>
+      <span class="fc-busqueda-hint" *ngIf="!disabled">
+        Enter: escanear / agregar · ↑↓ navegar
+      </span>
+    </div>
+
+    <ion-button
+      fill="outline"
+      size="small"
+      class="btn-listado-manual"
+      [disabled]="disabled"
+      (click)="toggleListadoManual()">
+      <ion-icon slot="start" name="list-outline"></ion-icon>
+      {{ mostrarListadoManual ? 'Ocultar listado' : 'Ver listado' }}
+    </ion-button>
+  </div>
+
+  <div
+    class="fc-busqueda-grid"
+    *ngIf="(busqueda.trim() || mostrarListadoManual) && (resultados.length || cargando)">
+
+    <div class="fc-busqueda-grid-head">
+      <span>Código</span>
+      <span>Producto</span>
+      <span class="num">Existencia</span>
+      <span class="num">Costo</span>
+    </div>
+
+    <div class="fc-busqueda-grid-body">
+      <div
+        class="fc-busqueda-row"
+        *ngFor="let prod of resultados; let i = index"
+        (click)="seleccionarProductoMouse(prod)"
+        [class.selected]="i === indiceSeleccionado">
+
+        <span class="col-codigo">{{ codigoDisplay(prod) }}</span>
+        <span class="col-nombre">{{ prod.nombre }}</span>
+        <span class="col-stock num">{{ existenciaDisplay(prod) | number:'1.2-2' }}</span>
+        <span class="col-costo num">
+          {{ prod.precioCompra | number:'1.2-2' }}
+          <small class="badge-citbis" *ngIf="prod.itbis">c/ITBIS</small>
+        </span>
+      </div>
+
+      <div class="fc-busqueda-empty" *ngIf="!cargando && !resultados.length">
+        No se encontraron productos.
+      </div>
+
+      <div class="fc-busqueda-loading" *ngIf="cargando">
+        <ion-spinner name="crescent"></ion-spinner>
+        Buscando...
+      </div>
+    </div>
+
+    <div class="fc-busqueda-footer" *ngIf="resultados.length">
+      <span>{{ resultados.length }} de {{ total }} resultado(s)</span>
+      <ion-button
+        *ngIf="hasMore"
+        fill="clear"
+        size="small"
+        [disabled]="cargando"
+        (click)="cargarMas()">
+        Cargar más
+      </ion-button>
+    </div>
+  </div>
+</div>

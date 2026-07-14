@@ -14,6 +14,8 @@ import { DocumentoClinico } from 'src/app/models/documento-clinico.models';
 
 import { PlantillaDocumentoClinico } from 'src/app/models/plantilla-documento-clinico.models';
 
+import { HistorialServiciosService } from 'src/app/servicios/historial-servicios.service';
+
 import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component';
 
 import { clientes } from 'src/app/models/clientes';
@@ -69,6 +71,8 @@ export class DocumentoClinicoFormComponent implements OnInit {
     private documentosSrv: DocumentosClinicosService,
 
     private plantillasSrv: PlantillasDocumentosClinicosService,
+
+    private historialSrv: HistorialServiciosService,
 
     private parametro: ParametrosService,
 
@@ -386,7 +390,41 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
         data.cliente.idCliente ?? data.cliente.iDCliente ?? 0;
 
+      this.autocompletarUltimoProcedimiento();
+
     }
+
+  }
+
+
+
+  private autocompletarUltimoProcedimiento(): void {
+
+    if (this.soloLectura || !this.esCertificado) {
+      return;
+    }
+
+    if (this.form.procedimiento?.trim()) {
+      return;
+    }
+
+    const idCliente = this.form.idCliente;
+    if (!idCliente || idCliente <= 0) {
+      return;
+    }
+
+    this.historialSrv
+      .getUltimoServicio(this.parametro.GetIdEmpresa(), idCliente)
+      .subscribe({
+        next: (ultimo) => {
+          if (ultimo?.nombreServicio && !this.form.procedimiento?.trim()) {
+            this.form.procedimiento = ultimo.nombreServicio;
+          }
+        },
+        error: () => {
+          // Sin historial previo: el usuario completa el procedimiento manualmente.
+        }
+      });
 
   }
 
@@ -395,6 +433,8 @@ export class DocumentoClinicoFormComponent implements OnInit {
   onTipoDocumentoChange() {
 
     this.resolverPlantilla(this.form.tipoDocumento, true);
+
+    this.autocompletarUltimoProcedimiento();
 
   }
 

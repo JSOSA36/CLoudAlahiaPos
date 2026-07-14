@@ -1,448 +1,86 @@
 <ion-header>
-
   <ion-toolbar color="primary">
-
     <ion-buttons slot="start">
-
-      <ion-menu-button>
-      </ion-menu-button>
-
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-
-    <ion-title class="ion-text-center">
-
-      📊 Reporte 607
-
-    </ion-title>
-
+    <ion-title>Reporte 607</ion-title>
   </ion-toolbar>
-
 </ion-header>
 
-
-  <!-- ====================================================== -->
-  <!-- 🔥 FILTROS -->
-  <!-- ====================================================== -->
-
-  <ion-card class="card-filtros">
-
-    <ion-card-header>
-
-      <ion-card-title>
-
-        🔍 Filtrar Reporte
-
-      </ion-card-title>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <ion-grid>
-
-        <ion-row>
-
-          <!-- 🔥 DESDE -->
-
-          <ion-col
-            size="6">
-
-            <ion-item lines="none">
-
-              <ion-label position="stacked">
-
-                Desde
-
-              </ion-label>
-
-              <ion-input
-                type="date"
-                [(ngModel)]="desde">
-              </ion-input>
-
-            </ion-item>
-
-          </ion-col>
-
-          <!-- 🔥 HASTA -->
-
-          <ion-col
-            size="6">
-
-            <ion-item lines="none">
-
-              <ion-label position="stacked">
-
-                Hasta
-
-              </ion-label>
-
-              <ion-input
-                type="date"
-                [(ngModel)]="hasta">
-              </ion-input>
-
-            </ion-item>
-
-          </ion-col>
-
-        </ion-row>
-
-        <!-- 🔥 BOTON -->
-
-        <ion-row>
-
-          <ion-col size="12">
-
-            <ion-button
-              expand="block"
-              color="primary"
-              (click)="cargarReporte()">
-
-              <ion-icon
-                slot="start"
-                name="search-outline">
-              </ion-icon>
-
-              Consultar Reporte 607
-
-            </ion-button>
-
-          </ion-col>
-
-        </ion-row>
-
-      </ion-grid>
-
-    </ion-card-content>
-
-  </ion-card>
-<ion-content class="ion-padding">
-
-  <!-- ====================================================== -->
-  <!-- 🔥 LOADING -->
-  <!-- ====================================================== -->
-
-  <div
-    *ngIf="cargando"
-    class="loading-container">
-
-    <ion-spinner
-      name="crescent">
-    </ion-spinner>
-
-  </div>
-
-  <!-- ====================================================== -->
-  <!-- 🔥 EMPTY -->
-  <!-- ====================================================== -->
-
-  <ion-card
-    *ngIf="
-      !cargando &&
-      listado607.length == 0
-    "
-    class="card-empty">
-
-    <ion-card-content
-      class="ion-text-center">
-
-      No existen registros
-      para el rango seleccionado.
-
-    </ion-card-content>
-
-  </ion-card>
-
-  <!-- ====================================================== -->
-  <!-- 🔥 DESKTOP TABLE -->
-  <!-- ====================================================== -->
-
-  <ion-card
-    *ngIf="
-      listado607.length > 0
-    "
-    class="card-reporte desktop-only">
-
-    <ion-card-header>
-
-      <ion-card-title>
-
-        📑 Ventas Fiscales
-
-      </ion-card-title>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <div class="tabla-container">
-
-        <table class="tabla607">
-
-          <thead>
-
-            <tr>
-
-              <th>Fecha</th>
-
-              <th>RNC</th>
-
-              <th>e-CF</th>
-
-              <th>Forma Pago</th>
-
-              <th>ITBIS</th>
-
-              <th>Total</th>
-
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            <tr
-              *ngFor="
-                let item of listado607
-              ">
-
-              <td>
-                {{
-                  item.fecha
-                  | date:'dd/MM/yyyy'
-                }}
-              </td>
-
-              <td>
-                {{ item.rnc }}
-              </td>
-
-              <td class="ncf-text">
-                {{ item.ncf }}
-              </td>
-
-              <td>
-                {{ item.formaPago }}
-              </td>
-
-              <td class="itbis-text">
-
-                RD$
-                {{
-                  item.itbis
-                  | number:'1.2-2'
-                }}
-
-              </td>
-
-              <td class="total-text">
-
-                RD$
-                {{
-                  item.total
-                  | number:'1.2-2'
-                }}
-
-              </td>
-
-            </tr>
-
-          </tbody>
-
-        </table>
-
+<ion-content class="rpt-content">
+  <div class="rpt-page">
+
+    <section class="rpt-filtros">
+      <div class="rpt-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="desde"></ion-input>
       </div>
+      <div class="rpt-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="cargarReporte()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+      </div>
+    </section>
 
-    </ion-card-content>
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Generando 607…
+    </div>
 
-  </ion-card>
-
-  <!-- ====================================================== -->
-  <!-- 🔥 MOBILE CARDS -->
-  <!-- ====================================================== -->
-
-  <div
-    class="mobile-only"
-    *ngIf="
-      listado607.length > 0
-    ">
-
-    <ion-card
-      *ngFor="
-        let item of listado607
-      "
-      class="card607-mobile">
-
-      <!-- 🔥 HEADER -->
-
-      <div class="card607-header">
-
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen" *ngIf="listado607.length">
         <div>
-
-          <div class="fecha607">
-
-            📅
-            {{
-              item.fecha
-              | date:'dd/MM/yyyy'
-            }}
-
-          </div>
-
-          <div class="ncf607">
-
-            {{ item.ncf }}
-
-          </div>
-
+          <span class="label">Facturas</span>
+          <strong>{{ totalFacturas }}</strong>
         </div>
-
-        <div class="total607">
-
-          RD$
-          {{
-            item.total
-            | number:'1.2-2'
-          }}
-
+        <div>
+          <span class="label">Total ITBIS</span>
+          <strong>{{ totalItbis | number:'1.2-2' }}</strong>
         </div>
+        <div class="accent">
+          <span class="label">Total general</span>
+          <strong>{{ totalGeneral | number:'1.2-2' }}</strong>
+        </div>
+      </section>
 
+      <p class="rpt-hint">
+        Ventas fiscales (formato 607) del rango seleccionado.
+      </p>
+
+      <div class="rpt-empty" *ngIf="!listado607.length">
+        No existen registros para el rango seleccionado.
       </div>
 
-      <!-- 🔥 BODY -->
-
-      <div class="card607-body">
-
-        <div class="info607">
-
-          <span>
-            RNC
-          </span>
-
-          <strong>
-
-            {{ item.rnc }}
-
-          </strong>
-
-        </div>
-
-        <div class="info607">
-
-          <span>
-            Forma Pago
-          </span>
-
-          <strong>
-
-            {{ item.formaPago }}
-
-          </strong>
-
-        </div>
-
-        <div class="info607">
-
-          <span>
-            ITBIS
-          </span>
-
-          <strong class="itbis-text">
-
-            RD$
-            {{
-              item.itbis
-              | number:'1.2-2'
-            }}
-
-          </strong>
-
-        </div>
-
+      <div class="rpt-table-wrap" *ngIf="listado607.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>RNC</th>
+              <th>e-CF / NCF</th>
+              <th>Forma pago</th>
+              <th class="num">ITBIS</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of listado607">
+              <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ item.rnc }}</td>
+              <td>{{ item.ncf }}</td>
+              <td>{{ item.formaPago }}</td>
+              <td class="num">{{ item.itbis | number:'1.2-2' }}</td>
+              <td class="num">{{ item.total | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-    </ion-card>
+    </ng-container>
 
   </div>
-
-  <!-- ====================================================== -->
-  <!-- 🔥 RESUMEN -->
-  <!-- ====================================================== -->
-
-
-
 </ion-content>
-  <ion-card
-    *ngIf="
-      listado607.length > 0
-    "
-    class="card-totales">
-
-    <ion-card-header>
-
-      <ion-card-title>
-
-        📊 Resumen Fiscal
-
-      </ion-card-title>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <div class="total-item">
-
-        <span>
-          Facturas:
-        </span>
-
-        <strong>
-
-          {{
-            totalFacturas
-          }}
-
-        </strong>
-
-      </div>
-
-      <div class="total-item">
-
-        <span>
-          Total ITBIS:
-        </span>
-
-        <strong class="itbis-text">
-
-          RD$
-          {{
-            totalItbis
-            | number:'1.2-2'
-          }}
-
-        </strong>
-
-      </div>
-
-      <div class="total-item total-general">
-
-        <span>
-          Total General:
-        </span>
-
-        <strong>
-
-          RD$
-          {{
-            totalGeneral
-            | number:'1.2-2'
-          }}
-
-        </strong>
-
-      </div>
-
-    </ion-card-content>
-
-  </ion-card>

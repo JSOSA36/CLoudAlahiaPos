@@ -25,15 +25,23 @@ export class ComisionesComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.fechaInicio = new Date().toISOString().split('T')[0];
-    this.fechaFin = new Date().toISOString().split('T')[0];
+    this.iniciarRangoMesActual();
     this.CargarCierre();
   }
 
   ionViewWillEnter() {
-    this.fechaInicio = new Date().toISOString().split('T')[0];
-    this.fechaFin = new Date().toISOString().split('T')[0];
+    // No reinicia fechas si el usuario ya consultó otro rango.
+    if (!this.fechaInicio || !this.fechaFin) {
+      this.iniciarRangoMesActual();
+    }
     this.CargarCierre();
+  }
+
+  private iniciarRangoMesActual(): void {
+    const hoy = new Date();
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    this.fechaInicio = inicioMes.toISOString().substring(0, 10);
+    this.fechaFin = hoy.toISOString().substring(0, 10);
   }
 
   async CargarCierre() {

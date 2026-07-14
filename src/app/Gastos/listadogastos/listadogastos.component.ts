@@ -4,6 +4,7 @@ import { GastosService } from 'src/app/servicios/gastos.service';
 import { ModalController } from '@ionic/angular';
 import { GastoFormPage } from '../gastoadd/gastoadd.component';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { AnularGastoComponent } from 'src/app/Modales/anular-gasto/anular-gasto.component';
 @Component({
   selector: 'app-listadogastos',
   templateUrl: './listadogastos.component.html',
@@ -60,7 +61,7 @@ export class ListadogastosComponent implements OnInit {
       if (soloFechaFin && fecha > soloFechaFin) return false;
 
       return true;
-    });
+    }).filter(g => !g.estaAnulado);
 
     // 🔎 Luego aplicamos también el filtro de texto
     this.aplicarFiltroTexto();
@@ -98,7 +99,9 @@ export class ListadogastosComponent implements OnInit {
   }
 
   calcularTotal() {
-    this.totalGastos = this.gastosFiltrados.reduce(
+    this.totalGastos = this.gastosFiltrados
+      .filter(g => !g.estaAnulado)
+      .reduce(
       (acc, g) => acc + (g.monto || 0),
       0
     );
@@ -120,15 +123,20 @@ export class ListadogastosComponent implements OnInit {
     return await modal.present();
   }
 
-  async borrarGasto(id: number) {
-    this.gastosSrv.eliminarGasto(id).subscribe(async () => {
-      (await this.toastCtrl.create({
-        message: '🗑️ Gasto eliminado',
-        duration: 1500,
-        color: 'danger'
-      })).present();
-      this.cargarGastos();
+  async anularGasto(gasto: any) {
+    const modal = await this.modalCtrl.create({
+      component: AnularGastoComponent,
+      cssClass: 'modal-gasto',
+      componentProps: { gasto: { ...gasto } }
     });
+
+    modal.onDidDismiss().then((res) => {
+      if (res.data?.refresh) {
+        this.cargarGastos();
+      }
+    });
+
+    return await modal.present();
   }
 
   trackById(index: number, item: any) {

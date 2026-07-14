@@ -60,7 +60,7 @@
 <!-- Precio -->
 <ion-col size="12" size-md="6">
   <ion-item>
-    <ion-label position="stacked">Precio Incluye Itbis</ion-label>
+    <ion-label position="stacked">Precio / costo incluye ITBIS</ion-label>
     <ion-toggle slot="end" [(ngModel)]="form.Itbis"></ion-toggle>
   </ion-item>
 </ion-col>
@@ -75,6 +75,34 @@
 </ion-col>
 <!-- 🔥 COMPRA / VENTA -->
 <!-- 🔥 COMPRA / VENTA -->
+<!-- Naturaleza comercial (POS, Citas, Odontología) -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Naturaleza del artículo</ion-label>
+    <ion-select
+      [(ngModel)]="form.esServicio"
+      (ionChange)="onNaturalezaChange()">
+      <ion-select-option [value]="false">Producto</ion-select-option>
+      <ion-select-option [value]="true">Servicio</ion-select-option>
+    </ion-select>
+  </ion-item>
+</ion-col>
+
+<!-- Comportamiento ERP (solo compras / contabilidad) -->
+<ion-col size="12" size-md="6">
+  <ion-item>
+    <ion-label position="stacked">Comportamiento ERP (compras)</ion-label>
+    <ion-select [(ngModel)]="form.tipoComportamiento">
+      <ion-select-option
+        *ngFor="let t of tiposComportamiento"
+        [value]="t.value">
+        {{ t.label }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+  <p class="tipo-hint">{{ descripcionTipoComportamiento }}</p>
+</ion-col>
+
 <!-- ===================================== -->
 <!-- 🔥 TIPO OPERACION -->
 <!-- ===================================== -->
@@ -157,16 +185,10 @@
     <ion-toggle slot="end" [(ngModel)]="form.isActivo"></ion-toggle>
   </ion-item>
 </ion-col>
-<ion-col size="12" size-md="6">
+<!-- Controlar stock (ventas / inventario operativo) -->
+<ion-col size="12" size-md="6" *ngIf="!form.esServicio">
   <ion-item>
-    <ion-label position="stacked">Es Servicio</ion-label>
-    <ion-toggle slot="end" [(ngModel)]="form.esServicio"></ion-toggle>
-  </ion-item>
-</ion-col>
-<!-- Controlar stock -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Controlar Stock</ion-label>
+    <ion-label position="stacked">Controlar Stock (ventas)</ion-label>
     <ion-toggle slot="end" [(ngModel)]="form.controlarStock"></ion-toggle>
   </ion-item>
 </ion-col>
@@ -187,6 +209,18 @@
 
 </ion-grid>
 <div class="guardar-area">
+
+  <ion-button
+    *ngIf="form.idproducto > 0"
+    shape="round"
+    expand="block"
+    fill="outline"
+    color="primary"
+    class="btn-historial-compras"
+    (click)="abrirHistorialCompras()">
+    <ion-icon name="analytics-outline" slot="start"></ion-icon>
+    Historial de Compras
+  </ion-button>
 
   <ion-button shape="round"
     expand="block"

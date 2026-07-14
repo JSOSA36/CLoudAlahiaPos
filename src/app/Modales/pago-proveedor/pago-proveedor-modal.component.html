@@ -1,0 +1,109 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      Pago — {{ factura?.numeroDocumento || ('#' + factura?.idOrdenCompraHeader) }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()" [disabled]="procesando">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card class="info-card">
+    <ion-card-content>
+      <div class="row">
+        <span>Proveedor</span>
+        <strong>{{ factura?.proveedorNombre || '—' }}</strong>
+      </div>
+      <div class="row">
+        <span>Pendiente</span>
+        <strong class="pendiente">{{ pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-item lines="full">
+    <ion-label position="stacked">Monto a pagar *</ion-label>
+    <ion-input
+      type="number"
+      [(ngModel)]="monto"
+      inputmode="decimal"
+      min="0.01"
+      [disabled]="procesando">
+    </ion-input>
+  </ion-item>
+  <p class="hint">Para un abono, digite un monto menor al pendiente.</p>
+
+  <ion-item lines="full">
+    <ion-label position="stacked">Forma de pago *</ion-label>
+    <ion-select
+      [(ngModel)]="formaPago"
+      interface="popover"
+      [disabled]="procesando"
+      (ionChange)="onMetodoChange()">
+      <ion-select-option *ngFor="let m of metodosPago" [value]="m.metodoPago">
+        {{ m.metodoPago }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item lines="full">
+    <ion-label position="stacked">Cuenta origen (caja / banco) *</ion-label>
+    <ion-select
+      [(ngModel)]="idCuentaFinanciera"
+      interface="popover"
+      [disabled]="procesando"
+      placeholder="¿De dónde sale el dinero?">
+      <ion-select-option
+        *ngFor="let c of cuentas"
+        [value]="c.idCuentaFinanciera">
+        {{ c.nombre }}
+        <ng-container *ngIf="c.tipoCuenta"> · {{ c.tipoCuenta }}</ng-container>
+        — {{ (c.saldoDisponible || 0) | currency:'DOP':'symbol-narrow':'1.2-2' }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <div class="saldo-box" *ngIf="cuentaSeleccionada">
+    <ion-icon name="wallet-outline"></ion-icon>
+    <div>
+      <strong>{{ cuentaSeleccionada.nombre }}</strong>
+      <small>
+        Disponible: {{ saldoDisponible | currency:'DOP':'symbol-narrow':'1.2-2' }}
+      </small>
+    </div>
+  </div>
+
+  <ion-item lines="full">
+    <ion-label position="stacked">Nota / referencia</ion-label>
+    <ion-input
+      [(ngModel)]="nota"
+      [disabled]="procesando"
+      placeholder="Opcional">
+    </ion-input>
+  </ion-item>
+
+  <ion-button
+    expand="block"
+    color="success"
+    class="btn-pagar"
+    [disabled]="procesando"
+    (click)="confirmar()">
+    <ion-spinner *ngIf="procesando" name="crescent"></ion-spinner>
+    <span *ngIf="!procesando">Registrar pago</span>
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    fill="clear"
+    color="medium"
+    [disabled]="procesando"
+    (click)="cerrar()">
+    Cancelar
+  </ion-button>
+
+</ion-content>

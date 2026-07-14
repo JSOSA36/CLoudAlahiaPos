@@ -1,0 +1,137 @@
+<ion-header class="ec-header no-print">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="volver()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Estado de Cuenta — Proveedor</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" [disabled]="!reporte" (click)="imprimir()">
+        <ion-icon slot="icon-only" name="print-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ec-content">
+  <div class="ec-page">
+    <section class="ec-filters no-print">
+      <div class="ec-field">
+        <label>Proveedor</label>
+        <ion-select [(ngModel)]="idProveedor" interface="popover" placeholder="Seleccione">
+          <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
+            {{ p.nombreComercial }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+      <div class="ec-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="desde"></ion-input>
+      </div>
+      <div class="ec-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+      </div>
+      <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
+        {{ cargando ? 'Consultando…' : 'Consultar' }}
+      </ion-button>
+    </section>
+
+    <div class="ec-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <ng-container *ngIf="reporte && !cargando">
+      <header class="ec-doc-head">
+        <div>
+          <h1>Estado de Cuenta del Proveedor</h1>
+          <p class="ec-sub">Auxiliar de Cuentas por Pagar</p>
+        </div>
+        <div class="ec-doc-meta">
+          <strong>{{ reporte.proveedorNombre }}</strong>
+          <span *ngIf="reporte.proveedorRnc">RNC: {{ reporte.proveedorRnc }}</span>
+          <span>
+            Período: {{ reporte.desde | date:'dd/MM/yyyy' }}
+            — {{ reporte.hasta | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+      </header>
+
+      <div class="ec-totales">
+        <div>
+          <span>Total comprado (período)</span>
+          <strong>{{ reporte.totalComprado | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Total pagado (período)</span>
+          <strong>{{ reporte.totalPagado | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div class="pending">
+          <span>Balance pendiente</span>
+          <strong>{{ reporte.balancePendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <h2>Movimientos</h2>
+      <div class="ec-table-wrap">
+        <table class="ec-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Documento</th>
+              <th>Concepto</th>
+              <th class="num">Débito</th>
+              <th class="num">Crédito</th>
+              <th class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of reporte.movimientos" [class.saldo-ini]="m.tipo === 'SALDO_INICIAL'">
+              <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ m.numeroDocumento }}</td>
+              <td>{{ m.concepto }}</td>
+              <td class="num">{{ m.debito ? (m.debito | currency:'DOP':'symbol-narrow':'1.2-2') : '' }}</td>
+              <td class="num">{{ m.credito ? (m.credito | currency:'DOP':'symbol-narrow':'1.2-2') : '' }}</td>
+              <td class="num">{{ m.balance | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Facturas pendientes</h2>
+      <div class="ec-table-wrap" *ngIf="reporte.facturasPendientes?.length; else sinPend">
+        <table class="ec-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Documento</th>
+              <th class="num">Original</th>
+              <th class="num">Pagado</th>
+              <th class="num">Pendiente</th>
+              <th>Vencimiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of reporte.facturasPendientes">
+              <td>{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ f.numeroDocumento }}</td>
+              <td class="num">{{ f.montoOriginal | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ f.pagado | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ f.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td>
+                <span *ngIf="f.fechaVencimiento">{{ f.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                <small class="dias" [class.vencido]="(f.diasVencimiento || 0) > 0">
+                  {{ etiquetaDias(f.diasVencimiento) }}
+                </small>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #sinPend>
+        <p class="ec-empty">No hay facturas pendientes con este proveedor.</p>
+      </ng-template>
+    </ng-container>
+  </div>
+</ion-content>

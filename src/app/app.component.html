@@ -6,62 +6,92 @@
       <ion-header class="menu-header">
         <div class="menu-top">
           <div class="menu-logo">
-  <img src="/assets/Logo.png" />
-</div>
+            <img src="/assets/Logo.png" />
+          </div>
           <div class="menu-titles">
             <h2 class="app-title">AlahiaPos</h2>
-            <!-- <h3 class="empresa-nombre">{{_Parametro.NombreEmpresa}}</h3> -->
-               <h3 class="empresa-nombre">Abadi Pasteleria</h3> 
-            <!-- <p class="usuario-info">{{ _Parametro.Rol }} — {{ _Parametro.UserName }}</p> -->
-              <p class="usuario-info">Abadi@gmail.com</p> 
+            <h3 class="empresa-nombre">{{ _Parametro.NombreEmpresa }}</h3>
+            <p class="usuario-info">{{ _Parametro.Rol }} — {{ _Parametro.UserName }}</p>
           </div>
-       <div class="plan-info">
-
-  <ion-badge 
-    [color]="getPlanColor(_Parametro.nombrePlan)">
-    
-    {{ _Parametro?.nombrePlan || 'Plan Demo' }}
-  
-  </ion-badge>
-
-  <p class="plan-desc">
-    {{
-      (_Parametro?.nombrePlan === 'Demo' || !_Parametro?.nombrePlan)
-        ? 'Gratis por 15 días'
-        : 'Plan activo'
-    }}
-  </p>
-
-</div>
+          <div class="plan-info">
+            <ion-badge [color]="getPlanColor(_Parametro.nombrePlan)">
+              {{ _Parametro?.nombrePlan || 'Plan Demo' }}
+            </ion-badge>
+            <p class="plan-desc">
+              {{
+                (_Parametro?.nombrePlan === 'Demo' || !_Parametro?.nombrePlan)
+                  ? 'Gratis por 15 días'
+                  : 'Plan activo'
+              }}
+            </p>
+          </div>
         </div>
       </ion-header>
 
-      <!-- 🔹 CONTENIDO MENÚ -->
+      <!-- 🔹 CONTENIDO MENÚ AGRUPADO -->
       <ion-content>
-        <ion-list id="inbox-list">
-          <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
-            <ion-item 
-              routerDirection="root" 
-              [routerLink]="[p.url]" 
-              lines="none" 
-              detail="false" 
-              routerLinkActive="selected"
-              class="menu-item">
-              
-              <fa-icon 
-                [icon]="p.icon" 
+        <ion-list id="inbox-list" class="menu-lista">
+
+          <ng-container *ngFor="let grupo of menuGrupos">
+            <ion-item
+              button
+              detail="false"
+              lines="none"
+              class="menu-grupo-header"
+              (click)="toggleGrupo(grupo.id)">
+              <fa-icon
+                [icon]="grupo.iconFa"
+                slot="start"
+                class="menu-icon menu-icon-grupo">
+              </fa-icon>
+              <ion-label class="menu-grupo-titulo">{{ grupo.titulo }}</ion-label>
+              <ion-icon
+                slot="end"
+                class="menu-chevron"
+                [name]="grupo.expandido ? 'chevron-up-outline' : 'chevron-down-outline'">
+              </ion-icon>
+            </ion-item>
+
+            <ng-container *ngIf="grupo.expandido">
+              <ion-menu-toggle auto-hide="false" *ngFor="let item of grupo.items">
+                <ion-item
+                  routerDirection="root"
+                  [routerLink]="[item.url]"
+                  lines="none"
+                  detail="false"
+                  routerLinkActive="selected"
+                  class="menu-item menu-item-hijo">
+                  <fa-icon
+                    [icon]="item.iconFa"
+                    slot="start"
+                    class="menu-icon menu-icon-hijo">
+                  </fa-icon>
+                  <ion-label>{{ item.title }}</ion-label>
+                </ion-item>
+              </ion-menu-toggle>
+            </ng-container>
+          </ng-container>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item
+              routerDirection="root"
+              [routerLink]="[menuSalir.url]"
+              lines="none"
+              detail="false"
+              class="menu-item menu-item-salir">
+              <fa-icon
+                [icon]="menuSalir.iconFa"
                 slot="start"
                 class="menu-icon">
               </fa-icon>
-
-              <ion-label>{{ p.title }}</ion-label>
+              <ion-label>{{ menuSalir.title }}</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
         </ion-list>
       </ion-content>
     </ion-menu>
 
-    <!-- 🔹 MAIN OUTLET -->
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
 </ion-app>

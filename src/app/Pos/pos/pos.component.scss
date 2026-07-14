@@ -87,6 +87,7 @@
 }
 
 .cat-card{
+  position: relative;
   min-width: 140px;
   width: 140px;          /* 🔥 fuerza ancho igual */
   height: 110px;
@@ -102,10 +103,7 @@
 
   padding: 10px;
   cursor: pointer;
-}
-
-.cat-card.selected{
-  border: 2px solid #f7c948;
+  overflow: hidden;
 }
 
 .cat-img{
@@ -355,6 +353,17 @@
   font-size: 12px;
   color: #666;
   margin-top: 2px;
+}
+
+.item-descuento{
+  font-size: 12px;
+  color: #e11d48;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.sum-descuento{
+  color: #e11d48;
 }
 /* HEADER */
 .header-warning{
@@ -1067,6 +1076,58 @@ footer-warning
   border-radius:6px;
 
   box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+
+.promo-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 6;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 45%, #e11d48 100%);
+  color: #fff;
+  box-shadow:
+    0 6px 16px rgba(225, 29, 72, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: promoPop 2.4s ease-in-out infinite;
+}
+
+.promo-badge--product {
+  min-width: 52px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border-top-right-radius: 16px;
+  border-bottom-left-radius: 18px;
+}
+
+.promo-badge--product .promo-badge__value {
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.promo-badge__value {
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes promoPop {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
 }
 .search-box{
   padding:10px;

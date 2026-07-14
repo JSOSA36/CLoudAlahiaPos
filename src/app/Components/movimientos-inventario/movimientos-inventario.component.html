@@ -189,12 +189,13 @@
                 </ion-label>
 
                 <ion-select
-                  [(ngModel)]="movimiento.motivo">
+                  [(ngModel)]="movimiento.motivo"
+                  (ionChange)="onMotivoChange()">
 
                   <ion-select-option
                     value="COMPRA">
 
-                    Compra
+                    Compra (desde factura)
 
                   </ion-select-option>
 
@@ -298,10 +299,122 @@
     </ion-card>
 
     <!-- ===================================== -->
+    <!-- RECEPCIÓN DESDE FACTURA DE COMPRA -->
+    <!-- ===================================== -->
+
+    <ion-card class="card-recepcion-compra" *ngIf="esRecepcionDesdeCompra">
+
+      <ion-card-header>
+        <ion-card-title>
+          Facturas pendientes de recepción
+        </ion-card-title>
+        <p class="recepcion-hint">
+          Escribe para filtrar o toca una factura de la lista. Al seleccionarla se cargan todos los ítems automáticamente.
+        </p>
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <div *ngIf="!facturaRecepcion">
+
+          <ion-item>
+            <ion-label position="stacked">
+              Buscar factura de compra
+            </ion-label>
+            <ion-input
+              [(ngModel)]="filtroFacturaRecepcion"
+              (ionInput)="filtrarFacturasRecepcion()"
+              (ionFocus)="mostrarListaFacturas = true"
+              placeholder="FACTC, NCF o proveedor…">
+            </ion-input>
+          </ion-item>
+
+          <div class="recepcion-actions">
+            <ion-button
+              size="small"
+              color="primary"
+              (click)="buscarFacturasPendientesRecepcion()"
+              [disabled]="cargandoFacturasRecepcion">
+              <ion-icon slot="start" name="refresh-outline"></ion-icon>
+              {{ cargandoFacturasRecepcion ? 'Cargando…' : 'Actualizar facturas' }}
+            </ion-button>
+            <ion-button
+              size="small"
+              fill="outline"
+              color="medium"
+              (click)="activarCargaManualCompra()">
+              Cargar productos a mano
+            </ion-button>
+          </div>
+
+          <div class="recepcion-loading" *ngIf="cargandoFacturasRecepcion">
+            Cargando facturas…
+          </div>
+
+          <!-- Autocomplete (estilo productos) -->
+          <div
+            class="resultado-facturas-recepcion"
+            *ngIf="!cargandoFacturasRecepcion && mostrarListaFacturas">
+
+            <div
+              class="item-factura-recepcion"
+              *ngFor="let f of facturasRecepcionFiltradas"
+              (click)="seleccionarFacturaRecepcion(f)">
+
+              <div class="factura-rec-main">
+                <h3>{{ f.numeroDocumento || ('OC-' + f.idOrdenCompraHeader) }}</h3>
+                <p>{{ f.proveedorNombre || 'Sin proveedor' }}</p>
+                <small *ngIf="f.numeroComprobanteProveedor">
+                  Doc. proveedor: {{ f.numeroComprobanteProveedor }}
+                </small>
+              </div>
+              <span class="factura-rec-badge"
+                    [class.parcial]="f.estadoRecepcion === 'PARCIALMENTE_RECIBIDA'">
+                {{ f.estadoRecepcion === 'PARCIALMENTE_RECIBIDA' ? 'Parcial' : 'Pendiente' }}
+              </span>
+            </div>
+
+            <p
+              class="empty-facturas"
+              *ngIf="!facturasRecepcionFiltradas.length">
+              No hay facturas pendientes de recepción.
+              En Compras: crea la factura → Confirmar. Luego vuelve aquí y selecciona esa FACTC;
+              los ítems se cargan solos.
+            </p>
+          </div>
+        </div>
+
+        <div class="factura-seleccionada" *ngIf="facturaRecepcion">
+          <div>
+            <strong>{{ etiquetaFacturaRecepcion(facturaRecepcion) }}</strong>
+            <p>Productos cargados abajo. Puedes ajustar cantidades parciales.</p>
+          </div>
+          <ion-button
+            size="small"
+            fill="outline"
+            color="medium"
+            (click)="limpiarRecepcionCompra(); buscarFacturasPendientesRecepcion()">
+            Cambiar factura
+          </ion-button>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="cargaManualCompra && movimiento.motivo === 'COMPRA' && movimiento.tipoMovimiento === 'ENTRADA'">
+      <ion-card-content class="recepcion-manual-bar">
+        <span>Modo carga manual (sin factura).</span>
+        <ion-button size="small" fill="clear" (click)="volverARecepcionCompra()">
+          Volver a recepción desde factura
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ===================================== -->
     <!-- 🔥 AGREGAR PRODUCTOS -->
     <!-- ===================================== -->
 
-    <ion-card>
+    <ion-card *ngIf="!esRecepcionDesdeCompra">
 
       <ion-card-header>
 
@@ -531,7 +644,9 @@
 
           <p>
 
-            No hay productos agregados
+            {{ esRecepcionDesdeCompra
+              ? 'Seleccione una factura pendiente arriba para cargar los productos'
+              : 'No hay productos agregados' }}
 
           </p>
 
@@ -565,6 +680,10 @@
 
                 <th>
                   Cantidad
+                </th>
+
+                <th *ngIf="facturaRecepcion">
+                  Pendiente
                 </th>
 
                 <th>
@@ -611,8 +730,22 @@
                 <!-- CANTIDAD -->
                 <td>
 
-                  {{ item.cantidad }}
+                  <ion-input
+                    *ngIf="facturaRecepcion"
+                    type="number"
+                    [(ngModel)]="item.cantidad"
+                    (ionChange)="onCantidadRecepcionChange(item)"
+                    class="input-cant-recepcion">
+                  </ion-input>
 
+                  <ng-container *ngIf="!facturaRecepcion">
+                    {{ item.cantidad }}
+                  </ng-container>
+
+                </td>
+
+                <td *ngIf="facturaRecepcion">
+                  {{ item.cantidadMaxima }}
                 </td>
 
                 <!-- NUEVO -->

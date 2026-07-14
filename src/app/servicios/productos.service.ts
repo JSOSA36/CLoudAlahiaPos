@@ -5,6 +5,10 @@ import { Observable } from 'rxjs';
 import { productos } from '../models/productos';
 import { AppConfigService } from './app-config.service';
 import { ProductoLite } from '../models/producto-lite.model';
+import {
+  ProductoBusquedaCompra,
+  ProductoBusquedaCompraResult
+} from '../models/producto-busqueda.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductosService {
@@ -38,9 +42,33 @@ export class ProductosService {
     return this.httpClient.get<productos[]>(`${this.baseUrl}/GetListadoProductosVenta/${IdEmpresa}`);
   }
 
-  GetProductosByBarCode(BarCode: string): Observable<productos> {
-    const params = new HttpParams().set('BarCode', BarCode);
-    return this.httpClient.get<productos>(`${this.baseUrl}/GetProductByBarCode/`, { params });
+  GetProductosByBarCode(BarCode: string, IdEmpresa: number): Observable<productos> {
+    const params = new HttpParams()
+      .set('BarCode', BarCode)
+      .set('IdEmpresa', String(IdEmpresa));
+    return this.httpClient.get<productos>(`${this.baseUrl}/GetProductByBarCode`, { params });
+  }
+
+  buscarCompra(
+    idEmpresa: number,
+    q: string,
+    page = 1,
+    pageSize = 25,
+    idAlmacen?: number
+  ): Observable<ProductoBusquedaCompraResult> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    if (q?.trim()) {
+      params = params.set('q', q.trim());
+    }
+    if (idAlmacen && idAlmacen > 0) {
+      params = params.set('idAlmacen', String(idAlmacen));
+    }
+    return this.httpClient.get<ProductoBusquedaCompraResult>(
+      `${this.baseUrl}/BuscarCompra/${idEmpresa}`,
+      { params }
+    );
   }
 
   DeleteIten(id: number): Observable<any> {

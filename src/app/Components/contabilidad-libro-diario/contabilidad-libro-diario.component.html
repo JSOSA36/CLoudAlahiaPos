@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Libro Diario</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Período</strong></ion-card-title>
+    </ion-card-header>
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioDiario">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioDiario" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finDiario">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finDiario" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && lineas.length > 0">
+    <ion-card-content>
+      <ion-grid>
+        <ion-row class="header-row">
+          <ion-col size="2"><strong>Fecha</strong></ion-col>
+          <ion-col size="2"><strong>Número</strong></ion-col>
+          <ion-col size="3"><strong>Cuenta</strong></ion-col>
+          <ion-col size="2" class="ion-text-end"><strong>Débito</strong></ion-col>
+          <ion-col size="2" class="ion-text-end"><strong>Crédito</strong></ion-col>
+        </ion-row>
+        <ion-row *ngFor="let l of lineas" class="data-row">
+          <ion-col size="2">{{ l.fecha | date:'dd/MM/yy' }}</ion-col>
+          <ion-col size="2">{{ l.numero }}</ion-col>
+          <ion-col size="3">{{ l.codigoCuenta }} {{ l.nombreCuenta }}</ion-col>
+          <ion-col size="2" class="ion-text-end">{{ l.debito | currency:'DOP' }}</ion-col>
+          <ion-col size="2" class="ion-text-end">{{ l.credito | currency:'DOP' }}</ion-col>
+        </ion-row>
+        <ion-row class="totals-row">
+          <ion-col size="7" class="ion-text-end"><strong>Totales</strong></ion-col>
+          <ion-col size="2" class="ion-text-end"><strong>{{ totalDebito | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="2" class="ion-text-end"><strong>{{ totalCredito | currency:'DOP' }}</strong></ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="!cargando && lineas.length === 0">
+    <ion-card-content class="ion-text-center">
+      No hay movimientos en el período seleccionado.
+    </ion-card-content>
+  </ion-card>
+</ion-content>

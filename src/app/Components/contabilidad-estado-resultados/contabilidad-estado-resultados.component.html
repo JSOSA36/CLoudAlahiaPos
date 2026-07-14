@@ -1,0 +1,105 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Estado de Resultados</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Período de consulta</strong></ion-card-title>
+    </ion-card-header>
+
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioER">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioER" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finER">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finER" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && resultado">
+    <ion-card-header>
+      <ion-card-title>Estado de Resultados</ion-card-title>
+      <ion-card-subtitle>
+        {{ resultado.desde | date:'dd/MM/yyyy' }} — {{ resultado.hasta | date:'dd/MM/yyyy' }}
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="seccion">
+        <h3>{{ resultado.ingresos.titulo }}</h3>
+        <div *ngFor="let l of resultado.ingresos.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.monto | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Ingresos</span>
+          <span>{{ resultado.ingresos.total | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <h3>(-) {{ resultado.costos.titulo }}</h3>
+        <div *ngFor="let l of resultado.costos.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.monto | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Costos</span>
+          <span>{{ resultado.costos.total | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="resultado-linea">
+        <span>= Utilidad Bruta</span>
+        <span>{{ resultado.utilidadBruta | currency:'DOP' }}</span>
+      </div>
+
+      <div class="seccion">
+        <h3>(-) {{ resultado.gastos.titulo }}</h3>
+        <div *ngFor="let l of resultado.gastos.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.monto | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Gastos</span>
+          <span>{{ resultado.gastos.total | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="resultado-linea total">
+        <span>= Utilidad Neta</span>
+        <span>{{ resultado.utilidadNeta | currency:'DOP' }}</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

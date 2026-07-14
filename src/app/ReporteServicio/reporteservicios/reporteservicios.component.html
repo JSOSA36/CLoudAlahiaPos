@@ -1,240 +1,106 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Servicios por Empleado</ion-title>
-
     <ion-buttons slot="start">
-      <ion-menu-button style="color:white;"></ion-menu-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <ion-title>Reporte de servicios</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="rpt-content">
+  <div class="rpt-page">
 
-  <!-- ===================== -->
-  <!-- FILTROS -->
-  <!-- ===================== -->
+    <section class="rpt-filtros">
+      <div class="rpt-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="desde"></ion-input>
+      </div>
+      <div class="rpt-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+      </div>
+      <div class="rpt-field">
+        <label>Empleado</label>
+        <ion-select
+          interface="popover"
+          placeholder="Todos"
+          [(ngModel)]="empleadoId"
+          (ngModelChange)="aplicarFiltros()">
+          <ion-select-option [value]="null">Todos</ion-select-option>
+          <ion-select-option
+            *ngFor="let e of empleados"
+            [value]="e.idEmpleados">
+            {{ e.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="buscar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+      </div>
+    </section>
 
-  <ion-card>
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando servicios…
+    </div>
 
-    <ion-card-header color="warning">
-      <ion-card-title class="ion-text-center">Filtrar por fechas</ion-card-title>
-    </ion-card-header>
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen" *ngIf="serviciosFiltrados?.length">
+        <div>
+          <span class="label">Servicios</span>
+          <strong>{{ totalServicios }}</strong>
+        </div>
+        <div>
+          <span class="label">Subtotal</span>
+          <strong>{{ totalSubtotal | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Comisiones</span>
+          <strong>{{ totalComision | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
 
-    <!-- DESDE -->
-    <ion-item>
-      <ion-label>Desde</ion-label>
-      <ion-datetime-button datetime="desdeDT">
-        <span slot="date-target">
-          {{ desde ? (desde | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+      <p class="rpt-hint">
+        Servicios por empleado con base de comisión aplicada.
+      </p>
 
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime
-          id="desdeDT"
-          presentation="date"
-          [(ngModel)]="desde">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
+      <div class="rpt-empty" *ngIf="!serviciosFiltrados.length">
+        No se encontraron servicios en este rango.
+      </div>
 
-    <!-- HASTA -->
-    <ion-item>
-      <ion-label>Hasta</ion-label>
-      <ion-datetime-button datetime="hastaDT">
-        <span slot="date-target">
-          {{ hasta ? (hasta | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+      <div class="rpt-table-wrap" *ngIf="serviciosFiltrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Servicio</th>
+              <th>Cliente</th>
+              <th>Empleado</th>
+              <th>Factura</th>
+              <th class="num">Subtotal</th>
+              <th class="num">Comisión</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of serviciosFiltrados; trackBy: trackByFactura">
+              <td>{{ s.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>
+                {{ s.producto }}
+                <span class="rpt-badge" *ngIf="s.tipoFactura === 'Credito'">Crédito</span>
+              </td>
+              <td>{{ s.cliente || 'Consumidor Final' }}</td>
+              <td>{{ s.empleado }}</td>
+              <td>{{ s.noFactura }}</td>
+              <td class="num">{{ s.subTotal | number:'1.2-2' }}</td>
+              <td class="num">{{ s.comision | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
 
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime
-          id="hastaDT"
-          presentation="date"
-          [(ngModel)]="hasta">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
-
-    <!-- EMPLEADO -->
-    <ion-item>
-      <ion-label>Empleado</ion-label>
-      <ion-select
-        interface="popover"
-        placeholder="Todos"
-        [(ngModel)]="empleadoId">
-
-        <ion-select-option [value]="null">
-          Todos
-        </ion-select-option>
-
-        <ion-select-option
-          *ngFor="let e of empleados"
-          [value]="e.idEmpleados">
-          {{ e.nombre }}
-        </ion-select-option>
-
-      </ion-select>
-    </ion-item>
-
-    <ion-button expand="block" color="warning" (click)="buscar()">
-      <ion-icon name="search-outline" slot="start"></ion-icon>
-      Buscar
-    </ion-button>
-
-     <div class="resumen" *ngIf="serviciosFiltrados?.length">
-
-  <div class="kpi kpi-servicios">
-    <ion-icon name="layers-outline"></ion-icon>
-    <span>{{ totalServicios }}</span>
-    <small>Servicios</small>
   </div>
-
-  <div class="kpi kpi-subtotal">
-    <ion-icon name="cash-outline"></ion-icon>
-    <span>{{ totalSubtotal | currency }}</span>
-    <small>Subtotal</small>
-  </div>
-
-  <div class="kpi kpi-comision">
-    <ion-icon name="wallet-outline"></ion-icon>
-    <span>{{ totalComision | currency }}</span>
-    <small>Comisiones</small>
-  </div>
-
-</div>
-  </ion-card>
-
-  <!-- ===================== -->
-  <!-- RESUMEN -->
-  <!-- ===================== -->
-
- 
-
-  <!-- ===================== -->
-  <!-- LOADING -->
-  <!-- ===================== -->
-
- <div class="spinner-container" *ngIf="cargando">
-  <ion-spinner name="crescent"></ion-spinner>
-</div>
-
-  <!-- ===================== -->
-  <!-- EMPTY -->
-  <!-- ===================== -->
-
-  <ion-text
-    color="medium"
-    *ngIf="!cargando && serviciosFiltrados.length === 0">
-    <p class="ion-text-center">
-      No se encontraron servicios en este rango
-    </p>
-  </ion-text>
-
-  <!-- ===================== -->
-  <!-- SERVICIOS -->
-  <!-- ===================== -->
-
-  <ion-grid>
-
-    <ion-row>
-
-      <ion-col
-        size="12"
-        size-md="6"
-        size-lg="3"
-        *ngFor="let s of serviciosFiltrados; trackBy: trackByFactura">
-
-        <ion-card class="svc-card">
-
-          <!-- HEADER -->
-          <ion-card-header class="svc-header">
-
-            <div class="svc-title">
-              <ion-icon name="settings-outline"></ion-icon>
-              {{ s.producto }}
-            </div>
-
-            <div class="svc-amount">
-              {{ s.subTotal | currency }}
-            </div>
-
-          </ion-card-header>
-
-          <!-- 🔴 BADGE -->
-          <div
-            *ngIf="s.tipoFactura === 'Credito'"
-            class="badge-credito">
-
-            FACTURA A CRÉDITO
-
-          </div>
-
-          <ion-card-content>
-
-            <p><strong>Cliente:</strong> {{ s.cliente }}</p>
-            <p><strong>Empleado:</strong> {{ s.empleado }}</p>
-            <p><strong>Fecha:</strong> {{ s.fecha | date:'dd/MM/yyyy' }}</p>
-            <p><strong>Hora:</strong> {{ s.hora }}</p>
-            <p><strong>Factura:</strong> {{ s.noFactura }}</p>
-
-            <!-- 🔥 SOLO SI ES CRÉDITO -->
-            <div *ngIf="s.tipoFactura === 'Credito'" class="credito-box">
-
-              <p>
-                Total:
-                <strong>{{ s.totalFactura | currency }}</strong>
-              </p>
-
-              <p>
-                Pagado:
-                <strong class="verde">
-                  {{ s.pagadoFactura | currency }}
-                </strong>
-              </p>
-
-              <p>
-                Pendiente:
-                <strong class="rojo">
-                  {{ s.pendienteFactura | currency }}
-                </strong>
-              </p>
-
-              <p class="base">
-                Comisión aplicada sobre:
-                {{ s.montoBaseComision | currency }}
-              </p>
-
-            </div>
-
-            <!-- COMISION -->
-         <div class="svc-footer">
-
-  <ion-badge color="warning">
-    {{ s.tipoComision === 'PORCIENTO'
-        ? ('Comisión ' + s.porcientoComision + '%')
-        : 'Comisión'
-    }}
-  </ion-badge>
-
-  <div class="svc-comm-amount">
-    {{ s.comision | currency:'DOP ' }}
-  </div>
-
-</div>
-
-          </ion-card-content>
-
-        </ion-card>
-
-      </ion-col>
-
-    </ion-row>
-
-  </ion-grid>
-
 </ion-content>

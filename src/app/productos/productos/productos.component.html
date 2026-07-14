@@ -278,6 +278,34 @@
 
       </div>
 
+      <div
+        class="resumen-inventario-item resumen-inventario-valor"
+        *ngIf="resumenActivos as ra">
+
+        <ion-icon
+          name="desktop-outline"
+          color="tertiary">
+
+        </ion-icon>
+
+        <div class="resumen-inventario-texto">
+
+          <span class="resumen-inventario-label">
+
+            Valor activos
+
+          </span>
+
+          <strong>
+
+            {{ ra.valorActivosFijos | currency }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
     </div>
 
   </div>

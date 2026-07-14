@@ -16,6 +16,9 @@ from '../cotizacion-print/cotizacion-print.component';
 import { MovimientoInventarioPrintComponent }
 from '../movimiento-inventario-print/movimiento-inventario-print.component';
 
+import { NotaCreditoPreviewComponent }
+from '../nota-credito-preview/nota-credito-preview.component';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -165,6 +168,19 @@ printCierreEncargos(
         empresa: this.parametros._Empresa,
         nombreEmpresa: this.parametros.NombreEmpresa
       }
+    });
+
+    await modal.present();
+  }
+
+  async openNotaCreditoPreview(
+    ticket: any
+  ): Promise<void> {
+
+    const modal = await this.modalCtrl.create({
+      component: NotaCreditoPreviewComponent,
+      cssClass: 'modal-fullscreen',
+      componentProps: { ticket }
     });
 
     await modal.present();

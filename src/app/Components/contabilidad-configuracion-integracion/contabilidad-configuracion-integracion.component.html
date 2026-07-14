@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Configuración de Integración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && sinAcceso">
+    <ion-card-content>
+      <p class="ion-text-center">
+        Su empresa no tiene contratado el módulo de Contabilidad.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ng-container *ngIf="!cargando && !sinAcceso && config">
+    <ion-card>
+      <ion-card-header color="primary">
+        <ion-card-title class="ion-text-center"><strong>Integración automática</strong></ion-card-title>
+        <ion-card-subtitle class="ion-text-center">
+          Los documentos del ERP generarán asientos contables cuando esté activa.
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label>
+            <h2>Integración automática</h2>
+            <p>Activar generación de asientos desde ventas, gastos, bancos, etc.</p>
+          </ion-label>
+          <ion-toggle [(ngModel)]="integracionAutomatica" slot="end"></ion-toggle>
+        </ion-item>
+
+        <ion-item lines="full" [disabled]="!integracionAutomatica">
+          <ion-label>
+            <h2>Generar costo de venta (COGS)</h2>
+            <p>Registrar automáticamente el costo al confirmar una venta.</p>
+          </ion-label>
+          <ion-toggle [(ngModel)]="generarCOGSAutomatico" slot="end"></ion-toggle>
+        </ion-item>
+
+        <ion-item lines="full" [disabled]="!integracionAutomatica || !generarCOGSAutomatico">
+          <ion-label>
+            <h2>Asiento COGS separado</h2>
+            <p>Registrar el costo de venta en un asiento distinto al de la factura.</p>
+          </ion-label>
+          <ion-toggle [(ngModel)]="separarAsientoCOGS" slot="end"></ion-toggle>
+        </ion-item>
+
+        <p *ngIf="!integracionAutomatica" class="aviso">
+          Con la integración desactivada puede seguir usando asientos manuales, libros y reportes.
+        </p>
+
+        <ion-button expand="block" color="warning" [disabled]="guardando" (click)="guardar()">
+          <ion-spinner *ngIf="guardando" slot="start"></ion-spinner>
+          <span [style.color]="'black'">Guardar configuración</span>
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>

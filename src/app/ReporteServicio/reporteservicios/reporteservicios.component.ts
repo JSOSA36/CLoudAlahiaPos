@@ -47,8 +47,8 @@ export class ReporteserviciosComponent implements OnInit {
     const hoy = new Date();
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 
-    this.desde = inicioMes.toISOString();
-    this.hasta = hoy.toISOString();
+    this.desde = inicioMes.toISOString().substring(0, 10);
+    this.hasta = hoy.toISOString().substring(0, 10);
 
     this.cargarEmpleados();
     this.buscar();

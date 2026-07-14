@@ -1,0 +1,103 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Consulta de Asientos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Filtros de búsqueda</strong></ion-card-title>
+    </ion-card-header>
+
+    <ion-item color="primary">
+      <ion-label>Fecha Desde</ion-label>
+      <ion-datetime-button datetime="inicioConsulta">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioConsulta" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item color="primary">
+      <ion-label>Fecha Hasta</ion-label>
+      <ion-datetime-button datetime="finConsulta">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finConsulta" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <app-cuenta-contable-selector
+      label="Cuenta Contable"
+      [cuentas]="cuentas"
+      [(value)]="idCuentaSeleccionada"
+      modo="movimiento"
+      [permitirVacio]="true"
+      placeholder="Todas las cuentas...">
+    </app-cuenta-contable-selector>
+
+    <ion-item>
+      <ion-label position="stacked">Número de Asiento</ion-label>
+      <ion-input [(ngModel)]="numero" placeholder="Ej: AS-2026-00001"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Concepto</ion-label>
+      <ion-input [(ngModel)]="concepto" placeholder="Buscar por concepto..."></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando">
+    <ion-card-header>
+      <ion-card-title>Resultados ({{ asientos.length }})</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid *ngIf="asientos.length > 0">
+        <ion-row class="header-row">
+          <ion-col size="2.5"><strong>Número</strong></ion-col>
+          <ion-col size="2"><strong>Fecha</strong></ion-col>
+          <ion-col size="4"><strong>Concepto</strong></ion-col>
+          <ion-col size="2"><strong>Estado</strong></ion-col>
+          <ion-col size="1.5"></ion-col>
+        </ion-row>
+        <ion-row
+          *ngFor="let a of asientos"
+          class="data-row clickable"
+          (click)="verAsiento(a)">
+          <ion-col size="2.5">{{ a.numero }}</ion-col>
+          <ion-col size="2">{{ a.fecha | date:'dd/MM/yy' }}</ion-col>
+          <ion-col size="4">{{ a.concepto }}</ion-col>
+          <ion-col size="2">
+            <ion-badge [color]="estadoColor(a.estado)">{{ a.estado }}</ion-badge>
+          </ion-col>
+          <ion-col size="1.5" class="ion-text-end">
+            <ion-icon name="eye-outline" color="primary"></ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <p *ngIf="asientos.length === 0" class="ion-text-center">
+        No se encontraron asientos con los filtros indicados.
+      </p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

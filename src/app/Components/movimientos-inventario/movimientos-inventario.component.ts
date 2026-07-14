@@ -38,6 +38,12 @@ from 'src/app/models/almacenes.model';
 import { ParametrosService }
 from 'src/app/servicios/parametros.service';
 
+import { ComprasService }
+from 'src/app/servicios/compras.service';
+
+import { FacturaCompra }
+from 'src/app/models/compras.models';
+
 @Component({
   selector: 'app-movimientos-inventario',
   templateUrl:
@@ -84,6 +90,19 @@ export class MovimientosInventarioComponent
   idEmpresa: number = 0;
 
   // ======================================================
+  // 🔥 RECEPCIÓN DESDE COMPRA
+  // ======================================================
+
+  filtroFacturaRecepcion = '';
+  facturasPendientesRecepcion: FacturaCompra[] = [];
+  facturasRecepcionFiltradas: FacturaCompra[] = [];
+  facturaRecepcion: FacturaCompra | null = null;
+  cargandoFacturasRecepcion = false;
+  mostrarListaFacturas = true;
+  /** Si true, permite agregar productos a mano (ajuste legacy). */
+  cargaManualCompra = false;
+
+  // ======================================================
   // 🔥 LOADING
   // ======================================================
 
@@ -106,6 +125,9 @@ export class MovimientosInventarioComponent
 
     private parametros:
       ParametrosService,
+
+    private comprasService:
+      ComprasService,
 
     private toastController:
       ToastController,
@@ -146,6 +168,8 @@ cerrarModal(): void {
 
     this.movimiento.motivo =
       'COMPRA';
+
+    this.buscarFacturasPendientesRecepcion();
   }
 
   get esTransferencia(): boolean {
@@ -153,6 +177,13 @@ cerrarModal(): void {
       this.movimiento.tipoMovimiento
       === 'TRANSFERENCIA'
     );
+  }
+
+  /** Entrada por compra: productos vienen de la factura pendiente. */
+  get esRecepcionDesdeCompra(): boolean {
+    return this.movimiento.tipoMovimiento === 'ENTRADA'
+      && this.movimiento.motivo === 'COMPRA'
+      && !this.cargaManualCompra;
   }
 
   get almacenesDestino(): Almacen[] {
@@ -169,6 +200,9 @@ cerrarModal(): void {
 
       this.movimiento.motivo =
         'TRANSFERENCIA';
+
+      this.limpiarRecepcionCompra();
+      this.cargaManualCompra = false;
 
       if (
         this.movimiento.idAlmacenDestino
@@ -188,7 +222,170 @@ cerrarModal(): void {
         'COMPRA';
     }
 
+    this.onMotivoChange();
     this.onAlmacenChange();
+  }
+
+  onMotivoChange(): void {
+    if (this.esRecepcionDesdeCompra) {
+      this.buscarFacturasPendientesRecepcion();
+    } else if (this.movimiento.motivo !== 'COMPRA') {
+      this.limpiarRecepcionCompra();
+      this.cargaManualCompra = false;
+    }
+  }
+
+  activarCargaManualCompra(): void {
+    this.cargaManualCompra = true;
+    this.limpiarRecepcionCompra(false);
+  }
+
+  volverARecepcionCompra(): void {
+    this.cargaManualCompra = false;
+    this.movimiento.detalles = [];
+    this.buscarFacturasPendientesRecepcion();
+  }
+
+  buscarFacturasPendientesRecepcion(): void {
+    if (!this.idEmpresa) {
+      return;
+    }
+
+    this.cargandoFacturasRecepcion = true;
+    this.mostrarListaFacturas = true;
+    // Sin filtro en servidor: cargamos pendientes y filtramos en cliente (autocomplete).
+    this.comprasService.pendientesRecepcion(this.idEmpresa).subscribe({
+      next: (data) => {
+        this.facturasPendientesRecepcion = data || [];
+        this.filtrarFacturasRecepcion();
+        this.cargandoFacturasRecepcion = false;
+      },
+      error: () => {
+        this.facturasPendientesRecepcion = [];
+        this.facturasRecepcionFiltradas = [];
+        this.cargandoFacturasRecepcion = false;
+        this.showToast('No se pudieron cargar facturas pendientes de recepción');
+      }
+    });
+  }
+
+  filtrarFacturasRecepcion(): void {
+    this.mostrarListaFacturas = true;
+    const q = (this.filtroFacturaRecepcion || '').trim().toLowerCase();
+    if (!q) {
+      this.facturasRecepcionFiltradas = [...this.facturasPendientesRecepcion];
+      return;
+    }
+
+    this.facturasRecepcionFiltradas = this.facturasPendientesRecepcion.filter(f => {
+      const doc = (f.numeroDocumento || '').toLowerCase();
+      const ncf = (f.numeroComprobanteProveedor || '').toLowerCase();
+      const prov = (f.proveedorNombre || '').toLowerCase();
+      const id = String(f.idOrdenCompraHeader);
+      return doc.includes(q) || ncf.includes(q) || prov.includes(q) || id.includes(q);
+    });
+  }
+
+  seleccionarFacturaRecepcion(f: FacturaCompra): void {
+    this.mostrarListaFacturas = false;
+    this.filtroFacturaRecepcion =
+      `${f.numeroDocumento || 'OC-' + f.idOrdenCompraHeader} · ${f.proveedorNombre || ''}`.trim();
+    this.cargandoFacturasRecepcion = true;
+    this.comprasService.obtenerParaRecepcion(
+      f.idOrdenCompraHeader,
+      this.idEmpresa
+    ).subscribe({
+      next: (factura) => {
+        this.cargandoFacturasRecepcion = false;
+        this.aplicarFacturaRecepcion(factura);
+      },
+      error: (err) => {
+        this.cargandoFacturasRecepcion = false;
+        this.mostrarListaFacturas = true;
+        this.showToast(
+          err?.error?.message || 'No se pudo cargar la factura'
+        );
+      }
+    });
+  }
+
+  private aplicarFacturaRecepcion(factura: FacturaCompra): void {
+    const lineas = (factura.detalles || []).filter(d =>
+      !!d.requiereRecepcionFisica
+      && Number(d.cantidadPendienteRecepcion ?? 0) > 0
+    );
+
+    if (!lineas.length) {
+      this.showToast('Esta factura no tiene cantidades pendientes de recepción');
+      return;
+    }
+
+    this.facturaRecepcion = factura;
+    this.movimiento.referencia =
+      factura.numeroDocumento
+      || `OC-${factura.idOrdenCompraHeader}`;
+    this.movimiento.observacion =
+      this.movimiento.observacion
+      || `Recepción ${factura.numeroDocumento || ''} / ${factura.proveedorNombre || ''}`.trim();
+
+    if (factura.idAlmacen && !this.movimiento.idAlmacen) {
+      this.movimiento.idAlmacen = factura.idAlmacen;
+    }
+
+    this.movimiento.detalles = lineas.map(d => {
+      const pendiente = Number(d.cantidadPendienteRecepcion || 0);
+      const det = new MovimientosInventarioDetalle();
+      det.idProducto = d.idProducto;
+      det.cantidad = pendiente;
+      det.cantidadMaxima = pendiente;
+      det.idOrdenCompraDetalle = d.idOrdenCompraDetalle;
+      det.precio = Number(d.precioCompra || 0);
+      det.subTotal = det.cantidad * det.precio;
+      det.stockAnterior = 0;
+      det.stockNuevo = det.cantidad;
+      det.producto = {
+        idProducto: d.idProducto,
+        nombre: d.nombreProducto || `Producto #${d.idProducto}`
+      } as productos;
+      return det;
+    });
+
+    this.showToast(
+      `${lineas.length} producto(s) cargados. Confirma cantidades y guarda.`
+    );
+  }
+
+  limpiarRecepcionCompra(vaciarDetalles = true): void {
+    this.facturaRecepcion = null;
+    this.filtroFacturaRecepcion = '';
+    this.mostrarListaFacturas = true;
+    this.filtrarFacturasRecepcion();
+    if (vaciarDetalles) {
+      this.movimiento.detalles = [];
+    }
+  }
+
+  onCantidadRecepcionChange(item: MovimientosInventarioDetalle): void {
+    let qty = Number(item.cantidad || 0);
+    const max = Number(item.cantidadMaxima || 0);
+    if (qty < 0) {
+      qty = 0;
+    }
+    if (max > 0 && qty > max) {
+      qty = max;
+      this.showToast(`Máximo pendiente: ${max}`);
+    }
+    item.cantidad = qty;
+    item.subTotal = qty * Number(item.precio || 0);
+    item.stockNuevo = Number(item.stockAnterior || 0) + qty;
+  }
+
+  etiquetaFacturaRecepcion(f: FacturaCompra): string {
+    const doc = f.numeroDocumento || `OC-${f.idOrdenCompraHeader}`;
+    const ncf = f.numeroComprobanteProveedor
+      ? ` · ${f.numeroComprobanteProveedor}`
+      : '';
+    return `${doc}${ncf} · ${f.proveedorNombre || 'Proveedor'}`;
   }
 
   onAlmacenOrigenChange(): void {
@@ -701,7 +898,9 @@ guardarMovimiento(
   ) {
 
     this.showToast(
-      'Debe agregar productos'
+      this.esRecepcionDesdeCompra
+        ? 'Seleccione una factura de compra pendiente'
+        : 'Debe agregar productos'
     );
 
     return;
@@ -740,6 +939,15 @@ guardarMovimiento(
 
       return;
     }
+  }
+
+  // =============================================
+  // 🔥 RECEPCIÓN DESDE FACTURA DE COMPRA
+  // =============================================
+
+  if (this.facturaRecepcion && this.esRecepcionDesdeCompra) {
+    this.guardarRecepcionDesdeCompra(imprimir);
+    return;
   }
 
   // =============================================
@@ -879,6 +1087,58 @@ guardarMovimiento(
       }
     });
 }
+
+  private guardarRecepcionDesdeCompra(imprimir = false): void {
+    if (!this.facturaRecepcion) {
+      return;
+    }
+
+    const lineas = this.movimiento.detalles
+      .filter(d => Number(d.cantidad) > 0 && d.idOrdenCompraDetalle)
+      .map(d => ({
+        idOrdenCompraDetalle: Number(d.idOrdenCompraDetalle),
+        cantidadRecibir: Number(d.cantidad)
+      }));
+
+    if (!lineas.length) {
+      this.showToast('Indique al menos una cantidad a recibir');
+      return;
+    }
+
+    this.loading = true;
+    this.comprasService.confirmarRecepcion(
+      this.facturaRecepcion.idOrdenCompraHeader,
+      {
+        idEmpresa: this.idEmpresa,
+        idUsuario: this.parametros.IdUsuario
+          || Number(localStorage.getItem('IdUsuario')) || 0,
+        idAlmacen: this.movimiento.idAlmacen,
+        observacion: this.movimiento.observacion,
+        lineas
+      }
+    ).subscribe({
+      next: async () => {
+        this.loading = false;
+        this.showToast('Recepción guardada');
+
+        const printData = imprimir
+          ? this.armarMovimientoParaImprimir()
+          : null;
+
+        await this.modalCtrl.dismiss({
+          refresh: true,
+          imprimir: printData
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        this.showToast(
+          err?.error?.message || err?.error || 'Error al recibir la compra'
+        );
+      }
+    });
+  }
+
   private armarMovimientoParaImprimir(
     idMovimiento?: number
   ): any {

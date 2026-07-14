@@ -1,112 +1,66 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">Reporte de Venta</ion-title>
-
     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;"></ion-menu-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <ion-title>Reporte de venta</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" [fullscreen]="true">
+<ion-content class="rpt-content">
+  <div class="rpt-page">
 
-  <!-- 🔵 FILTRO DE FECHAS -->
-  <ion-card>
-    <ion-card-header color="primary">
-      <ion-card-title class="ion-text-center">
-        <strong>Filtre por Fechas</strong>
-      </ion-card-title>
+    <section class="rpt-filtros">
+      <div class="rpt-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="fechaInicio"></ion-input>
+      </div>
+      <div class="rpt-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="fechaFin"></ion-input>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="CargarIngresosPorLinea()">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+      </div>
+    </section>
 
-      <!-- Fecha inicio -->
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime id="inicio" presentation="date"
-            [(ngModel)]="fechaInicio">
-          </ion-datetime>
-        </ng-template>
-      </ion-modal>
+    <section class="rpt-resumen" *ngIf="ingresosAgrupados?.length">
+      <div>
+        <span class="label">Líneas de negocio</span>
+        <strong>{{ ingresosAgrupados.length }}</strong>
+      </div>
+      <div class="accent">
+        <span class="label">Total general</span>
+        <strong>{{ totalLinea | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </section>
 
-      <!-- Fecha fin -->
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime id="fin" presentation="date"
-            [(ngModel)]="fechaFin">
-          </ion-datetime>
-        </ng-template>
-      </ion-modal>
-    </ion-card-header>
+    <p class="rpt-hint">
+      Ingresos agrupados por área de negocio y método de pago en el rango indicado.
+    </p>
 
-    <ion-item color="primary">
-      <ion-label>Desde</ion-label>
-      <ion-datetime-button datetime="inicio">
-        <span slot="date-target">
-          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+    <div class="rpt-empty" *ngIf="!ingresosAgrupados?.length">
+      No hay ventas en este rango.
+    </div>
 
-    <ion-item color="primary">
-      <ion-label>Hasta</ion-label>
-      <ion-datetime-button datetime="fin">
-        <span slot="date-target">
-          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+    <article
+      class="rpt-list-card"
+      *ngFor="let linea of ingresosAgrupados">
+      <div class="rpt-card-title">{{ linea.areaNegocio }}</div>
 
-    <ion-button color="primary" (click)="CargarIngresosPorLinea()" shape="round" expand="block">
-      <ion-icon name="search" slot="start"></ion-icon>
-      Buscar
-    </ion-button>
-
-    <!-- 🔵 RESULTADO POR FORMA DE PAGO -->
-    
-  </ion-card>
-
-  <!-- 🟢 INGRESOS POR LÍNEA DE NEGOCIO -->
-  <ion-card *ngFor="let linea of ingresosAgrupados" class="card-linea">
-
-    <!-- HEADER -->
-    <ion-card-header>
-      <ion-card-title class="titulo-linea">
-        {{ linea.areaNegocio }}
-      </ion-card-title>
-    </ion-card-header>
-
-    <!-- CONTENIDO -->
-    <ion-card-content>
-
-      <!-- MÉTODOS -->
-      <div *ngFor="let m of linea.metodos" class="fila-metodo">
-        <span class="metodo">
-          {{ m.metodo || 'N/A' }}
-        </span>
-
-        <span class="monto">
-          ${{ m.total | number:'1.2-2' }}
-        </span>
+      <div class="rpt-row" *ngFor="let m of linea.metodos">
+        <span>{{ m.metodo || 'N/A' }}</span>
+        <strong>{{ m.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
       </div>
 
-      <!-- TOTAL -->
-      <div class="total-linea">
-        <span>Total</span>
-        <span>${{ linea.total | number:'1.2-2' }}</span>
+      <div class="rpt-row total">
+        <span>Total área</span>
+        <strong>{{ linea.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
       </div>
-
-    </ion-card-content>
-
-  </ion-card>
-<ion-footer class="footer-total">
-  <div class="contenido-footer">
-
-    <span class="label-total">
-      Total General
-    </span>
-
-    <span class="monto-total">
-      ${{ totalLinea | number:'1.2-2' }}
-    </span>
+    </article>
 
   </div>
-</ion-footer>
 </ion-content>

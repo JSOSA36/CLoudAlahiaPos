@@ -1,0 +1,247 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button *ngIf="!esModal" style="color: white;"></ion-menu-button>
+
+      <ion-button
+        *ngIf="esModal"
+        (click)="cancelm()"
+        size="small"
+        color="light">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button
+        *ngIf="!esModal"
+        (click)="LoadListaFactura()"
+        size="small">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title style="margin-right: 20px;" class="ion-text-center">
+      {{ tipoDocumento === 'Orden' ? 'Listado de Órdenes' : 'Listado de Cotizaciones' }}
+    </ion-title>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- SIN DATOS -->
+  <ion-item *ngIf="_Parametro.ListadoOrdenes.length == 0">
+    <ion-title class="ion-text-center">
+      {{ tipoDocumento === 'Cotizacion'
+        ? 'No hay cotizaciones que mostrar'
+        : 'No hay órdenes que mostrar' }}
+    </ion-title>
+  </ion-item>
+
+  <ion-accordion-group 
+    [value]="accordionActivo" 
+    (ionChange)="onAccordionChange($event)"
+    style="color: white;"
+  >
+
+    <!-- ======================================================= -->
+    <!-- LISTADO DE ORDENES -->
+    <!-- ======================================================= -->
+    <ion-accordion 
+      *ngFor="let iten of _Parametro.ListadoOrdenes; let i = index; trackBy: trackByFactura"
+      [value]="iten.idFacturaHeader"
+      style="color:white;"
+    >
+
+      <!-- HEADER -->
+      <ion-item slot="header" color="light" style="margin-bottom:2px;" class="header-orden">
+
+        <ion-label class="label-orden">
+          <div>
+  <strong>
+    {{ tipoDocumento === 'Cotizacion' ? 'Cot#' : 'Ord#' }}:
+    {{ iten.numeroDocumento || iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
+  </strong>
+</div>
+
+<div *ngIf="$any(iten.clientes).celular">
+  <ion-icon name="call-outline"></ion-icon>
+  {{ $any(iten.clientes).celular }}
+</div>
+
+          <div>
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ iten.fechaBencimiento | date:'dd/MM/yyyy' }} {{iten.hora}}
+          </div>
+        </ion-label>
+
+        <!-- 🔥 BOTÓN EDITAR SOLO POS -->
+       <ion-button
+  *ngIf="modo === 'seleccionar'"
+  slot="end"
+  color="warning"
+  fill="solid"
+  size="small"
+  (click)="seleccionarOrden(iten); $event.stopPropagation()"
+>
+  <ion-icon name="create-outline"></ion-icon>
+</ion-button>
+ <ion-button
+      *ngIf="modo === 'seleccionar'"
+      color="primary"
+      fill="solid"
+      size="small"
+      (click)="imprimirOrden(iten.idFacturaHeader, $event)">
+
+      <ion-icon name="print-outline"></ion-icon>
+
+  </ion-button>
+      </ion-item>
+
+      <!-- CONTENIDO -->
+      <div slot="content">
+
+        <!-- BOTONES SUPERIORES (solo editar) -->
+        <ion-row *ngIf="modo === 'editar'">
+          <ion-col>
+
+            <ion-button
+              *ngIf="tipoDocumento === 'Orden'"
+              (click)="PagarFact(iten.idFacturaHeader)"
+              color="primary">
+              <ion-icon slot="icon-only" name="cash"></ion-icon>
+            </ion-button> 
+
+            <ion-button 
+              *ngIf="puedeEliminarOrden"
+              (click)="EliminarFactura(iten.idFacturaHeader)"
+              color="danger">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-button>
+
+               <ion-button (click)="imprimirOrden(iten.idFacturaHeader, $event)" color="primary">
+              <ion-icon slot="icon-only" name="print"></ion-icon>
+            </ion-button>
+
+            <ion-button (click)="AddNewItem(iten.idFacturaHeader)" color="primary">
+              <ion-icon slot="icon-only" name="create"></ion-icon>
+            </ion-button>
+
+          </ion-col>
+        </ion-row>
+
+        <!-- DETALLES -->
+        <ion-row 
+          class="ion-no-padding" 
+          *ngFor="let itenDetalle of iten.facturaDetalles; let j = index"
+        >
+
+          <!-- INFO -->
+          <ion-col size="6" style="color:black;">
+            <ion-label>
+
+              <h5><b>{{ itenDetalle.productos?.nombre }}</b></h5>
+
+              <h5><b>Cantidad: {{ itenDetalle.cantidad }}</b></h5>
+
+              <!-- SUBTOTAL + EDITAR PRECIO -->
+              <div class="precio-row">
+
+                <div class="precio-label">
+                  SubTotal:
+                  <b>{{ itenDetalle.subTotal | currency }}</b>
+                </div>
+
+                <ion-button
+                  *ngIf="modo === 'editar'"
+                  class="btn-edit-precio"
+                  (click)="editarPrecio(itenDetalle)"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                </ion-button>
+
+              </div>
+
+              <hr>
+
+              <!-- EMPLEADO -->
+              <div class="badge-estilista">
+
+                <ion-icon name="person-circle-outline"></ion-icon>
+
+                {{ itenDetalle.nombreEmpleadoComision || 'No asignado' }}
+
+                <ion-button
+                  *ngIf="modo === 'editar'"
+                  fill="clear"
+                  size="small"
+                  color="primary"
+                  (click)="cambiarLavador(itenDetalle)"
+                >
+                  <ion-icon name="swap-horizontal-outline"></ion-icon>
+                </ion-button>
+
+              </div>
+
+            </ion-label>
+          </ion-col>
+
+          <!-- BOTONES DERECHA -->
+          <ion-col 
+            size="6" 
+            class="ion-no-padding ion-text-end"
+            *ngIf="modo === 'editar'"
+          >
+
+            <ion-button 
+              *ngIf="puedeEliminarOrden"
+              (click)="RemoverItem(i, j, itenDetalle.idFacturaDetalle, iten.idFacturaHeader)"  
+              size="small" 
+              color="danger"
+            >
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-button>
+
+            <ion-button 
+              (click)="DisminuirCantidad(i, j, itenDetalle.idFacturaDetalle)"  
+              size="small" 
+              color="warning"
+            >
+              <ion-icon slot="icon-only" name="remove"></ion-icon>
+            </ion-button>
+
+            <ion-button 
+              (click)="AumetarCantidad(i, j, itenDetalle.idFacturaDetalle)"  
+              size="small" 
+              color="success"
+            >
+              <ion-icon slot="icon-only" name="add"></ion-icon>
+            </ion-button>
+
+          </ion-col>
+
+        </ion-row>
+
+        <!-- TOTAL -->
+        <ion-item color="warning" lines="none">
+          <ion-label class="ion-text-center">
+            <div style="font-size:22px; color:black; margin-top:5px;">
+              <b>Total: {{ iten.total | currency }}</b>
+            </div>
+          </ion-label>
+        </ion-item>
+
+      </div>
+
+    </ion-accordion>
+
+  </ion-accordion-group>
+
+  <!-- FAB SOLO MODO EDITAR -->
+  <ion-fab *ngIf="modo === 'editar'" horizontal="end" vertical="bottom" slot="fixed">
+    <ion-fab-button (click)="seleccionarTipoDocumento()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

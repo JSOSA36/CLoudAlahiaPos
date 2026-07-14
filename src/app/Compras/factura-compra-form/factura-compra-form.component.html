@@ -1,0 +1,727 @@
+<ion-header class="fc-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="btn-back" (click)="volver()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="fc-header-title">
+        <span class="fc-doc-type">{{ tipoDocumentoActual.nombre }}</span>
+        <span class="fc-doc-sub">{{ numeroInternoDisplay }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <span class="fc-estado" [ngClass]="estadoClase">{{ estadoEtiqueta }}</span>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fc-content">
+  <div class="fc-page">
+
+    <section class="fc-documento">
+
+      <!-- Cinta de identidad del documento (estructura ERP) -->
+      <div class="fc-doc-ribbon" *ngIf="ui.mostrarCamposReservados">
+        <div class="fc-ribbon-cell" [class.fc-field--reserved]="!ui.tipoDocumentoEditable">
+          <label>Tipo de documento</label>
+          <ion-select
+            [(ngModel)]="idTipoDocumento"
+            [disabled]="!ui.tipoDocumentoEditable || !esBorrador"
+            interface="popover">
+            <ion-select-option
+              *ngFor="let t of tiposDocumento"
+              [value]="t.id"
+              [disabled]="!t.habilitado">
+              {{ t.nombre }} ({{ t.codigo }})
+            </ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="fc-ribbon-cell">
+          <label>Nº interno</label>
+          <ion-input [value]="numeroInternoDisplay" readonly class="fc-readonly"></ion-input>
+        </div>
+
+        <div class="fc-ribbon-cell" [class.fc-field--reserved]="!ui.estadoEditable">
+          <label>Estado</label>
+          <ion-select
+            [(ngModel)]="estado"
+            [disabled]="!ui.estadoEditable"
+            interface="popover">
+            <ion-select-option *ngFor="let e of estadosDocumento" [value]="e.codigo">
+              {{ e.etiqueta }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="fc-ribbon-cell" [class.fc-field--reserved]="!ui.monedaEditable">
+          <label>Moneda</label>
+          <ion-select
+            [(ngModel)]="moneda"
+            [disabled]="!ui.monedaEditable || !esBorrador"
+            interface="popover">
+            <ion-select-option
+              *ngFor="let m of monedas"
+              [value]="m.codigo"
+              [disabled]="!m.habilitado">
+              {{ m.codigo }} — {{ m.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+
+      <!-- Encabezado visual -->
+      <div class="fc-doc-top">
+        <div class="fc-doc-brand">
+          <div class="fc-doc-icon">
+            <ion-icon name="receipt-outline"></ion-icon>
+          </div>
+          <div>
+            <h1>Documento de compra</h1>
+            <p>{{ tipoDocumentoActual.nombre }} · {{ tipoDocumentoActual.prefijoSecuencia }}</p>
+          </div>
+        </div>
+        <div class="fc-doc-meta">
+          <div class="fc-meta-item">
+            <span class="label">Fecha</span>
+            <strong>{{ fechaDocumento | date:'dd/MM/yyyy' }}</strong>
+          </div>
+          <div class="fc-meta-item" *ngIf="numeroComprobante">
+            <span class="label">NCF / Comprobante</span>
+            <strong>{{ numeroComprobante }}</strong>
+          </div>
+          <div class="fc-meta-item">
+            <span class="label">Condición</span>
+            <strong>{{ condicionFactura }}</strong>
+          </div>
+          <div class="fc-meta-item" *ngIf="vencimientoAplica && fechaVencimiento">
+            <span class="label">Vencimiento</span>
+            <strong>{{ fechaVencimiento | date:'dd/MM/yyyy' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proveedor -->
+      <div class="fc-section">
+        <div class="fc-section-head">
+          <ion-icon name="business-outline"></ion-icon>
+          <h2>Proveedor</h2>
+        </div>
+
+        <div class="fc-grid fc-grid-2">
+          <div class="fc-field fc-field-full">
+            <label>Proveedor <span class="req">*</span></label>
+            <ion-select
+              [(ngModel)]="idProveedor"
+              [disabled]="!esBorrador"
+              interface="popover"
+              placeholder="Seleccione proveedor">
+              <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
+                {{ p.nombreComercial }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+
+        <div class="fc-proveedor-card" *ngIf="proveedorSeleccionado; else sinProveedor">
+          <div class="fc-proveedor-card-head">
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <strong>{{ proveedorSeleccionado.nombreComercial }}</strong>
+          </div>
+          <div class="fc-proveedor-grid">
+            <div class="fc-proveedor-item">
+              <span class="label">RNC / Cédula</span>
+              <span>{{ proveedorSeleccionado.rnc || '—' }}</span>
+            </div>
+            <div class="fc-proveedor-item">
+              <span class="label">Teléfono</span>
+              <span>{{ proveedorSeleccionado.telefono || '—' }}</span>
+            </div>
+            <div class="fc-proveedor-item">
+              <span class="label">Correo</span>
+              <span>{{ proveedorSeleccionado.email || '—' }}</span>
+            </div>
+            <div class="fc-proveedor-item fc-proveedor-item-wide">
+              <span class="label">Dirección</span>
+              <span>{{ proveedorSeleccionado.direccion || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #sinProveedor>
+          <div class="fc-proveedor-card fc-proveedor-card--empty">
+            <p>Seleccione un proveedor para ver RNC, teléfono y datos de contacto.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Identificación y fechas -->
+      <div class="fc-section">
+        <div class="fc-section-head">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <h2>Identificación del documento</h2>
+        </div>
+
+        <div class="fc-grid fc-grid-2">
+          <div class="fc-field">
+            <label>Fecha del documento</label>
+            <ion-input
+              type="date"
+              [(ngModel)]="fechaDocumento"
+              [readonly]="!esBorrador">
+            </ion-input>
+          </div>
+
+          <div class="fc-field">
+            <label>Fecha de vencimiento</label>
+            <ion-input
+              type="date"
+              [(ngModel)]="fechaVencimiento"
+              [readonly]="!esBorrador || !vencimientoAplica"
+              [placeholder]="vencimientoAplica ? '' : 'No aplica (contado)'"
+              class="fc-readonly-when-disabled">
+            </ion-input>
+          </div>
+
+          <div class="fc-field">
+            <label>Nº comprobante del proveedor</label>
+            <ion-input
+              placeholder="Ej. B0100000001"
+              [(ngModel)]="numeroComprobante"
+              [readonly]="!esBorrador">
+            </ion-input>
+          </div>
+
+          <div class="fc-field" *ngIf="!esOrdenCompra">
+            <label>NCF / documento modificado</label>
+            <ion-input
+              placeholder="Solo NC/ND que modifica otro NCF"
+              [(ngModel)]="ncfModificado"
+              [readonly]="!esBorrador">
+            </ion-input>
+          </div>
+
+          <div class="fc-field">
+            <label>Nº interno del sistema</label>
+            <ion-input [value]="numeroInternoDisplay" readonly class="fc-readonly"></ion-input>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos fiscales DGII 606 (solo FACTC) -->
+      <div class="fc-section" *ngIf="!esOrdenCompra">
+        <div class="fc-section-head">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <h2>Datos fiscales DGII (606)</h2>
+        </div>
+
+        <div class="fc-grid fc-grid-2">
+          <div class="fc-field fc-field-full">
+            <label>Tipo de bienes y servicios <span class="req">*</span></label>
+            <ion-select
+              [(ngModel)]="idTipoBienesServicios"
+              [disabled]="!esBorrador"
+              interface="popover"
+              placeholder="Clasificación DGII">
+              <ion-select-option *ngFor="let t of tiposBienesServicios606" [value]="t.codigo">
+                {{ t.etiqueta }}
+              </ion-select-option>
+            </ion-select>
+            <small class="fc-field-hint">Campo obligatorio del Formato 606. Código = catálogo oficial DGII.</small>
+          </div>
+
+          <div class="fc-field">
+            <label>Forma de pago DGII <span class="req">*</span></label>
+            <ion-select
+              [(ngModel)]="formaPagoDgii"
+              [disabled]="!esBorrador"
+              interface="popover"
+              placeholder="Código 606"
+              (ngModelChange)="onFormaPagoDgiiManualChange()">
+              <ion-select-option *ngFor="let f of formasPago606" [value]="f.codigo">
+                {{ f.etiqueta }}
+              </ion-select-option>
+            </ion-select>
+            <small class="fc-field-hint" *ngIf="formaPagoDgiiAuto">
+              Auto desde
+              <ng-container *ngIf="condicionFactura === 'Credito'">condición Crédito</ng-container>
+              <ng-container *ngIf="condicionFactura !== 'Credito'">«{{ formaPago || 'método' }}»</ng-container>.
+              <a href="#" (click)="$event.preventDefault(); sincronizarFormaPagoDgii(true)">Recalcular</a>
+            </small>
+            <small class="fc-field-hint" *ngIf="!formaPagoDgiiAuto">
+              Manual (anula el mapeo automático).
+              <a href="#" (click)="$event.preventDefault(); sincronizarFormaPagoDgii(true)">Volver a auto</a>
+            </small>
+          </div>
+
+          <div class="fc-field">
+            <label>Monto facturado en servicios</label>
+            <ion-input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="montoFacturadoServicios"
+              [readonly]="!esBorrador"
+              (ionInput)="onMontosDgiiManualChange()">
+            </ion-input>
+          </div>
+
+          <div class="fc-field">
+            <label>Monto facturado en bienes</label>
+            <ion-input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="montoFacturadoBienes"
+              [readonly]="!esBorrador"
+              (ionInput)="onMontosDgiiManualChange()">
+            </ion-input>
+            <small class="fc-field-hint" *ngIf="autoMontosDgii">
+              Auto: servicio → servicios; inventario/gasto/AF → bienes.
+              <a href="#" (click)="$event.preventDefault(); recalcularMontosDgii()">Recalcular</a>
+            </small>
+            <small class="fc-field-hint" *ngIf="!autoMontosDgii">
+              Manual.
+              <a href="#" (click)="$event.preventDefault(); autoMontosDgii = true; recalcularMontosDgii()">Volver a auto</a>
+            </small>
+          </div>
+
+          <div class="fc-field fc-field-full">
+            <label>ITBIS llevado al costo (opcional)</label>
+            <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisLlevadoAlCosto" [readonly]="!esBorrador"></ion-input>
+          </div>
+
+          <div class="fc-field fc-field-full">
+            <label>ITBIS sujeto a proporcionalidad Art. 349 (opcional)</label>
+            <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisProporcionalidad" [readonly]="!esBorrador"></ion-input>
+          </div>
+        </div>
+
+        <!-- Retenciones: OFF por defecto — la mayoría de compras no retiene -->
+        <div class="fc-retencion-box">
+          <div class="fc-retencion-toggle">
+            <div>
+              <strong>Practicar retención en esta compra</strong>
+              <p class="fc-field-hint">
+                Por defecto no aplica. Actívelo solo si la empresa / contador decide retener ITBIS o ISR
+                (honorarios, alquileres, etc.). Supermercados, ferreterías y compras normales quedan en cero.
+              </p>
+            </div>
+            <ion-toggle
+              [(ngModel)]="aplicaRetencion"
+              [disabled]="!esBorrador"
+              (ngModelChange)="onAplicaRetencionChange($event)">
+            </ion-toggle>
+          </div>
+
+          <div class="fc-grid fc-grid-2" *ngIf="aplicaRetencion">
+            <div class="fc-field">
+              <label>Fecha de pago fiscal <span class="req">*</span></label>
+              <ion-input
+                type="date"
+                [(ngModel)]="fechaPagoFiscal"
+                [readonly]="!esBorrador">
+              </ion-input>
+              <small class="fc-field-hint">Exigida por la DGII cuando hay retención.</small>
+            </div>
+
+            <div class="fc-field">
+              <label>ITBIS retenido</label>
+              <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisRetenido" [readonly]="!esBorrador"></ion-input>
+            </div>
+
+            <div class="fc-field">
+              <label>Tipo retención ISR</label>
+              <ion-select
+                [(ngModel)]="tipoRetencionIsr"
+                [disabled]="!esBorrador"
+                interface="popover"
+                placeholder="Seleccione tipo">
+                <ion-select-option *ngFor="let t of tiposRetencionIsr606" [value]="t.codigo">
+                  {{ t.etiqueta }}
+                </ion-select-option>
+              </ion-select>
+            </div>
+
+            <div class="fc-field">
+              <label>Monto retención renta (ISR)</label>
+              <ion-input type="number" min="0" step="0.01" [(ngModel)]="montoRetencionRenta" [readonly]="!esBorrador"></ion-input>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condiciones comerciales -->
+      <div class="fc-section">
+        <div class="fc-section-head">
+          <ion-icon name="card-outline"></ion-icon>
+          <h2>Condiciones comerciales</h2>
+        </div>
+
+        <div class="fc-grid fc-grid-2">
+          <div class="fc-field">
+            <label>Condición de pago</label>
+            <div class="fc-segment">
+              <button
+                type="button"
+                class="seg-btn"
+                [class.active]="condicionFactura === 'Contado'"
+                [disabled]="!esBorrador"
+                (click)="onCondicionPagoChange('Contado')">
+                Contado
+              </button>
+              <button
+                type="button"
+                class="seg-btn"
+                [class.active]="condicionFactura === 'Credito'"
+                [disabled]="!esBorrador"
+                (click)="onCondicionPagoChange('Credito')">
+                Crédito
+              </button>
+            </div>
+          </div>
+
+          <div class="fc-field" *ngIf="condicionFactura === 'Contado' && esBorrador && !esOrdenCompra">
+            <label>Forma de pago (operativa)</label>
+            <ion-select [(ngModel)]="formaPago" interface="popover" (ngModelChange)="onFormaPagoOperativaChange()">
+              <ion-select-option *ngFor="let m of metodosPago" [value]="m.metodoPago">
+                {{ m.metodoPago }}
+              </ion-select-option>
+            </ion-select>
+            <small class="fc-field-hint">
+              Cuenta / medio interno (POPULAR, BHD, EFECTIVO…).
+              Para la DGII se reporta como:
+              <strong>{{ etiquetaFormaPagoDgiiActual }}</strong>
+            </small>
+          </div>
+
+          <div class="fc-field">
+            <label>Almacén sugerido (opcional)</label>
+            <ion-select
+              [(ngModel)]="idAlmacen"
+              [disabled]="!esBorrador"
+              interface="popover"
+              placeholder="Se confirmará al recibir en Almacén">
+              <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
+                {{ a.nombre }}
+              </ion-select-option>
+            </ion-select>
+            <small class="fc-field-hint">No aumenta existencias al confirmar. La recepción es en Movimiento de Inventario.</small>
+          </div>
+
+          <div class="fc-field fc-field-full">
+            <label>Nota / referencia</label>
+            <ion-textarea
+              rows="2"
+              placeholder="Observaciones, orden de referencia, etc."
+              [(ngModel)]="comentario"
+              [readonly]="!esBorrador">
+            </ion-textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agregar línea -->
+      <div class="fc-section" *ngIf="esBorrador">
+        <div class="fc-section-head">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <h2>Agregar producto</h2>
+        </div>
+
+        <div class="fc-linea-form">
+          <div class="fc-field fc-field-producto fc-field-producto-busqueda">
+            <label>Producto</label>
+            <app-producto-linea-busqueda
+              [idEmpresa]="idEmpresa"
+              [idAlmacen]="idAlmacen"
+              (seleccionar)="onProductoSeleccionado($event)"
+              (agregarRapido)="onProductoAgregarRapido($event)">
+            </app-producto-linea-busqueda>
+          </div>
+
+          <div class="fc-field fc-field-sm">
+            <label>Cant.</label>
+            <ion-input
+              #inputCantidad
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="cantidad"
+              (ngModelChange)="onCantidadEntradaChange()"
+              (keydown.enter)="$event.preventDefault(); agregarLinea()">
+            </ion-input>
+          </div>
+
+          <div class="fc-field fc-field-sm">
+            <label>{{ productoCostoIncluyeItbis ? 'Costo c/ITBIS' : 'Precio' }}</label>
+            <ion-input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="precioIngresado"
+              (ngModelChange)="onPrecioIngresadoChange()">
+            </ion-input>
+          </div>
+
+          <div class="fc-field fc-field-sm">
+            <label>Desc.</label>
+            <ion-input type="number" min="0" step="0.01" [(ngModel)]="descuento"></ion-input>
+          </div>
+
+          <div class="fc-field fc-field-sm">
+            <label>ITBIS</label>
+            <ion-input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="itbis"
+              [readonly]="productoCostoIncluyeItbis">
+            </ion-input>
+          </div>
+
+          <div class="fc-field fc-field-action">
+            <label>&nbsp;</label>
+            <ion-button expand="block" class="btn-add-line" (click)="agregarLinea()">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Agregar
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="fc-linea-preview" *ngIf="productoSeleccionado">
+          <span
+            class="fc-tipo-badge"
+            [ngClass]="claseTipo(productoSeleccionado.tipoComportamiento)">
+            {{ etiquetaTipo(productoSeleccionado.tipoComportamiento) }}
+          </span>
+          <span
+            class="fc-tipo-badge tipo-itbis"
+            *ngIf="productoCostoIncluyeItbis">
+            Costo c/ITBIS
+          </span>
+          <span>{{ productoSeleccionado.nombre }}</span>
+          — Vista previa línea:
+          <strong>{{ monedaSimbolo }} {{ lineaPreviewTotal | number:'1.2-2' }}</strong>
+          <div class="fc-field-hint" *ngIf="hintDesgloseItbis">{{ hintDesgloseItbis }}</div>
+        </div>
+      </div>
+
+      <!-- Tabla detalle -->
+      <div class="fc-section fc-section-table">
+        <div class="fc-section-head">
+          <ion-icon name="list-outline"></ion-icon>
+          <h2>Detalle del documento</h2>
+          <span class="fc-badge-count">{{ detalles.length }} ítem(s)</span>
+        </div>
+
+        <div class="fc-table-wrap" *ngIf="detalles.length; else sinDetalle">
+          <table class="fc-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tipo</th>
+                <th>Producto</th>
+                <th class="num">Cant.</th>
+                <th class="num">Precio</th>
+                <th class="num">Desc.</th>
+                <th class="num">ITBIS</th>
+                <th class="num">Subtotal</th>
+                <th *ngIf="esBorrador"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of detalles; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <span
+                    class="fc-tipo-badge"
+                    [ngClass]="claseTipo(d.tipoComportamientoLinea)">
+                    {{ etiquetaTipo(d.tipoComportamientoLinea) }}
+                  </span>
+                </td>
+                <td class="col-producto">{{ d.nombreProducto || ('Producto ' + d.idProducto) }}</td>
+                <td class="num">{{ d.cantidad | number:'1.2-2' }}</td>
+                <td class="num">{{ d.precioCompra | number:'1.2-2' }}</td>
+                <td class="num">{{ d.descuento | number:'1.2-2' }}</td>
+                <td class="num">{{ d.itbis | number:'1.2-2' }}</td>
+                <td class="num strong">{{ d.subTotal | number:'1.2-2' }}</td>
+                <td *ngIf="esBorrador" class="col-action">
+                  <ion-button fill="clear" color="danger" size="small" (click)="quitarLinea(i)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #sinDetalle>
+          <div class="fc-empty">
+            <ion-icon name="cube-outline"></ion-icon>
+            <p>No hay líneas agregadas. Use el formulario superior para añadir productos.</p>
+          </div>
+        </ng-template>
+      </div>
+    </section>
+
+    <!-- Panel lateral: resumen ampliado -->
+    <aside class="fc-sidebar">
+      <div class="fc-summary-card">
+
+        <h3>Resumen del documento</h3>
+
+        <div class="fc-summary-block">
+          <h4>Documento</h4>
+          <div class="fc-summary-row">
+            <span>Tipo</span>
+            <strong>{{ tipoDocumentoActual.codigo }}</strong>
+          </div>
+          <div class="fc-summary-row">
+            <span>Estado</span>
+            <strong class="fc-summary-estado" [ngClass]="estadoClase">{{ estadoEtiqueta }}</strong>
+          </div>
+          <div class="fc-summary-row" *ngIf="!esBorrador && estadoRecepcion !== 'NO_APLICA'">
+            <span>Recepción</span>
+            <strong>{{ estadoRecepcionEtiqueta }}</strong>
+          </div>
+          <div class="fc-summary-row">
+            <span>Nº interno</span>
+            <strong>{{ numeroInternoDisplay }}</strong>
+          </div>
+          <div class="fc-summary-row">
+            <span>Moneda</span>
+            <strong>{{ moneda }}</strong>
+          </div>
+          <div class="fc-summary-row">
+            <span>Condición</span>
+            <strong>{{ condicionFactura }}</strong>
+          </div>
+          <div class="fc-summary-row">
+            <span>Vencimiento</span>
+            <strong>{{ vencimientoAplica && fechaVencimiento ? (fechaVencimiento | date:'dd/MM/yyyy') : '—' }}</strong>
+          </div>
+        </div>
+
+        <div class="fc-summary-divider"></div>
+
+        <div class="fc-summary-block">
+          <h4>Proveedor</h4>
+          <div class="fc-summary-row">
+            <span>Nombre</span>
+            <strong>{{ proveedorNombre }}</strong>
+          </div>
+          <div class="fc-summary-row" *ngIf="proveedorSeleccionado">
+            <span>RNC</span>
+            <strong>{{ proveedorSeleccionado.rnc || '—' }}</strong>
+          </div>
+          <div class="fc-summary-row" *ngIf="proveedorSeleccionado">
+            <span>Teléfono</span>
+            <strong>{{ proveedorSeleccionado.telefono || '—' }}</strong>
+          </div>
+          <div class="fc-summary-row" *ngIf="idAlmacen">
+            <span>Almacén</span>
+            <strong>{{ almacenNombre }}</strong>
+          </div>
+        </div>
+
+        <div class="fc-summary-divider" *ngIf="ui.resumenFinancieroCompleto"></div>
+
+        <div class="fc-summary-block" *ngIf="ui.resumenFinancieroCompleto">
+          <h4>Financiero</h4>
+          <div class="fc-summary-row">
+            <span>Subtotal</span>
+            <span>{{ monedaSimbolo }} {{ subtotalBruto | number:'1.2-2' }}</span>
+          </div>
+          <div class="fc-summary-row muted">
+            <span>Descuentos</span>
+            <span>- {{ monedaSimbolo }} {{ totalDescuento | number:'1.2-2' }}</span>
+          </div>
+          <div class="fc-summary-row muted">
+            <span>ITBIS</span>
+            <span>{{ monedaSimbolo }} {{ totalItbis | number:'1.2-2' }}</span>
+          </div>
+          <div class="fc-summary-row fc-field--reserved">
+            <span>Tipo de cambio</span>
+            <span>{{ tipoCambio | number:'1.4-4' }}</span>
+          </div>
+          <div class="fc-summary-row">
+            <span>Pagado</span>
+            <span>{{ monedaSimbolo }} {{ pagado | number:'1.2-2' }}</span>
+          </div>
+          <div class="fc-summary-row">
+            <span>Pendiente</span>
+            <span>{{ monedaSimbolo }} {{ (pendiente > 0 ? pendiente : (esBorrador ? total : pendiente)) | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="fc-summary-total">
+          <span>Total {{ moneda }}</span>
+          <strong>{{ monedaSimbolo }} {{ total | number:'1.2-2' }}</strong>
+        </div>
+
+        <div class="fc-summary-block fc-summary-block--future" *ngIf="ui.mostrarCamposReservados">
+          <h4>Auditoría <span class="fc-tag-future">futuro</span></h4>
+          <div class="fc-summary-row muted">
+            <span>Confirmado por</span>
+            <span>{{ usuarioConfirmacion || '—' }}</span>
+          </div>
+          <div class="fc-summary-row muted">
+            <span>Fecha confirmación</span>
+            <span>{{ fechaConfirmacion ? (fechaConfirmacion | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+          </div>
+        </div>
+
+        <div class="fc-summary-actions" *ngIf="esBorrador">
+          <ion-button
+            expand="block"
+            fill="outline"
+            class="btn-draft"
+            [disabled]="procesando"
+            (click)="guardarBorrador()">
+            <ion-icon slot="start" name="save-outline"></ion-icon>
+            Guardar borrador
+          </ion-button>
+          <ion-button
+            expand="block"
+            class="btn-confirm"
+            [disabled]="procesando"
+            (click)="confirmar()">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            {{ esOrdenCompra ? 'Emitir orden' : 'Confirmar factura' }}
+          </ion-button>
+        </div>
+
+        <div class="fc-summary-actions" *ngIf="esOrdenEmitida">
+          <ion-button
+            expand="block"
+            fill="outline"
+            [disabled]="procesando"
+            (click)="enviarOrdenProveedor()">
+            <ion-icon slot="start" name="mail-outline"></ion-icon>
+            Enviar al proveedor
+          </ion-button>
+          <ion-button
+            expand="block"
+            class="btn-confirm"
+            [disabled]="procesando"
+            (click)="generarFacturaDesdeOrden()">
+            <ion-icon slot="start" name="document-text-outline"></ion-icon>
+            Crear factura desde OC
+          </ion-button>
+        </div>
+
+        <p class="fc-hint" *ngIf="esBorrador && !esOrdenCompra">
+          Al confirmar se asigna FACTC, se registra CxP o el pago de contado. El inventario no aumenta aquí: Almacén recibe luego en Movimiento de Inventario.
+        </p>
+        <p class="fc-hint" *ngIf="esBorrador && esOrdenCompra">
+          Al emitir se asigna OC-xxxx. No crea CxP ni inventario. Luego la envías al proveedor y generas la factura cuando llegue.
+        </p>
+        <p class="fc-hint" *ngIf="esOrdenEmitida">
+          Orden lista. Enviala al proveedor y/o crea la factura de compra (FACTC) para CxP y recepción en almacén.
+        </p>
+      </div>
+    </aside>
+  </div>
+</ion-content>

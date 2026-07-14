@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ isEdit ? 'Asiento ' + model.numero : 'Nuevo Asiento' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label position="stacked">Fecha</ion-label>
+    <ion-datetime presentation="date" [(ngModel)]="model.fecha" [disabled]="soloLectura"></ion-datetime>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Concepto</ion-label>
+    <ion-textarea [(ngModel)]="model.concepto" [readonly]="soloLectura"></ion-textarea>
+  </ion-item>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Detalle del asiento</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div *ngFor="let linea of model.detalles; let i = index" class="linea-asiento">
+        <app-cuenta-contable-selector
+          label="Cuenta"
+          [cuentas]="cuentas"
+          [value]="linea.idCuentaContable || null"
+          (valueChange)="linea.idCuentaContable = $event || 0"
+          [disabled]="soloLectura"
+          modo="movimiento"
+          placeholder="Seleccionar cuenta de movimiento...">
+        </app-cuenta-contable-selector>
+        <div class="montos-row">
+          <ion-item>
+            <ion-label position="stacked">Débito</ion-label>
+            <ion-input type="number" [(ngModel)]="linea.debito" (ionChange)="onDebitoChange(linea)" [readonly]="soloLectura"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Crédito</ion-label>
+            <ion-input type="number" [(ngModel)]="linea.credito" (ionChange)="onCreditoChange(linea)" [readonly]="soloLectura"></ion-input>
+          </ion-item>
+        </div>
+        <ion-item>
+          <ion-label position="stacked">Referencia</ion-label>
+          <ion-input [(ngModel)]="linea.referencia" [readonly]="soloLectura"></ion-input>
+        </ion-item>
+        <ion-button *ngIf="!soloLectura" fill="clear" color="danger" (click)="eliminarLinea(i)">
+          Quitar línea
+        </ion-button>
+      </div>
+
+      <ion-button *ngIf="!soloLectura" expand="block" fill="outline" (click)="agregarLinea()">
+        Agregar línea
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card [color]="balanceado ? 'success' : 'warning'">
+    <ion-card-content>
+      <p><strong>Total Débito:</strong> {{ totalDebito | currency:'DOP' }}</p>
+      <p><strong>Total Crédito:</strong> {{ totalCredito | currency:'DOP' }}</p>
+      <p><strong>Diferencia:</strong> {{ (totalDebito - totalCredito) | currency:'DOP' }}</p>
+      <p *ngIf="!balanceado">El asiento no está balanceado.</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button
+    *ngIf="!soloLectura"
+    expand="block"
+    color="warning"
+    (click)="guardar()"
+    [disabled]="guardando || !balanceado">
+    <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+    <span *ngIf="!guardando" style="color: black;">Guardar asiento</span>
+  </ion-button>
+</ion-content>

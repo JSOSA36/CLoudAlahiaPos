@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Asientos Contables</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="nuevoAsiento()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nuevo
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Filtre por Fechas</strong></ion-card-title>
+    </ion-card-header>
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioAsientos">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioAsientos" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finAsientos">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finAsientos" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Buscar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!cargando">
+    <ion-item *ngFor="let a of asientos" button (click)="verAsiento(a)">
+      <ion-label>
+        <h2><strong>{{ a.numero }}</strong> — {{ a.fecha | date:'dd/MM/yyyy' }}</h2>
+        <p>{{ a.concepto }}</p>
+        <p>
+          <ion-badge [color]="a.estado === 'Anulado' ? 'danger' : 'success'">{{ a.estado }}</ion-badge>
+          <ion-badge color="medium" *ngIf="a.esAutomatico" style="margin-left: 4px;">Automático</ion-badge>
+          <ion-badge color="primary" style="margin-left: 4px;">{{ a.origenModulo || 'Manual' }}</ion-badge>
+        </p>
+      </ion-label>
+      <ion-button
+        *ngIf="a.estado !== 'Anulado' && !a.esAutomatico"
+        slot="end"
+        fill="clear"
+        color="danger"
+        (click)="$event.stopPropagation(); anularAsiento(a)">
+        Anular
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

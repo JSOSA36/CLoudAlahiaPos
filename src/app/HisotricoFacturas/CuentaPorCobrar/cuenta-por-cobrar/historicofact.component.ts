@@ -17,6 +17,7 @@ import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
+import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
 @Component({
   selector: 'app-historicofact',
   templateUrl: './historicofact.component.html',
@@ -502,7 +503,7 @@ getPendiente(iten: any): number {
   const factura = this._Parametro.ListadoOrdenes[indexH];
 
   factura.facturaDetalles.forEach(det => {
-    const precioBase = det.cantidad * (det.productos.precioVenta || 0);
+    const precioBase = det.cantidad * (det.productos?.precioVenta || 0);
     
     // 👇 DESCUENTO UNITARIO x CANTIDAD
     const descUnitario = det.descuento || 0;
@@ -571,11 +572,29 @@ getPendiente(iten: any): number {
     this.modal.dismiss();
   }
 
-  AnularFact(Id: number) {
-   this._FacturaHeader.AnularFactura(Id, this._Parametro.GetIdEmpresa())
-    .subscribe(() => {
-   this.LoadListaFactura();
-});
+  async abrirAnulacion(
+    factura: facturaheader
+  ): Promise<void> {
+
+    if (factura.estaCancelada) {
+      return;
+    }
+
+    const modal = await this.modal.create({
+      component: AnularFacturaComponent,
+      cssClass: 'modal-producto-grande',
+      componentProps: {
+        factura
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.refresh) {
+      this.LoadListaFactura();
+    }
   }
 
   SendPrintAccount(IdFact: number) {
@@ -596,11 +615,30 @@ getPendiente(iten: any): number {
       return;
     }
 
+    let facturaActualizada = factura;
+
+    try {
+      const fresh = await firstValueFrom(
+        this._FacturaHeader.PrintFact(
+          factura.idFacturaHeader
+        )
+      );
+
+      if (fresh?.length) {
+        facturaActualizada = fresh[0];
+      }
+    } catch (error) {
+      console.warn(
+        'No se pudo refrescar la factura, se usa el listado en memoria.',
+        error
+      );
+    }
+
     const modal = await this.modal.create({
       component: DevolucionFacturaComponent,
       cssClass: 'modal-producto-grande',
       componentProps: {
-        factura
+        factura: facturaActualizada
       }
     });
 

@@ -1,0 +1,81 @@
+<div class="selector-cuenta" [class.selector-deshabilitado]="disabled">
+  <ion-item button detail="false" (click)="abrir()" [disabled]="disabled" lines="full">
+    <ion-label position="stacked">{{ label }}</ion-label>
+    <div class="valor-seleccionado" [class.placeholder]="!value">
+      {{ textoSeleccionado }}
+    </div>
+    <ion-icon slot="end" name="chevron-down-outline" class="icono-abrir"></ion-icon>
+  </ion-item>
+</div>
+
+<ion-modal [isOpen]="abierto" (didDismiss)="cerrar()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>{{ label }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrar()">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+      <ion-toolbar>
+        <ion-searchbar
+          [(ngModel)]="busqueda"
+          (ionInput)="onBusqueda()"
+          placeholder="Buscar por código o nombre..."
+          debounce="200"
+          show-clear-button="always">
+        </ion-searchbar>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="selector-contenido">
+      <div
+        *ngIf="permitirVacio"
+        class="nodo-fila nodo-vacio"
+        (click)="limpiarSeleccion()">
+        <span class="prefijo">○</span>
+        <span>{{ textoVacio }}</span>
+      </div>
+
+      <div
+        *ngFor="let nodo of nodosVisibles"
+        class="nodo-fila"
+        [class.nodo-agrupacion]="!nodo.cuenta.permiteMovimiento"
+        [class.nodo-movimiento]="nodo.cuenta.permiteMovimiento"
+        [class.nodo-deshabilitado]="!esSeleccionable(nodo.cuenta)"
+        [class.nodo-coincide]="nodo.coincideBusqueda && busqueda"
+        [class.nodo-seleccionado]="value === nodo.cuenta.idCuentaContable"
+        [style.padding-left.px]="padding(nodo)"
+        (click)="onFilaClick(nodo, $event)">
+
+        <button
+          *ngIf="nodo.tieneHijos"
+          type="button"
+          class="btn-expandir"
+          (click)="toggleExpandir(nodo, $event)">
+          <ion-icon [name]="nodo.expandido ? 'caret-down' : 'caret-forward'"></ion-icon>
+        </button>
+        <span *ngIf="!nodo.tieneHijos" class="btn-expandir espacio"></span>
+
+        <span class="prefijo" *ngIf="!nodo.cuenta.permiteMovimiento">▼</span>
+        <span class="prefijo movimiento" *ngIf="nodo.cuenta.permiteMovimiento">•</span>
+
+        <div class="nodo-texto">
+          <strong>{{ nodo.cuenta.codigo }}</strong>
+          <span>{{ nodo.cuenta.nombre }}</span>
+        </div>
+
+        <ion-badge
+          *ngIf="!nodo.cuenta.permiteMovimiento"
+          color="medium"
+          class="badge-tipo">
+          Agrupación
+        </ion-badge>
+      </div>
+
+      <div *ngIf="nodosVisibles.length === 0" class="sin-resultados ion-text-center ion-padding">
+        No se encontraron cuentas.
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

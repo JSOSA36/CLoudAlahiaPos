@@ -14,6 +14,6 @@ export class AppConfigService {
     public readonly apiUrl: string = 'http://localhost:5139/api';
 
     //api de QA
-//public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
+    //public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
    
 }

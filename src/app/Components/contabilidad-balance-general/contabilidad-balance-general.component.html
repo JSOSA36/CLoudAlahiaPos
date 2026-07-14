@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Balance General</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Fecha de corte</strong></ion-card-title>
+    </ion-card-header>
+
+    <ion-item color="primary">
+      <ion-label>Corte</ion-label>
+      <ion-datetime-button datetime="corteBG">
+        <span slot="date-target">{{ fechaCorte | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="corteBG" presentation="date" [(ngModel)]="fechaCorte"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && balance">
+    <ion-card-header>
+      <ion-card-title>Balance General</ion-card-title>
+      <ion-card-subtitle>Al {{ balance.fechaCorte | date:'dd/MM/yyyy' }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="seccion">
+        <h3>{{ balance.activos.titulo }}</h3>
+        <div *ngFor="let l of balance.activos.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.saldo | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Activos</span>
+          <span>{{ balance.totalActivos | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <h3>{{ balance.pasivos.titulo }}</h3>
+        <div *ngFor="let l of balance.pasivos.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.saldo | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Pasivos</span>
+          <span>{{ balance.totalPasivos | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <h3>{{ balance.capital.titulo }}</h3>
+        <div *ngFor="let l of balance.capital.lineas" class="linea">
+          <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
+          <span>{{ l.saldo | currency:'DOP' }}</span>
+        </div>
+        <div class="subtotal">
+          <span>Total Capital</span>
+          <span>{{ balance.totalCapital | currency:'DOP' }}</span>
+        </div>
+      </div>
+
+      <div class="ecuacion">
+        <p><strong>Activo:</strong> {{ balance.totalActivos | currency:'DOP' }}</p>
+        <p><strong>Pasivo + Capital:</strong> {{ balance.totalPasivoCapital | currency:'DOP' }}</p>
+        <p [class.diferencia]="balance.diferencia !== 0">
+          <strong>Diferencia:</strong> {{ balance.diferencia | currency:'DOP' }}
+        </p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

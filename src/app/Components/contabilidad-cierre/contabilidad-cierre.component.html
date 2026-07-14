@@ -1,0 +1,73 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Cierre Contable</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Seleccionar período</strong></ion-card-title>
+    </ion-card-header>
+
+    <ion-item>
+      <ion-label>Año</ion-label>
+      <ion-select [(ngModel)]="anio" (ionChange)="cargar()" interface="popover">
+        <ion-select-option *ngFor="let a of anios" [value]="a">{{ a }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Mes</ion-label>
+      <ion-select [(ngModel)]="mes" (ionChange)="cargar()" interface="popover">
+        <ion-select-option *ngFor="let m of meses" [value]="m.valor">{{ m.nombre }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="refresh" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Actualizar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && periodo">
+    <ion-card-header>
+      <ion-card-title>{{ periodo.nombreMes }} {{ periodo.anio }}</ion-card-title>
+      <ion-card-subtitle>
+        <ion-badge [color]="estadoColor()">{{ periodo.estado }}</ion-badge>
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p>{{ periodo.mensaje }}</p>
+      <p *ngIf="periodo.fechaCierre">
+        <strong>Fecha de cierre:</strong> {{ periodo.fechaCierre | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+      <p *ngIf="periodo.observacion">
+        <strong>Observación:</strong> {{ periodo.observacion }}
+      </p>
+      <p *ngIf="periodo.bloqueoActivo" class="aviso">
+        El bloqueo de asientos está activo para este período.
+      </p>
+      <p *ngIf="!periodo.bloqueoActivo" class="aviso info">
+        El bloqueo definitivo de asientos se habilitará en una fase posterior.
+      </p>
+
+      <ion-button
+        expand="block"
+        color="danger"
+        [disabled]="periodo.estado === 'Cerrado' || cerrando"
+        (click)="cerrarPeriodo()">
+        <ion-spinner *ngIf="cerrando" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!cerrando" name="lock-closed" slot="start"></ion-icon>
+        Cerrar Período
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

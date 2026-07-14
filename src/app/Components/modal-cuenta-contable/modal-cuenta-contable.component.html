@@ -1,0 +1,105 @@
+<ion-header>
+
+  <ion-toolbar color="primary">
+
+    <ion-title>{{ isEdit ? 'Editar Cuenta' : 'Nueva Cuenta' }}</ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+
+    <ion-label position="stacked">Código</ion-label>
+
+    <ion-input [(ngModel)]="model.codigo" [readonly]="isEdit"></ion-input>
+
+  </ion-item>
+
+
+
+  <ion-item>
+
+    <ion-label position="stacked">Nombre</ion-label>
+
+    <ion-input [(ngModel)]="model.nombre"></ion-input>
+
+  </ion-item>
+
+
+
+  <ion-item>
+
+    <ion-label position="stacked">Tipo de cuenta</ion-label>
+
+    <ion-select [(ngModel)]="model.tipoCuenta" [disabled]="!!model.idCuentaPadre">
+
+      <ion-select-option *ngFor="let t of tiposCuenta" [value]="t">{{ t }}</ion-select-option>
+
+    </ion-select>
+
+  </ion-item>
+
+
+
+  <app-cuenta-contable-selector
+
+    label="Cuenta padre"
+
+    [cuentas]="cuentas"
+
+    [(value)]="model.idCuentaPadre"
+
+    [excluirIds]="isEdit ? [model.idCuentaContable] : []"
+
+    modo="agrupacion"
+
+    [permitirVacio]="true"
+
+    textoVacio="Ninguna (raíz)">
+
+  </app-cuenta-contable-selector>
+
+
+
+  <ion-item>
+
+    <ion-label>Permite movimiento</ion-label>
+
+    <ion-toggle [(ngModel)]="model.permiteMovimiento"></ion-toggle>
+
+  </ion-item>
+
+
+
+  <ion-item>
+
+    <ion-label>Activa</ion-label>
+
+    <ion-toggle [(ngModel)]="model.activa"></ion-toggle>
+
+  </ion-item>
+
+
+
+  <ion-button expand="block" color="warning" (click)="guardar()" [disabled]="guardando" class="ion-margin-top">
+
+    <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+
+    <span *ngIf="!guardando" style="color: black;">Guardar</span>
+
+  </ion-button>
+
+</ion-content>
+
+

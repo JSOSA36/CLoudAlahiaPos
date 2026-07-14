@@ -10,12 +10,20 @@ import { filter } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { CitasService } from './servicios/citas.service';
 import { PosComponent } from './Pos/pos/pos.component';
+import {
+  MENU_GRUPOS,
+  MENU_GRUPO_OTROS,
+  MODULOS_EXCLUIDOS_MENU,
+  CONTABILIDAD_MODULO_PADRE,
+  CONTABILIDAD_SUBMODULOS_TITULOS
+} from './config/menu-grupos.config';
+import { MenuGrupoView, MenuItemView, MenuSalirView } from './models/menu.models';
 
 // ===============================
 // 🧭 MAPAS FRONTEND (SOLO MENÚ)
 // ===============================
 export const MODULO_RUTAS: Record<string, string> = {
-  DASHBOARD: '/folder/Inbox',
+  DASHBOARD: '/dashboard-gerencial',
   ORDENES: '/Ordenes',
   REPORTE_607: '/reporte607',
   REPORTE_VENTA: '/reporteventa',
@@ -39,6 +47,8 @@ export const MODULO_RUTAS: Record<string, string> = {
   CIERRE_CAJA: '/cierrecaja',
   EMPLEADOS_COMISION: '/listadoempleadocomision',
   HISTORICO_FACTURAS: '/historicofact',
+  LISTADO_DEVOLUCIONES: '/listadodevoluciones',
+  NOTAS_CREDITO_APLICADAS: '/notascreditoaplicadas',
   CUENTAS_COBRAR: '/cuentaxcobrar',
   DESCUENTOS: '/Descuento',
   BIZCOCHO_ENCARGO: '/bizcocho',
@@ -47,6 +57,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   CUENTAS_FINANCIERAS: '/cuentafinanciera',
   MOVIMIENTO_FINANCIERO: '/movimientosfinancieros',
   METODO_PAGO_CUENTAS: '/metodopagocuentas',
+  TRANSFERENCIAS_FINANCIERAS: '/transferenciasfinancieras',
   POS: '/pos',
   NCF_SECUENCIAS: '/ncfsecuencias',
   EMPRESA: '/empresa',
@@ -54,7 +65,30 @@ export const MODULO_RUTAS: Record<string, string> = {
   EMPLEADOS: '/empleados',
   USUARIOS: '/usuarios',
   PERFILES: '/perfiles',
-  DOCUMENTOS_CLINICOS: '/documentosclinicos'
+  DOCUMENTOS_CLINICOS: '/documentosclinicos',
+  HISTORIAL_SERVICIOS: '/historialservicios',
+  CONTABILIDAD: '/contabilidad',
+  CONTABILIDAD_CUENTAS: '/contabilidadcuentas',
+  CONTABILIDAD_ASIENTOS: '/contabilidadasientos',
+  CONTABILIDAD_LIBRO_DIARIO: '/contabilidadlibrodiario',
+  CONTABILIDAD_MAYOR_GENERAL: '/contabilidadmayorgeneral',
+  CONTABILIDAD_BALANCE_COMPROBACION: '/contabilidadbalancecomprobacion',
+  CONTABILIDAD_ESTADO_RESULTADOS: '/contabilidadestadoresultados',
+  CONTABILIDAD_BALANCE_GENERAL: '/contabilidadbalancegeneral',
+  CONTABILIDAD_CONSULTA_ASIENTOS: '/contabilidadconsultaasientos',
+  CONTABILIDAD_CIERRE: '/contabilidadcierre',
+  CONTABILIDAD_CONFIGURACION_INTEGRACION: '/contabilidadconfiguracionintegracion',
+  PROVEEDORES: '/proveedores',
+  ORDENES_COMPRA: '/compras/ordenes',
+  FACTURAS_COMPRA: '/compras/facturas',
+  ANALISIS_COMPRAS_PRODUCTO: '/compras/analisis-producto',
+  REPORTE_606: '/compras/reporte-606',
+  CUENTAS_PAGAR_PROVEEDOR: '/compras/cxp',
+  ACTIVOS_FIJOS: '/activos-fijos',
+  REPORTE_PRODUCTOS: '/reportes/productos',
+  REPORTE_PROVEEDORES: '/reportes/proveedores',
+  REPORTE_CLIENTES: '/reportes/clientes',
+  REPORTE_EMPLEADOS: '/reportes/empleados'
 };
 
 // ===============================
@@ -65,6 +99,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   ORDENES: 'shopping-cart',
   NCF_SECUENCIAS: 'barcode',
   REPORTE_607: 'file-invoice',
+  REPORTE_606: 'file-invoice',
   REPORTE_VENTA: 'file-invoice-dollar',
   REPORTE_SERVICIOS: 'chart-line',
   REPORTE_COMISIONES: 'money-bill-wave',
@@ -85,6 +120,8 @@ export const MODULO_ICONOS: Record<string, string> = {
   GASTOS: 'wallet',
   INGRESOS: 'cash-register',
   HISTORICO_FACTURAS: 'file-invoice',
+  LISTADO_DEVOLUCIONES: 'undo',
+  NOTAS_CREDITO_APLICADAS: 'file-invoice-dollar',
   CITAS: 'calendar-alt',
   HORARIO_ESTILISTA: 'clock',
   LISTADO_PAGOS: 'list',
@@ -101,7 +138,29 @@ export const MODULO_ICONOS: Record<string, string> = {
   EMPLEADOS: 'user-tie',
   USUARIOS: 'user',
   PERFILES: 'user-shield',
-  DOCUMENTOS_CLINICOS: 'file-medical'
+  DOCUMENTOS_CLINICOS: 'file-medical',
+  HISTORIAL_SERVICIOS: 'clipboard-list',
+  CONTABILIDAD: 'calculator',
+  CONTABILIDAD_CUENTAS: 'sitemap',
+  CONTABILIDAD_ASIENTOS: 'book',
+  CONTABILIDAD_LIBRO_DIARIO: 'book-open',
+  CONTABILIDAD_MAYOR_GENERAL: 'balance-scale',
+  CONTABILIDAD_BALANCE_COMPROBACION: 'table',
+  CONTABILIDAD_ESTADO_RESULTADOS: 'chart-pie',
+  CONTABILIDAD_BALANCE_GENERAL: 'landmark',
+  CONTABILIDAD_CONSULTA_ASIENTOS: 'search',
+  CONTABILIDAD_CIERRE: 'calendar-check',
+  CONTABILIDAD_CONFIGURACION_INTEGRACION: 'sliders-h',
+  PROVEEDORES: 'truck',
+  ORDENES_COMPRA: 'clipboard-list',
+  FACTURAS_COMPRA: 'file-invoice',
+  ANALISIS_COMPRAS_PRODUCTO: 'chart-line',
+  CUENTAS_PAGAR_PROVEEDOR: 'hand-holding-usd',
+  ACTIVOS_FIJOS: 'file-invoice-dollar',
+  REPORTE_PRODUCTOS: 'box',
+  REPORTE_PROVEEDORES: 'truck',
+  REPORTE_CLIENTES: 'users',
+  REPORTE_EMPLEADOS: 'user-tie'
 };
 
 @Component({
@@ -112,9 +171,15 @@ export const MODULO_ICONOS: Record<string, string> = {
 export class AppComponent implements OnInit, OnDestroy {
 
   // ===============================
-  // 🔹 MENÚ (NO SE TOCA)
+  // 🔹 MENÚ AGRUPADO
   // ===============================
-  public appPages: any[] = [];
+  public menuGrupos: MenuGrupoView[] = [];
+  public menuSalir: MenuSalirView = {
+    title: 'Salir',
+    url: '/login',
+    icon: 'sign-out-alt',
+    iconFa: ['fas', 'sign-out-alt']
+  };
   private destroy$ = new Subject<void>();
 
   // ===============================
@@ -402,10 +467,9 @@ private startIdleWatcher() {
 }
 
   // ===============================
-  // 📋 MENÚ (IGUAL QUE ANTES)
+  // 📋 MENÚ AGRUPADO POR ÁREA FUNCIONAL
   // ===============================
-  private cargarMenu() {
-
+  private cargarMenu(): void {
     let modulos: any[] = [];
 
     try {
@@ -415,38 +479,121 @@ private startIdleWatcher() {
       modulos = [];
     }
 
-    modulos.sort((a: any, b: any) => a.moduloId - b.moduloId);
-
     if (!modulos.length) {
-      this.appPages = [{
-        title: 'Salir',
-        url: '/login',
-        icon: 'sign-out-alt'
-      }];
+      this.menuGrupos = [];
       return;
     }
 
-    const menuModulos = modulos
-      .map((m: any) => {
-        const ruta = MODULO_RUTAS[m.codigo];
-        if (!ruta) return null;
+    const modulosUsuario = new Map<string, { title: string; codigo: string }>();
+    let tieneContabilidadHub = false;
 
-        return {
-          title: m.nombre,
-          url: ruta,
-          icon: MODULO_ICONOS[m.codigo] || 'th-large'
-        };
-      })
-      .filter(Boolean);
+    modulos.forEach((m: any) => {
+      const codigo = m.codigo;
+      if (!codigo) return;
 
-    this.appPages = [
-      ...menuModulos,
-      {
-        title: 'Salir',
-        url: '/login',
-        icon: 'sign-out-alt'
+      if (codigo === CONTABILIDAD_MODULO_PADRE) {
+        tieneContabilidadHub = true;
+        return;
       }
-    ];
+
+      if (MODULOS_EXCLUIDOS_MENU.includes(codigo)) return;
+
+      const ruta = MODULO_RUTAS[codigo];
+      if (!ruta) return;
+
+      modulosUsuario.set(codigo, {
+        codigo,
+        title: m.nombre || codigo
+      });
+    });
+
+    const codigosAsignados = new Set<string>();
+    const grupos: MenuGrupoView[] = [];
+
+    const gruposOrdenados = [...MENU_GRUPOS].sort((a, b) => a.orden - b.orden);
+
+    gruposOrdenados.forEach(grupoConfig => {
+      const items: MenuItemView[] = [];
+
+      grupoConfig.modulos.forEach(codigo => {
+        const modulo = modulosUsuario.get(codigo);
+        const incluirPorHub =
+          !modulo &&
+          tieneContabilidadHub &&
+          grupoConfig.id === 'contabilidad' &&
+          !!MODULO_RUTAS[codigo];
+
+        if (!modulo && !incluirPorHub) return;
+
+        items.push({
+          codigo,
+          title: modulo?.title || CONTABILIDAD_SUBMODULOS_TITULOS[codigo] || codigo,
+          url: MODULO_RUTAS[codigo],
+          icon: MODULO_ICONOS[codigo] || 'th-large',
+          iconFa: this.crearIconFa(MODULO_ICONOS[codigo] || 'th-large')
+        });
+        codigosAsignados.add(codigo);
+      });
+
+      if (items.length > 0) {
+        grupos.push({
+          id: grupoConfig.id,
+          titulo: grupoConfig.titulo,
+          icono: grupoConfig.icono,
+          iconFa: this.crearIconFa(grupoConfig.icono),
+          expandido: false,
+          items
+        });
+      }
+    });
+
+    const otrosItems: MenuItemView[] = [];
+    modulosUsuario.forEach((modulo, codigo) => {
+      if (codigosAsignados.has(codigo)) return;
+
+      otrosItems.push({
+        codigo,
+        title: modulo.title,
+        url: MODULO_RUTAS[codigo],
+        icon: MODULO_ICONOS[codigo] || 'th-large',
+        iconFa: this.crearIconFa(MODULO_ICONOS[codigo] || 'th-large')
+      });
+    });
+
+    if (otrosItems.length > 0) {
+      grupos.push({
+        id: MENU_GRUPO_OTROS.id,
+        titulo: MENU_GRUPO_OTROS.titulo,
+        icono: MENU_GRUPO_OTROS.icono,
+        iconFa: this.crearIconFa(MENU_GRUPO_OTROS.icono),
+        expandido: false,
+        items: otrosItems
+      });
+    }
+
+    this.menuGrupos = grupos;
+    this.expandirGrupoActivo();
+  }
+
+  toggleGrupo(grupoId: string): void {
+    const grupo = this.menuGrupos.find(g => g.id === grupoId);
+    if (grupo) {
+      grupo.expandido = !grupo.expandido;
+    }
+  }
+
+  private crearIconFa(nombre: string): [string, string] {
+    return ['fas', nombre];
+  }
+
+  private expandirGrupoActivo(): void {
+    const rutaActual = this.router.url.split('?')[0];
+
+    this.menuGrupos.forEach(grupo => {
+      grupo.expandido = grupo.items.some(item =>
+        rutaActual === item.url || rutaActual.startsWith(item.url + '/')
+      );
+    });
   }
 
   // ===============================

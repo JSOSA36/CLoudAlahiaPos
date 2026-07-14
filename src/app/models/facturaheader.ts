@@ -25,6 +25,7 @@ export class facturaheader
     totalDescuento:number=0;
     idEmpresa:number=0;
     estaCancelada:boolean=false;
+    motivoAnulacion:string="";
     estaCerrada :boolean=false;
     nota:string="";
     fechaBencimiento:Date=new Date();

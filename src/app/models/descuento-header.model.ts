@@ -19,8 +19,11 @@ export interface DescuentoHeader {
   aplicaATodos: boolean;
   activo: boolean;
 
-  // 🔹 IDs de servicios
+  // 🔹 IDs de productos
   servicios: number[];
+
+  // 🔹 IDs de categorías
+  categorias: number[];
 
   // 🔹 IDs de áreas
   areas: number[];

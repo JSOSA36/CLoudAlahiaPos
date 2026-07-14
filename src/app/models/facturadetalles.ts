@@ -16,6 +16,7 @@ export class facturadetalles
     precioOferta :number=0;
     idEmpleadoComision:number=0;
     enviadococina:boolean=false;
-    productos:productos=new productos();
+    /** No inicializar: al guardar orden/factura el API valida Productos.Almacen.Nombre si llega vacío. */
+    productos?: productos;
     nombreEmpleadoComision:string="";
 }

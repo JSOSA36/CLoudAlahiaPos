@@ -112,11 +112,13 @@ async seleccionarTipoDocumento(index: number, IdProducto: number) {
   aplicarDescuentoProducto(prod: productos) {
 
     const idArea = prod.idArea || 0;
+    const idCategoria = prod.idCategoria || 0;
 
     this.descuentoSrv.getAplicado(
       this.parametro.IdEmpresa,
       prod.idProducto,
-      idArea
+      idArea,
+      idCategoria
     )
     .subscribe(resp => {
 

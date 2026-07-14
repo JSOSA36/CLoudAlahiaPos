@@ -122,14 +122,22 @@ size-lg="2.4"
             </p>
 
             <div class="acciones">
-              <ion-button size="small" color="primary" (click)="editarGasto(g)">
+              <ion-button
+                size="small"
+                color="primary"
+                (click)="editarGasto(g)"
+                [disabled]="g.estaAnulado || g.estaCerrada">
                 <ion-icon slot="start" name="create-outline"></ion-icon>
                 Editar
               </ion-button>
 
-              <ion-button size="small" color="danger" (click)="borrarGasto(g.idGasto)">
-                <ion-icon slot="start" name="trash-outline"></ion-icon>
-                Eliminar
+              <ion-button
+                size="small"
+                color="danger"
+                (click)="anularGasto(g)"
+                [disabled]="g.estaAnulado || g.estaCerrada">
+                <ion-icon slot="start" name="ban-outline"></ion-icon>
+                Anular
               </ion-button>
             </div>
           </ion-card-content>

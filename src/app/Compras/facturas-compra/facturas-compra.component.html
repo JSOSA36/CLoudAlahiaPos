@@ -1,0 +1,186 @@
+<ion-header class="fc-list-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="fc-title-wrap">
+        <span>Facturas de compra</span>
+        <small *ngIf="!cargando">{{ totalDocumentos }} documento(s)</small>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="nueva()" aria-label="Nueva factura">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fc-list-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="fc-list-page">
+    <div class="fc-toolbar-card">
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        placeholder="Buscar por número, proveedor o NCF..."
+        debounce="250"
+        show-clear-button="focus">
+      </ion-searchbar>
+
+      <div class="fc-chips" role="tablist">
+        <button
+          type="button"
+          class="fc-chip"
+          *ngFor="let c of chips"
+          [class.active]="filtroEstado === c.codigo"
+          (click)="filtroEstado = c.codigo">
+          {{ c.etiqueta }}
+          <span class="fc-chip-count" *ngIf="c.codigo === 'BORRADOR' && cantidadBorradores">
+            {{ cantidadBorradores }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="fc-summary" *ngIf="filtradas.length">
+      <div class="fc-summary-item">
+        <span class="label">En vista</span>
+        <strong>{{ totalDocumentos }}</strong>
+      </div>
+      <div class="fc-summary-item pending" *ngIf="totalPendiente > 0">
+        <span class="label">Pendiente de pago</span>
+        <strong>{{ totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <div class="fc-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando facturas…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="fc-empty" *ngIf="!filtradas.length">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h3 *ngIf="!facturas.length">Aún no hay facturas de compra</h3>
+        <h3 *ngIf="facturas.length">Sin resultados con este filtro</h3>
+        <p *ngIf="!facturas.length">
+          Registra la primera compra a proveedor para llevar inventario, gastos y CxP.
+        </p>
+        <p *ngIf="facturas.length">Prueba otro estado o limpia la búsqueda.</p>
+        <ion-button *ngIf="!facturas.length" color="primary" (click)="nueva()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Nueva factura
+        </ion-button>
+      </div>
+
+      <ion-grid class="fc-grid" *ngIf="filtradas.length">
+        <ion-row>
+          <ion-col
+            size="12"
+            size-sm="6"
+            size-md="4"
+            size-lg="3"
+            size-xl="2.4"
+            *ngFor="let f of filtradas">
+
+            <article
+              class="fc-card"
+              (click)="abrir(f)"
+              [class.is-borrador]="f.estado === 'BORRADOR'"
+              [class.is-pendiente]="f.pendiente > 0 && f.estado !== 'BORRADOR' && f.estado !== 'ANULADA'">
+
+              <header class="fc-card-top">
+                <div class="fc-card-id">
+                  <strong>{{ tituloDocumento(f) }}</strong>
+                  <span class="fc-date" *ngIf="f.fechaDocumento">
+                    {{ f.fechaDocumento | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+                <div class="fc-card-badges">
+                  <span class="fc-badge" [ngClass]="claseEstado(f.estado)">
+                    {{ etiquetaEstado(f.estado) }}
+                  </span>
+                  <span
+                    class="fc-badge fc-badge-rec"
+                    *ngIf="muestraRecepcion(f)"
+                    [ngClass]="claseRecepcion(f.estadoRecepcion)">
+                    {{ etiquetaRecepcion(f.estadoRecepcion) }}
+                  </span>
+                </div>
+              </header>
+
+              <div class="fc-card-body">
+                <div class="fc-proveedor">
+                  <ion-icon name="business-outline"></ion-icon>
+                  <div>
+                    <strong>{{ f.proveedorNombre || 'Sin proveedor' }}</strong>
+                    <small *ngIf="f.numeroComprobanteProveedor">
+                      NCF / comprobante: {{ f.numeroComprobanteProveedor }}
+                    </small>
+                  </div>
+                </div>
+
+                <div class="fc-meta">
+                  <span class="fc-pill" [class.credito]="esCredito(f)">
+                    {{ esCredito(f) ? 'Crédito' : 'Contado' }}
+                  </span>
+                  <span class="fc-pill ghost" *ngIf="f.fechaVencimiento && esCredito(f)">
+                    Vence {{ f.fechaVencimiento | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+              </div>
+
+              <footer class="fc-card-foot">
+                <div class="fc-money">
+                  <span class="label">Total</span>
+                  <strong>{{ f.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                </div>
+                <div
+                  class="fc-money"
+                  [class.warn]="f.pendiente > 0 && f.estado !== 'BORRADOR' && f.estado !== 'ANULADA'"
+                  [class.ok]="f.pendiente <= 0 && f.estado !== 'BORRADOR'">
+                  <span class="label">Pendiente</span>
+                  <strong>{{ f.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                </div>
+                <div class="fc-card-actions" (click)="$event.stopPropagation()">
+                  <ion-button
+                    *ngIf="f.pagado > 0"
+                    size="small"
+                    fill="outline"
+                    color="primary"
+                    (click)="verHistorial(f, $event)">
+                    <ion-icon slot="start" name="time-outline"></ion-icon>
+                    Historial
+                  </ion-button>
+                  <ion-button
+                    *ngIf="sePuedePagar(f)"
+                    size="small"
+                    color="success"
+                    [disabled]="procesandoPago"
+                    (click)="registrarPago(f, $event)">
+                    <ion-icon slot="start" name="cash-outline"></ion-icon>
+                    Pagar
+                  </ion-button>
+                  <button type="button" class="fc-action-hint" (click)="abrir(f)">
+                    <ion-icon [name]="f.estado === 'BORRADOR' ? 'create-outline' : 'eye-outline'"></ion-icon>
+                    <span>{{ f.estado === 'BORRADOR' ? 'Editar' : 'Ver' }}</span>
+                  </button>
+                </div>
+              </footer>
+            </article>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="warning" (click)="nueva()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

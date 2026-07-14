@@ -1,0 +1,85 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Reporte de clientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rpt-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="rpt-page">
+    <section class="rpt-filtros">
+      <div class="rpt-field" style="flex:2">
+        <label>Buscar</label>
+        <ion-input
+          [(ngModel)]="filtro"
+          placeholder="Nombre, cédula/RNC, teléfono…">
+        </ion-input>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Actualizar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando clientes…
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen">
+        <div>
+          <span class="label">Clientes</span>
+          <strong>{{ resumen.total }}</strong>
+        </div>
+        <div>
+          <span class="label">Con límite crédito</span>
+          <strong>{{ resumen.conCredito }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Suma límites</span>
+          <strong>{{ resumen.limiteTotal | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <div class="rpt-empty" *ngIf="!filtrados.length">
+        No hay clientes con este filtro.
+      </div>
+
+      <div class="rpt-table-wrap" *ngIf="filtrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cédula / RNC</th>
+              <th>Teléfono</th>
+              <th>Celular</th>
+              <th>Email</th>
+              <th>Dirección</th>
+              <th class="num">Límite crédito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filtrados">
+              <td>{{ c.nombreComercial }}</td>
+              <td>{{ c.cedulaRNC || '—' }}</td>
+              <td>{{ c.telefono || '—' }}</td>
+              <td>{{ c.celular || '—' }}</td>
+              <td>{{ c.email || '—' }}</td>
+              <td>{{ c.direccion || '—' }}</td>
+              <td class="num">{{ c.limiteCredito | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

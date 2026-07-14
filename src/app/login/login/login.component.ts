@@ -373,7 +373,7 @@ private redirigirSegunModulos(modulos: any[]) {
   if (tieneDashboard) {
 
     this.router.navigateByUrl(
-      '/folder/Inbox',
+      '/dashboard-gerencial',
       { replaceUrl: true }
     );
 

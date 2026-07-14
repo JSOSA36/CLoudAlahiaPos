@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { productos } from 'src/app/models/productos';
 import { ProductosService } from 'src/app/servicios/productos.service';
@@ -6,7 +6,14 @@ import { CategoriasService } from 'src/app/servicios/categorias.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { AreasService } from 'src/app/servicios/area.services';
 import { Area } from 'src/app/models/area.model';
-import { ViewChild, ElementRef } from '@angular/core';
+import {
+  defaultComportamientoParaNaturaleza,
+  normalizarTipoComportamiento,
+  TIPO_COMPORTAMIENTO,
+  TIPOS_COMPORTAMIENTO_OPCIONES
+} from 'src/app/shared/tipo-comportamiento';
+
+import { AnalisisProductoProveedorComponent } from 'src/app/Compras/analisis-producto-proveedor/analisis-producto-proveedor.component';
 
 @Component({
   selector: 'app-productos-add',
@@ -14,29 +21,29 @@ import { ViewChild, ElementRef } from '@angular/core';
   styleUrls: ['./productosadd.component.scss'],
 })
 export class ProductosAddComponent implements OnInit {
+  readonly tiposComportamiento = TIPOS_COMPORTAMIENTO_OPCIONES;
+  readonly TIPO = TIPO_COMPORTAMIENTO;
+
   @Input() producto!: productos | null;
-@ViewChild('fileInput') fileInput!: ElementRef;
- form: any = {
-  idproducto: 0,
-  nombre: '',
-  esServicio: false,
-  controlarStock: false,
-  precioVenta: 0,
-  // 🔥 COMPRA / VENTA
-tipoOperacion: 'AMBAS',
-  cantidad: 0,
-  costo: 0,
-  idCategoria: null,
-  idArea: null,
-  isActivo: true,
-  Itbis: false,
-  codigoBarra: '',
-
-  // ⚡ NUEVOS CAMPOS
-  duracionServicio: 0,        // duración del servicio en minutos
-  disponibleEnCitas: true     // si se muestra en la lista de citas
-};
-
+  @ViewChild('fileInput') fileInput!: ElementRef;
+  form: any = {
+    idproducto: 0,
+    nombre: '',
+    esServicio: false,
+    tipoComportamiento: TIPO_COMPORTAMIENTO.INVENTARIO,
+    controlarStock: true,
+    precioVenta: 0,
+    tipoOperacion: 'AMBAS',
+    cantidad: 0,
+    costo: 0,
+    idCategoria: null,
+    idArea: null,
+    isActivo: true,
+    Itbis: false,
+    codigoBarra: '',
+    duracionServicio: 0,
+    disponibleEnCitas: true
+  };
 
   imagenFile: File | null = null;
   imagenPreview: string | null = null;
@@ -55,48 +62,68 @@ tipoOperacion: 'AMBAS',
   ngOnInit() {
     const idEmpresa = this._Parametro.GetIdEmpresa();
 
-    // ✅ Cargar categorías
     this.categoriaService.GetListadoCategorias(idEmpresa).subscribe(res => {
       this.categorias = res;
     });
 
-    // ✅ Cargar áreas
     this.areasService.getAreas(idEmpresa).subscribe(res => {
       this.areas = res;
     });
 
-    // ✅ Si es edición, cargar datos del producto
     if (this.producto) {
-      console.log('Cargando producto para edición:', this.producto);
+      const esServicio = !!this.producto.esServicio;
+      const controlarStock = !!this.producto.controlarStock;
       this.form = {
         idproducto: this.producto.idProducto,
         nombre: this.producto.nombre,
-        controlarStock: this.producto.controlarStock,
+        esServicio,
+        tipoComportamiento: this.producto.tipoComportamiento
+          ? normalizarTipoComportamiento(this.producto.tipoComportamiento)
+          : defaultComportamientoParaNaturaleza(esServicio, controlarStock),
+        controlarStock,
         precioVenta: this.producto.precioVenta,
         cantidad: this.producto.cantidad,
         costo: this.producto.precioCompra,
         idCategoria: this.producto.idCategoria,
         idArea: this.producto.idArea,
         isActivo: this.producto.isActivo,
-        esServicio: this.producto.esServicio,
-       tipoOperacion:
-  this.producto.tipoOperacion || 'AMBAS',
+        tipoOperacion: this.producto.tipoOperacion || 'AMBAS',
         seVende: this.producto.seVende ?? true,
-        Itbis: this.producto.impuesto > 0,
+        Itbis: !!this.producto.itbis,
         codigoBarra: this.producto.codigoBarra,
-         duracionServicio: this.producto.duracionServicio || 0,
-    disponibleEnCitas: this.producto.disponibleEnCitas ?? true
+        duracionServicio: this.producto.duracionServicio || 0,
+        disponibleEnCitas: this.producto.disponibleEnCitas ?? true
       };
       this.imagenPreview = this.producto.imagen1 || null;
+    }
+  }
+
+  get descripcionTipoComportamiento(): string {
+    const tipo = normalizarTipoComportamiento(this.form.tipoComportamiento);
+    return this.tiposComportamiento.find(t => t.value === tipo)?.descripcion ?? '';
+  }
+
+  get esInventarioCompra(): boolean {
+    return normalizarTipoComportamiento(this.form.tipoComportamiento) === TIPO_COMPORTAMIENTO.INVENTARIO;
+  }
+
+  onNaturalezaChange(): void {
+    if (this.form.esServicio) {
+      this.form.controlarStock = false;
+      if (!this.producto) {
+        this.form.tipoComportamiento = TIPO_COMPORTAMIENTO.GASTO;
+      }
     }
   }
 
   CloseModal() {
     this.modalCtrl.dismiss();
   }
-abrirSelectorImagen() {
-  this.fileInput.nativeElement.click();
-}
+
+  abrirSelectorImagen() {
+    this.fileInput.nativeElement.click();
+  }
+
   onFileSelected(event: any) {
     this.imagenFile = event.target.files[0];
     if (this.imagenFile) {
@@ -106,99 +133,81 @@ abrirSelectorImagen() {
     }
   }
 
- async guardarProducto() {
-
-  if (!this.form.nombre || !this.form.nombre.trim()) {
-    const toast = await this.toastCtrl.create({
-      message: 'El nombre del producto es obligatorio.',
-      duration: 2000,
-      color: 'warning'
-    });
-    toast.present();
-    return;
-  }
-
-  const formData = new FormData();
-
-  // 🔥 ID (CLAVE PARA UPDATE)
-  formData.append('idProducto', String(this.form.idproducto || 0));
-
-  formData.append('nombre', this.form.nombre);
-  formData.append('idCategoria', String(this.form.idCategoria || 0));
-  formData.append('idArea', String(this.form.idArea || 0));
-
-  formData.append('duracionServicio', String(this.form.duracionServicio || 0));
-  formData.append('disponibleEnCitas', String(this.form.disponibleEnCitas ?? true));
-
-  formData.append('Itbis', String(this.form.Itbis ?? false));
-  formData.append('isActivo', String(this.form.isActivo ?? true));
-  formData.append('esServicio', String(this.form.esServicio ?? false));
-formData.append(
-  'tipoOperacion',
-  this.form.tipoOperacion || 'AMBAS'
-);
-  formData.append('idEmpresa', this._Parametro.GetIdEmpresa().toString());
-
-  // 🔥 SEGÚN TIPO
-  if (this.form.esServicio) {
-
-    formData.append('precio', String(this.form.precioVenta || 0));
-    formData.append('costo', '0');
-    formData.append('cantidad', '0');
-    formData.append('codigoBarra', 'N/A');
-    formData.append('controlarStock', 'false');
-
-  } else {
-
-    formData.append('precio', String(this.form.precioVenta || 0));
-    formData.append('costo', String(this.form.costo || 0));
-    formData.append(
-      'cantidad',
-      String(this.obtenerCantidadParaGuardar())
-    );
-    formData.append('codigoBarra', this.form.codigoBarra || 'N/A');
-    formData.append('controlarStock', String(this.form.controlarStock ?? false));
-  }
-
-  // 🔥 IMAGEN
-  if (this.imagenFile) {
-    formData.append('imagen', this.imagenFile, this.imagenFile.name);
-  }
-
-  // 🔥 LLAMADA ÚNICA
-  const request = this.productoService.EnviarItem(formData);
-
-  request.subscribe(
-    async (resp: any) => {
-
-      // 🔥 MENSAJE REAL DEL BACKEND
-      const mensaje = typeof resp === 'string'
-        ? resp
-        : resp?.mensaje || 'Operación realizada correctamente';
-
+  async guardarProducto() {
+    if (!this.form.nombre || !this.form.nombre.trim()) {
       const toast = await this.toastCtrl.create({
-        message: mensaje,
+        message: 'El nombre del producto es obligatorio.',
         duration: 2000,
-        color: 'success'
+        color: 'warning'
       });
-
       toast.present();
-
-      this.CloseModal();
-    },
-    async (error) => {
-      console.error('ERROR BACKEND:', error);
-
-      const toast = await this.toastCtrl.create({
-        message: error?.error || 'Error al guardar el producto ❌',
-        duration: 2000,
-        color: 'danger'
-      });
-
-      toast.present();
+      return;
     }
-  );
-}
+
+    const formData = new FormData();
+    const esServicio = !!this.form.esServicio;
+    const tipo = normalizarTipoComportamiento(this.form.tipoComportamiento);
+
+    formData.append('idProducto', String(this.form.idproducto || 0));
+    formData.append('nombre', this.form.nombre);
+    formData.append('idCategoria', String(this.form.idCategoria || 0));
+    formData.append('idArea', String(this.form.idArea || 0));
+    formData.append('duracionServicio', String(this.form.duracionServicio || 0));
+    formData.append('disponibleEnCitas', String(this.form.disponibleEnCitas ?? true));
+    formData.append('Itbis', String(this.form.Itbis ?? false));
+    formData.append('isActivo', String(this.form.isActivo ?? true));
+    formData.append('esServicio', String(esServicio));
+    formData.append('tipoComportamiento', tipo);
+    formData.append('tipoOperacion', this.form.tipoOperacion || 'AMBAS');
+    formData.append('idEmpresa', this._Parametro.GetIdEmpresa().toString());
+
+    if (esServicio) {
+      formData.append('precio', String(this.form.precioVenta || 0));
+      formData.append('costo', '0');
+      formData.append('cantidad', '0');
+      formData.append('codigoBarra', 'N/A');
+      formData.append('controlarStock', 'false');
+    } else if (tipo === TIPO_COMPORTAMIENTO.INVENTARIO) {
+      formData.append('precio', String(this.form.precioVenta || 0));
+      formData.append('costo', String(this.form.costo || 0));
+      formData.append('cantidad', String(this.obtenerCantidadParaGuardar()));
+      formData.append('codigoBarra', this.form.codigoBarra || 'N/A');
+      formData.append('controlarStock', String(this.form.controlarStock ?? true));
+    } else {
+      formData.append('precio', String(this.form.precioVenta || 0));
+      formData.append('costo', String(this.form.costo || 0));
+      formData.append('cantidad', String(this.obtenerCantidadParaGuardar()));
+      formData.append('codigoBarra', this.form.codigoBarra || 'N/A');
+      formData.append('controlarStock', String(this.form.controlarStock ?? false));
+    }
+
+    if (this.imagenFile) {
+      formData.append('imagen', this.imagenFile, this.imagenFile.name);
+    }
+
+    this.productoService.EnviarItem(formData).subscribe({
+      next: async (resp: any) => {
+        const mensaje = typeof resp === 'string'
+          ? resp
+          : resp?.mensaje || resp?.message || 'Operación realizada correctamente';
+        const toast = await this.toastCtrl.create({
+          message: mensaje,
+          duration: 2000,
+          color: 'success'
+        });
+        toast.present();
+        this.CloseModal();
+      },
+      error: async (error) => {
+        const toast = await this.toastCtrl.create({
+          message: error?.error?.message || error?.error || 'Error al guardar el producto',
+          duration: 2000,
+          color: 'danger'
+        });
+        toast.present();
+      }
+    });
+  }
 
   onToggleChange(event: CustomEvent) {
     this.form.isActivo = event.detail.checked;
@@ -208,11 +217,26 @@ formData.append(
     this.form.controlarStock = event.detail.checked;
   }
 
+  async abrirHistorialCompras() {
+    const id = Number(this.form.idproducto || this.producto?.idProducto || 0);
+    if (id <= 0) {
+      return;
+    }
+    const modal = await this.modalCtrl.create({
+      component: AnalisisProductoProveedorComponent,
+      cssClass: 'modal-gasto',
+      componentProps: {
+        esModal: true,
+        idProductoModal: id
+      }
+    });
+    await modal.present();
+  }
+
   private obtenerCantidadParaGuardar(): number {
     if (this.form.idproducto > 0) {
       return Number(this.producto?.cantidad ?? this.form.cantidad ?? 0);
     }
-
     return 0;
   }
 }

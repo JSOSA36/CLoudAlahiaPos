@@ -1,0 +1,19 @@
+ion-content {
+  --background: #f3f6fb;
+}
+
+.header-row {
+  border-bottom: 2px solid #2563eb;
+  font-size: 0.85rem;
+}
+
+.data-row {
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.totals-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px solid #facc15;
+}

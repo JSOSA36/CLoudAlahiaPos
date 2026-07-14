@@ -1,0 +1,119 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Reporte de productos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rpt-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="rpt-page">
+    <section class="rpt-filtros">
+      <div class="rpt-field" style="flex:2">
+        <label>Buscar</label>
+        <ion-input
+          [(ngModel)]="filtro"
+          placeholder="Nombre, código, categoría…">
+        </ion-input>
+      </div>
+      <div class="rpt-field">
+        <label>Activos</label>
+        <ion-select interface="popover" [(ngModel)]="soloActivos">
+          <ion-select-option [value]="true">Solo activos</ion-select-option>
+          <ion-select-option [value]="false">Todos</ion-select-option>
+        </ion-select>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Actualizar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rpt-chips">
+      <button
+        type="button"
+        class="rpt-chip"
+        *ngFor="let c of chips"
+        [class.active]="filtroTipo === c.codigo"
+        (click)="filtroTipo = c.codigo">
+        {{ c.etiqueta }}
+      </button>
+    </div>
+
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando productos…
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen">
+        <div>
+          <span class="label">Registros</span>
+          <strong>{{ resumen.total }}</strong>
+        </div>
+        <div>
+          <span class="label">Productos</span>
+          <strong>{{ resumen.productos }}</strong>
+        </div>
+        <div>
+          <span class="label">Servicios</span>
+          <strong>{{ resumen.servicios }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Valor inventario</span>
+          <strong>{{ resumen.valorInventario | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <p class="rpt-hint">
+        Valor inventario solo incluye productos con comportamiento Inventario (existencias × costo).
+      </p>
+
+      <div class="rpt-empty" *ngIf="!filtrados.length">
+        No hay productos con este filtro.
+      </div>
+
+      <div class="rpt-table-wrap" *ngIf="filtrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Comportamiento</th>
+              <th>Categoría</th>
+              <th class="num">Existencia</th>
+              <th class="num">Costo</th>
+              <th class="num">Venta</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filtrados">
+              <td>{{ p.codigoBarra || '—' }}</td>
+              <td>{{ p.nombre }}</td>
+              <td>{{ p.esServicio ? 'Servicio' : 'Producto' }}</td>
+              <td>{{ etiquetaTipo(p.tipoComportamiento) }}</td>
+              <td>{{ nombreCategoria(p) }}</td>
+              <td class="num">{{ p.cantidad | number:'1.0-2' }}</td>
+              <td class="num">{{ p.precioCompra | number:'1.2-2' }}</td>
+              <td class="num">{{ p.precioVenta | number:'1.2-2' }}</td>
+              <td>
+                <span class="rpt-badge" [class.primary]="p.isActivo">
+                  {{ p.isActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

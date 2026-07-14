@@ -1,0 +1,115 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="af-title-wrap">
+        <span>Reporte de activos fijos</span>
+        <small *ngIf="!cargando">{{ filtrados.length }} registro(s)</small>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="af-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="af-page">
+    <section class="af-resumen" *ngIf="resumen as r">
+      <div>
+        <span class="label">Valor activos</span>
+        <strong>{{ r.valorActivosFijos | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+      <div>
+        <span class="label">Cantidad</span>
+        <strong>{{ r.cantidadActivos }}</strong>
+      </div>
+      <div>
+        <span class="label">Pendiente datos</span>
+        <strong [class.warn]="r.cantidadPendienteDatos > 0">{{ r.cantidadPendienteDatos }}</strong>
+      </div>
+      <div>
+        <span class="label">Dados de baja</span>
+        <strong>{{ r.cantidadDadosDeBaja }}</strong>
+      </div>
+    </section>
+
+    <p class="af-hint">
+      Los activos se generan al confirmar la recepción física de líneas con comportamiento Activo fijo.
+      No forman parte del valor de inventario ni de AlmacenExistencia.
+    </p>
+
+    <div class="af-toolbar">
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        placeholder="Código, serie, responsable, compra…"
+        debounce="250"
+        show-clear-button="focus">
+      </ion-searchbar>
+
+      <div class="af-chips">
+        <button
+          type="button"
+          class="af-chip"
+          *ngFor="let c of chips"
+          [class.active]="filtroEstado === c.codigo"
+          (click)="filtroEstado = c.codigo">
+          {{ c.etiqueta }}
+        </button>
+      </div>
+    </div>
+
+    <div class="af-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando activos…
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="af-empty" *ngIf="!filtrados.length">
+        <ion-icon name="desktop-outline"></ion-icon>
+        <h3 *ngIf="!activos.length">Aún no hay activos fijos</h3>
+        <h3 *ngIf="activos.length">Sin resultados con este filtro</h3>
+        <p *ngIf="!activos.length">
+          Reciba una compra con líneas tipo Activo fijo desde Almacén para darlos de alta.
+        </p>
+      </div>
+
+      <div class="af-table-wrap" *ngIf="filtrados.length">
+        <table class="af-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Serie</th>
+              <th>Estado</th>
+              <th class="num">Valor</th>
+              <th>Ubicación</th>
+              <th>Compra</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of filtrados" (click)="abrir(a)">
+              <td><strong>{{ a.codigoActivo }}</strong></td>
+              <td>
+                <div>{{ a.descripcion }}</div>
+                <small *ngIf="a.responsable">{{ a.responsable }}</small>
+              </td>
+              <td>{{ a.numeroSerie || '—' }}</td>
+              <td>
+                <span class="af-badge" [ngClass]="claseEstado(a.estado)">
+                  {{ etiquetaEstado(a.estado) }}
+                </span>
+              </td>
+              <td class="num">{{ a.valorAdquisicion | number:'1.2-2' }}</td>
+              <td>{{ a.ubicacion || '—' }}</td>
+              <td>{{ a.numeroDocumentoCompra || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

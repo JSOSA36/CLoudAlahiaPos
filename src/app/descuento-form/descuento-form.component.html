@@ -50,15 +50,20 @@
       </ion-grid>
 
       <ion-item lines="full">
-        <ion-label>Aplicar a todos los servicios</ion-label>
+        <ion-label>Aplicar a todos los productos</ion-label>
         <ion-toggle formControlName="aplicaATodos"></ion-toggle>
       </ion-item>
 
     </div>
 
-    <!-- SERVICIOS (CON SCROLL) -->
+  <p *ngIf="!form.value.aplicaATodos" class="scope-hint">
+    Elija productos, categorías y/o áreas. En el POS se aplica por prioridad:
+    producto → categoría → área.
+  </p>
+
+    <!-- PRODUCTOS -->
     <div *ngIf="!form.value.aplicaATodos" class="section-card scroll-card">
-      <div class="section-title">SERVICIOS</div>
+      <div class="section-title">PRODUCTOS</div>
 
       <div class="item-row" *ngFor="let s of productos">
         {{ s.descripcion }}
@@ -69,9 +74,22 @@
       </div>
     </div>
 
-    <!-- ÁREAS (CON SCROLL) -->
-    <div class="section-card scroll-card">
-      <div class="section-title">ÁREAS</div>
+    <!-- CATEGORÍAS -->
+    <div *ngIf="!form.value.aplicaATodos" class="section-card scroll-card">
+      <div class="section-title">CATEGORÍAS</div>
+
+      <div class="item-row" *ngFor="let c of categorias">
+        {{ c.nombre }}
+        <ion-checkbox
+          [checked]="categoriasSeleccionadas.includes(c.idCategoria)"
+          (ionChange)="toggleCategoria(c.idCategoria)">
+        </ion-checkbox>
+      </div>
+    </div>
+
+    <!-- ÁREAS -->
+    <div *ngIf="!form.value.aplicaATodos" class="section-card scroll-card">
+      <div class="section-title">ÁREAS (opcional)</div>
 
       <div class="item-row" *ngFor="let a of areas">
         {{ a.nombre }}

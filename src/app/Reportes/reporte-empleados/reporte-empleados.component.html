@@ -1,0 +1,96 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Reporte de empleados</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rpt-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="rpt-page">
+    <section class="rpt-filtros">
+      <div class="rpt-field" style="flex:2">
+        <label>Buscar</label>
+        <ion-input
+          [(ngModel)]="filtro"
+          placeholder="Nombre, ocupación, celular…">
+        </ion-input>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Actualizar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rpt-chips">
+      <button
+        type="button"
+        class="rpt-chip"
+        *ngFor="let c of chips"
+        [class.active]="filtroEstado === c.codigo"
+        (click)="filtroEstado = c.codigo">
+        {{ c.etiqueta }}
+      </button>
+    </div>
+
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando empleados…
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen">
+        <div>
+          <span class="label">Total</span>
+          <strong>{{ resumen.total }}</strong>
+        </div>
+        <div>
+          <span class="label">Activos</span>
+          <strong>{{ resumen.activos }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Inactivos</span>
+          <strong>{{ resumen.inactivos }}</strong>
+        </div>
+      </section>
+
+      <div class="rpt-empty" *ngIf="!filtrados.length">
+        No hay empleados con este filtro.
+      </div>
+
+      <div class="rpt-table-wrap" *ngIf="filtrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Ocupación</th>
+              <th>Celular</th>
+              <th>Dirección</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of filtrados">
+              <td>{{ e.nombre }}</td>
+              <td>{{ e.ocupacion || '—' }}</td>
+              <td>{{ e.celular || '—' }}</td>
+              <td>{{ e.direccion || '—' }}</td>
+              <td>
+                <span class="rpt-badge" [class.primary]="e.estado">
+                  {{ e.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

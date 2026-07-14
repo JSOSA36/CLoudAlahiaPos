@@ -1,0 +1,10 @@
+---
+description: Solo base de datos de desarrollo (AlahiaPos_Dev); Prod requiere autorización explícita
+alwaysApply: true
+---
+
+# Base de datos: solo Desarrollo
+
+- **Default:** todos los cambios de datos, scripts SQL y pruebas que toquen SQL van contra **`AlahiaPos_Dev`**.
+- **Prohibido** usar **`AlahiaPos_Prod`** salvo autorización **explícita** del usuario en ese mensaje.
+- Si hace falta tocar Prod: pedir autorización y no ejecutar hasta tenerla.

@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Proveedores</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirForm()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar [(ngModel)]="filtro" (ionInput)="filtrar()" placeholder="Buscar proveedor..."></ion-searchbar>
+    <ion-item lines="none">
+      <ion-label>Solo activos</ion-label>
+      <ion-toggle [(ngModel)]="soloActivos" (ionChange)="cargar()"></ion-toggle>
+    </ion-item>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let p of filtrados">
+      <ion-label>
+        <h2>{{ p.nombreComercial }}</h2>
+        <p>RNC: {{ p.rnc || '—' }} · {{ p.telefono || '—' }}</p>
+        <p *ngIf="!p.isActivo"><ion-badge color="medium">Inactivo</ion-badge></p>
+      </ion-label>
+      <ion-button fill="clear" slot="end" (click)="abrirForm(p)">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="danger" slot="end" *ngIf="p.isActivo" (click)="desactivar(p)">
+        <ion-icon name="ban-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

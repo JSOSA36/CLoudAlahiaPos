@@ -3,6 +3,7 @@ export class productos
          idProducto:number=0;
 
         codigoBarra:string="";
+        tipoComportamiento = 'Inventario';
         
 _descuentoTipo?: string
 _descuentoValor?: number

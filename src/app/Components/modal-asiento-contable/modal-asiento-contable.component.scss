@@ -1,0 +1,17 @@
+ion-content {
+  --background: #f3f6fb;
+}
+
+.linea-asiento {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 12px;
+  background: white;
+}
+
+.montos-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}

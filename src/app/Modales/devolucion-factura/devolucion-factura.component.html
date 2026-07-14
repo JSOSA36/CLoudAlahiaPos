@@ -133,7 +133,9 @@
 
   </ion-item>
 
-  <div class="total-box">
+  <div
+    class="total-box"
+    *ngIf="lineas.length">
 
     <span>
 
@@ -151,8 +153,27 @@
 
   <ion-button
     expand="block"
+    fill="outline"
+    color="primary"
+    class="btn-preview"
+    *ngIf="lineas.length"
+    [disabled]="procesando || !hayLineasSeleccionadas"
+    (click)="verVistaPrevia()">
+
+    <ion-icon
+      name="eye-outline"
+      slot="start">
+    </ion-icon>
+
+    Vista previa del recibo
+
+  </ion-button>
+
+  <ion-button
+    expand="block"
     color="danger"
     class="btn-confirmar"
+    *ngIf="lineas.length"
     [disabled]="procesando || !hayLineasSeleccionadas"
     (click)="confirmarDevolucion()">
 
@@ -162,7 +183,7 @@
       slot="start">
     </ion-spinner>
 
-    Generar nota de crédito e imprimir
+    Generar nota de crédito
 
   </ion-button>
 

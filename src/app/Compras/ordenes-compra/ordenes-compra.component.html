@@ -1,0 +1,110 @@
+<ion-header class="fc-list-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="fc-title-wrap">
+        <span>Ordenes de Compra</span>
+        <small *ngIf="!cargando">{{ totalDocumentos }} documento(s)</small>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="nueva()" aria-label="Nueva orden">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fc-list-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="fc-list-page">
+    <div class="fc-toolbar-card">
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        placeholder="Buscar por OC, proveedor..."
+        debounce="250"
+        show-clear-button="focus">
+      </ion-searchbar>
+
+      <div class="fc-chips" role="tablist">
+        <button
+          type="button"
+          class="fc-chip"
+          *ngFor="let c of chips"
+          [class.active]="filtroEstado === c.codigo"
+          (click)="filtroEstado = c.codigo">
+          {{ c.etiqueta }}
+          <span class="fc-chip-count" *ngIf="c.codigo === 'BORRADOR' && cantidadBorradores">
+            {{ cantidadBorradores }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="fc-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando órdenes…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="fc-empty" *ngIf="!filtradas.length">
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <h3 *ngIf="!ordenes.length">Aún no hay órdenes de compra</h3>
+        <h3 *ngIf="ordenes.length">Sin resultados con este filtro</h3>
+        <p *ngIf="!ordenes.length">
+          Crea una OC, emítela (OC-0001) y envíala al proveedor. Luego genera la factura de compra.
+        </p>
+        <ion-button *ngIf="!ordenes.length" color="primary" (click)="nueva()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Nueva orden
+        </ion-button>
+      </div>
+
+      <ion-grid class="fc-grid" *ngIf="filtradas.length">
+        <ion-row>
+          <ion-col size="12" size-md="6" size-lg="4" *ngFor="let f of filtradas">
+            <article class="fc-card" (click)="abrir(f)">
+              <header class="fc-card-top">
+                <div class="fc-card-id">
+                  <strong>{{ tituloDocumento(f) }}</strong>
+                  <span class="fc-date" *ngIf="f.fechaDocumento">
+                    {{ f.fechaDocumento | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+                <div class="fc-card-badges">
+                  <span class="fc-badge" [ngClass]="claseEstado(f.estado)">
+                    {{ etiquetaEstado(f.estado) }}
+                  </span>
+                </div>
+              </header>
+
+              <div class="fc-card-body">
+                <div class="fc-proveedor">
+                  <ion-icon name="business-outline"></ion-icon>
+                  <div>
+                    <strong>{{ f.proveedorNombre || 'Sin proveedor' }}</strong>
+                  </div>
+                </div>
+                <div class="fc-meta">
+                  <div>
+                    <span>Total</span>
+                    <strong>{{ f.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+                  </div>
+                  <div *ngIf="f.fechaEnvioProveedor">
+                    <span>Enviada</span>
+                    <strong>{{ f.fechaEnvioProveedor | date:'dd/MM/yyyy' }}</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+  </div>
+</ion-content>

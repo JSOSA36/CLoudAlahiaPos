@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/activos-fijos"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      {{ activo?.codigoActivo || 'Detalle activo' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="guardar()" [disabled]="guardando || cargando || !activo">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="afd-content">
+  <div class="afd-loading" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    Cargando…
+  </div>
+
+  <div class="afd-page" *ngIf="!cargando && activo as a">
+    <section class="afd-meta">
+      <div>
+        <span class="label">Valor adquisición</span>
+        <strong>{{ a.valorAdquisicion | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+      <div>
+        <span class="label">Estado</span>
+        <strong>{{ etiquetaEstado(a.estado) }}</strong>
+      </div>
+      <div>
+        <span class="label">Fecha adquisición</span>
+        <strong>{{ a.fechaAdquisicion | date:'dd/MM/yyyy' }}</strong>
+      </div>
+      <div>
+        <span class="label">Recepción</span>
+        <strong>{{ a.fechaRecepcion ? (a.fechaRecepcion | date:'dd/MM/yyyy HH:mm') : '—' }}</strong>
+      </div>
+    </section>
+
+    <section class="afd-card">
+      <h3>Trazabilidad</h3>
+      <div class="afd-row">
+        <span>Producto catálogo</span>
+        <strong>{{ a.nombreProducto || ('#' + (a.idProducto || '—')) }}</strong>
+      </div>
+      <div class="afd-row">
+        <span>Factura compra</span>
+        <strong class="link" *ngIf="a.idOrdenCompraHeader" (click)="irCompra()">
+          {{ a.numeroDocumentoCompra || ('FACTC #' + a.idOrdenCompraHeader) }}
+        </strong>
+        <strong *ngIf="!a.idOrdenCompraHeader">—</strong>
+      </div>
+      <div class="afd-row">
+        <span>Línea compra</span>
+        <strong>{{ a.idOrdenCompraDetalle || '—' }}</strong>
+      </div>
+      <div class="afd-row">
+        <span>Almacén recepción</span>
+        <strong>{{ a.nombreAlmacenRecepcion || '—' }}</strong>
+      </div>
+    </section>
+
+    <section class="afd-card">
+      <h3>Datos del activo</h3>
+
+      <label>Descripción</label>
+      <ion-input [(ngModel)]="form.descripcion"></ion-input>
+
+      <div class="afd-grid">
+        <div>
+          <label>Marca</label>
+          <ion-input [(ngModel)]="form.marca"></ion-input>
+        </div>
+        <div>
+          <label>Modelo</label>
+          <ion-input [(ngModel)]="form.modelo"></ion-input>
+        </div>
+      </div>
+
+      <label>Número de serie</label>
+      <ion-input [(ngModel)]="form.numeroSerie"></ion-input>
+
+      <div class="afd-grid">
+        <div>
+          <label>Ubicación (almacén de recepción)</label>
+          <ion-input
+            [(ngModel)]="form.ubicacion"
+            [placeholder]="activo.nombreAlmacenRecepcion || 'Almacén de recepción'">
+          </ion-input>
+          <small class="afd-hint" *ngIf="activo.nombreAlmacenRecepcion">
+            Traída del almacén: {{ activo.nombreAlmacenRecepcion }}. Puedes afinar (oficina, área, etc.).
+          </small>
+        </div>
+        <div>
+          <label>Responsable</label>
+          <ion-input [(ngModel)]="form.responsable"></ion-input>
+        </div>
+      </div>
+
+      <div class="afd-grid">
+        <div>
+          <label>Valor residual</label>
+          <ion-input type="number" [(ngModel)]="form.valorResidual"></ion-input>
+        </div>
+        <div>
+          <label>Vida útil (meses)</label>
+          <ion-input type="number" [(ngModel)]="form.vidaUtilMeses"></ion-input>
+        </div>
+      </div>
+
+      <label>Estado</label>
+      <ion-select [(ngModel)]="form.estado" interface="popover">
+        <ion-select-option *ngFor="let e of estados" [value]="e.codigo">
+          {{ e.etiqueta }}
+        </ion-select-option>
+      </ion-select>
+
+      <label>Observación</label>
+      <ion-textarea [(ngModel)]="form.observacion" autoGrow="true" rows="3"></ion-textarea>
+
+      <ion-button expand="block" class="afd-save" (click)="guardar()" [disabled]="guardando">
+        Guardar cambios
+      </ion-button>
+    </section>
+  </div>
+</ion-content>

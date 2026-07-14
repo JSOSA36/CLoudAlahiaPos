@@ -1,0 +1,107 @@
+.page-header {
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+  }
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.empty {
+  text-align: center;
+  color: #64748b;
+  padding: 32px 16px;
+}
+
+.loader {
+  display: block;
+  margin: 24px auto;
+}
+
+.nc-card {
+  margin-bottom: 14px;
+}
+
+.nc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.total {
+  color: #15803d;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+
+  span {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  strong {
+    font-size: 14px;
+    color: #0f172a;
+  }
+
+  .sin-ncf {
+    color: #b45309;
+  }
+}
+
+.productos-devueltos {
+  grid-column: 1 / -1;
+
+  strong {
+    display: block;
+    margin-top: 2px;
+    line-height: 1.35;
+    font-weight: 700;
+    color: #0f172a;
+  }
+}
+
+.observacion {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 13px;
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .filtros {
+    grid-template-columns: 1fr;
+  }
+}

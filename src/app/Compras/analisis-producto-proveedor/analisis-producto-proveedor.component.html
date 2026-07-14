@@ -1,0 +1,183 @@
+<ion-header *ngIf="!esModal">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Análisis de Productos por Proveedor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-header *ngIf="esModal">
+  <ion-toolbar color="primary">
+    <ion-title>Historial de Compras</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ap-content">
+  <div class="ap-page">
+    <section class="ap-filters" *ngIf="!esModal">
+      <div class="ap-field ap-field-producto">
+        <label>Producto</label>
+        <ion-input
+          [(ngModel)]="filtroProducto"
+          placeholder="Buscar producto…"
+          (ionInput)="idProducto = undefined">
+        </ion-input>
+        <div class="ap-suggest" *ngIf="!idProducto && filtroProducto">
+          <button
+            type="button"
+            *ngFor="let p of productosFiltrados"
+            (click)="seleccionarProducto(p)">
+            {{ p.nombre }}
+          </button>
+        </div>
+      </div>
+      <div class="ap-field">
+        <label>Proveedor</label>
+        <ion-select [(ngModel)]="idProveedor" interface="popover" placeholder="Todos">
+          <ion-select-option [value]="undefined">Todos</ion-select-option>
+          <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
+            {{ p.nombreComercial }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+      <div class="ap-field">
+        <label>Almacén</label>
+        <ion-select [(ngModel)]="idAlmacen" interface="popover" placeholder="Todos">
+          <ion-select-option [value]="undefined">Todos</ion-select-option>
+          <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
+            {{ a.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+      <div class="ap-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="desde"></ion-input>
+      </div>
+      <div class="ap-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+      </div>
+      <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
+        Analizar
+      </ion-button>
+    </section>
+
+    <div class="ap-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <ng-container *ngIf="data && !cargando">
+      <header class="ap-head">
+        <h1>{{ data.productoNombre || 'Producto' }}</h1>
+        <p>Análisis desde Facturas de Compra confirmadas (sin catálogo Producto-Proveedor)</p>
+      </header>
+
+      <div class="ap-kpis">
+        <div>
+          <span>Último precio</span>
+          <strong>{{ data.indicadores.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>{{ data.indicadores.ultimoProveedor }} · {{ data.indicadores.ultimaFecha | date:'dd/MM/yyyy' }}</small>
+        </div>
+        <div>
+          <span>Promedio</span>
+          <strong>{{ data.indicadores.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Mejor precio</span>
+          <strong>{{ data.indicadores.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>{{ data.indicadores.proveedorMasBarato }}</small>
+        </div>
+        <div>
+          <span>Veces / más frecuente</span>
+          <strong>{{ data.indicadores.vecesComprado }}</strong>
+          <small>{{ data.indicadores.proveedorMasFrecuente }}</small>
+        </div>
+      </div>
+
+      <h2>Resumen por proveedor</h2>
+      <div class="ap-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th class="num">Último</th>
+              <th class="num">Promedio</th>
+              <th class="num">Mejor</th>
+              <th class="num">Veces</th>
+              <th class="num">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of data.resumenProveedores">
+              <td>{{ r.proveedorNombre }}</td>
+              <td class="num">{{ r.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ r.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ r.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ r.vecesComprado }}</td>
+              <td class="num">{{ r.cantidadTotal }}</td>
+            </tr>
+            <tr *ngIf="!data.resumenProveedores.length">
+              <td colspan="6">Sin compras en el período</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Evolución de precio</h2>
+      <div class="ap-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Proveedor</th>
+              <th>Documento</th>
+              <th class="num">Precio unitario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of data.evolucionPrecio">
+              <td>{{ e.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ e.proveedorNombre }}</td>
+              <td>{{ e.numeroDocumento }}</td>
+              <td class="num">{{ e.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Historial de compras</h2>
+      <div class="ap-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Proveedor</th>
+              <th>Documento</th>
+              <th class="num">Cantidad</th>
+              <th class="num">Precio unitario</th>
+              <th class="num">ITBIS</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of data.historial">
+              <td>{{ h.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ h.proveedorNombre }}</td>
+              <td>{{ h.numeroDocumento }}</td>
+              <td class="num">{{ h.cantidad }}</td>
+              <td class="num">{{ h.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ h.itbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ h.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

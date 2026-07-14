@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Balance de Comprobación</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Período de consulta</strong></ion-card-title>
+    </ion-card-header>
+
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioBalance">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioBalance" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finBalance">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finBalance" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && resumen">
+    <ion-card-header>
+      <ion-card-title>Balance de Comprobación</ion-card-title>
+      <ion-card-subtitle>
+        {{ resumen.desde | date:'dd/MM/yyyy' }} — {{ resumen.hasta | date:'dd/MM/yyyy' }}
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid *ngIf="resumen.lineas.length > 0">
+        <ion-row class="header-row">
+          <ion-col size="2"><strong>Código</strong></ion-col>
+          <ion-col size="3"><strong>Cuenta</strong></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>Saldo Ini.</strong></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>Débitos</strong></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>Créditos</strong></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>Saldo Fin.</strong></ion-col>
+        </ion-row>
+        <ion-row *ngFor="let l of resumen.lineas" class="data-row">
+          <ion-col size="2">{{ l.codigoCuenta }}</ion-col>
+          <ion-col size="3">{{ l.nombreCuenta }}</ion-col>
+          <ion-col size="1.75" class="ion-text-end">{{ l.saldoInicial | currency:'DOP' }}</ion-col>
+          <ion-col size="1.75" class="ion-text-end">{{ l.totalDebito | currency:'DOP' }}</ion-col>
+          <ion-col size="1.75" class="ion-text-end">{{ l.totalCredito | currency:'DOP' }}</ion-col>
+          <ion-col size="1.75" class="ion-text-end">{{ l.saldoFinal | currency:'DOP' }}</ion-col>
+        </ion-row>
+        <ion-row class="total-row">
+          <ion-col size="5" class="ion-text-end"><strong>Totales del período</strong></ion-col>
+          <ion-col size="1.75"></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>{{ resumen.totalDebitos | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="1.75" class="ion-text-end"><strong>{{ resumen.totalCreditos | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="1.75"></ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <p *ngIf="resumen.lineas.length === 0" class="ion-text-center">
+        Sin movimientos en el período seleccionado.
+      </p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

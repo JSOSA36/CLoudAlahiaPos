@@ -1,0 +1,98 @@
+.ticket-page {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px 90px;
+  background: #f1f5f9;
+  min-height: 100%;
+}
+
+.ticket-preview {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  padding: 18px 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: #111;
+  line-height: 1.45;
+}
+
+.center {
+  text-align: center;
+}
+
+.empresa {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.small {
+  margin: 2px 0;
+  font-size: 12px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+.preview-tag {
+  color: #b45309;
+  font-weight: 700;
+  font-size: 12px;
+  margin: 4px 0 8px;
+}
+
+.divider {
+  margin: 8px 0;
+  letter-spacing: 1px;
+}
+
+.line-header {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.line-item {
+  margin-bottom: 8px;
+}
+
+.line-producto {
+  margin: 0;
+}
+
+.line-monto {
+  margin: 2px 0 0 24px;
+}
+
+.total {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.footer-msg {
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .ticket-page {
+    background: #fff;
+    padding: 0;
+  }
+
+  .ticket-preview {
+    box-shadow: none;
+    max-width: none;
+    width: 80mm;
+  }
+}

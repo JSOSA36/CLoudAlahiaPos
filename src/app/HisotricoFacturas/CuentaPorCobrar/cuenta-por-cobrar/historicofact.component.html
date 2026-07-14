@@ -399,9 +399,11 @@
 
               <div class="badges">
 
-                <!-- 🔥 CLIENTE -->
+                <!-- 🔥 TIPO COMPROBANTE -->
 
-                <span class="badge cliente">
+                <span
+                  class="badge cliente"
+                  *ngIf="iten.ncf || iten.nCF">
 
                   🟡
                   {{
@@ -419,6 +421,15 @@
                   class="badge anulada">
 
                   ❌ Anulada
+
+                </span>
+
+                <span
+                  *ngIf="iten.estaCancelada && iten.motivoAnulacion"
+                  class="badge motivo-anulacion"
+                  [title]="iten.motivoAnulacion">
+
+                  {{ iten.motivoAnulacion }}
 
                 </span>
 
@@ -473,11 +484,7 @@
                 size="small"
                 color="danger"
                 fill="solid"
-                (click)="
-                  AnularFact(
-                    iten.idFacturaHeader
-                  )
-                "
+                (click)="abrirAnulacion(iten)"
                 [disabled]="iten.estaCancelada">
 
                 <ion-icon
@@ -526,7 +533,7 @@
                 <b>
 
                   {{
-                    itenDetalle.productos.nombre
+                    itenDetalle.productos?.nombre
                   }}
 
                 </b>
@@ -543,8 +550,7 @@
                 Precio:
 
                 {{
-                  itenDetalle.productos
-                  .precioVenta
+                  itenDetalle.productos?.precioVenta
                   | currency
                 }}
 

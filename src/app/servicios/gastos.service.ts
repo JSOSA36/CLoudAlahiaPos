@@ -32,9 +32,14 @@ export class GastosService {
     return this.http.get<any[]>(`${this.baseUrl}/${idEmpresa}`);
   }
 
-  /** 🔹 Eliminar un gasto por ID */
-  eliminarGasto(idGasto: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${idGasto}`);
+  /** 🔹 Anular un gasto con motivo */
+  anularGasto(payload: {
+    idGasto: number;
+    idEmpresa: number;
+    motivoAnulacion: string;
+    usuarioAnulo?: string;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/AnularGasto`, payload, this.httpOptions);
   }
 
   /** 🔹 Actualizar un gasto existente */

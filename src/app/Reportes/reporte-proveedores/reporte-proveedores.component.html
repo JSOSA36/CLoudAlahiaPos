@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Reporte de proveedores</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rpt-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="rpt-page">
+    <section class="rpt-filtros">
+      <div class="rpt-field" style="flex:2">
+        <label>Buscar</label>
+        <ion-input
+          [(ngModel)]="filtro"
+          placeholder="Nombre, RNC, teléfono…">
+        </ion-input>
+      </div>
+      <div class="rpt-field">
+        <label>Estado</label>
+        <ion-select
+          interface="popover"
+          [(ngModel)]="soloActivos"
+          (ngModelChange)="cargar()">
+          <ion-select-option [value]="false">Todos</ion-select-option>
+          <ion-select-option [value]="true">Solo activos</ion-select-option>
+        </ion-select>
+      </div>
+      <div class="rpt-actions">
+        <ion-button color="primary" (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Actualizar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Cargando proveedores…
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <section class="rpt-resumen">
+        <div>
+          <span class="label">Total</span>
+          <strong>{{ resumen.total }}</strong>
+        </div>
+        <div>
+          <span class="label">Activos</span>
+          <strong>{{ resumen.activos }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Inactivos</span>
+          <strong>{{ resumen.inactivos }}</strong>
+        </div>
+      </section>
+
+      <div class="rpt-empty" *ngIf="!filtrados.length">
+        No hay proveedores con este filtro.
+      </div>
+
+      <div class="rpt-table-wrap" *ngIf="filtrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>RNC</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Dirección</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filtrados">
+              <td>{{ p.nombreComercial }}</td>
+              <td>{{ p.rnc || '—' }}</td>
+              <td>{{ p.telefono || '—' }}</td>
+              <td>{{ p.email || '—' }}</td>
+              <td>{{ p.direccion || '—' }}</td>
+              <td>
+                <span class="rpt-badge" [class.primary]="p.isActivo">
+                  {{ p.isActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

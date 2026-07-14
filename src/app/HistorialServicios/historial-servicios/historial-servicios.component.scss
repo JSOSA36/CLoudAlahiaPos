@@ -1,0 +1,41 @@
+.tabla-wrap {
+  overflow-x: auto;
+}
+
+.tabla-historial {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabla-historial th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tabla-historial tbody tr:hover {
+  background: #f8fafc;
+}
+
+.tabla-historial .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sin-resultados {
+  color: #64748b;
+}
+
+.sin-resultados p {
+  margin-top: 8px;
+}

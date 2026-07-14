@@ -19,7 +19,7 @@ import { RncCLienteDGIIService }
 from '../../servicios/RncCLienteDGII.services';
 import { CajaAperturaService }
 from 'src/app/servicios/caja-apertura.service';
-import { CuentaPorCobrarComponent } from 'src/app/CuentaPorCobrar/cuenta-por-cobrar/cuentaxcobrar.component';
+import { OrdenesComponent } from 'src/app/Ordenes/ordenes/ordenes.component';
 import { AperturaCajaComponent } from 'src/app/Components/apertura-caja/apertura-caja.component';
 import { facturaheader } from 'src/app/models/facturaheader';
 import { facturadetalles } from 'src/app/models/facturadetalles';
@@ -32,6 +32,8 @@ type ItemCarrito = {
 
   precioBase?: number;
   itbisProducto?: number;
+  precioVentaOriginal?: number;
+  descuentoUnitario?: number;
   
   idEmpleadoComision?: number;
 };
@@ -59,6 +61,7 @@ descuentoTipo: 'PORCENTAJE' | 'MONTO' = 'MONTO';
 descuentoValor = 0;
 
 montoDescuento = 0;
+montoDescuentoPromo = 0;
 tasaITBIS: number = 0.18;
 aplicarITBIS: boolean = true;
   public ListadoEmpleados: Empleado[] = [];
@@ -518,10 +521,12 @@ async openModalCobro(imprimirCotizacion = false) {
       det.cantidad = item.cantidad;
       det.subTotal = item.subtotal;
       det.precioOferta = item.precioBase ?? item.precio;
-      det.descuento = 0;
+      det.descuento = item.descuentoUnitario ?? 0;
       det.itbis = item.itbisProducto || 0;
       det.idEmpresa = this.parametro.IdEmpresa;
       det.idEmpleadoComision = item.idEmpleadoComision || 0;
+      // Solo IdProducto: no enviar Productos anidado (API validaba Almacen.Nombre).
+      delete det.productos;
 
       header.facturaDetalles.push(det);
 
@@ -761,6 +766,7 @@ private resetPOS() {
   // Descuentos
   this.descuentoValor = 0;
   this.montoDescuento = 0;
+  this.montoDescuentoPromo = 0;
   this.descuentoTipo = 'MONTO';
 
   // Parámetros temporales
@@ -804,7 +810,16 @@ this.parametro.IdFacturaHeader =
       precioBase: d.precioOferta || d.precio,
       itbisProducto: d.itbis,
       idEmpleadoComision: d.idEmpleadoComision || 0,
-      subtotal: d.subTotal
+      subtotal: d.subTotal,
+      descuentoUnitario: d.descuento > 0 ? d.descuento : undefined,
+      precioVentaOriginal:
+        d.descuento > 0
+          ? +(
+              (d.precioOferta || d.precio) +
+              d.itbis +
+              d.descuento
+            ).toFixed(2)
+          : undefined
     });
 
   });
@@ -845,7 +860,7 @@ private armarCotizacionParaImprimir(
 async abrirOrdenesModal() {
 
   const modal = await this.modal.create({
-    component: CuentaPorCobrarComponent,
+    component: OrdenesComponent,
     cssClass: 'modal-fullscreen',
     componentProps: {
       modo: 'seleccionar',
@@ -866,7 +881,7 @@ async abrirOrdenesModal() {
 async abrirCotizacionesModal() {
 
   const modal = await this.modal.create({
-    component: CuentaPorCobrarComponent,
+    component: OrdenesComponent,
     cssClass: 'modal-fullscreen',
     componentProps: {
       modo: 'seleccionar',
@@ -928,6 +943,7 @@ tipoFactura: this.tipoPago, // 👈 AGREGAR
         cantidad: item.cantidad,
         idEmpleadoComision: item.idEmpleadoComision || 0,
         precioOferta: item.precioBase ?? item.precio,
+        descuento: item.descuentoUnitario ?? 0,
         itbis: item.itbisProducto ?? 0
       }))
     },
@@ -1033,7 +1049,17 @@ recalcularTotales() {
     }, 0).toFixed(2);
 
   // =====================================
-  // 🔥 DESCUENTO
+  // 🔥 DESCUENTO PROMOCIONAL
+  // =====================================
+
+  this.montoDescuentoPromo =
+    +this.carrito.reduce((sum, item) => {
+      return sum +
+        ((item.descuentoUnitario ?? 0) * item.cantidad);
+    }, 0).toFixed(2);
+
+  // =====================================
+  // 🔥 DESCUENTO MANUAL
   // =====================================
 
   if (this.descuentoTipo === 'PORCENTAJE') {
@@ -1173,6 +1199,24 @@ recalcularTotales() {
       });
   }
 
+  tieneDescuentoProducto(prod: productos): boolean {
+    return !!prod._precioOriginal && prod._precioOriginal > prod.precioVenta;
+  }
+
+  getPorcentajeDescuentoProducto(prod: productos): number {
+    if (!this.tieneDescuentoProducto(prod)) {
+      return 0;
+    }
+
+    return Math.round(
+      ((prod._precioOriginal - prod.precioVenta) / prod._precioOriginal) * 100
+    );
+  }
+
+  mostrarBadgeDescuentoProducto(prod: productos): boolean {
+    return this.getPorcentajeDescuentoProducto(prod) > 0;
+  }
+
   limpiarBusqueda() {
     this.busqueda = '';
     this.productosFiltrados = [...this.productos];
@@ -1258,11 +1302,13 @@ recalcularTotales() {
 
   aplicarDescuentoProducto(prod: productos) {
     const idArea = prod.idArea || 0;
+    const idCategoria = prod.idCategoria || 0;
 
     this.descuentoSrv.getAplicado(
       this.parametro.IdEmpresa,
       prod.idProducto,
-      idArea
+      idArea,
+      idCategoria
     )
     .subscribe(resp => {
       if (!resp || !resp.aplica) return;
@@ -1288,6 +1334,7 @@ recalcularTotales() {
 
       (prod as any)._descuentoTipo = resp.tipo;
       (prod as any)._descuentoValor = resp.valor;
+      (prod as any)._nombrePromo = resp.nombreEvento || '';
 
       prod.precioVenta = nuevoPrecio;
     });
@@ -1390,6 +1437,14 @@ if (
   // =====================================
 
   const precioVenta = prod.precioVenta;
+  const precioVentaOriginal =
+    prod._precioOriginal && prod._precioOriginal > precioVenta
+      ? prod._precioOriginal
+      : precioVenta;
+  const descuentoUnitario = Math.max(
+    0,
+    +(precioVentaOriginal - precioVenta).toFixed(2)
+  );
 
   // =====================================
   // 🔥 PRODUCTO TIENE ITBIS
@@ -1456,10 +1511,6 @@ if (
 
     item.cantidad++;
 
-    item.subtotal = +(
-      item.cantidad * precioFinal
-    ).toFixed(2);
-
     this.recalcularTotales();
 
     return;
@@ -1488,7 +1539,13 @@ if (
 
     precioBase: precioBase,
 
-    itbisProducto: itbisProducto
+    itbisProducto: itbisProducto,
+
+    precioVentaOriginal:
+      descuentoUnitario > 0 ? precioVentaOriginal : undefined,
+
+    descuentoUnitario:
+      descuentoUnitario > 0 ? descuentoUnitario : undefined
   });
 
   this.recalcularTotales();
@@ -1608,6 +1665,31 @@ if (
     return base;
   }
 
+  getPrecioOriginalUnitarioItem(item: ItemCarrito): number {
+    if (item.precioVentaOriginal != null && item.precioVentaOriginal > 0) {
+      return item.precioVentaOriginal;
+    }
+
+    return this.getPrecioUnitarioItem(item);
+  }
+
+  getDescuentoUnitarioItem(item: ItemCarrito): number {
+    return item.descuentoUnitario ?? 0;
+  }
+
+  getDescuentoLineaItem(item: ItemCarrito): number {
+    return +(
+      this.getDescuentoUnitarioItem(item) * item.cantidad
+    ).toFixed(2);
+  }
+
+  getSubtotalBruto(): number {
+    return +this.carrito.reduce((sum, item) => {
+      return sum +
+        (this.getPrecioOriginalUnitarioItem(item) * item.cantidad);
+    }, 0).toFixed(2);
+  }
+
   async editarPrecioItem(item: ItemCarrito) {
 
     if (!this.parametro.PuedeEditarPrecioCarrito) {
@@ -1680,6 +1762,9 @@ if (
       item.precio = precioBase;
 
     }
+
+    item.precioVentaOriginal = undefined;
+    item.descuentoUnitario = undefined;
 
     this.recalcularTotales();
   }

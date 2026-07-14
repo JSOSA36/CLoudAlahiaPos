@@ -1,0 +1,39 @@
+ion-content {
+  --background: #f3f6fb;
+}
+
+.seccion {
+  margin-bottom: 1.25rem;
+}
+
+.seccion h3 {
+  color: #1e40af;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.linea {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.ecuacion {
+  border-top: 2px solid #2563eb;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.diferencia {
+  color: #b91c1c;
+}

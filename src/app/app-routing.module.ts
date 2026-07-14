@@ -5,18 +5,23 @@ import { MetodosPagoCuentaComponent } from './Components/metodos-pago-cuenta/met
 
 const routes: Routes = [
   {
+    path: 'dashboard-gerencial',
+    loadChildren: () => import('./dashboard-gerencial/dashboard-gerencial.module').then(m => m.DashboardGerencialModule),
+    canActivate: [AuthGuard]
+  },
+  // Compatibilidad: rutas legacy del dashboard Ionic "folder"
+  {
     path: 'folder',
-    redirectTo: 'folder/Inbox',
+    redirectTo: 'dashboard-gerencial',
     pathMatch: 'full'
   },
   {
     path: 'folder/:id',
-    loadChildren: () => import('./folder/folder.module').then(m => m.FolderPageModule),
-    canActivate: [AuthGuard]
+    redirectTo: 'dashboard-gerencial'
   },
   {
     path: 'productos',
-    loadChildren: () => import('./folder/folder.module').then(m => m.FolderPageModule),
+    loadChildren: () => import('./dashboard-gerencial/dashboard-gerencial.module').then(m => m.DashboardGerencialModule),
     canActivate: [AuthGuard]
   },
    {
@@ -130,7 +135,7 @@ const routes: Routes = [
   
   {
     path: 'Ordenes',
-    loadChildren: () => import('./CuentaPorCobrar/cuenta-por-cobrar/cuentaxcobrar.module').then(m => m.CuentaPorCobrarModule),
+    loadChildren: () => import('./Ordenes/ordenes/ordenes.module').then(m => m.OrdenesModule),
     canActivate: [AuthGuard]
   },
   {
@@ -194,6 +199,16 @@ const routes: Routes = [
   {
     path: 'historicofact',
     loadChildren: () => import('./HisotricoFacturas/CuentaPorCobrar/cuenta-por-cobrar/historicofact.module').then(c => c.HistoricofactModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'listadodevoluciones',
+    loadChildren: () => import('./listado-notas-credito/listado-notas-credito.module').then(m => m.ListadoNotasCreditoModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'notascreditoaplicadas',
+    loadChildren: () => import('./notas-credito-aplicadas/notas-credito-aplicadas.module').then(m => m.NotasCreditoAplicadasModule),
     canActivate: [AuthGuard]
   },
   {
@@ -328,6 +343,12 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'historialservicios',
+    loadChildren: () => import('./HistorialServicios/historial-servicios/historial-servicios.module')
+      .then(m => m.HistorialServiciosModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'cart',
     loadChildren: () => import('./cart/cart.module').then(m => m.CartModule),
     canActivate: [AuthGuard]
@@ -335,6 +356,81 @@ const routes: Routes = [
   {
     path: 'loginkds',
     loadChildren: () => import('./loginkds/loginkds.module').then(m => m.LoginkdsModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidad',
+    loadChildren: () => import('./Components/contabilidad-inicio/contabilidad-inicio.module').then(m => m.ContabilidadInicioModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadcuentas',
+    loadChildren: () => import('./Components/contabilidad-cuentas/contabilidad-cuentas.module').then(m => m.ContabilidadCuentasModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadasientos',
+    loadChildren: () => import('./Components/contabilidad-asientos/contabilidad-asientos.module').then(m => m.ContabilidadAsientosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadlibrodiario',
+    loadChildren: () => import('./Components/contabilidad-libro-diario/contabilidad-libro-diario.module').then(m => m.ContabilidadLibroDiarioModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadmayorgeneral',
+    loadChildren: () => import('./Components/contabilidad-mayor-general/contabilidad-mayor-general.module').then(m => m.ContabilidadMayorGeneralModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadbalancecomprobacion',
+    loadChildren: () => import('./Components/contabilidad-balance-comprobacion/contabilidad-balance-comprobacion.module').then(m => m.ContabilidadBalanceComprobacionModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadestadoresultados',
+    loadChildren: () => import('./Components/contabilidad-estado-resultados/contabilidad-estado-resultados.module').then(m => m.ContabilidadEstadoResultadosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadbalancegeneral',
+    loadChildren: () => import('./Components/contabilidad-balance-general/contabilidad-balance-general.module').then(m => m.ContabilidadBalanceGeneralModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadconsultaasientos',
+    loadChildren: () => import('./Components/contabilidad-consulta-asientos/contabilidad-consulta-asientos.module').then(m => m.ContabilidadConsultaAsientosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadcierre',
+    loadChildren: () => import('./Components/contabilidad-cierre/contabilidad-cierre.module').then(m => m.ContabilidadCierreModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'contabilidadconfiguracionintegracion',
+    loadChildren: () => import('./Components/contabilidad-configuracion-integracion/contabilidad-configuracion-integracion.module').then(m => m.ContabilidadConfiguracionIntegracionModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'proveedores',
+    loadChildren: () => import('./Proveedores/proveedores.module').then(m => m.ProveedoresModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'compras',
+    loadChildren: () => import('./Compras/compras.module').then(m => m.ComprasModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'activos-fijos',
+    loadChildren: () => import('./ActivosFijos/activos-fijos.module').then(m => m.ActivosFijosModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'reportes',
+    loadChildren: () => import('./Reportes/reportes.module').then(m => m.ReportesModule),
     canActivate: [AuthGuard]
   }
 ];

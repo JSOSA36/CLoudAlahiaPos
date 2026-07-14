@@ -62,6 +62,12 @@ export class MovimientosInventarioDetalle {
 
   observacion: string = '';
 
+  /** Línea de OrdenCompraDetalle cuando es recepción desde compra. */
+  idOrdenCompraDetalle?: number;
+
+  /** Tope de recepción (cantidad pendiente de la factura). */
+  cantidadMaxima?: number;
+
   // =========================================
   // 🔥 FECHA
   // =========================================

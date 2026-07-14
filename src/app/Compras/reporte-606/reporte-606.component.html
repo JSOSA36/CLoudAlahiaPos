@@ -1,0 +1,134 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Formato 606 — Compras DGII</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="r606-content">
+  <div class="r606-page">
+
+    <section class="r606-filtros">
+      <div class="r606-field">
+        <label>Desde</label>
+        <ion-input type="date" [(ngModel)]="desde"></ion-input>
+      </div>
+      <div class="r606-field">
+        <label>Hasta</label>
+        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+      </div>
+      <div class="r606-field">
+        <label>Período TXT (AAAAMM)</label>
+        <ion-input
+          [(ngModel)]="periodo"
+          maxlength="6"
+          placeholder="202607">
+        </ion-input>
+      </div>
+      <div class="r606-actions">
+        <ion-button (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button
+          color="warning"
+          fill="solid"
+          [disabled]="!data?.lineas?.length"
+          (click)="descargarTxt()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Descargar TXT DGII
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="r606-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Generando 606…
+    </div>
+
+    <ng-container *ngIf="!cargando && data as r">
+      <section class="r606-resumen">
+        <div>
+          <span class="label">Empresa</span>
+          <strong>{{ r.nombreEmpresa || '—' }}</strong>
+          <small>RNC {{ r.rncEmpresa || '—' }}</small>
+        </div>
+        <div>
+          <span class="label">Registros</span>
+          <strong>{{ r.cantidadRegistros }}</strong>
+        </div>
+        <div>
+          <span class="label">Con alertas</span>
+          <strong [class.warn]="r.cantidadConAlertas > 0">{{ r.cantidadConAlertas }}</strong>
+        </div>
+        <div>
+          <span class="label">Total facturado</span>
+          <strong>{{ r.totalMontoFacturado | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">ITBIS</span>
+          <strong>{{ r.totalItbisFacturado | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">ITBIS retenido</span>
+          <strong>{{ r.totalItbisRetenido | number:'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <p class="r606-hint">
+        Incluye FACTC confirmadas/pagadas del rango (no borradores ni anuladas).
+        Complete Tipo bienes/servicios, NCF y forma pago DGII en cada factura para envío limpio.
+      </p>
+
+      <div class="r606-table-wrap" *ngIf="r.lineas?.length; else vacio">
+        <table class="r606-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Doc</th>
+              <th>Proveedor</th>
+              <th>RNC</th>
+              <th>NCF</th>
+              <th>Tipo bien</th>
+              <th class="num">Servicios</th>
+              <th class="num">Bienes</th>
+              <th class="num">ITBIS</th>
+              <th>Forma pago</th>
+              <th>Estado TXT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let l of r.lineas"
+              [class.row-alert]="!l.esValidaParaEnvio">
+              <td>{{ l.fechaComprobante | date:'dd/MM/yyyy' }}</td>
+              <td>{{ l.numeroDocumento || ('#' + l.idOrdenCompraHeader) }}</td>
+              <td>{{ l.proveedorNombre || '—' }}</td>
+              <td>{{ l.rncCedula || '—' }}</td>
+              <td>{{ l.ncf || '—' }}</td>
+              <td class="tipo">{{ etiquetaTipoBienes(l.tipoBienesServicios) }}</td>
+              <td class="num">{{ l.montoFacturadoServicios | number:'1.2-2' }}</td>
+              <td class="num">{{ l.montoFacturadoBienes | number:'1.2-2' }}</td>
+              <td class="num">{{ l.itbisFacturado | number:'1.2-2' }}</td>
+              <td>{{ etiquetaFormaPago(l.formaPagoDgii) }}</td>
+              <td>
+                <span class="ok" *ngIf="l.esValidaParaEnvio">OK</span>
+                <span class="bad" *ngIf="!l.esValidaParaEnvio" [title]="l.alertas?.join(' · ')">
+                  {{ l.alertas?.[0] || 'Revisar' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #vacio>
+        <div class="r606-empty">
+          No hay facturas de compra en este rango.
+        </div>
+      </ng-template>
+    </ng-container>
+  </div>
+</ion-content>

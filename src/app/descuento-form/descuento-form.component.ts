@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { DescuentoHeader } from 'src/app/models/descuento-header.model';
@@ -9,6 +9,8 @@ import { Area } from 'src/app/models/area.model';
 import { DescuentoHeaderService } from 'src/app/servicios/descuento-header.service';
 import { ProductosService } from 'src/app/servicios/productos.service';
 import { AreasService } from '../servicios/area.services';
+import { CategoriasService } from '../servicios/categorias.service';
+import { categorias } from 'src/app/models/categorias';
 
 @Component({
   selector: 'app-descuento-form',
@@ -23,6 +25,7 @@ export class DescuentoFormComponent implements OnInit {
   form!: FormGroup;
 
   productos: ProductoLite[] = [];
+  categorias: categorias[] = [];
   areas: Area[] = [];
 
   idEmpresa: number = Number(localStorage.getItem("IdEmpresa")) || 0;
@@ -38,6 +41,7 @@ export class DescuentoFormComponent implements OnInit {
   ];
 
   serviciosSeleccionados: number[] = [];
+  categoriasSeleccionadas: number[] = [];
   areasSeleccionadas: number[] = [];
 
   constructor(
@@ -45,12 +49,15 @@ export class DescuentoFormComponent implements OnInit {
     private modalCtrl: ModalController,
     private srv: DescuentoHeaderService,
     private prodSrv: ProductosService,
-    private areaSrv: AreasService
+    private areaSrv: AreasService,
+    private categoriasSrv: CategoriasService,
+    private toastCtrl: ToastController
   ) {}
 
   ngOnInit() {
     this.buildForm();
     this.cargarProductos();
+    this.cargarCategorias();
     this.cargarAreas();
 
     if (this.modo === "editar") {
@@ -86,6 +93,12 @@ export class DescuentoFormComponent implements OnInit {
     });
   }
 
+  cargarCategorias() {
+    this.categoriasSrv.GetCategoriaVenta(this.idEmpresa).subscribe(r => {
+      this.categorias = r || [];
+    });
+  }
+
   setFormData() {
   this.form.patchValue({
     nombreEvento: this.data.nombreEvento,
@@ -104,6 +117,7 @@ export class DescuentoFormComponent implements OnInit {
   // 🔥 Recibir EXACTAMENTE lo que el backend envía
   // (listas de números: idProducto y idArea)
   this.serviciosSeleccionados = [...(this.data.servicios || [])];
+  this.categoriasSeleccionadas = [...(this.data.categorias || [])];
   this.areasSeleccionadas = [...(this.data.areas || [])];
 }
 
@@ -120,8 +134,6 @@ export class DescuentoFormComponent implements OnInit {
   }
 
   toggleServicio(id: number) {
-    if (this.areasSeleccionadas.length > 0) this.areasSeleccionadas = [];
-
     if (this.serviciosSeleccionados.includes(id)) {
       this.serviciosSeleccionados = this.serviciosSeleccionados.filter(x => x !== id);
     } else {
@@ -129,9 +141,15 @@ export class DescuentoFormComponent implements OnInit {
     }
   }
 
-  toggleArea(id: number) {
-    if (this.serviciosSeleccionados.length > 0) this.serviciosSeleccionados = [];
+  toggleCategoria(id: number) {
+    if (this.categoriasSeleccionadas.includes(id)) {
+      this.categoriasSeleccionadas = this.categoriasSeleccionadas.filter(x => x !== id);
+    } else {
+      this.categoriasSeleccionadas.push(id);
+    }
+  }
 
+  toggleArea(id: number) {
     if (this.areasSeleccionadas.includes(id)) {
       this.areasSeleccionadas = this.areasSeleccionadas.filter(x => x !== id);
     } else {
@@ -143,6 +161,20 @@ export class DescuentoFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     const v = this.form.value;
+
+    if (
+      !v.aplicaATodos &&
+      this.serviciosSeleccionados.length === 0 &&
+      this.categoriasSeleccionadas.length === 0 &&
+      this.areasSeleccionadas.length === 0
+    ) {
+      this.toastCtrl.create({
+        message: 'Seleccione al menos un producto, categoría o área.',
+        duration: 2500,
+        color: 'warning'
+      }).then(t => t.present());
+      return;
+    }
 
     const dto: DescuentoHeader = {
       idDescuentoHeader: this.modo === "editar" ? this.data.idDescuentoHeader : 0,
@@ -156,6 +188,7 @@ export class DescuentoFormComponent implements OnInit {
       horaFin: v.horaFin || null,
 
       servicios: this.serviciosSeleccionados,
+      categorias: this.categoriasSeleccionadas,
       areas: this.areasSeleccionadas
     };
 

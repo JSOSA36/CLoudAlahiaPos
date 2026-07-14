@@ -49,16 +49,57 @@ ion-card-title {
 }
 
 .vista-consulta-footer ion-toolbar {
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --background: #ffffff;
+  --border-color: #cbd5e1;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  border-top: 1px solid #cbd5e1;
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.1);
 }
 
-.vista-consulta-footer ion-button {
-  margin-bottom: 6px;
+.acciones-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
 }
 
-.vista-consulta-footer ion-button:last-child {
-  margin-bottom: 0;
+.btn-accion {
+  margin: 0;
+  min-height: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  --border-radius: 10px;
+  --box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+.btn-imprimir {
+  --background: #2563eb;
+  --background-activated: #1d4ed8;
+  --background-hover: #1d4ed8;
+  --color: #ffffff;
+}
+
+.btn-cerrar {
+  --background: #0f172a;
+  --background-activated: #020617;
+  --background-hover: #1e293b;
+  --color: #ffffff;
+  --border-width: 0;
+}
+
+.btn-imprimir[disabled] {
+  --background: #94a3b8;
+  --color: #f8fafc;
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .acciones-footer {
+    grid-template-columns: 1fr;
+  }
 }

@@ -42,9 +42,14 @@ export class DescuentoHeaderService {
   // ====================================================
   // 🔥 NUEVO: Obtener si aplica un descuento
   // ====================================================
-  getAplicado(IdEmpresa: number, IdProducto: number, IdArea: number) {
+  getAplicado(
+    IdEmpresa: number,
+    IdProducto: number,
+    IdArea: number,
+    IdCategoria: number = 0
+  ) {
     return this.http.get<any>(
-      `${this.baseUrl}/Aplicar?idEmpresa=${IdEmpresa}&idProducto=${IdProducto}&idArea=${IdArea}`
+      `${this.baseUrl}/Aplicar?idEmpresa=${IdEmpresa}&idProducto=${IdProducto}&idArea=${IdArea}&idCategoria=${IdCategoria}`
     );
   }
 

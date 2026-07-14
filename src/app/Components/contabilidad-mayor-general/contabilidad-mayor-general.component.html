@@ -1,0 +1,92 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mayor General</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header color="primary">
+      <ion-card-title class="ion-text-center"><strong>Consulta por cuenta</strong></ion-card-title>
+    </ion-card-header>
+
+    <app-cuenta-contable-selector
+      label="Cuenta contable"
+      [cuentas]="cuentas"
+      [(value)]="idCuentaSeleccionada"
+      modo="movimiento"
+      placeholder="Seleccionar cuenta...">
+    </app-cuenta-contable-selector>
+
+    <ion-item color="primary">
+      <ion-label>Desde</ion-label>
+      <ion-datetime-button datetime="inicioMayor">
+        <span slot="date-target">{{ fechaInicio | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="inicioMayor" presentation="date" [(ngModel)]="fechaInicio"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item color="primary">
+      <ion-label>Hasta</ion-label>
+      <ion-datetime-button datetime="finMayor">
+        <span slot="date-target">{{ fechaFin | date:'dd/MM/yyyy' }}</span>
+      </ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="finMayor" presentation="date" [(ngModel)]="fechaFin"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-button expand="block" color="warning" (click)="cargar()">
+      <ion-icon name="search" slot="start" style="color: black;"></ion-icon>
+      <span style="color: black;">Consultar</span>
+    </ion-button>
+  </ion-card>
+
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!cargando && resumen">
+    <ion-card-header>
+      <ion-card-title>{{ resumen.codigoCuenta }} — {{ resumen.nombreCuenta }}</ion-card-title>
+      <ion-card-subtitle>{{ resumen.tipoCuenta }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Total Débito:</strong> {{ resumen.totalDebito | currency:'DOP' }}</p>
+      <p><strong>Total Crédito:</strong> {{ resumen.totalCredito | currency:'DOP' }}</p>
+      <p><strong>Saldo:</strong> {{ resumen.saldo | currency:'DOP' }}</p>
+
+      <ion-grid *ngIf="resumen.movimientos.length > 0">
+        <ion-row class="header-row">
+          <ion-col size="2"><strong>Fecha</strong></ion-col>
+          <ion-col size="2"><strong>Asiento</strong></ion-col>
+          <ion-col size="3"><strong>Concepto</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Deb.</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Cred.</strong></ion-col>
+          <ion-col size="2" class="ion-text-end"><strong>Saldo</strong></ion-col>
+        </ion-row>
+        <ion-row *ngFor="let m of resumen.movimientos" class="data-row">
+          <ion-col size="2">{{ m.fecha | date:'dd/MM/yy' }}</ion-col>
+          <ion-col size="2">{{ m.numeroAsiento }}</ion-col>
+          <ion-col size="3">{{ m.concepto }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ m.debito | currency:'DOP' }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ m.credito | currency:'DOP' }}</ion-col>
+          <ion-col size="2" class="ion-text-end">{{ m.saldo | currency:'DOP' }}</ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <p *ngIf="resumen.movimientos.length === 0" class="ion-text-center">
+        Sin movimientos en el período.
+      </p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -248,21 +248,9 @@ class="producto-card"
 <!-- ===================================== -->
 
 <div
-
-class="discount-badge"
-
-*ngIf="
-  prod._precioOriginal &&
-  prod._precioOriginal > prod.precioVenta
-">
-
--{{
-(
-  (prod._precioOriginal - prod.precioVenta) /
-  prod._precioOriginal * 100
-) | number:'1.0-0'
-}}%
-
+  class="promo-badge promo-badge--product"
+  *ngIf="mostrarBadgeDescuentoProducto(prod)">
+  <span class="promo-badge__value">{{ getPorcentajeDescuentoProducto(prod) }}% OFF</span>
 </div>
 
 <!-- ===================================== -->
@@ -672,7 +660,7 @@ class="right-panel"
           <div class="sub">
 
             Precio:
-            {{ getPrecioUnitarioItem(item) | currency:'DOP':'symbol':'1.2-2' }}
+            {{ getPrecioOriginalUnitarioItem(item) | currency:'DOP':'symbol':'1.2-2' }}
 
           </div>
 
@@ -699,6 +687,19 @@ class="right-panel"
 
           {{
             item.itbisProducto
+            | currency:'DOP':'symbol':'1.2-2'
+          }}
+
+        </div>
+
+        <div
+          class="item-descuento"
+          *ngIf="getDescuentoUnitarioItem(item) > 0">
+
+          Descuento:
+
+          -{{
+            getDescuentoUnitarioItem(item)
             | currency:'DOP':'symbol':'1.2-2'
           }}
 
@@ -798,7 +799,37 @@ class="right-panel"
 
 <div class="invoice-summary">
 <!-- ===================================== -->
-<!-- 🔥 DESCUENTO -->
+<!-- 🔥 RESUMEN -->
+<!-- ===================================== -->
+
+<div
+  class="sum-line"
+  *ngIf="montoDescuentoPromo > 0">
+
+  <span>Subtotal</span>
+
+  <strong>
+    {{ getSubtotalBruto() | currency:'DOP':'symbol':'1.2-2' }}
+  </strong>
+
+</div>
+
+<div
+  class="sum-line"
+  *ngIf="montoDescuentoPromo > 0">
+
+  <span>Descuento promocional</span>
+
+  <strong class="sum-descuento">
+
+    -{{ montoDescuentoPromo | currency:'DOP':'symbol':'1.2-2' }}
+
+  </strong>
+
+</div>
+
+<!-- ===================================== -->
+<!-- 🔥 DESCUENTO MANUAL -->
 <!-- ===================================== -->
 
 <div class="sum-line">

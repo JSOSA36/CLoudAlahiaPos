@@ -1,0 +1,156 @@
+<ion-content>
+  <div class="ticket-page" *ngIf="ticket">
+
+    <div class="ticket-preview">
+
+      <p class="center empresa">
+        {{ ticket.nombreEmpresa }}
+      </p>
+
+      <p
+        class="center small"
+        *ngIf="ticket.direccionEmpresa">
+        {{ ticket.direccionEmpresa }}
+      </p>
+
+      <p
+        class="center small"
+        *ngIf="ticket.telefonoEmpresa">
+        Tel: {{ ticket.telefonoEmpresa }}
+      </p>
+
+      <p class="divider">--------------------------------</p>
+
+      <p class="center title">
+        NOTA DE CREDITO
+      </p>
+
+      <p
+        class="center preview-tag"
+        *ngIf="esPreview">
+        VISTA PREVIA
+      </p>
+
+      <p class="divider">--------------------------------</p>
+
+      <p *ngIf="ticket.numeroDocumento">
+        No. NC  : {{ ticket.numeroDocumento }}
+      </p>
+
+      <p *ngIf="ticket.ncf">
+        NCF NC  : {{ ticket.ncf }}
+      </p>
+
+      <p *ngIf="ticket.ncfModificado">
+        NCF Mod.: {{ ticket.ncfModificado }}
+      </p>
+
+      <p>
+        Factura : {{ ticket.numeroFactura }}
+      </p>
+
+      <p>
+        Fecha   :
+        {{ ticket.fecha | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+
+      <p>
+        Cliente : {{ ticket.cliente }}
+      </p>
+
+      <p *ngIf="ticket.rnc">
+        RNC     : {{ ticket.rnc }}
+      </p>
+
+      <p
+        *ngIf="ticket.observacion">
+        Nota    : {{ ticket.observacion }}
+      </p>
+
+      <p class="divider">--------------------------------</p>
+
+      <p class="line-header">
+        CANT   DESCRIPCION
+      </p>
+
+      <div
+        class="line-item"
+        *ngFor="let det of detalles">
+
+        <p class="line-producto">
+          <strong>
+            {{ det.cantidad }}   {{ det.descripcion }}
+          </strong>
+        </p>
+
+        <p class="line-monto">
+          RD$ {{ det.subTotal | number:'1.2-2' }}
+        </p>
+
+      </div>
+
+      <p class="divider">--------------------------------</p>
+
+      <p>
+        SubTotal RD$
+        {{ ticket.subTotal | number:'1.2-2' }}
+      </p>
+
+      <p>
+        ITBIS    RD$
+        {{ ticket.totalItbis | number:'1.2-2' }}
+      </p>
+
+      <p class="center total">
+        TOTAL RD$
+        {{ ticket.total | number:'1.2-2' }}
+      </p>
+
+      <p class="divider">--------------------------------</p>
+
+      <p class="center footer-msg">
+        DEVOLUCION DE MERCANCIA
+      </p>
+
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-footer class="no-print">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-button
+        color="warning"
+        (click)="imprimirPantalla()">
+        <ion-icon
+          name="print-outline"
+          slot="start">
+        </ion-icon>
+        Imprimir
+      </ion-button>
+
+      <ion-button
+        color="success"
+        [disabled]="imprimiendo || esPreview"
+        (click)="imprimirPos()">
+        <ion-icon
+          name="receipt-outline"
+          slot="start">
+        </ion-icon>
+        {{ imprimiendo ? 'Enviando...' : 'Imprimir POS' }}
+      </ion-button>
+
+      <ion-button
+        fill="solid"
+        color="light"
+        (click)="cerrar()">
+        <ion-icon
+          name="close-outline"
+          slot="start">
+        </ion-icon>
+        Cerrar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -55,10 +55,20 @@ export class FacturaHeaderService {
     `${this.baseUrl}/GetAllFacturas?IdEmpresa=${IdEmpresa}`
   );
 }
-AnularFactura(IdFact: number, IdEmpresa: number): Observable<any> {
+AnularFactura(payload: {
+  idFacturaHeader: number;
+  idEmpresa: number;
+  motivoAnulacion: string;
+  usuarioAnulo?: string;
+}): Observable<any> {
   return this.httpClient.post<any>(
-    `${this.baseUrl}/AnularFactura?IdFact=${IdFact}&idEmpresa=${IdEmpresa}`,
-    {},
+    `${this.baseUrl}/AnularFactura`,
+    {
+      idFacturaHeader: payload.idFacturaHeader,
+      idEmpresa: payload.idEmpresa,
+      motivoAnulacion: payload.motivoAnulacion,
+      usuarioAnulo: payload.usuarioAnulo || ''
+    },
     this.httpOptions
   );
 }

@@ -20,9 +20,20 @@ from 'src/app/servicios/productos.service';
 import { AlmacenesService }
 from 'src/app/servicios/almacenes.service';
 
+import { ActivosFijosService }
+from 'src/app/servicios/activos-fijos.service';
+
 import {
   AlmacenExistenciaDetalle
 } from 'src/app/models/almacen-existencia.model';
+
+import { ResumenActivosFijos }
+from 'src/app/models/activos-fijos.models';
+
+import {
+  normalizarTipoComportamiento,
+  TIPO_COMPORTAMIENTO
+} from 'src/app/shared/tipo-comportamiento';
 
 @Component({
   selector: 'app-productos',
@@ -69,6 +80,8 @@ tipoOperacion = 'todos';
 
   existenciaDetalle: AlmacenExistenciaDetalle[] = [];
 
+  resumenActivos: ResumenActivosFijos | null = null;
+
   // =====================================
   // 🔥 CONSTRUCTOR
   // =====================================
@@ -76,6 +89,8 @@ tipoOperacion = 'todos';
   constructor(
 
     private productoService: ProductosService,
+
+    private activosFijosService: ActivosFijosService,
 
     private modalCtrl: ModalController,
 
@@ -120,6 +135,17 @@ filtrarProductos(): void {
   ngOnInit() {
 
     this.cargarProductos();
+    this.cargarResumenActivos();
+  }
+
+  private cargarResumenActivos(): void {
+    const idEmpresa = this.parametro.GetIdEmpresa();
+    if (!idEmpresa) return;
+
+    this.activosFijosService.resumen(idEmpresa).subscribe({
+      next: (r) => { this.resumenActivos = r; },
+      error: () => { this.resumenActivos = null; }
+    });
   }
 
   // =====================================
@@ -276,6 +302,7 @@ console.log('Productos cargados:', res);
             res ?? [];
 
           this.aplicarFiltros();
+          this.cargarResumenActivos();
 
           this.cargando = false;
         },
@@ -523,9 +550,14 @@ console.log('Productos cargados:', res);
     valorInventario: number;
   } {
 
+    // Solo comportamiento Inventario (excluye ActivoFijo, servicios, etc.)
     const inventario =
       this.ListadoProductos
-        .filter(p => !p.esServicio);
+        .filter(p =>
+          !p.esServicio
+          && normalizarTipoComportamiento(p.tipoComportamiento)
+            === TIPO_COMPORTAMIENTO.INVENTARIO
+        );
 
     const servicios =
       this.ListadoProductos
