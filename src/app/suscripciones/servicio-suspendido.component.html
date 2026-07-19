@@ -1,0 +1,64 @@
+<div class="page">
+  <div class="card">
+    <div [class]="badgeClass">{{ pagoEnValidacion ? 'PAGO EN VALIDACIÓN' : (estadoServicio || 'SUSPENDIDA') }}</div>
+    <h1>{{ titulo }}</h1>
+    <p class="empresa" *ngIf="nombreEmpresa">{{ nombreEmpresa }}</p>
+    <p class="msg">{{ mensaje }}</p>
+
+    <p class="hint" *ngIf="pagoEnValidacion">
+      Ya recibimos su comprobante. MacroBits lo está revisando.
+      No es necesario reportar el pago nuevamente.
+    </p>
+    <p class="hint" *ngIf="!pagoEnValidacion">
+      Su servicio se encuentra suspendido por falta de pago.
+      Puede reportar el pago para que MacroBits lo valide.
+    </p>
+
+    <div class="total-box" *ngIf="precioPlan && !pagoEnValidacion">
+      <span>Total del ciclo</span>
+      <strong>USD {{ precioPlan | number:'1.2-2' }}</strong>
+      <p class="dop-eq">Equivalente RD$ {{ totalDop | number:'1.2-2' }} · 1 USD = {{ tasa }} RD$</p>
+      <ul *ngIf="desglose?.length">
+        <li *ngFor="let l of desglose">
+          <span>{{ l.nombre }}</span>
+          <em>
+            USD {{ l.monto | number:'1.2-2' }}
+            <small>RD$ {{ (l.montoDop ?? l.monto * tasa) | number:'1.2-2' }}</small>
+          </em>
+        </li>
+      </ul>
+    </div>
+
+    <div class="wait-box" *ngIf="pagoEnValidacion">
+      <strong>Estado:</strong> pendiente de aprobación<br>
+      En cuanto se valide, podrá ingresar al sistema con normalidad.
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary"
+      *ngIf="puedeReportarPago && !mostrarFormulario && !pagoEnValidacion"
+      (click)="abrirReportar()">
+      Reportar Pago
+    </button>
+
+    <div class="form" *ngIf="mostrarFormulario && puedeReportarPago">
+      <h2>Reportar pago</h2>
+      <p class="form-hint">Solo adjunta el voucher. Banco y referencia se ven en el volante.</p>
+
+      <label>Voucher / comprobante</label>
+      <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
+      <p class="file-name" *ngIf="archivo">{{ archivo.name }}</p>
+
+      <button type="button" class="btn-primary" [disabled]="enviando || !archivo" (click)="enviarPago()">
+        {{ enviando ? 'Enviando...' : 'Enviar voucher' }}
+      </button>
+    </div>
+
+    <button type="button" class="btn-ghost" (click)="abrirTicketSoporte()">
+      Crear ticket de soporte
+    </button>
+
+    <button type="button" class="btn-ghost" (click)="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>

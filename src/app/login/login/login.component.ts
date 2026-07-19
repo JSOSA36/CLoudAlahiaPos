@@ -9,8 +9,11 @@ import {
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { MessageModalComponent } from 'src/app/message-modal/message-modal.component';
 import { AuthService } from 'src/app/servicios/auth.service';
+import { DgiiConfigService } from 'src/app/servicios/dgii-config.service';
 import { WhatsappPlanesComponent } from 'src/app/whatsapp-planes/whatsapp-planes.component';
-import { PoliticasComponent } from 'src/app/politicas/politicas.component';
+import { PoliticasGateService } from 'src/app/servicios/politicas-gate.service';
+import { NotificacionesService } from 'src/app/servicios/notificaciones.service';
+import { TicketDesdeLoginComponent } from 'src/app/tickets/ticket-desde-login.component';
 // OneSignal
 declare const OneSignal: any;
 
@@ -30,9 +33,12 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private parametros: ParametrosService,
+    private dgiiConfig: DgiiConfigService,
     private loadingCtrl: LoadingController,
     private modalCtrl: ModalController,
-    private platform: Platform
+    private platform: Platform,
+    private politicasGate: PoliticasGateService,
+    private notificaciones: NotificacionesService
   ) {}
 
   // ❌ NO limpiar sesión aquí
@@ -43,6 +49,19 @@ export class LoginComponent implements OnInit {
       this.logoUrl = this.logoFallback;
     }
   }
+
+  async abrirTicketSoporte() {
+    const modal = await this.modalCtrl.create({
+      component: TicketDesdeLoginComponent,
+      componentProps: {
+        userName: this.Usuario || '',
+        password: this.PassWord || ''
+      },
+      cssClass: 'modal-politicas-full'
+    });
+    await modal.present();
+  }
+
 async abrirPlanesWhatsApp() {
     const modal = await this.modalCtrl.create({
       component: WhatsappPlanesComponent,
@@ -67,21 +86,26 @@ async abrirPlanesWhatsApp() {
   message: string,
   icon: string = 'alert-circle-outline',
   mostrarCambioPlan: boolean = false,
-  mostrarPago: boolean = false // 🔥 NUEVO
-) {
+  mostrarPago: boolean = false,
+  extras: { diaCobro?: number; diasRestantes?: number } = {}
+): Promise<boolean> {
   const modal = await this.modalCtrl.create({
     component: MessageModalComponent,
-    cssClass: 'modal-clientes-full', // opcional (para estilos)
+    cssClass: 'modal-clientes-full',
     componentProps: {
       title,
       message,
       icon,
       mostrarCambioPlan,
-      mostrarPago // 🔥 IMPORTANTE
+      mostrarPago,
+      diaCobro: extras.diaCobro,
+      diasRestantes: extras.diasRestantes
     }
   });
 
   await modal.present();
+  const { data } = await modal.onDidDismiss();
+  return data === true;
 }
 activarAudioGlobal(): Promise<void> {
 
@@ -102,28 +126,7 @@ activarAudioGlobal(): Promise<void> {
   });
 
 }
-private async validarPoliticasAntesDeEntrar(): Promise<boolean> {
-  const yaAcepto = localStorage.getItem('politicas_aceptadas');
-
-  if (yaAcepto === 'true') {
-    return true;
-  }
-
-  await this.mostrarPoliticas();
-
-  // 🔥 volver a revisar después de cerrar el modal
-  return this.parametros.PoliticasAceptadas ==true;
-}
-async mostrarPoliticas(): Promise<void> {
-  const modal = await this.modalCtrl.create({
-    component: PoliticasComponent,
-    backdropDismiss: false
-  });
-
-  await modal.present();
-  await modal.onDidDismiss();
-}
-desbloquearAudio(): Promise<void> {
+private async desbloquearAudio(): Promise<void> {
 
   return new Promise((resolve) => {
 
@@ -160,18 +163,6 @@ async login() {
     );
     return;
   }
-
-  // const aceptoPoliticas = await this.validarPoliticasAntesDeEntrar();
-
-  // if (!aceptoPoliticas) {
-  //   await this.mostrarMensaje(
-  //     'Políticas requeridas',
-  //     'Debes aceptar las políticas del servicio para continuar.',
-  //     'alert-circle-outline',
-  //     false
-  //   );
-  //   return;
-  // }
 
   const loading = await this.loadingCtrl.create({
     message: 'Iniciando sesión...',
@@ -217,47 +208,44 @@ async login() {
           return;
         }
 
+        // 🔴 Servicio suspendido / pago en validación
+        if (resp?.bloqueado) {
+          await loading.dismiss();
+          if (resp?.token) {
+            localStorage.setItem('token_sesion', resp.token);
+          }
+          this.parametros.IdEmpresa = resp?.empresa?.idEmpresa || 0;
+          this.parametros.NombreEmpresa = resp?.empresa?.nombreComercial || '';
+          this.parametros.IdUsuario = resp?.usuario?.idUsuario || 0;
+          this.parametros.setLoginData(
+            resp?.usuario?.userName || this.Usuario,
+            this.PassWord,
+            resp?.empresa?.idEmpresa || 0,
+            resp?.token || '',
+            '',
+            resp?.usuario?.idUsuario || 0,
+            resp?.usuario
+          );
+          this.router.navigateByUrl('/servicio-suspendido', {
+            replaceUrl: true,
+            state: {
+              mensaje: resp?.mensaje || resp?.alertaPlan?.mensaje,
+              estadoServicio: resp?.estadoServicio || resp?.empresa?.estadoServicio,
+              precioPlan: resp?.empresa?.precioPlan || 0,
+              montoPlan: resp?.empresa?.montoPlan || 0,
+              montoCargos: resp?.empresa?.montoCargos || 0,
+              desgloseFactura: resp?.empresa?.desgloseFactura || [],
+              nombreEmpresa: resp?.empresa?.nombreComercial,
+              puedeReportarPago: resp?.puedeReportarPago !== false,
+              pagoEnValidacion: !!resp?.pagoEnValidacion
+            }
+          });
+          return;
+        }
+
         const empresa = resp?.empresa || {};
         const usuario = resp?.usuario || {};
         const modulos = resp?.modulos || [];
-
-        // 🔔 ALERTA (MANDADA POR BACKEND)
-        // if (resp?.alertaPlan) {
-
-        //   const alerta = resp.alertaPlan;
-
-        //   // 🔴 CRÍTICO = BLOQUEO
-        //   if (alerta.tipo === 'critico') {
-
-        //     await loading.dismiss();
-
-        //     await this.mostrarMensaje(
-        //       'Servicio suspendido',
-        //       alerta.mensaje,
-        //       'alert-circle-outline',
-        //       false
-        //     );
-
-        //     return; // ❌ NO entra
-        //   }
-
-        //   // 🟡 / 🔵 SOLO MOSTRAR
-        //   setTimeout(async () => {
-
-        //     await this.mostrarMensaje(
-        //       alerta.tipo === 'advertencia'
-        //         ? 'Aviso importante'
-        //         : 'Recordatorio',
-        //       alerta.mensaje,
-        //       alerta.tipo === 'advertencia'
-        //         ? 'warning-outline'
-        //         : 'information-circle-outline',
-        //       false,
-        //       true
-        //     );
-
-        //   }, 500);
-        // }
 
         // 🔐 TOKEN
         if (resp?.token) {
@@ -279,19 +267,29 @@ async login() {
 
         localStorage.setItem('menu_modulos', JSON.stringify(modulos));
 
+        // Solo contador en login; el detalle vive en el Centro de Notificaciones
+        this.notificaciones.seedUnreadFromLogin(Number(resp?.notificacionesNoLeidas || 0));
+
         this.parametros.setLoginData(
           usuario.userName || '',
           this.PassWord,
           empresa.idEmpresa || 0,
           resp?.token || '',
-          usuario.rol || '',
+          usuario.rol || usuario.nombrePerfil || '',
           usuario.idUsuario || 0,
           usuario
         );
 
         this.parametros.setModulosActivos(
-          modulos.map((m: any) => m.moduloId)
+          modulos.map((m: any) => m.moduloId),
+          modulos.map((m: any) => m.codigo).filter((c: string) => !!c)
         );
+
+        // Flags DGII (sin fila / apagado = fiscal off; no bloquea login)
+        this.dgiiConfig.getFeatures(empresa.idEmpresa || 0).subscribe({
+          next: (features) => this.parametros.setFiscalFeatures(features),
+          error: () => this.parametros.setFiscalFeatures(null)
+        });
 
         // 🔔 ONESIGNAL
         try {
@@ -311,6 +309,54 @@ async login() {
         }
 
         await loading.dismiss();
+
+        // Aviso de pago en periodo de gracia (día 30 → 3): warning informativo, sin bloquear
+        if (resp?.alertaPlan?.mensaje) {
+          const tipo = (resp.alertaPlan.tipo || 'advertencia').toLowerCase();
+          this.parametros.setAlertaPago({
+            tipo,
+            mensaje: resp.alertaPlan.mensaje,
+            diaCobro: resp.alertaPlan.diaCobro,
+            diasRestantes: resp.alertaPlan.diasRestantes
+          });
+          setTimeout(async () => {
+            const pagoEnviado = await this.mostrarMensaje(
+              'Pago pendiente',
+              resp.alertaPlan.mensaje,
+              tipo === 'critico' ? 'alert-circle-outline' : 'card-outline',
+              false,
+              true,
+              {
+                diaCobro: resp.alertaPlan.diaCobro,
+                diasRestantes: resp.alertaPlan.diasRestantes
+              }
+            );
+            if (pagoEnviado) {
+              this.parametros.setAlertaPago(null);
+            }
+          }, 400);
+        } else {
+          this.parametros.setAlertaPago(null);
+        }
+
+        // 📜 Políticas: TODOS los clientes (sin excepciones). MacroBits publica; cada empresa acepta.
+        const gate = await this.politicasGate.validarAcceso(
+          empresa.idEmpresa,
+          usuario.idUsuario,
+          resp?.politicas || null
+        );
+
+        if (!gate.ok) {
+          try {
+            if (usuario.idUsuario) {
+              await this.authService.logout(usuario.idUsuario).toPromise();
+            }
+          } catch { /* ignore */ }
+          this.parametros.logout();
+          localStorage.clear();
+          this.router.navigateByUrl('/login', { replaceUrl: true });
+          return;
+        }
 
         this.redirigirSegunModulos(modulos);
       },

@@ -4,235 +4,302 @@
       <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
     <ion-title class="ion-text-center">Panel Gerencial</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding dashboard-content">
-
-  <!-- 🔄 Refresher -->
+<ion-content [fullscreen]="true" class="dg-content">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- 🔹 TARJETAS RESUMEN -->
-  <ion-grid fixed>
-    <ion-row class="summary-grid">
+  <div class="dg-shell">
 
-      <ion-col size="12" size-md="6">
-        <ion-card class="summary-card card-dia">
-          <ion-card-header>
-            <ion-card-title style="color: white;">Ingresos del Día</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="card-data">
-              <div class="card-value">{{ totalDia | currency }}</div>
-              <fa-icon [icon]="['fas', 'sack-dollar']" size="2x"></fa-icon>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
+    <div class="dg-state" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando indicadores del mes…</p>
+    </div>
 
-      <ion-col size="12" size-md="6">
-        <ion-card class="summary-card card-mes">
-          <ion-card-header>
-            <ion-card-title style="color: white;">Ingresos del Mes</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="card-data">
-              <div class="card-value">{{ totalMes | currency }}</div>
-              <fa-icon [icon]="['fas', 'money-check-dollar']" size="2x"></fa-icon>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
+    <div class="dg-state error" *ngIf="!loading && errorMsg">
+      <p>{{ errorMsg }}</p>
+      <ion-button size="small" (click)="cargar()">Reintentar</ion-button>
+    </div>
 
-      <ion-col size="12" size-md="6">
-        <ion-card class="summary-card card-comisiones">
-          <ion-card-header>
-            <ion-card-title>Comisiones del Mes</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="card-data">
-              <div class="card-value">{{ totalComisiones | currency }}</div>
-              <fa-icon [icon]="['fas', 'hand-holding-dollar']" size="2x"></fa-icon>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
+    <ng-container *ngIf="!loading && data">
 
-      <ion-col size="12" size-md="6">
-        <ion-card class="summary-card card-gastos">
-          <ion-card-header>
-            <ion-card-title style="color: white;">Gastos del Mes</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="card-data">
-              <div class="card-value">{{ totalGastos | currency }}</div>
-              <fa-icon [icon]="['fas', 'file-invoice-dollar']" size="2x"></fa-icon>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
+      <!-- HERO: UTILIDAD OPERATIVA -->
+      <section
+        class="dg-hero"
+        [class.positiva]="pl.utilidadOperativa >= 0"
+        [class.negativa]="pl.utilidadOperativa < 0"
+      >
+        <div class="dg-hero-meta">
+          <p class="dg-eyebrow">Mes en curso · {{ data.periodoLabel | titlecase }}</p>
+          <h1>Utilidad operativa</h1>
+          <p class="dg-subtitle">Resultado económico real de la empresa este mes</p>
+        </div>
+        <div class="dg-hero-amount">
+          <span class="currency">RD$</span>
+          <strong>{{ pl.utilidadOperativa | number:'1.0-0':'es-DO' }}</strong>
+        </div>
+        <div class="dg-margen-row">
+          <div class="dg-margen-pill" *ngFor="let m of margenCards">
+            <span>{{ m.label }}</span>
+            <strong>{{ m.value | number:'1.1-1':'es-DO' }}%</strong>
+            <small>{{ m.hint }}</small>
+          </div>
+        </div>
+      </section>
 
-    </ion-row>
-  </ion-grid>
-
-  <!-- 🔹 GRÁFICOS -->
-  <ion-grid class="charts-grid" fixed>
-
-    <ion-row>
-      <ion-col size="12" size-md="6">
-        <ion-card class="chart-card">
-          <ion-card-header>
-            <ion-card-title>Ingresos por Mes</ion-card-title>
-            <ion-card-subtitle>Evolución de los últimos 12 meses</ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content class="chart-container">
-            <canvas id="ingresosChart"></canvas>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-
-      <ion-col size="12" size-md="6">
-        <ion-card class="chart-card">
-          <ion-card-header>
-            <ion-card-title>Ingresos vs Gastos</ion-card-title>
-            <ion-card-subtitle>Comparativo mensual</ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content class="chart-container">
-            <canvas id="ingresosGastosChart"></canvas>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-
-    <!-- 🔹 RESUMEN FINANCIERO -->
-    <ion-row>
-      <ion-col size="12">
-        <ion-card class="resumen-financiero-card">
-
-          <ion-card-header color="primary">
-            <ion-card-title class="ion-text-center">Resumen Financiero</ion-card-title>
-          </ion-card-header>
-
-          <ion-row class="resumen-item">
-            <ion-col size="6" class="titulo">Ingresos del mes:</ion-col>
-            <ion-col size="6" class="valor ion-text-right">
-              {{ totalMes | number:'1.0-0':'es-DO' }}
-            </ion-col>
-          </ion-row>
-
-          <ion-row class="resumen-item">
-            <ion-col size="6" class="titulo">Gastos del mes:</ion-col>
-            <ion-col size="6" class="valor ion-text-right text-danger">
-              {{ totalGastos | number:'1.0-0':'es-DO' }}
-            </ion-col>
-          </ion-row>
-
-          <ion-row class="resumen-item">
-            <ion-col size="6" class="titulo">Comisiones del mes:</ion-col>
-            <ion-col size="6" class="valor ion-text-right text-warning">
-              {{ totalComisiones | number:'1.0-0':'es-DO' }}
-            </ion-col>
-          </ion-row>
-
-          <ion-row 
-            class="resumen-item total highlight"
-            [ngClass]="{
-              'ganancia-bg': totalGanancia >= 0,
-              'perdida-bg': totalGanancia < 0
-            }"
+      <!-- RESUMEN INTELIGENTE (Alahia AI) -->
+      <section class="dg-ai-resumen" *ngIf="mostrarResumenAi">
+        <div class="dg-ai-resumen__head">
+          <div>
+            <p class="dg-ai-eyebrow">Alahia AI</p>
+            <h2>Resumen inteligente</h2>
+          </div>
+          <ion-button
+            fill="clear"
+            size="small"
+            color="primary"
+            (click)="cargarResumenAi()"
+            [disabled]="aiLoading"
           >
-            <ion-col size="6" class="titulo">
-              <strong>
-                {{ totalGanancia < 0 ? 'Pérdida neta' : 'Ganancia neta' }}
-              </strong>
-            </ion-col>
+            Actualizar
+          </ion-button>
+        </div>
+        <ng-container *ngIf="aiResumen as resumen">
+          <p class="dg-ai-greeting" *ngIf="resumen.greeting">{{ resumen.greeting }}</p>
+          <div class="dg-ai-loading" *ngIf="aiLoading">
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Preparando insights…</span>
+          </div>
+          <ul class="dg-ai-bullets" *ngIf="!aiLoading && resumen.bullets?.length">
+            <li *ngFor="let b of resumen.bullets">{{ b }}</li>
+          </ul>
+        </ng-container>
+        <div class="dg-ai-loading" *ngIf="aiLoading && !aiResumen">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Preparando insights…</span>
+        </div>
+        <p class="dg-ai-empty" *ngIf="!aiLoading && aiError">{{ aiError }}</p>
+        <div class="dg-ai-cta">
+          <a class="dg-ai-link" routerLink="/alahia-ai">Abrir Alahia AI →</a>
+          <div class="dg-ai-chips" *ngIf="aiTips?.length">
+            <button type="button" *ngFor="let tip of aiTips" (click)="preguntarAi(tip)">{{ tip }}</button>
+          </div>
+        </div>
+      </section>
 
-            <ion-col size="6" class="valor ion-text-right">
-              <strong class="monto-destacado">
-                {{ totalGanancia | number:'1.0-0':'es-DO' }}
-              </strong>
-            </ion-col>
-          </ion-row>
+      <!-- RESULTADO DEL MES -->
+      <section class="dg-section">
+        <div class="dg-section-head">
+          <h2>Resultado del mes</h2>
+        </div>
+        <div class="dg-grid kpi-grid">
+          <article class="dg-card kpi" *ngFor="let card of plCards" [attr.data-tone]="card.tone">
+            <span class="dg-card-label">{{ card.label }}</span>
+            <strong class="dg-card-value">RD$ {{ card.value | number:'1.0-0':'es-DO' }}</strong>
+          </article>
+        </div>
+      </section>
 
-        </ion-card>
-      </ion-col>
-    </ion-row>
-
-    <!-- 🏆 SERVICIOS -->
-    <ion-row>
-      <ion-col size="12">
-        <ion-card class="top-servicios-card">
-
-          <ion-card-header color="primary">
-            <ion-card-title class="ion-text-center">
-              Servicios más ofrecidos del mes
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-item *ngFor="let s of topServicios; let i = index" class="servicio-item">
-            <ion-avatar slot="start" class="rank-avatar">
-              <div class="rank">{{ i + 1 }}</div>
-            </ion-avatar>
-
-            <ion-label>
-              <h3>{{ s.nombreServicio }}</h3>
-              <p>{{ s.veces }} veces este mes</p>
-            </ion-label>
-
-            <ion-badge color="primary">
-              RD$ {{ s.totalFacturado | number:'1.0-0':'es-DO' }}
-            </ion-badge>
-          </ion-item>
-
-        </ion-card>
-      </ion-col>
-    </ion-row>
-
-    <!-- 💰 CUENTAS POR COBRAR -->
-    <ion-row>
-      <ion-col size="12">
-        <ion-card class="cuentas-cobrar-card">
-
-          <ion-card-header color="primary">
-            <ion-card-title class="ion-text-center">
-              Cuentas por Cobrar
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-
-            <ion-list lines="none" class="cuentas-list">
-              <ion-item *ngFor="let c of cuentasPorCobrar" class="cuenta-item">
-
-                <ion-avatar slot="start" class="cliente-avatar">
-                  <fa-icon [icon]="['fas', 'user']"></fa-icon>
-                </ion-avatar>
-
-                <ion-label>
-                  <h3>{{ c.nombreCliente }}</h3>
-                  <p>Tel: {{ c.telefono || '—' }}</p>
-                </ion-label>
-
-                <ion-badge color="danger">
-                  RD$ {{ c.totalDeuda | number:'1.0-0':'es-DO' }}
-                </ion-badge>
-
-              </ion-item>
-            </ion-list>
-
-            <div class="total-deuda">
-              <strong>Total general:</strong>
-              <span>{{ totaldeudacobrar | number:'1.0-0':'es-DO' }}</span>
+      <!-- ESTADO DE RESULTADOS -->
+      <section class="dg-section">
+        <div class="dg-section-head">
+          <h2>Estado de resultados</h2>
+          <p>Cómo se construyó la utilidad operativa</p>
+        </div>
+        <div class="dg-grid er-grid">
+          <article class="dg-card dg-card-fill">
+            <div class="chart-box chart-box-lg">
+              <canvas id="chartEstadoResultados"></canvas>
             </div>
+          </article>
+          <article class="dg-card dg-card-fill er-list">
+            <div
+              class="er-step"
+              *ngFor="let paso of estadoResultados"
+              [attr.data-tipo]="paso.tipo"
+            >
+              <div class="er-concepto">
+                <span class="er-sign" *ngIf="paso.tipo === 'resta'">−</span>
+                <span class="er-sign" *ngIf="paso.tipo === 'suma'">+</span>
+                <span>{{ paso.concepto }}</span>
+              </div>
+              <div class="er-montos">
+                <b>RD$ {{ paso.monto | number:'1.0-0':'es-DO' }}</b>
+                <small *ngIf="paso.tipo !== 'base'">acum. {{ paso.acumulado | number:'1.0-0':'es-DO' }}</small>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
 
-          </ion-card-content>
+      <!-- POSICIÓN FINANCIERA -->
+      <section class="dg-section">
+        <div class="dg-section-head">
+          <h2>Posición financiera</h2>
+        </div>
+        <div class="dg-grid ind-grid">
+          <article class="dg-card kpi ind" *ngFor="let card of indCards" [attr.data-tone]="card.tone">
+            <div class="dg-kpi-body">
+              <span class="dg-card-label">{{ card.label }}</span>
+              <strong class="dg-card-value">RD$ {{ card.value | number:'1.0-0':'es-DO' }}</strong>
+            </div>
+            <div class="dg-kpi-icon">
+              <fa-icon [icon]="['fas', card.icon]"></fa-icon>
+            </div>
+          </article>
+        </div>
+      </section>
 
-        </ion-card>
-      </ion-col>
-    </ion-row>
+      <!-- GRÁFICOS -->
+      <section class="dg-section">
+        <div class="dg-section-head">
+          <h2>Análisis visual</h2>
+        </div>
+        <div class="dg-grid charts-grid">
 
-  </ion-grid>
+          <article class="dg-card chart-card">
+            <h3>Ventas vs Costos vs Utilidad</h3>
+            <div class="chart-box">
+              <canvas id="chartVentasCostosUtilidad"></canvas>
+            </div>
+          </article>
 
+          <article class="dg-card chart-card">
+            <h3>Evolución de ventas del mes</h3>
+            <div class="chart-box">
+              <canvas id="chartEvolucionVentas"></canvas>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Distribución de gastos</h3>
+            <div class="chart-box">
+              <canvas id="chartDistribucionGastos"></canvas>
+              <p class="empty-chart" *ngIf="!data.charts.distribucionGastos?.length">Sin gastos este mes</p>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Distribución de pérdidas</h3>
+            <div class="chart-box">
+              <canvas id="chartDistribucionPerdidas"></canvas>
+              <p class="empty-chart" *ngIf="!data.charts.distribucionPerdidas?.length">Sin pérdidas este mes</p>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Comisiones por empleado</h3>
+            <p class="chart-sub">Total RD$ {{ pl.comisiones | number:'1.0-0':'es-DO' }}</p>
+            <div class="chart-box">
+              <canvas id="chartComisionesEmpleado"></canvas>
+              <p class="empty-chart" *ngIf="!data.charts.comisionesPorEmpleado?.length">Sin comisiones</p>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Flujo de efectivo</h3>
+            <p class="chart-sub">Entradas vs salidas (sin transferencias)</p>
+            <div class="chart-box">
+              <canvas id="chartFlujoEfectivo"></canvas>
+            </div>
+            <div class="flujo-neto" *ngIf="data.charts.flujoEfectivo?.length">
+              <span>Neto del mes</span>
+              <strong [class.positiva]="flujoNeto >= 0" [class.negativa]="flujoNeto < 0">
+                RD$ {{ flujoNeto | number:'1.0-0':'es-DO' }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Top productos más rentables</h3>
+            <div class="chart-box">
+              <canvas id="chartTopRentables"></canvas>
+              <p class="empty-chart" *ngIf="!topRentables.length">Sin datos</p>
+            </div>
+          </article>
+
+          <article class="dg-card chart-card">
+            <h3>Top productos con mayores pérdidas</h3>
+            <div class="chart-box">
+              <canvas id="chartTopPerdidas"></canvas>
+              <p class="empty-chart" *ngIf="!data.charts.topProductosPerdidas?.length">Sin pérdidas</p>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- DETALLE TOP + COMISIONES -->
+      <section class="dg-section" *ngIf="topRentables.length || data.charts.comisionesPorEmpleado?.length">
+        <div class="dg-section-head">
+          <h2>Detalle de rentabilidad</h2>
+        </div>
+        <div class="dg-grid detail-grid">
+
+          <article class="dg-card dg-card-fill" *ngIf="topRentables.length">
+            <h3>Productos más rentables</h3>
+            <div class="table-wrap">
+              <table class="dg-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th class="num">Ventas</th>
+                    <th class="num">Costo</th>
+                    <th class="num">Margen</th>
+                    <th class="num">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let p of topRentables; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      <div class="prod-name">{{ p.nombre }}</div>
+                      <small>{{ p.cantidad | number:'1.0-2':'es-DO' }} uds</small>
+                    </td>
+                    <td class="num">{{ p.ventasNetas | number:'1.0-0':'es-DO' }}</td>
+                    <td class="num">{{ p.costo | number:'1.0-0':'es-DO' }}</td>
+                    <td class="num strong">{{ p.margen | number:'1.0-0':'es-DO' }}</td>
+                    <td class="num pct">{{ p.rentabilidadPct | number:'1.1-1':'es-DO' }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="dg-card dg-card-fill" *ngIf="data.charts.comisionesPorEmpleado?.length">
+            <h3>Comisión por empleado</h3>
+            <div class="table-wrap">
+              <table class="dg-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Empleado</th>
+                    <th class="num">Comisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let c of data.charts.comisionesPorEmpleado; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ c.nombre }}</td>
+                    <td class="num strong">RD$ {{ c.monto | number:'1.0-0':'es-DO' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+    </ng-container>
+  </div>
 </ion-content>

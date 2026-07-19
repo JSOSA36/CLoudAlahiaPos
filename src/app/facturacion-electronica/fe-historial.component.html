@@ -1,0 +1,86 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Historial de Envíos e-CF</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <ion-item>
+      <ion-label position="stacked">Desde</ion-label>
+      <ion-input type="date" [(ngModel)]="filtroDesde"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Hasta</ion-label>
+      <ion-input type="date" [(ngModel)]="filtroHasta"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Tipo e-CF</ion-label>
+      <ion-select [(ngModel)]="filtroTipo" interface="popover" placeholder="Todos">
+        <ion-select-option [value]="null">Todos</ion-select-option>
+        <ion-select-option *ngFor="let t of tiposEcf" [value]="t.value">{{ t.label }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Estado</ion-label>
+      <ion-select [(ngModel)]="filtroEstado" interface="popover" placeholder="Todos">
+        <ion-select-option value="">Todos</ion-select-option>
+        <ion-select-option *ngFor="let e of estados" [value]="e">{{ e }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-button (click)="buscar()" color="primary">
+      <ion-icon name="search-outline" slot="start"></ion-icon> Buscar
+    </ion-button>
+    <ion-button (click)="limpiar()" fill="outline" color="medium">Limpiar</ion-button>
+  </div>
+
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <!-- Tabla -->
+  <div class="tabla-container" *ngIf="!loading">
+    <table class="historial-table" *ngIf="items.length > 0">
+      <thead>
+        <tr>
+          <th>e-NCF</th>
+          <th>Tipo</th>
+          <th>Receptor</th>
+          <th>RNC</th>
+          <th>Monto</th>
+          <th>Fecha Emisión</th>
+          <th>Estado DGII</th>
+          <th>TrackId</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td class="mono">{{ item.encf }}</td>
+          <td>e{{ item.tipoEcfDgii }}</td>
+          <td>{{ item.nombreReceptor || '—' }}</td>
+          <td class="mono">{{ item.rncComprador || '—' }}</td>
+          <td class="num">{{ item.montoTotal | number:'1.2-2' }}</td>
+          <td>{{ item.fechaEmision | date:'dd/MM/yy HH:mm' }}</td>
+          <td>
+            <ion-badge [color]="badgeColor(item.estadoDGII)">{{ item.estadoDGII || 'Pendiente' }}</ion-badge>
+          </td>
+          <td class="mono small">{{ item.trackId || '—' }}</td>
+          <td>
+            <ion-button *ngIf="esReprocesable(item)" size="small" color="warning"
+                        (click)="confirmarReprocesar(item)" [disabled]="reprocesando[item.idEcf]">
+              <ion-spinner name="dots" *ngIf="reprocesando[item.idEcf]" slot="start"></ion-spinner>
+              <ion-icon name="reload-outline" slot="start" *ngIf="!reprocesando[item.idEcf]"></ion-icon>
+              Reenviar
+            </ion-button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="items.length === 0">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <p>No se encontraron documentos electrónicos en el rango seleccionado</p>
+    </div>
+  </div>
+</ion-content>

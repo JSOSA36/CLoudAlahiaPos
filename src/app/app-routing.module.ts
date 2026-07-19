@@ -2,6 +2,22 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { MetodosPagoCuentaComponent } from './Components/metodos-pago-cuenta/metodos-pago-cuenta.component';
+import { FeConfiguracionComponent } from './facturacion-electronica/fe-configuracion.component';
+import { FeSecuenciasComponent } from './facturacion-electronica/fe-secuencias.component';
+import { FeCertificadoComponent } from './facturacion-electronica/fe-certificado.component';
+import { FeEstadoDgiiComponent } from './facturacion-electronica/fe-estado-dgii.component';
+import { FeHistorialComponent } from './facturacion-electronica/fe-historial.component';
+import { FeReprocesarComponent } from './facturacion-electronica/fe-reprocesar.component';
+import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.component';
+import { PoliticasAdminComponent } from './politicas/politicas-admin.component';
+import { PoliticasAceptacionesComponent } from './politicas/politicas-aceptaciones.component';
+import { ServicioSuspendidoComponent } from './suscripciones/servicio-suspendido.component';
+import { CobrosAdminComponent } from './suscripciones/cobros-admin.component';
+import { PagoSuscripcionComponent } from './suscripciones/pago-suscripcion.component';
+import { TicketsComponent } from './tickets/tickets.component';
+import { TicketsAdminComponent } from './tickets/tickets-admin.component';
+import { CentroProduccionComponent } from './centro-produccion/centro-produccion.component';
+import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
 
 const routes: Routes = [
   {
@@ -27,6 +43,11 @@ const routes: Routes = [
    {
     path: 'movimientosinventario',
     loadChildren: () => import('./Components/historico-movimientos-inventario/historico-movimientos-inventario.module').then(m => m.HistoricoMovimientosInventarioModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'conduces',
+    loadChildren: () => import('./Components/conduces/conduces.module').then(m => m.ConducesModule),
     canActivate: [AuthGuard]
   },
   {
@@ -184,7 +205,7 @@ const routes: Routes = [
    {
     path: 'cuentaxcobrar',
     loadChildren: () => import('./facturasporcobrar/facturasporcobrar.module').then(m => m.FacturasporcobrarModule),
-    
+    canActivate: [AuthGuard]
   },
   {
     path: 'printer',
@@ -431,6 +452,85 @@ const routes: Routes = [
   {
     path: 'reportes',
     loadChildren: () => import('./Reportes/reportes.module').then(m => m.ReportesModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-configuracion',
+    component: FeConfiguracionComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-secuencias',
+    component: FeSecuenciasComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-certificado',
+    component: FeCertificadoComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-estado-dgii',
+    component: FeEstadoDgiiComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-historial',
+    component: FeHistorialComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-reprocesar',
+    component: FeReprocesarComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-monitoreo',
+    component: FeMonitoreoComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'politicas-admin',
+    component: PoliticasAdminComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'politicas-aceptaciones',
+    component: PoliticasAceptacionesComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'servicio-suspendido',
+    component: ServicioSuspendidoComponent
+  },
+  {
+    path: 'cobros-admin',
+    component: CobrosAdminComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'pago-suscripcion',
+    component: PagoSuscripcionComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'tickets',
+    component: TicketsComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'tickets-admin',
+    component: TicketsAdminComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'centro-produccion',
+    component: CentroProduccionComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'alahia-ai',
+    component: AlahiaAiComponent,
     canActivate: [AuthGuard]
   }
 ];

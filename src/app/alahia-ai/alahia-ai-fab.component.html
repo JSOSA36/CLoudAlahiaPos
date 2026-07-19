@@ -1,0 +1,39 @@
+<div class="ai-fab-root" *ngIf="visible">
+  <div class="ai-fab-panel" *ngIf="open">
+    <div class="ai-fab-panel__head">
+      <strong>Alahia AI</strong>
+      <button type="button" (click)="toggle()">×</button>
+    </div>
+    <div class="ai-fab-panel__tips" *ngIf="messages.length <= 1 && !loading">
+      <button type="button" *ngFor="let tip of tips" (click)="askTip(tip)">{{ tip }}</button>
+    </div>
+    <div class="ai-fab-panel__body">
+      <div
+        class="ai-fab-msg"
+        *ngFor="let m of messages"
+        [class.user]="m.role === 'user'"
+        [class.bot]="m.role === 'assistant'"
+      >
+        <pre>{{ m.content }}</pre>
+      </div>
+      <div class="ai-fab-msg bot" *ngIf="loading">…</div>
+    </div>
+    <div class="ai-fab-panel__ticket" *ngIf="conversationId">
+      <button type="button" [disabled]="creatingTicket" (click)="crearTicket()">
+        {{ creatingTicket ? 'Creando…' : 'Crear ticket' }}
+      </button>
+    </div>
+    <div class="ai-fab-panel__composer">
+      <input
+        [(ngModel)]="input"
+        placeholder="Pregunta a Alahia AI…"
+        (keyup.enter)="send()"
+      />
+      <button type="button" (click)="send()" [disabled]="loading">➤</button>
+    </div>
+  </div>
+
+  <button type="button" class="ai-fab-btn" (click)="toggle()" aria-label="Abrir Alahia AI">
+    AI
+  </button>
+</div>

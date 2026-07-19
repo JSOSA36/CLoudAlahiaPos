@@ -101,43 +101,20 @@ hr {
   color: #444;
 }
 
-/* 🔷 BOTONES */
-.acciones {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-.btn-print {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.btn-cerrar {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
 /* ============================= */
-/* 🧾 TICKET POS REAL */
+/* 🧾 TICKET POS TÉRMICO ~80mm */
 /* ============================= */
 .ticket-pos {
-  width: 260px;
-  margin: 0 auto;
-  font-family: monospace;
+  width: 80mm;
+  max-width: 80mm;
+  margin: 12px auto;
+  padding: 8px 6px;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
+  line-height: 1.25;
   color: #000;
+  background: #fff;
+  box-sizing: border-box;
 }
 
 /* utilidades */
@@ -158,60 +135,95 @@ hr {
   margin: 6px 0;
 }
 
+.item {
+  margin-bottom: 6px;
+}
+
+.item-name {
+  word-break: break-word;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .total {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   margin-top: 5px;
 }
 
+.print-shell {
+  --background: #f3f4f6;
+}
+
+.print-root {
+  min-height: 100%;
+  padding-bottom: 16px;
+}
+
 /* ============================= */
-/* 🖨️ IMPRESIÓN */
+/* 🖨️ IMPRESIÓN TICKET */
 /* ============================= */
 @media print {
-
   @page {
-    size: letter;
-    margin: 12mm;
+    size: 80mm auto;
+    margin: 2mm;
   }
 
+  html,
   body {
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    width: 80mm !important;
   }
 
-  /* 🔥 SOLO ocultar lo que NO quieres imprimir */
-  .no-print {
+  .no-print,
+  ion-footer,
+  ion-header,
+  ion-toolbar,
+  ion-buttons,
+  ion-button {
     display: none !important;
   }
 
-  /* 🔥 Asegurar que factura ocupa la hoja */
-  .factura,
-  .ticket-pos {
-    width: 100%;
-    margin: 0;
-    padding: 0;
+  ion-content,
+  .print-shell {
+    --background: #fff !important;
+    background: #fff !important;
+    position: static !important;
+    overflow: visible !important;
+    contain: none !important;
   }
 
+  .print-root {
+    padding: 0 !important;
+  }
+
+  .factura {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .ticket-pos {
+    width: 76mm !important;
+    max-width: 76mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
 }
+
 ion-content {
-  --padding-bottom: 80px; /* espacio para footer */
+  --padding-bottom: 80px;
 }
 
 ion-footer {
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   --background: #fff;
-}
-.footer-pro {
-  padding: 8px;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-}
-
-.footer-actions ion-button {
-  flex: 1;
-  font-weight: 600;
-  font-size: 14px;
 }

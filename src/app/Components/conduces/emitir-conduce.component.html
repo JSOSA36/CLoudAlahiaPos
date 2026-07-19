@@ -1,0 +1,143 @@
+<ion-header>
+  <ion-toolbar class="emitir-toolbar">
+    <ion-buttons slot="start">
+      <ion-button *ngIf="paso === 'lineas'" (click)="volverFacturas()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      {{ paso === 'factura' ? 'Seleccionar factura' : 'Emitir conduce' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="emitir-content">
+  <!-- Paso 1: factura -->
+  <div *ngIf="paso === 'factura'" class="paso-factura">
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label position="stacked">Buscar factura / NCF / cliente</ion-label>
+          <ion-input
+            [(ngModel)]="qFactura"
+            placeholder="Ej. 1001 o B010..."
+            (keyup.enter)="buscarFacturas()">
+          </ion-input>
+          <ion-button slot="end" (click)="buscarFacturas()" [disabled]="cargando">
+            Buscar
+          </ion-button>
+        </ion-item>
+        <p class="hint">Solo se muestran facturas con ítems pendientes de entrega.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list *ngIf="!cargando">
+      <ion-item
+        *ngFor="let f of facturas"
+        button
+        detail
+        (click)="abrirFactura(f)">
+        <ion-label>
+          <h2>{{ f.numeroDocumento }}</h2>
+          <p>{{ f.clienteNombre || 'Cliente' }} · {{ f.fecha | date:'dd/MM/yyyy' }}</p>
+          <p *ngIf="f.ncf">NCF: {{ f.ncf }}</p>
+        </ion-label>
+        <ion-note slot="end" color="danger">
+          {{ f.cantidadPendienteTotal | number:'1.0-2' }} pend.
+        </ion-note>
+      </ion-item>
+      <ion-item *ngIf="!facturas.length">
+        <ion-label color="medium">No hay facturas con entrega pendiente.</ion-label>
+      </ion-item>
+    </ion-list>
+
+    <div *ngIf="cargando" class="loading-box">
+      <ion-spinner></ion-spinner>
+    </div>
+  </div>
+
+  <!-- Paso 2: líneas -->
+  <div *ngIf="paso === 'lineas'" class="paso-lineas">
+    <ion-card class="meta-card" *ngIf="facturaSeleccionada">
+      <ion-card-header>
+        <ion-card-title>{{ facturaSeleccionada.numeroDocumento }}</ion-card-title>
+        <ion-card-subtitle>
+          {{ facturaSeleccionada.clienteNombre || 'Cliente' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Almacén</ion-label>
+          <ion-select [(ngModel)]="idAlmacen" interface="popover" placeholder="Opcional">
+            <ion-select-option [value]="null">—</ion-select-option>
+            <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
+              {{ a.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Quien entrega</ion-label>
+          <ion-input [(ngModel)]="quienEntrega"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Quien recibe</ion-label>
+          <ion-input [(ngModel)]="quienRecibe" placeholder="Nombre del cliente / receptor"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Observación</ion-label>
+          <ion-textarea [(ngModel)]="observacion" rows="2"></ion-textarea>
+        </ion-item>
+        <ion-button expand="block" fill="outline" size="small" (click)="entregarTodo()">
+          Entregar todo lo pendiente
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list>
+      <ion-item *ngFor="let l of lineas" [class.sel]="l.seleccionado">
+        <ion-checkbox
+          slot="start"
+          [(ngModel)]="l.seleccionado"
+          (ngModelChange)="onCantidadChange(l)">
+        </ion-checkbox>
+        <ion-label>
+          <h3>{{ l.productoNombre }}</h3>
+          <p>
+            Facturado {{ l.cantidadFacturada | number:'1.0-4' }}
+            · Entregado {{ l.cantidadEntregada | number:'1.0-4' }}
+            · Pendiente <strong>{{ l.cantidadPendiente | number:'1.0-4' }}</strong>
+          </p>
+        </ion-label>
+        <ion-input
+          class="qty-input"
+          type="number"
+          [(ngModel)]="l.entregarAhora"
+          (ionChange)="onCantidadChange(l)"
+          [disabled]="!l.seleccionado">
+        </ion-input>
+      </ion-item>
+      <ion-item *ngIf="!lineas.length">
+        <ion-label color="medium">Esta factura no tiene pendientes.</ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
+
+<ion-footer *ngIf="paso === 'lineas'">
+  <ion-toolbar>
+    <div class="footer-bar">
+      <span>A entregar: <strong>{{ totalAEntregar | number:'1.0-4' }}</strong></span>
+      <ion-button
+        class="btn-guardar"
+        (click)="guardar()"
+        [disabled]="guardando || totalAEntregar <= 0">
+        Emitir conduce
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

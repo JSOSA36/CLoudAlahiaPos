@@ -1,0 +1,161 @@
+<ion-header class="conduces-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Conduces</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen="true">
+  <div class="container-conduces">
+
+    <header class="hero-band">
+      <div class="hero-copy">
+        <span class="hero-kicker">Inventario · Almacén</span>
+        <h1>Entregas de mercancía</h1>
+        <p>Registra y respalda la entrega parcial o total de ítems de una factura.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-chip">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <div>
+            <span class="stat-label">En rango</span>
+            <strong>{{ conduces.length }}</strong>
+          </div>
+        </div>
+        <div class="stat-chip accent">
+          <ion-icon name="cube-outline"></ion-icon>
+          <div>
+            <span class="stat-label">Módulo</span>
+            <strong>Conduces</strong>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <ion-card class="card-filtros">
+      <ion-card-content>
+        <div class="acciones-top">
+          <ion-button class="btn-emitir" (click)="nuevo()">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Emitir conduce
+          </ion-button>
+          <ion-button class="btn-buscar" fill="outline" (click)="buscar()" [disabled]="loading">
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+            Buscar
+          </ion-button>
+        </div>
+
+        <div class="filtros-grid">
+          <ion-item lines="none">
+            <ion-label position="stacked">Desde</ion-label>
+            <ion-input type="date" [(ngModel)]="desde"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label position="stacked">Hasta</ion-label>
+            <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+          </ion-item>
+          <ion-item lines="none" class="filtro-buscar">
+            <ion-label position="stacked">Buscar (número / cliente / factura)</ion-label>
+            <ion-input
+              [(ngModel)]="q"
+              placeholder="COND-... o factura"
+              (keyup.enter)="buscar()">
+            </ion-input>
+          </ion-item>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div *ngIf="loading" class="loading-box">
+      <ion-spinner name="crescent" color="warning"></ion-spinner>
+      <p>Cargando conduces…</p>
+    </div>
+
+    <section *ngIf="!loading" class="lista-wrap">
+      <div class="lista-head" *ngIf="conduces.length">
+        <h2>Historial de conduces</h2>
+        <span class="badge-count">{{ conduces.length }} registro{{ conduces.length === 1 ? '' : 's' }}</span>
+      </div>
+
+      <div class="tabla-scroll" *ngIf="conduces.length">
+        <table class="tabla-conduces">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Fecha</th>
+              <th>Factura</th>
+              <th>Cliente</th>
+              <th>Entrega / Recibe</th>
+              <th class="th-acciones">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of conduces">
+              <td>
+                <span class="badge-numero">{{ c.numero }}</span>
+              </td>
+              <td>
+                <div class="celda-fecha">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ c.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge-factura">{{ c.numeroFactura }}</span>
+              </td>
+              <td>
+                <span class="celda-cliente" [class.sin-dato]="!c.clienteNombre">
+                  {{ c.clienteNombre || 'Sin cliente' }}
+                </span>
+              </td>
+              <td>
+                <div class="personas">
+                  <div class="persona entrega">
+                    <ion-icon name="arrow-up-circle-outline"></ion-icon>
+                    <span>{{ c.quienEntrega || '—' }}</span>
+                  </div>
+                  <div class="persona recibe">
+                    <ion-icon name="arrow-down-circle-outline"></ion-icon>
+                    <span>{{ c.quienRecibe || '—' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="acciones">
+                <ion-button
+                  class="btn-icon print"
+                  size="small"
+                  fill="solid"
+                  (click)="imprimir(c)"
+                  title="Imprimir">
+                  <ion-icon name="print-outline"></ion-icon>
+                </ion-button>
+                <ion-button
+                  class="btn-icon danger"
+                  size="small"
+                  fill="solid"
+                  (click)="anular(c)"
+                  title="Anular">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!conduces.length" class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="cube-outline"></ion-icon>
+        </div>
+        <h3>Sin conduces en este rango</h3>
+        <p>Emite uno desde una factura con ítems pendientes de entrega.</p>
+        <ion-button class="btn-emitir" (click)="nuevo()">
+          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+          Emitir primer conduce
+        </ion-button>
+      </div>
+    </section>
+  </div>
+</ion-content>

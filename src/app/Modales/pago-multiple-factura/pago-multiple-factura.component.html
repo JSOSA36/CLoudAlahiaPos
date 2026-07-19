@@ -1,0 +1,99 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Cobrar varias facturas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pago-multi-content">
+  <div class="pago-multi-page">
+    <div class="cliente-banner">
+      <ion-icon name="person-outline"></ion-icon>
+      <div>
+        <strong>{{ nombreCliente }}</strong>
+        <small>{{ lineas.length }} factura(s) · Pendiente {{ totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</small>
+      </div>
+    </div>
+
+    <ion-list class="lineas-list" lines="full">
+      <ion-item *ngFor="let l of lineas">
+        <ion-label>
+          <h2>Factura #{{ l.factura.idFacturaHeader }}</h2>
+          <p>
+            Pendiente {{ l.factura.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}
+            <span *ngIf="l.factura.fechaBencimiento">
+              · Vence {{ l.factura.fechaBencimiento | date:'dd/MM/yyyy' }}
+            </span>
+          </p>
+        </ion-label>
+        <ion-input
+          slot="end"
+          type="number"
+          inputmode="decimal"
+          [(ngModel)]="l.monto"
+          (ngModelChange)="onLineaChange(l)"
+          [disabled]="cargando"
+          class="monto-input">
+        </ion-input>
+      </ion-item>
+    </ion-list>
+
+    <ion-card class="form-card">
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="stacked">Monto total a cobrar</ion-label>
+          <ion-input
+            type="number"
+            inputmode="decimal"
+            [(ngModel)]="montoTotal"
+            (ionBlur)="onMontoTotalChange()"
+            [disabled]="cargando">
+          </ion-input>
+        </ion-item>
+        <p class="hint">Al cambiar el total se reparte automático (primero las más vencidas). También puedes editar cada factura.</p>
+
+        <ion-item lines="full">
+          <ion-label>Forma de pago</ion-label>
+          <ion-select
+            [(ngModel)]="metodoPago"
+            interface="popover"
+            placeholder="Seleccione"
+            [disabled]="cargando">
+            <ion-select-option *ngFor="let m of metodosPago" [value]="m.metodoPago">
+              {{ m.metodoPago }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Nota (opcional)</ion-label>
+          <ion-textarea
+            [(ngModel)]="nota"
+            autoGrow="true"
+            placeholder="Referencia u observación…"
+            [disabled]="cargando">
+          </ion-textarea>
+        </ion-item>
+
+        <div class="totales">
+          <span>Aplicado</span>
+          <strong>{{ totalAplicado | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+
+        <ion-button
+          expand="block"
+          color="success"
+          class="btn-confirmar"
+          (click)="confirmar()"
+          [disabled]="cargando || totalAplicado <= 0">
+          <ion-icon slot="start" name="wallet-outline"></ion-icon>
+          {{ cargando ? 'Procesando…' : 'Registrar cobro' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

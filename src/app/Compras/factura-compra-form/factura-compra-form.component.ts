@@ -680,6 +680,11 @@ export class FacturaCompraFormComponent implements OnInit {
     });
   }
 
+  /** Visible solo con IT-1 activo; nunca bloquea confirmación/recepción. */
+  get mostrarClasificacionItbis(): boolean {
+    return this.parametro.isGenerarIt1();
+  }
+
   async confirmar() {
     if (this.esOrdenCompra) {
       await this.emitirOrden();

@@ -9,6 +9,7 @@ import { OrdenesCompraComponent } from './ordenes-compra/ordenes-compra.componen
 import { EstadoCuentaProveedorComponent } from './estado-cuenta-proveedor/estado-cuenta-proveedor.component';
 import { AnalisisProductoProveedorComponent } from './analisis-producto-proveedor/analisis-producto-proveedor.component';
 import { Reporte606Component } from './reporte-606/reporte-606.component';
+import { AntiguedadSaldosComponent } from '../Reportes/antiguedad-saldos/antiguedad-saldos.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'facturas', pathMatch: 'full' },
@@ -21,6 +22,11 @@ const routes: Routes = [
   { path: 'cxp/estado-cuenta', component: EstadoCuentaProveedorComponent },
   { path: 'analisis-producto', component: AnalisisProductoProveedorComponent },
   { path: 'reporte-606', component: Reporte606Component },
+  {
+    path: 'antiguedad-cxp',
+    component: AntiguedadSaldosComponent,
+    data: { modo: 'cxp' }
+  },
   { path: ':id', component: FacturaCompraFormComponent },
 ];
 

@@ -1,19 +1,76 @@
-.texto ul{
-  padding-left: 18px;
-  margin-bottom: 12px;
+.cabecera {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #e8eaed;
+
+  h2 {
+    margin: 0 0 0.2rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+  }
+
+  .meta {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
 }
 
-.texto li{
-  margin-bottom: 6px;
-  font-size: 14px;
+.documento {
+  margin-bottom: 1.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem 1.35rem;
 }
 
-.alerta-final{
-  margin-top: 15px;
-  padding: 10px;
+.seccion {
+  margin: 1.35rem 0 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
 
-  background: #fff3cd;
-  border-left: 4px solid #ffc107;
+  &:first-child {
+    margin-top: 0;
+  }
+}
 
-  font-size: 13px;
+.parrafo {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #374151;
+  text-align: justify;
+}
+
+:host ::ng-deep .marca-macrobits {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.lista {
+  margin: 0 0 0.9rem;
+  padding-left: 1.15rem;
+
+  li {
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #374151;
+  }
+}
+
+.alerta-final {
+  background: #fff8eb;
+  border: 1px solid #f3d9a4;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+  color: #7a4d00;
+  line-height: 1.45;
 }

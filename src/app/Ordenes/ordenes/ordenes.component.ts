@@ -2,7 +2,7 @@
 // LISTADO DE ÓRDENES / COTIZACIONES
 // =========================================
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { IonModal, ModalController,AlertController,ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { facturaheader } from 'src/app/models/facturaheader';
@@ -17,13 +17,18 @@ import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
 import { PrinterComponent } from 'src/app/printer/printer.component';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { ProduccionService } from 'src/app/servicios/produccion.service';
+import { ProduccionTrabajo } from 'src/app/models/produccion.models';
+import { Subscription, firstValueFrom } from 'rxjs';
+
 @Component({
   selector: 'app-ordenes',
   templateUrl: './ordenes.component.html',
   styleUrls: ['./ordenes.component.scss'],
 })
 
-export class OrdenesComponent implements OnInit {
+export class OrdenesComponent implements OnInit, OnDestroy {
 
   @ViewChild(IonModal) _modal!: IonModal;
   @Input() modo: 'editar' | 'seleccionar' = 'editar';
@@ -34,7 +39,17 @@ procesandoPago = false;
   accordionActivo: string | number | null = null;
   @Input() tipoDocumento: 'Orden' | 'Cotizacion' = 'Orden';
   @Input() esModal: boolean = false;
-puedeEliminarOrden: boolean = false;
+  puedeEliminarOrden: boolean = false;
+
+  /** Parámetro ESTATUS_ORDENES: muestra estado del Centro de Producción. */
+  mostrarEstatusOrdenes = false;
+  private estatusPorOrigen = new Map<number, { codigo: string; nombre: string }>();
+  private subEstatus?: Subscription;
+
+  get totalOrdenes(): number {
+    return (this._Parametro.ListadoOrdenes || [])
+      .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+  }
   constructor(
     private modal: ModalController,
     public _Parametro: ParametrosService,
@@ -44,7 +59,10 @@ puedeEliminarOrden: boolean = false;
       private alertController: AlertController,
       private empleadosService: EmpleadosService,
       private toastCtrl: ToastController,
-      private printService: PrintService
+      private printService: PrintService,
+      private parametroConfig: ParametroConfigService,
+      private produccion: ProduccionService,
+      private cdr: ChangeDetectorRef
       
   ) {}
   seleccionarOrden(orden: any) {
@@ -92,6 +110,121 @@ actualizarPrecio(idDetalle:number, precio:number){
     this.cargarEmpleadosEmpresa();
      this.puedeEliminarOrden =
     this._Parametro.puedeEliminarOrden;
+    if (this.tipoDocumento === 'Orden') {
+      this.cargarFlagEstatusOrdenes();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subEstatus?.unsubscribe();
+    if (this.mostrarEstatusOrdenes) {
+      this.produccion.stopRealtime();
+    }
+  }
+
+  private cargarFlagEstatusOrdenes(): void {
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find(x => x.clave === 'ESTATUS_ORDENES');
+        const valor = String(p?.valor ?? '').toLowerCase();
+        this.mostrarEstatusOrdenes = valor === 'true' || valor === '1';
+        if (this.mostrarEstatusOrdenes) {
+          this.activarSeguimientoEstatus();
+        }
+      },
+      error: () => {
+        this.mostrarEstatusOrdenes = false;
+      }
+    });
+  }
+
+  private async activarSeguimientoEstatus(): Promise<void> {
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    await this.cargarEstatusProduccion();
+    this.subEstatus?.unsubscribe();
+    this.subEstatus = this.produccion.upsertObs$().subscribe(t => this.aplicarEstatusTrabajo(t));
+    try {
+      await this.produccion.startRealtime(idEmpresa);
+    } catch {
+      /* el listado sigue con hydrate por refresh */
+    }
+  }
+
+  private async cargarEstatusProduccion(): Promise<void> {
+    if (!this.mostrarEstatusOrdenes) return;
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    const origenIds = (this._Parametro.ListadoOrdenes || [])
+      .map(o => o.idFacturaHeader)
+      .filter(id => id > 0);
+    if (!origenIds.length) {
+      this.estatusPorOrigen.clear();
+      this.cdr.detectChanges();
+      return;
+    }
+    try {
+      const list = await firstValueFrom(this.produccion.estadosPorOrigen(idEmpresa, origenIds));
+      this.estatusPorOrigen.clear();
+      (list || []).forEach(e => {
+        this.estatusPorOrigen.set(e.origenId, {
+          codigo: e.codigoEstado || '',
+          nombre: e.nombreEstado || e.codigoEstado || ''
+        });
+      });
+      this.cdr.detectChanges();
+    } catch {
+      /* sin motor / sin permiso: no romper listado */
+    }
+  }
+
+  private aplicarEstatusTrabajo(t: ProduccionTrabajo, detect = true): void {
+    if (!t?.origenId) return;
+
+    // Conservar estado aunque salga del tablero (Entregada / Cancelada)
+    this.estatusPorOrigen.set(t.origenId, {
+      codigo: t.codigoEstadoActual || '',
+      nombre: t.nombreEstadoActual || t.codigoEstadoActual || ''
+    });
+    if (detect) this.cdr.detectChanges();
+  }
+
+  etiquetaEstatus(idFacturaHeader: number): string {
+    const e = this.estatusPorOrigen.get(idFacturaHeader);
+    if (!e) return 'Sin estatus';
+    const map: Record<string, string> = {
+      PENDIENTE: 'Pendiente',
+      EN_PREPARACION: 'Preparación',
+      LISTA: 'Lista',
+      ENTREGADA: 'Entregada',
+      CANCELADA: 'Cancelada'
+    };
+    return map[e.codigo] || e.nombre || e.codigo;
+  }
+
+  iconoEstatus(idFacturaHeader: number): string {
+    const e = this.estatusPorOrigen.get(idFacturaHeader);
+    if (!e) return 'help-circle-outline';
+    switch (e.codigo) {
+      case 'PENDIENTE': return 'time-outline';
+      case 'EN_PREPARACION': return 'flame-outline';
+      case 'LISTA': return 'checkmark-circle';
+      case 'ENTREGADA': return 'bicycle-outline';
+      case 'CANCELADA': return 'close-circle';
+      default: return 'ellipse-outline';
+    }
+  }
+
+  claseEstatus(idFacturaHeader: number): string {
+    const e = this.estatusPorOrigen.get(idFacturaHeader);
+    if (!e) return 'est-sin';
+    switch (e.codigo) {
+      case 'PENDIENTE': return 'est-pendiente';
+      case 'EN_PREPARACION': return 'est-preparacion';
+      case 'LISTA': return 'est-lista';
+      case 'ENTREGADA': return 'est-entregada';
+      case 'CANCELADA': return 'est-cancelada';
+      default: return 'est-pendiente';
+    }
   }
   private async toast(message: string) {
 
@@ -265,7 +398,7 @@ imprimirOrden(idFactura: number, event?: Event) {
       }
     });
 }
-RefreshOrdenes() {
+  RefreshOrdenes() {
   this.accordionActivo = null;
 
   const peticion =
@@ -285,6 +418,9 @@ RefreshOrdenes() {
 
         if (this.tipoDocumento !== 'Cotizacion') {
           this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
+          if (this.mostrarEstatusOrdenes) {
+            this.cargarEstatusProduccion();
+          }
         }
       },
       error: () => {

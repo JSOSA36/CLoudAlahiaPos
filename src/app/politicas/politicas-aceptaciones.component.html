@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Aceptaciones de Políticas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pa-content">
+<div class="page">
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Cumplimiento · MacroBits</p>
+      <h1>Aceptaciones de Políticas</h1>
+      <p class="sub">
+        Auditoría de quién aceptó cada versión, desde qué dispositivo y si se envió el correo de confirmación.
+      </p>
+    </div>
+    <button type="button" class="btn" (click)="cargar()" [disabled]="loading">
+      <ion-icon name="refresh-outline"></ion-icon>
+      Actualizar
+    </button>
+  </header>
+
+  <section class="kpis" *ngIf="!loading && items.length">
+    <article class="kpi">
+      <span>Total registros</span>
+      <strong>{{ items.length }}</strong>
+    </article>
+    <article class="kpi kpi--ok">
+      <span>Correos enviados</span>
+      <strong>{{ totalEnviados }}</strong>
+    </article>
+    <article class="kpi kpi--info">
+      <span>Empresas</span>
+      <strong>{{ totalEmpresas }}</strong>
+    </article>
+    <article class="kpi">
+      <span>Última aceptación</span>
+      <strong class="kpi-date">{{ ultimaFecha }}</strong>
+    </article>
+  </section>
+
+  <section class="toolbar" *ngIf="!loading">
+    <div class="search">
+      <ion-icon name="search-outline"></ion-icon>
+      <input
+        type="search"
+        [(ngModel)]="filtroTexto"
+        placeholder="Buscar empresa, usuario o versión…"
+      />
+    </div>
+    <p class="count" *ngIf="filtrados.length !== items.length">
+      {{ filtrados.length }} de {{ items.length }}
+    </p>
+  </section>
+
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Cargando auditoría…</span>
+  </div>
+
+  <div class="panel" *ngIf="!loading">
+    <div class="tabla" *ngIf="filtrados.length">
+      <div class="row head">
+        <span>Empresa</span>
+        <span>Versión</span>
+        <span>Usuario</span>
+        <span>Fecha</span>
+        <span>IP</span>
+        <span>SO</span>
+        <span>Correo</span>
+      </div>
+      <div class="row" *ngFor="let a of filtrados">
+        <span class="cell-empresa">
+          <span class="avatar" aria-hidden="true">{{ inicial(a.nombreEmpresa) }}</span>
+          <span class="empresa-name">{{ a.nombreEmpresa || ('#' + a.idEmpresa) }}</span>
+        </span>
+        <span>
+          <span class="pill pill--ver">v{{ a.numeroVersion }}</span>
+        </span>
+        <span class="muted">{{ a.nombreUsuario || ('#' + a.idUsuario) }}</span>
+        <span class="fecha">{{ a.fechaAceptacion | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span class="mono">{{ a.direccionIp || '—' }}</span>
+        <span>
+          <span class="pill pill--so" *ngIf="a.sistemaOperativo; else sinSo">
+            {{ a.sistemaOperativo }}
+          </span>
+          <ng-template #sinSo><span class="muted">—</span></ng-template>
+        </span>
+        <span>
+          <span class="status" [class.status--ok]="a.correoEnviado" [class.status--no]="!a.correoEnviado">
+            {{ a.correoEnviado ? 'Enviado' : 'Pendiente' }}
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!filtrados.length">
+      <div class="empty-icon" aria-hidden="true">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <h2 *ngIf="!items.length">Sin aceptaciones registradas</h2>
+      <h2 *ngIf="items.length">Sin resultados para “{{ filtroTexto }}”</h2>
+      <p *ngIf="!items.length">Cuando una empresa acepte las políticas, aparecerá aquí el registro de auditoría.</p>
+      <p *ngIf="items.length">Prueba con otro término de búsqueda.</p>
+    </div>
+  </div>
+</div>
+</ion-content>

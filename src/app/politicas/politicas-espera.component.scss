@@ -1,0 +1,27 @@
+.espera-box {
+  max-width: 480px;
+  margin: 3rem auto 0;
+  text-align: center;
+
+  .icono {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.4rem;
+  }
+
+  p {
+    color: #444;
+    line-height: 1.5;
+    margin-bottom: 0.85rem;
+  }
+
+  .hint {
+    color: #777;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+}

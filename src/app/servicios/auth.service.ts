@@ -28,12 +28,11 @@ export class AuthService {
     });
   }
 logout(idUsuario: number) {
+  // LoginController espera [FromBody] int idUsuario (número JSON plano)
   return this.http.post(
     `${this.baseUrl}/logout`,
-    {
-      idUsuario
-    
-    }
+    idUsuario,
+    { headers: { 'Content-Type': 'application/json' } }
   );
 }
   // ============================

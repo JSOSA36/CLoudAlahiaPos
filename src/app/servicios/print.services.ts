@@ -4,7 +4,7 @@ import {
   HttpHeaders
 } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 
 import { ParametrosService }
@@ -19,6 +19,12 @@ from '../movimiento-inventario-print/movimiento-inventario-print.component';
 import { NotaCreditoPreviewComponent }
 from '../nota-credito-preview/nota-credito-preview.component';
 
+import { PrinterComponent }
+from '../printer/printer.component';
+
+import { FacturaHeaderService }
+from './factura-header.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,7 +33,8 @@ export class PrintService {
   constructor(
     private http: HttpClient,
     private parametros: ParametrosService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private facturaHeader: FacturaHeaderService
   ) {}
 
   private httpOptions = {
@@ -137,6 +144,54 @@ printCierreEncargos(
         withCredentials: false
       }
     );
+  }
+
+  /**
+   * Vista previa ticket térmico 80mm + print del navegador (tablet / impresora portátil).
+   * Si se pasa facturaLocal (snapshot del POS), no depende de GetFactura.
+   */
+  async openTicketPosPreview(
+    idFacturaHeader: number,
+    facturaLocal?: any
+  ): Promise<void> {
+    let raw = facturaLocal;
+
+    if (!raw) {
+      const rows = await firstValueFrom(
+        this.facturaHeader.PrintFact(idFacturaHeader)
+      );
+      raw = Array.isArray(rows) ? rows[0] : rows;
+    }
+
+    if (!raw) {
+      throw new Error('No se pudo cargar la factura para imprimir');
+    }
+
+    const emp = this.parametros._Empresa as any;
+    const factura = {
+      ...raw,
+      idFacturaHeader:
+        raw.idFacturaHeader || idFacturaHeader,
+      empresa:
+        raw.empresa ||
+        emp?.nombreComercial ||
+        this.parametros.NombreEmpresa ||
+        'Mi Empresa',
+      direccion: raw.direccion || emp?.direccion || '',
+      telefono: raw.telefono || emp?.telefono || '',
+      rnc: raw.rnc || emp?.rnc || ''
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: PrinterComponent,
+      cssClass: 'modal-fullscreen',
+      componentProps: {
+        factura,
+        forzarVistaPos: true
+      }
+    });
+
+    await modal.present();
   }
 
   async openCotizacionCarta(

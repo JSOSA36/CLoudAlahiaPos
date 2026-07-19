@@ -1,8 +1,8 @@
 <!-- 🔷 CONTENIDO -->
-<ion-content>
+<ion-content class="print-shell">
 
   <!-- 🔷 FACTURA / POS -->
-  <div *ngIf="factura">
+  <div *ngIf="factura" class="print-root">
 
     <!-- ============================= -->
     <!-- 📄 VISTA NORMAL -->
@@ -24,7 +24,7 @@
         </div>
 
         <div class="info-factura">
-          <p><strong>Factura:</strong> #{{ factura.idFacturaHeader }}</p>
+          <p><strong>Factura:</strong> #{{ factura.idFacturaHeader || factura.numeroDocumento }}</p>
           <p><strong>Fecha:</strong> {{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</p>
           <p><strong>Tipo:</strong> {{ factura.tipoFactura || 'Contado' }}</p>
           <p><strong>Cliente:</strong> {{ factura.clientes?.nombreComercial || 'Al Portador' }}</p>
@@ -47,11 +47,11 @@
 
         <tbody>
           <tr *ngFor="let item of factura.facturaDetalles">
-            <td>{{ item.productos?.descripcion || 'Producto' }}</td>
+            <td>{{ nombreItem(item) }}</td>
             <td class="text-center">{{ item.cantidad }}</td>
-            <td class="text-right">{{ item.precioOferta | number:'1.2-2' }}</td>
+            <td class="text-right">{{ precioItem(item) | number:'1.2-2' }}</td>
             <td class="text-right">
-              {{ (item.cantidad * item.precioOferta) | number:'1.2-2' }}
+              {{ subtotalItem(item) | number:'1.2-2' }}
             </td>
           </tr>
 
@@ -77,7 +77,7 @@
 
         <p *ngIf="factura.tipoFactura === 'Contado'">
           <strong>Pagado:</strong>
-          RD$ {{ factura.pagado | number:'1.2-2' }}
+          RD$ {{ (factura.pagado || factura.total) | number:'1.2-2' }}
         </p>
 
       </div>
@@ -91,39 +91,44 @@
     </div>
 
     <!-- ============================= -->
-    <!-- 🧾 VISTA POS -->
+    <!-- 🧾 VISTA POS TÉRMICA ~80mm -->
     <!-- ============================= -->
     <div *ngIf="vistaPos" class="ticket-pos">
 
       <div class="center bold">{{ factura.empresa || 'Mi Empresa' }}</div>
-      <div class="center small">{{ factura.direccion }}</div>
-      <div class="center small">Tel: {{ factura.telefono }}</div>
+      <div class="center small" *ngIf="factura.direccion">{{ factura.direccion }}</div>
+      <div class="center small" *ngIf="factura.telefono">Tel: {{ factura.telefono }}</div>
+      <div class="center small" *ngIf="factura.rnc">RNC: {{ factura.rnc }}</div>
 
       <div class="line"></div>
 
-      <div class="center bold">FACTURA CLIENTE</div>
+      <div class="center bold">TICKET DE VENTA</div>
 
       <div class="line"></div>
 
-      <div>Factura: {{ factura.idFacturaHeader }}</div>
-      <div>Fecha: {{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</div>
-      <div>Cliente: {{ factura.clientes?.nombreComercial }}</div>
+      <div>#{{ factura.numeroDocumento || factura.idFacturaHeader }}</div>
+      <div>{{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</div>
+      <div>Cliente: {{ factura.clientes?.nombreComercial || 'Al Portador' }}</div>
+      <div *ngIf="factura.tipoFactura">Pago: {{ factura.tipoFactura }}</div>
 
       <div class="line"></div>
 
-      <div *ngFor="let item of factura.facturaDetalles">
-
-        <div class="bold">
-          {{ item.cantidad }} {{ item.productos?.descripcion }}
+      <div class="item" *ngFor="let item of factura.facturaDetalles">
+        <div class="bold item-name">
+          {{ item.cantidad }} x {{ nombreItem(item) }}
         </div>
-
-        <div>
-          RD$ {{ item.precioOferta | number:'1.2-2' }}
+        <div class="item-row">
+          <span>RD$ {{ precioItem(item) | number:'1.2-2' }}</span>
+          <span>RD$ {{ subtotalItem(item) | number:'1.2-2' }}</span>
         </div>
-
       </div>
 
       <div class="line"></div>
+
+      <div class="item-row" *ngIf="factura.totalItbis || factura.itbis">
+        <span>ITBIS</span>
+        <span>RD$ {{ (factura.totalItbis || factura.itbis) | number:'1.2-2' }}</span>
+      </div>
 
       <div class="center total">
         TOTAL RD$ {{ factura.total | number:'1.2-2' }}
@@ -145,16 +150,16 @@
 
     <ion-buttons slot="start">
       <ion-button (click)="toggleVistaPos()">
-        {{ vistaPos ? '📄 Normal' : '🧾 POS' }}
+        {{ vistaPos ? 'Vista carta' : 'Vista ticket' }}
       </ion-button>
     </ion-buttons>
 
     <ion-buttons slot="end">
       <ion-button color="warning" (click)="imprimir()">
-        🖨️ Imprimir
+        Imprimir
       </ion-button>
 
-      <ion-button color="success" (click)="cerrar()">
+      <ion-button color="medium" (click)="cerrar()">
         Cerrar
       </ion-button>
     </ion-buttons>

@@ -1,0 +1,7 @@
+node_modules/
+videos/**
+!videos/.gitkeep
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

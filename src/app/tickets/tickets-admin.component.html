@@ -1,0 +1,156 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Tickets (Admin)</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tk-content">
+  <div class="page" [class.page--split]="!!detalle">
+
+    <div class="inbox-col">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">MacroBits Support Desk</p>
+          <h1>Inbox de tickets</h1>
+          <p class="sub">Canal oficial de soporte. Busque, filtre y responda con historial completo.</p>
+        </div>
+        <button class="btn btn-solid" type="button" (click)="cargar()" [disabled]="loading">
+          <ion-icon name="refresh-outline"></ion-icon> Actualizar
+        </button>
+      </section>
+
+      <div class="kpis" *ngIf="metricas">
+        <article class="kpi"><span>Abiertos</span><strong>{{ metricas.abiertos }}</strong></article>
+        <article class="kpi kpi--info"><span>En proceso</span><strong>{{ metricas.enProceso }}</strong></article>
+        <article class="kpi kpi--warn"><span>Pend. cliente</span><strong>{{ metricas.pendientesCliente }}</strong></article>
+        <article class="kpi kpi--ok"><span>Resueltos</span><strong>{{ metricas.resueltos }}</strong></article>
+        <article class="kpi"><span>Cerrados</span><strong>{{ metricas.cerrados }}</strong></article>
+        <article class="kpi kpi--accent">
+          <span>Resp. promedio</span>
+          <strong>{{ metricas.tiempoPromedioRespuestaHoras != null ? (metricas.tiempoPromedioRespuestaHoras + 'h') : '—' }}</strong>
+        </article>
+        <article class="kpi kpi--accent">
+          <span>Resolución prom.</span>
+          <strong>{{ metricas.tiempoPromedioResolucionHoras != null ? (metricas.tiempoPromedioResolucionHoras + 'h') : '—' }}</strong>
+        </article>
+      </div>
+
+      <section class="filters panel">
+        <input type="search" [(ngModel)]="filtro.q" placeholder="Buscar nº, empresa, asunto, cliente…" (keyup.enter)="cargar()" />
+        <select [(ngModel)]="filtro.estado">
+          <option value="">Todos los estados</option>
+          <option *ngFor="let e of estados" [value]="e">{{ etiquetaEstado(e) }}</option>
+        </select>
+        <select [(ngModel)]="filtro.prioridad">
+          <option value="">Todas las prioridades</option>
+          <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+        </select>
+        <select [(ngModel)]="filtro.categoria">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+        </select>
+        <input type="date" [(ngModel)]="filtro.fechaDesde" />
+        <input type="date" [(ngModel)]="filtro.fechaHasta" />
+        <select [(ngModel)]="filtro.orden">
+          <option *ngFor="let o of ordenes" [value]="o.value">{{ o.label }}</option>
+        </select>
+        <button class="btn btn-solid" type="button" (click)="cargar()">Filtrar</button>
+      </section>
+
+      <div class="loading" *ngIf="loading">Cargando inbox…</div>
+
+      <div class="ticket-list" *ngIf="!loading">
+        <article
+          class="ticket-card"
+          *ngFor="let t of tickets"
+          [class.active]="detalle?.idTicket === t.idTicket"
+          [class.unread]="t.sinResponder"
+          (click)="abrir(t)">
+          <header>
+            <div>
+              <span class="num">{{ t.numero }} · {{ t.nombreEmpresa }}</span>
+              <h3>{{ t.asunto }}</h3>
+            </div>
+            <div class="badges">
+              <span class="dot" *ngIf="t.sinResponder" title="Sin responder"></span>
+              <span class="badge" [ngClass]="clasePrioridad(t.prioridad)">{{ t.prioridad }}</span>
+              <span class="badge" [ngClass]="claseEstado(t.estado)">{{ etiquetaEstado(t.estado) }}</span>
+            </div>
+          </header>
+          <footer>
+            <span>{{ t.categoria }}</span>
+            <span *ngIf="textoEstimado(t.horasEstimadasMin, t.horasEstimadasMax) as est" class="eta">
+              Est. {{ est }}
+            </span>
+            <span>{{ t.fechaActualizacion | date:'dd/MM HH:mm' }}</span>
+            <span>{{ t.cantidadMensajes }} msg</span>
+          </footer>
+        </article>
+        <p class="empty-inline" *ngIf="!tickets.length">No hay tickets con estos filtros.</p>
+      </div>
+    </div>
+
+    <!-- DETALLE -->
+    <aside class="detail-col" *ngIf="detalle">
+      <section class="panel detail-head">
+        <button class="btn-link close" type="button" (click)="cerrarDetalle()">Cerrar</button>
+        <p class="eyebrow">{{ detalle.numero }}</p>
+        <h2>{{ detalle.asunto }}</h2>
+        <p class="empresa">{{ detalle.nombreEmpresa }} · {{ detalle.nombreCliente }}</p>
+        <div class="badges">
+          <span class="badge" [ngClass]="clasePrioridad(detalle.prioridad)">{{ detalle.prioridad }}</span>
+          <span class="badge" [ngClass]="claseEstado(detalle.estado)">{{ etiquetaEstado(detalle.estado) }}</span>
+          <span class="meta-chip meta-chip--eta" *ngIf="textoEstimado(detalle.horasEstimadasMin, detalle.horasEstimadasMax) as est">
+            Est. {{ est }}
+          </span>
+        </div>
+
+        <div class="estado-row">
+          <select [(ngModel)]="nuevoEstado">
+            <option *ngFor="let e of estados" [value]="e">{{ etiquetaEstado(e) }}</option>
+          </select>
+          <button class="btn btn-ghost" type="button" (click)="cambiarEstado()" [disabled]="enviando">Aplicar estado</button>
+        </div>
+
+        <dl class="meta">
+          <div><dt>Categoría</dt><dd>{{ detalle.categoria }}</dd></div>
+          <div><dt>Creado</dt><dd>{{ detalle.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+          <div><dt>Usuario</dt><dd>{{ detalle.usuarioCrea }}</dd></div>
+          <div><dt>Dispositivo</dt><dd>{{ detalle.dispositivo || '—' }}</dd></div>
+          <div><dt>SO / Navegador</dt><dd>{{ detalle.sistemaOperativo || '—' }} / {{ detalle.navegador || '—' }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="panel chat-panel">
+        <div class="msg" *ngFor="let m of detalle.mensajes" [class.msg--admin]="m.esRespuestaAdmin">
+          <header>
+            <strong>{{ m.nombreUsuario }}</strong>
+            <span *ngIf="m.esRespuestaAdmin" class="tag-admin">MacroBits</span>
+            <em>{{ m.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</em>
+          </header>
+          <p>{{ m.mensaje }}</p>
+          <div class="adjuntos" *ngIf="m.adjuntos?.length">
+            <a *ngFor="let a of m.adjuntos" [href]="a.url" target="_blank" rel="noopener">{{ a.nombreArchivo }}</a>
+          </div>
+        </div>
+
+        <div class="composer">
+          <textarea rows="3" [(ngModel)]="mensaje" placeholder="Responder al cliente…"></textarea>
+          <div class="composer-actions">
+            <label class="file-btn">
+              <ion-icon name="attach-outline"></ion-icon>
+              <input type="file" multiple hidden (change)="onFiles($event)"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.webm,.mov" />
+            </label>
+            <span class="file-hint" *ngIf="archivosMensaje.length">{{ archivosMensaje.length }} archivo(s)</span>
+            <button class="btn btn-solid" type="button" (click)="enviarMensaje()" [disabled]="enviando">Responder</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+  </div>
+</ion-content>

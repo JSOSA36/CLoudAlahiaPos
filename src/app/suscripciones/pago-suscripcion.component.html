@@ -1,0 +1,154 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Pago de Suscripción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+<div class="ps-page">
+  <header class="ps-header">
+    <div>
+      <p class="ps-eyebrow">Suscripción Alahia ERP</p>
+      <h1>Pago de suscripción</h1>
+      <p class="ps-sub">Reporte su pago y consulte el historial de validaciones.</p>
+    </div>
+    <button type="button" class="ps-refresh" (click)="cargar()" [disabled]="loading">
+      Actualizar
+    </button>
+  </header>
+
+  <div class="ps-tabs">
+    <button type="button" [class.active]="tab === 'pagar'" (click)="tab = 'pagar'">Efectuar pago</button>
+    <button type="button" [class.active]="tab === 'historial'" (click)="tab = 'historial'">Historial</button>
+  </div>
+
+  <div class="ps-loading" *ngIf="loading">Cargando…</div>
+
+  <!-- Efectuar pago -->
+  <section class="ps-panel" *ngIf="!loading && tab === 'pagar'">
+
+    <!-- Al día: sin cuota vigente -->
+    <div class="ps-ok" *ngIf="!tienePagoVigente">
+      <div class="ps-ok-icon" aria-hidden="true">✓</div>
+      <h2>No tiene un pago vigente</h2>
+      <p>
+        Su suscripción está al día. Cuando inicie el próximo ciclo (día 30),
+        aquí podrá reportar el voucher.
+      </p>
+      <p class="ps-ok-meta" *ngIf="calculo?.nombrePlan">
+        Plan {{ calculo?.nombrePlan }} · USD {{ total | number:'1.2-2' }}
+        (RD$ {{ totalDop | number:'1.2-2' }}) / ciclo
+      </p>
+      <button type="button" class="ps-btn-secondary" (click)="tab = 'historial'">
+        Ver historial
+      </button>
+    </div>
+
+    <!-- Con deuda / periodo de pago -->
+    <ng-container *ngIf="tienePagoVigente">
+      <div class="ps-amount">
+        <span>Total del ciclo</span>
+        <strong>
+          <em>USD</em> {{ total | number:'1.2-2' }}
+        </strong>
+        <p class="ps-dop">Equivalente RD$ {{ totalDop | number:'1.2-2' }} · tasa 1 USD = {{ tasa }} RD$</p>
+        <p *ngIf="calculo?.nombrePlan">Plan {{ calculo?.nombrePlan }}</p>
+      </div>
+
+      <ul class="ps-lines" *ngIf="lineas.length">
+        <li *ngFor="let l of lineas">
+          <span>{{ l.tipoLinea }} — {{ l.nombre }}</span>
+          <b>
+            USD {{ l.monto | number:'1.2-2' }}
+            <small>RD$ {{ (l.montoDop ?? l.monto * tasa) | number:'1.2-2' }}</small>
+          </b>
+        </li>
+      </ul>
+
+      <div class="ps-alert warn" *ngIf="pagoPendiente">
+        Ya tiene un voucher en validación ({{ pagoPendiente.fechaSubida | date:'dd/MM/yyyy HH:mm' }}).
+        Espere la aprobación de MacroBits antes de enviar otro.
+      </div>
+
+      <div class="ps-banks" *ngIf="puedeReportar">
+        <div class="ps-block-head">
+          <span class="ps-step">1</span>
+          <div>
+            <h2>Transferir a</h2>
+            <p class="ps-hint">Cuentas MacroBits para el pago</p>
+          </div>
+        </div>
+        <div class="ps-bank-grid">
+          <article class="ps-bank ps-bank--qik">
+            <header>
+              <strong>Banco Qik</strong>
+              <span>Rápido</span>
+            </header>
+            <p class="ps-bank-label">Nº de cuenta</p>
+            <p class="ps-bank-cuenta">123-456789-0</p>
+            <p>A nombre de <b>MacroBits</b></p>
+          </article>
+          <article class="ps-bank ps-bank--bhd">
+            <header>
+              <strong>Banco BHD</strong>
+              <span>Interbancario</span>
+            </header>
+            <p class="ps-bank-label">Nº de cuenta</p>
+            <p class="ps-bank-cuenta">987-654321-0</p>
+            <p>A nombre de <b>MacroBits</b></p>
+          </article>
+        </div>
+      </div>
+
+      <div class="ps-upload" *ngIf="puedeReportar">
+        <div class="ps-block-head">
+          <span class="ps-step ps-step--sky">2</span>
+          <div>
+            <h2>Comprobante</h2>
+            <p class="ps-hint">Solo adjunte el voucher. Banco y referencia se ven en el volante.</p>
+          </div>
+        </div>
+        <label class="ps-file" [class.ps-file--ok]="!!archivo">
+          <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
+          <span *ngIf="!archivo">Adjuntar imagen o PDF</span>
+          <span *ngIf="archivo">{{ archivo.name }}</span>
+        </label>
+        <button
+          type="button"
+          class="ps-btn"
+          [disabled]="!archivo || enviando"
+          (click)="enviarVoucher()">
+          {{ enviando ? 'Enviando…' : 'Enviar voucher' }}
+        </button>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- Historial -->
+  <section class="ps-panel" *ngIf="!loading && tab === 'historial'">
+    <div class="ps-empty" *ngIf="!pagos.length">
+      Aún no hay pagos reportados.
+    </div>
+
+    <article class="ps-pago" *ngFor="let p of pagos">
+      <div class="ps-pago-top">
+        <div>
+          <strong>USD {{ p.monto | number:'1.2-2' }}</strong>
+          <p class="ps-pago-dop">RD$ {{ (p.monto * tasa) | number:'1.2-2' }}</p>
+          <p>{{ p.fechaSubida | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+        <span class="ps-badge" [class]="estadoClass(p.estado)">{{ p.estado }}</span>
+      </div>
+      <p class="ps-obs" *ngIf="p.observacion">{{ p.observacion }}</p>
+      <p class="ps-meta" *ngIf="p.fechaValidacion">
+        Validado: {{ p.fechaValidacion | date:'dd/MM/yyyy HH:mm' }}
+        <span *ngIf="p.usuarioValida"> · {{ p.usuarioValida }}</span>
+      </p>
+      <a *ngIf="p.archivoUrl" [href]="p.archivoUrl" target="_blank" rel="noopener">Ver voucher</a>
+    </article>
+  </section>
+</div>
+</ion-content>

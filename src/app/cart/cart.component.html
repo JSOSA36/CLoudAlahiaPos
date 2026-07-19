@@ -7,125 +7,108 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <div class="ion-padding">
+<ion-content class="cart-content">
+  <div class="cart-shell">
 
-    <ion-row *ngFor="let item of parametro.ListadoProductosCate; let i = index">
+    <div class="cart-empty" *ngIf="!parametro.ListadoProductosCate?.length">
+      <ion-icon name="cart-outline"></ion-icon>
+      <p>No hay productos en la orden</p>
+    </div>
 
-      <!-- ================= PRODUCTO ================= -->
-      <ion-col size="6">
+    <article
+      class="cart-item"
+      *ngFor="let item of parametro.ListadoProductosCate; let i = index">
 
-        <b>{{ item.descripcion }}</b><br>
+      <div class="cart-item-top">
+        <div class="cart-item-info">
+          <h3 class="cart-item-name">{{ item.nombre || item.descripcion }}</h3>
+          <p class="cart-item-desc" *ngIf="item.nombre && item.descripcion && item.descripcion !== item.nombre">
+            {{ item.descripcion }}
+          </p>
 
-        <!-- Precio original -->
-        <span *ngIf="item.precioOriginal > item.precioVenta"
-              style="text-decoration: line-through; color:#777;">
-          {{ item.precioOriginal | currency }}
+          <div class="cart-item-prices">
+            <span
+              class="price-old"
+              *ngIf="item.precioOriginal > item.precioVenta">
+              {{ item.precioOriginal | currency }}
+            </span>
+            <span class="price-now">{{ item.precioVenta | currency }}</span>
+          </div>
+
+          <div
+            class="cart-item-discount"
+            *ngIf="item.precioOriginal > item.precioVenta">
+            Descuento −{{ (item.precioOriginal - item.precioVenta) * item._cantidad | currency }}
+          </div>
+        </div>
+
+        <div class="cart-item-actions">
+          <ion-button class="btn-act btn-del" (click)="removerItem(i)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+          <ion-button class="btn-act btn-minus" (click)="disminuirCantidad(i)">
+            <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+          </ion-button>
+          <ion-button class="btn-act btn-plus" (click)="aumentarCantidad(i)">
+            <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="cart-item-bottom">
+        <span class="qty-pill">Cant. {{ item._cantidad }}</span>
+        <span class="subtotal">
+          Subtotal
+          <strong>{{ item._cantidad * item.precioVenta | currency }}</strong>
         </span>
+      </div>
 
-        <!-- Precio final -->
-        <span style="font-weight:bold;">
-          {{ item.precioVenta | currency }}
-        </span>
-
-        <br>
-        Cantidad: {{ item._cantidad }}
-
-        <!-- Descuento -->
-        <div *ngIf="item.precioOriginal > item.precioVenta"
-             style="margin-top:6px;font-size:14px;font-weight:600;color:#c82333;">
-          Descuento:
-          -{{ (item.precioOriginal - item.precioVenta) * item._cantidad | currency }}
+      <ng-container *ngIf="comisionEmpleado">
+        <div class="empleado-block">
+          <p class="empleado-label">Empleado que comisiona</p>
+          <div class="empleado-comision-box">
+            <ion-item lines="none">
+              <ion-select
+                [(ngModel)]="item.idEmpleadoComision"
+                interface="popover"
+                placeholder="Seleccionar empleado">
+                <ion-select-option
+                  *ngFor="let emp of ListadoEmpleados"
+                  [value]="emp.idEmpleados">
+                  {{ emp.nombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
         </div>
-
-        <!-- Subtotal -->
-        <div style="margin-top:4px;font-size:16px;font-weight:700;">
-          Subtotal:
-          {{ item._cantidad * item.precioVenta | currency }}
-        </div>
-
-      </ion-col>
-
-      <!-- ================= BOTONES ================= -->
-      <ion-col size="6" class="ion-text-end">
-
-        <ion-button size="small" color="danger"
-                    (click)="removerItem(i)">
-          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button size="small" color="warning"
-                    (click)="disminuirCantidad(i)">
-          <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button size="small" color="success"
-                    (click)="aumentarCantidad(i)">
-          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
-        </ion-button>
-
-      </ion-col>
-
-      <!-- ================= COMENTARIO ================= -->
-      
-
-      <!-- ================= EMPLEADO ================= -->
-      <div class="empleado-label">
-  👤 Selecciona el empleado que realizó este servicio
-</div>
-       <ion-col size="12">
-  <div class="empleado-comision-box">
-        <ion-item>
-          <ion-select
-            [(ngModel)]="item.idEmpleadoComision"
-            label="Empleado que comisiona"
-            label-placement="stacked">
-
-            <ion-select-option
-              *ngFor="let emp of ListadoEmpleados"
-              [value]="emp.idEmpleados">
-              {{ emp.nombre }}
-            </ion-select-option>
-
-          </ion-select>
-        </ion-item>
-        </div>
-      </ion-col>
-
-    </ion-row>
+      </ng-container>
+    </article>
 
   </div>
 </ion-content>
 
-<!-- ================= FOOTER ================= -->
-<ion-footer>
+<ion-footer class="cart-footer">
+  <div class="totals-panel">
+    <div class="total-row">
+      <span>Total bruto</span>
+      <strong>{{ TotalBruto | currency }}</strong>
+    </div>
 
-  <ion-row style="background:#f4f5f8; padding:6px;">
-    <ion-col size="6"><b>Total bruto</b></ion-col>
-    <ion-col size="6" class="ion-text-end">
-      <b>{{ TotalBruto | currency }}</b>
-    </ion-col>
-  </ion-row>
+    <div class="total-row discount" *ngIf="TotalDescuento > 0">
+      <span>Descuento</span>
+      <strong>−{{ TotalDescuento | currency }}</strong>
+    </div>
 
-  <ion-row *ngIf="TotalDescuento > 0"
-           style="background:#ffe5e5; padding:6px;">
-    <ion-col size="6"><b>Descuento</b></ion-col>
-    <ion-col size="6" class="ion-text-end" style="color:#c82333;">
-      <b>-{{ TotalDescuento | currency }}</b>
-    </ion-col>
-  </ion-row>
+    <div class="total-row pay">
+      <span>Total a pagar</span>
+      <strong>{{ TotalNeto | currency }}</strong>
+    </div>
+  </div>
 
-  <ion-row style="background:#d4edda; padding:8px;">
-    <ion-col size="6"><b>Total a pagar</b></ion-col>
-    <ion-col size="6" class="ion-text-end" style="color:#155724;">
-      <b>{{ TotalNeto | currency }}</b>
-    </ion-col>
-  </ion-row>
-
-  <ion-button expand="block"
-              color="success"
-              (click)="procesarOrden()">
-    Confirmar Orden
+  <ion-button
+    class="btn-confirm"
+    expand="block"
+    (click)="procesarOrden()">
+    Confirmar orden
   </ion-button>
-
 </ion-footer>

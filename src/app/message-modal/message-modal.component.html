@@ -1,180 +1,207 @@
-<ion-header>
+<ion-header class="mm-header">
   <ion-toolbar color="primary">
     <ion-title>{{ title }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="cerrar()">
+      <ion-button (click)="cerrar()" aria-label="Cerrar">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding ion-text-center">
+<ion-content class="mm-content">
+  <div class="mm-wrap" [class.mm-wrap--pago]="mostrarPago">
 
-  <!-- 🔥 ICONO + MENSAJE -->
-  <ion-icon [name]="icon" size="large" color="warning"></ion-icon>
-  <h2 class="modal-title">{{ title }}</h2>
-  <p class="modal-message">{{ message }}</p>
+    <!-- Intro / alerta -->
+    <section class="mm-intro" [class.mm-intro--warn]="mostrarPago || !mostrarCambioPlan">
+      <div class="mm-intro-icon" aria-hidden="true">
+        <ion-icon [name]="icon"></ion-icon>
+      </div>
+      <div class="mm-intro-body">
+        <p class="mm-eyebrow" *ngIf="mostrarPago">Pago pendiente</p>
+        <h2 class="mm-title">{{ title }}</h2>
+        <p class="mm-message">{{ mensajeMostrado }}</p>
 
-  <!-- ===================================================== -->
-  <!-- 🔴 BLOQUE DE PAGO -->
-  <!-- ===================================================== -->
-  <div *ngIf="mostrarPago" class="pago-card">
+        <div class="mm-deadline" *ngIf="mostrarPago">
+          <span class="mm-deadline-badge">Fecha límite: Día 3</span>
+          <span class="mm-deadline-vence" *ngIf="textoVence">{{ textoVence }}</span>
+        </div>
+      </div>
+    </section>
 
-    <h3>Total a pagar</h3>
-    <h1 class="total">RD$ 3,600</h1>
+    <!-- Pago -->
+    <div *ngIf="mostrarPago" class="mm-pago">
 
-    <div class="detalle">
-      <p><strong>Servicio:</strong> Suscripción mensual</p>
-      <p><strong>Periodo:</strong> Mes actual</p>
-    </div>
-
-    <!-- 💳 CUENTAS -->
-  <!-- 💳 CUENTAS -->
-<div class="cuentas">
-
-  <h4>Transferir a:</h4>
-
-  <!-- 🔵 BANCO QIK -->
-  <div class="cuenta qik">
-    <strong>Banco Qik</strong><br>
-    Cuenta: 123-456789-0<br>
-    Nombre: Tu Empresa<br>
-    <small>Transferencias usualmente inmediatas</small>
-  </div>
-
-  <!-- 🟡 BANCO BHD -->
-  <div class="cuenta bhd">
-    <strong>Banco BHD</strong><br>
-    Cuenta: 987-654321-0<br>
-    Nombre: Tu Empresa<br>
-    <small>Transferencias interbancarias pueden tardar</small>
-  </div>
-
-</div>
-
-<!-- ⚠️ REGLA CLARA MEJORADA -->
-<div class="regla-pago">
-  ⚠️ Importante:<br>
-  Los pagos realizados el último día o desde otros bancos pueden reflejarse con retraso.<br>
-  El servicio se restablece únicamente cuando el pago sea validado en el sistema.
-</div>
-
-    
-
-    <!-- 📎 SUBIR COMPROBANTE -->
-    <div class="upload">
-
-      
-<input 
-  type="file" 
-  #fileInput
-  hidden
-  accept="image/*,.pdf"
-  capture="environment"
-  (change)="onFileSelected($event)" 
-/>
-
-<ion-button 
-  expand="block" 
-  fill="solid"
-  color="medium"
-  class="btn-upload"
-  (click)="fileInput.click()">
-
-  <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-
-  <span *ngIf="!archivo">Adjuntar comprobante</span>
-  <span *ngIf="archivo">Cambiar archivo</span>
-
-</ion-button>
-
-<p *ngIf="archivo" class="file-name">
-  📎 {{ archivo.name }}
-</p>
-
-    </div>
-
-    <!-- 🚀 BOTÓN ENVIAR -->
-    <ion-button 
-      expand="block" 
-      color="primary" 
-      [disabled]="!archivo"
-      (click)="enviarPago()">
-      Enviar comprobante
-    </ion-button>
-
-  </div>
-
-  <!-- ===================================================== -->
-  <!-- 🟢 BLOQUE CAMBIO DE PLAN -->
-  <!-- ===================================================== -->
-  <div *ngIf="mostrarCambioPlan">
-
-    <div class="plan-card">
-
-      <div class="plan-body">
-
-        <p class="plan-actual">
-          Plan actual: <strong>{{ planActualNombre }}</strong>
-        </p>
-
-        <ion-radio-group [(ngModel)]="planSeleccionado">
-
-          <div 
-            class="plan-item" 
-            *ngFor="let plan of planes"
-            [class.selected]="planSeleccionado === plan.idPlan"
-            (click)="planSeleccionado = plan.idPlan"
-          >
-
-            <div class="plan-grid">
-
-              <div class="plan-radio">
-                <ion-radio [value]="plan.idPlan"></ion-radio>
-              </div>
-
-              <div class="plan-content">
-
-                <div class="plan-title">
-                  <strong>
-                    {{ plan.nombre }} -
-                    <span class="precio">USD${{ plan.precio | number:'1.0-0' }}</span>
-                  </strong>
-                </div>
-
-                <div>
-                  <strong>
-                    Facturación hasta RD${{ plan.limiteFacturacion | number:'1.0-0' }} mensual
-                  </strong>
-                </div>
-
-              </div>
-
+      <section class="mm-amount">
+        <div class="mm-amount-groups" *ngIf="lineaPlan || lineasServicio.length">
+          <div class="mm-group" *ngIf="lineaPlan">
+            <span class="mm-group-label">Plan</span>
+            <div class="mm-group-row">
+              <span>{{ nombrePlanLinea }}</span>
+              <strong>
+                USD {{ lineaPlan.monto | number:'1.2-2' }}
+                <small>RD$ {{ (lineaPlan.montoDop ?? lineaPlan.monto * tasa) | number:'1.2-2' }}</small>
+              </strong>
             </div>
-
           </div>
 
-        </ion-radio-group>
+          <div class="mm-group" *ngIf="lineasServicio.length">
+            <span class="mm-group-label">Servicios adicionales</span>
+            <div class="mm-group-row" *ngFor="let l of lineasServicio">
+              <span>{{ l.nombre }}</span>
+              <strong>
+                USD {{ l.monto | number:'1.2-2' }}
+                <small>RD$ {{ (l.montoDop ?? l.monto * tasa) | number:'1.2-2' }}</small>
+              </strong>
+            </div>
+          </div>
+        </div>
 
+        <div class="mm-total">
+          <span class="mm-total-label">Total a pagar</span>
+          <div class="mm-total-usd">
+            <em>USD</em> {{ (pagoForm.monto || precioPlan || 0) | number:'1.2-2' }}
+          </div>
+          <div class="mm-total-dop">RD$ {{ totalDop | number:'1.2-2' }}</div>
+          <p class="mm-amount-hint">Suscripción mensual · 1 USD = {{ tasa }} RD$</p>
+        </div>
+      </section>
+
+      <section class="mm-section mm-section--banks">
+        <div class="mm-section-head">
+          <span class="mm-step">1</span>
+          <div>
+            <h3 class="mm-section-title">Transferir a</h3>
+            <p class="mm-section-hint">Cuentas MacroBits para el pago</p>
+          </div>
+        </div>
+        <div class="mm-banks">
+          <article class="mm-bank mm-bank--qik">
+            <header>
+              <strong>Banco Qik</strong>
+              <span class="mm-bank-tag">Rápido</span>
+            </header>
+            <p class="mm-bank-label">Nº de cuenta</p>
+            <p class="mm-bank-cuenta">123-456789-0</p>
+            <p class="mm-bank-nombre">A nombre de <b>MacroBits</b></p>
+            <small>Transferencias usualmente inmediatas</small>
+          </article>
+          <article class="mm-bank mm-bank--bhd">
+            <header>
+              <strong>Banco BHD</strong>
+              <span class="mm-bank-tag">Interbancario</span>
+            </header>
+            <p class="mm-bank-label">Nº de cuenta</p>
+            <p class="mm-bank-cuenta">987-654321-0</p>
+            <p class="mm-bank-nombre">A nombre de <b>MacroBits</b></p>
+            <small>Puede tomar más tiempo en reflejarse</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="mm-section mm-section--voucher">
+        <div class="mm-section-head">
+          <span class="mm-step">2</span>
+          <div>
+            <h3 class="mm-section-title">Comprobante</h3>
+            <p class="mm-section-hint">Adjunte la foto o PDF del voucher</p>
+          </div>
+        </div>
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept="image/*,.pdf"
+          capture="environment"
+          (change)="onFileSelected($event)"
+        />
+        <button
+          type="button"
+          class="mm-upload"
+          [class.mm-upload--ok]="!!archivo"
+          (click)="fileInput.click()">
+          <ion-icon [name]="archivo ? 'checkmark-circle' : 'cloud-upload-outline'"></ion-icon>
+          <div>
+            <strong *ngIf="!archivo">Adjuntar voucher</strong>
+            <strong *ngIf="archivo">{{ archivo.name }}</strong>
+            <small *ngIf="!archivo">Imagen o PDF</small>
+            <small *ngIf="archivo">Listo · toca para cambiar</small>
+          </div>
+        </button>
+      </section>
+
+      <div class="mm-note">
+        <ion-icon name="information-circle"></ion-icon>
+        <p>
+          El acceso se restablece cuando MacroBits valide el pago.
+          Transferencias del último día pueden demorar en reflejarse.
+        </p>
       </div>
 
-    </div>
-
-    <div class="nota-plan">
-      <span class="icono">💡</span>
-      <div class="texto">
-        Actualiza tu plan ahora y continúa sin interrupciones.<br>
-        No se realizará ningún cobro en este momento.<br>
-        El nuevo plan entrará en vigencia inmediatamente.<br>
-        La diferencia por el cambio de plan se cargará en tu próxima factura.
+      <div class="mm-actions">
+        <ion-button
+          expand="block"
+          color="primary"
+          class="mm-btn-primary"
+          [disabled]="!archivo || enviando"
+          (click)="enviarPago()">
+          {{ enviando ? 'Enviando…' : 'Confirmar pago' }}
+        </ion-button>
+        <button type="button" class="mm-later" (click)="cerrar()">Más tarde</button>
       </div>
     </div>
 
-    <ion-button expand="block" color="success" (click)="cambiarPlan()">
-      Cambiar Plan
-    </ion-button>
+    <!-- Cambio de plan (sin cambios de flujo) -->
+    <div *ngIf="mostrarCambioPlan" class="plan-block">
+      <div class="plan-card">
+        <div class="plan-body">
+          <p class="plan-actual">
+            Plan actual: <strong>{{ planActualNombre }}</strong>
+          </p>
+          <ion-radio-group [(ngModel)]="planSeleccionado">
+            <div
+              class="plan-item"
+              *ngFor="let plan of planes"
+              [class.selected]="planSeleccionado === plan.idPlan"
+              (click)="planSeleccionado = plan.idPlan"
+            >
+              <div class="plan-grid">
+                <div class="plan-radio">
+                  <ion-radio [value]="plan.idPlan"></ion-radio>
+                </div>
+                <div class="plan-content">
+                  <div class="plan-title">
+                    <strong>
+                      {{ plan.nombre }} -
+                      <span class="precio">USD${{ plan.precio | number:'1.0-0' }}</span>
+                    </strong>
+                  </div>
+                  <div>
+                    <strong>
+                      Facturación hasta RD${{ plan.limiteFacturacion | number:'1.0-0' }} mensual
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-radio-group>
+        </div>
+      </div>
+
+      <div class="nota-plan">
+        <span class="icono">💡</span>
+        <div class="texto">
+          Actualiza tu plan ahora y continúa sin interrupciones.<br>
+          No se realizará ningún cobro en este momento.<br>
+          El nuevo plan entrará en vigencia inmediatamente.<br>
+          La diferencia por el cambio de plan se cargará en tu próxima factura.
+        </div>
+      </div>
+
+      <ion-button expand="block" color="success" (click)="cambiarPlan()">
+        Cambiar Plan
+      </ion-button>
+    </div>
 
   </div>
-
 </ion-content>

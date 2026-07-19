@@ -57,17 +57,24 @@
       <ion-item slot="header" color="light" style="margin-bottom:2px;" class="header-orden">
 
         <ion-label class="label-orden">
-          <div>
-  <strong>
-    {{ tipoDocumento === 'Cotizacion' ? 'Cot#' : 'Ord#' }}:
-    {{ iten.numeroDocumento || iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
-  </strong>
-</div>
+          <div class="orden-titulo">
+            <strong>
+              {{ tipoDocumento === 'Cotizacion' ? 'Cot#' : 'Ord#' }}:
+              {{ iten.numeroDocumento || iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
+            </strong>
+            <span
+              *ngIf="mostrarEstatusOrdenes && tipoDocumento === 'Orden'"
+              class="badge-estatus"
+              [ngClass]="claseEstatus(iten.idFacturaHeader)">
+              <ion-icon [name]="iconoEstatus(iten.idFacturaHeader)"></ion-icon>
+              {{ etiquetaEstatus(iten.idFacturaHeader) }}
+            </span>
+          </div>
 
-<div *ngIf="$any(iten.clientes).celular">
-  <ion-icon name="call-outline"></ion-icon>
-  {{ $any(iten.clientes).celular }}
-</div>
+          <div *ngIf="$any(iten.clientes)?.celular">
+            <ion-icon name="call-outline"></ion-icon>
+            {{ $any(iten.clientes).celular }}
+          </div>
 
           <div>
             <ion-icon name="calendar-outline"></ion-icon>
@@ -245,3 +252,19 @@
   </ion-fab>
 
 </ion-content>
+
+<!-- FOOTER RESUMEN -->
+<ion-footer *ngIf="_Parametro.ListadoOrdenes.length > 0" class="footer-ordenes">
+  <ion-toolbar color="dark">
+    <div class="footer-ordenes-content">
+      <div class="footer-ordenes-item">
+        <span>{{ tipoDocumento === 'Cotizacion' ? 'Cotizaciones' : 'Órdenes' }}</span>
+        <strong>{{ _Parametro.ListadoOrdenes.length }}</strong>
+      </div>
+      <div class="footer-ordenes-item total">
+        <span>Total General</span>
+        <strong>{{ totalOrdenes | currency:'DOP':'symbol':'1.2-2' }}</strong>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-footer>

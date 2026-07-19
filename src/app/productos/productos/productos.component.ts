@@ -440,18 +440,15 @@ console.log('Productos cargados:', res);
           toast.present();
         },
 
-        error: async () => {
+        error: async (err: any) => {
+          const msg = err?.error?.message
+            || 'Error al eliminar el producto';
 
           const toast =
             await this.toastCtrl.create({
-
-              message:
-                '❌ Error al eliminar el producto',
-
-              duration: 2000,
-
+              message: msg,
+              duration: 3000,
               color: 'danger',
-
               position: 'bottom',
             });
 

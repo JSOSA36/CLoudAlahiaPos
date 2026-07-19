@@ -7,6 +7,7 @@ import { FacturaHeaderService } from '../servicios/factura-header.service';
 import { FactDetalleService } from '../servicios/fact-detalle.service';
 import { EmpleadosService } from '../servicios/empleados.service';
 import { PrintService } from '../servicios/print.services';
+import { ParametroConfigService } from '../servicios/parametrosconfig.service';
 import { productos } from '../models/productos';
 import { facturaheader } from '../models/facturaheader';
 import { facturadetalles } from '../models/facturadetalles';
@@ -26,6 +27,8 @@ export class CartComponent implements OnInit {
   // ============================
   public ListadoProductos: productos[] = [];
   public ListadoEmpleados: Empleado[] = [];
+  /** Parámetro COMISION_EMPLEADO — si false no se pide empleado en el carrito. */
+  comisionEmpleado = false;
 
   public TotalBruto = 0;
   public TotalDescuento = 0;
@@ -39,6 +42,7 @@ export class CartComponent implements OnInit {
     private empleadosService: EmpleadosService,
     private modal: ModalController,
     private printService: PrintService,
+    private parametroConfig: ParametroConfigService,
 
   ) {}
 
@@ -46,9 +50,26 @@ export class CartComponent implements OnInit {
   // INIT
   // ============================
   ngOnInit() {
-    this.cargarEmpleados();
+    this.cargarParametroComision();
     this.blindarPrecios();
     this.calcularTotales();
+  }
+
+  private cargarParametroComision(): void {
+    const idEmpresa = this.parametro.GetIdEmpresa();
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find(x => x.clave === 'COMISION_EMPLEADO');
+        const valor = String(p?.valor ?? '').toLowerCase();
+        this.comisionEmpleado = valor === 'true' || valor === '1';
+        if (this.comisionEmpleado) {
+          this.cargarEmpleados();
+        }
+      },
+      error: () => {
+        this.comisionEmpleado = false;
+      }
+    });
   }
 
   // ============================

@@ -1,3 +1,56 @@
+/* Banner aviso de pago (gracia día 30→3) */
+.pago-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  z-index: 1000;
+  position: relative;
+}
+.pago-banner--warn {
+  background: #fff7ed;
+  color: #9a3412;
+  border-bottom: 1px solid #fed7aa;
+}
+.pago-banner--critico {
+  background: #fef2f2;
+  color: #991b1b;
+  border-bottom: 1px solid #fecaca;
+}
+.pago-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.pago-banner-pay {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pago-banner-pay:hover {
+  opacity: 0.85;
+}
+.pago-banner-close {
+  border: none;
+  background: transparent;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 0.2rem;
+  flex-shrink: 0;
+}
+
 /* 🔹 Ajuste de fondo del menú */
 ion-menu ion-content {
   --background: var(--ion-item-background, var(--ion-background-color, #fff));
@@ -181,6 +234,20 @@ ion-menu ion-list {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+/* Campana fija a la derecha del toolbar de cualquier vista */
+.toolbar-notif-bell {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  right: 10px;
+  z-index: 10020;
+  pointer-events: auto;
+}
+
+/* Deja espacio en toolbars que ya tienen botones a la derecha */
+:host ::ng-deep ion-header ion-toolbar ion-buttons[slot='end'] {
+  margin-right: 46px;
 }
 
 

@@ -1,0 +1,120 @@
+<ion-header class="no-print">
+  <ion-toolbar color="primary">
+    <ion-title>Vista Previa — Factura Electrónica</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="imprimir()">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        Imprimir
+      </ion-button>
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cerrar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="preview-container">
+
+    <!-- Estado DGII -->
+    <div class="estado-badge" [ngClass]="{
+      'aceptado': esAceptado,
+      'rechazado': esRechazado,
+      'pendiente': !esAceptado && !esRechazado
+    }">
+      <ion-icon [name]="esAceptado ? 'checkmark-circle' : esRechazado ? 'close-circle' : 'time'"></ion-icon>
+      <span>{{ ecfData?.estadoDgii || 'Procesando...' }}</span>
+    </div>
+
+    <!-- Encabezado empresa -->
+    <div class="empresa-header">
+      <h2>{{ ecfData?.razonSocialEmisor || factura?.empresa }}</h2>
+      <p *ngIf="ecfData?.rncEmisor">RNC: {{ ecfData.rncEmisor }}</p>
+      <p *ngIf="factura?.direccion">{{ factura.direccion }}</p>
+      <p *ngIf="factura?.telefono">Tel: {{ factura.telefono }}</p>
+    </div>
+
+    <!-- Datos e-CF -->
+    <div class="ecf-info">
+      <div class="ecf-row">
+        <span class="ecf-label">e-NCF:</span>
+        <span class="ecf-value encf">{{ ecfData?.encf }}</span>
+      </div>
+      <div class="ecf-row" *ngIf="ecfData?.trackId && ecfData.trackId !== '00000000-0000-0000-0000-000000000000'">
+        <span class="ecf-label">TrackId:</span>
+        <span class="ecf-value trackid">{{ ecfData.trackId }}</span>
+      </div>
+      <div class="ecf-row" *ngIf="ecfData?.securityCode">
+        <span class="ecf-label">Código Seguridad:</span>
+        <span class="ecf-value">{{ ecfData.securityCode }}</span>
+      </div>
+      <div class="ecf-row">
+        <span class="ecf-label">Fecha:</span>
+        <span class="ecf-value">{{ factura?.fecha | date:'dd/MM/yyyy hh:mm a' }}</span>
+      </div>
+    </div>
+
+    <!-- Tipo documento -->
+    <div class="tipo-documento">
+      {{ factura?.tipoDocumentoFiscal }}
+    </div>
+
+    <!-- Datos comprador -->
+    <div class="cliente-info" *ngIf="factura?.rnc">
+      <p class="comprador-nombre">{{ factura.cliente }}</p>
+      <p>RNC: {{ factura.rnc }}</p>
+    </div>
+
+    <!-- Detalle de items -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th class="text-right">Cant.</th>
+          <th class="text-right">Precio</th>
+          <th class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of factura?.items">
+          <td>{{ item.nombre }}</td>
+          <td class="text-right">{{ item.cantidad }}</td>
+          <td class="text-right">{{ item.precio | number:'1.2-2' }}</td>
+          <td class="text-right">{{ item.subTotal | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totales -->
+    <div class="totales">
+      <div class="total-row" *ngIf="factura?.totalItbis">
+        <span>ITBIS:</span>
+        <span>{{ factura.totalItbis | number:'1.2-2' }}</span>
+      </div>
+      <div class="total-row total-general">
+        <span>TOTAL:</span>
+        <span>{{ factura?.total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-section" *ngIf="ecfData?.urlQR">
+      <img [src]="ecfData.urlQR" alt="Código QR e-CF" class="qr-image">
+      <p class="qr-caption">Escanea para verificar en DGII</p>
+    </div>
+
+    <!-- Mensajes DGII -->
+    <div class="mensajes-dgii" *ngIf="ecfData?.mensajesDgii?.length > 0">
+      <h4>Mensajes DGII</h4>
+      <p *ngFor="let msg of ecfData.mensajesDgii" class="msg-item">{{ msg }}</p>
+    </div>
+
+    <!-- Pie de página -->
+    <div class="footer-info">
+      <p>Documento generado electrónicamente</p>
+      <p *ngIf="ecfData?.encf">e-NCF: {{ ecfData.encf }}</p>
+    </div>
+
+  </div>
+</ion-content>

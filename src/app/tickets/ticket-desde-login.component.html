@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Ticket de soporte</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ok-box" *ngIf="exitoNumero; else formTpl">
+    <h2>Ticket creado</h2>
+    <p class="numero">{{ exitoNumero }}</p>
+    <p>
+      Recibimos su solicitud. Tiempo estimado de atención:
+      <strong>{{ exitoRango }}</strong>
+    </p>
+    <p class="hint">
+      MacroBits atenderá el ticket en horario laboral
+      (lunes a viernes, 9:00 a.m. – 5:00 p.m.).
+    </p>
+    <ion-button expand="block" color="primary" (click)="cerrar()">
+      Entendido
+    </ion-button>
+  </div>
+
+  <ng-template #formTpl>
+    <p class="intro">
+      Use su usuario y contraseña habituales. No es necesario entrar al sistema
+      para reportar un problema de acceso.
+    </p>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Usuario *</ion-label>
+      <ion-input [(ngModel)]="userName" autocomplete="username"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Contraseña *</ion-label>
+      <ion-input type="password" [(ngModel)]="password" autocomplete="current-password"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Asunto *</ion-label>
+      <ion-input [(ngModel)]="asunto" maxlength="250"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Categoría</ion-label>
+      <ion-select [(ngModel)]="categoria" interface="action-sheet">
+        <ion-select-option *ngFor="let c of categorias" [value]="c">{{ c }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Prioridad</ion-label>
+      <ion-select [(ngModel)]="prioridad" interface="action-sheet">
+        <ion-select-option *ngFor="let p of prioridades" [value]="p">{{ p }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked">Descripción *</ion-label>
+      <ion-textarea
+        [(ngModel)]="descripcion"
+        rows="5"
+        autoGrow="true"
+        placeholder="Describa el problema (ej. no puedo iniciar sesión, pago en validación, etc.)">
+      </ion-textarea>
+    </ion-item>
+
+    <div class="file-block">
+      <label>Evidencia (imagen o archivo) *</label>
+      <input type="file" accept="image/*,application/pdf,video/*" (change)="onFile($event)" />
+      <p class="file-name" *ngIf="archivo">{{ archivo.name }}</p>
+    </div>
+
+    <ion-button
+      expand="block"
+      color="primary"
+      class="btn-enviar"
+      [disabled]="enviando"
+      (click)="enviar()">
+      {{ enviando ? 'Enviando…' : 'Crear ticket' }}
+    </ion-button>
+  </ng-template>
+</ion-content>

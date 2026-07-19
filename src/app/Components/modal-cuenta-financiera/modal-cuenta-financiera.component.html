@@ -3,368 +3,152 @@
   <ion-toolbar color="primary">
 
     <ion-title>
-
       {{
-
         isEdit
-
-        ?
-
-        '✏️ Editar Cuenta'
-
-        :
-
-        '🏦 Nueva Cuenta'
+          ? '✏️ Editar Cuenta'
+          : '🏦 Nueva Cuenta'
       }}
-
     </ion-title>
 
     <ion-buttons slot="end">
-
-      <ion-button
-        fill="clear"
-        (click)="cerrar()">
-
-        <ion-icon
-          name="close-outline">
-        </ion-icon>
-
+      <ion-button fill="clear" (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
       </ion-button>
-
     </ion-buttons>
 
   </ion-toolbar>
 
 </ion-header>
 
-<ion-content class="ion-padding">
+<div class="modal-body">
 
   <div class="form-layout">
 
-    <!-- =====================================
-    🔥 HEADER VISUAL
-    ====================================== -->
-
+    <!-- HEADER VISUAL -->
     <div class="top-card">
 
       <div
         class="icon-preview"
-
         [style.background]="model.color">
-
-        <ion-icon
-          [name]="model.icono">
-        </ion-icon>
-
+        <ion-icon [name]="model.icono"></ion-icon>
       </div>
 
       <div class="top-info">
-
-        <h2>
-
-          {{
-            model.nombre
-            ||
-            'Nueva Cuenta'
-          }}
-
-        </h2>
-
-        <span>
-
-          {{
-            model.tipoCuenta
-          }}
-
-        </span>
-
+        <h2>{{ model.nombre || 'Nueva Cuenta' }}</h2>
+        <span>{{ model.tipoCuenta }}</span>
       </div>
 
     </div>
 
-    <!-- =====================================
-    🔥 NOMBRE
-    ====================================== -->
-
+    <!-- NOMBRE -->
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Nombre Cuenta
-
-      </ion-label>
-
+      <ion-label position="stacked">Nombre Cuenta</ion-label>
       <ion-input
-
         fill="outline"
-
         placeholder="Ej: Caja Chica"
-
         [(ngModel)]="model.nombre">
-
       </ion-input>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 TIPO
-    ====================================== -->
-
+    <!-- TIPO -->
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Tipo Cuenta
-
-      </ion-label>
-
+      <ion-label position="stacked">Tipo Cuenta</ion-label>
       <ion-select
-
         interface="popover"
-
         fill="outline"
-
         [(ngModel)]="model.tipoCuenta">
-
         <ion-select-option
-
           *ngFor="let item of tiposCuenta"
-
           [value]="item.nombre">
-
           {{ item.nombre }}
-
         </ion-select-option>
-
       </ion-select>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 BANCO
-    ====================================== -->
-
+    <!-- BANCO -->
     <ion-item
       lines="none"
-
-      *ngIf="
-
-        model.tipoCuenta
-        ===
-        'BANCO'
-      ">
-
-      <ion-label position="stacked">
-
-        Banco
-
-      </ion-label>
-
+      *ngIf="model.tipoCuenta === 'BANCO'">
+      <ion-label position="stacked">Banco</ion-label>
       <ion-input
-
         fill="outline"
-
         placeholder="Ej: Popular"
-
         [(ngModel)]="model.banco">
-
       </ion-input>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 NUMERO CUENTA
-    ====================================== -->
-
+    <!-- NUMERO CUENTA -->
     <ion-item
       lines="none"
-
-      *ngIf="
-
-        model.tipoCuenta
-        ===
-        'BANCO'
-      ">
-
-      <ion-label position="stacked">
-
-        Número Cuenta
-
-      </ion-label>
-
+      *ngIf="model.tipoCuenta === 'BANCO'">
+      <ion-label position="stacked">Número Cuenta</ion-label>
       <ion-input
-
         fill="outline"
-
         placeholder="000-000000-0"
-
         [(ngModel)]="model.numeroCuenta">
-
       </ion-input>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 BALANCE
-    ====================================== -->
-
+    <!-- BALANCE -->
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Balance Inicial
-
-      </ion-label>
-
+      <ion-label position="stacked">Balance Inicial</ion-label>
       <ion-input
-
         type="number"
-
         fill="outline"
-
         [(ngModel)]="model.balanceInicial">
-
       </ion-input>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 COLOR
-    ====================================== -->
-
+    <!-- COLOR -->
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Color
-
-      </ion-label>
-
+      <ion-label position="stacked">Color</ion-label>
       <ion-input
-
         type="color"
-
         [(ngModel)]="model.color">
-
       </ion-input>
-
     </ion-item>
 
-    <!-- =====================================
-    🔥 ICONOS
-    ====================================== -->
-
+    <!-- ICONOS -->
     <div class="iconos-box">
-
-      <h3>
-
-        Ícono
-
-      </h3>
-
+      <h3>Ícono</h3>
       <div class="iconos-grid">
-
         <div
-
           class="icon-item"
-
           *ngFor="let icon of iconos"
-
-          [class.active]="
-            model.icono === icon
-          "
-
+          [class.active]="model.icono === icon"
           (click)="model.icono = icon">
-
-          <ion-icon
-            [name]="icon">
-          </ion-icon>
-
+          <ion-icon [name]="icon"></ion-icon>
         </div>
-
       </div>
-
     </div>
 
-    <!-- =====================================
-    🔥 ESTADO
-    ====================================== -->
-
+    <!-- ESTADO -->
     <ion-item lines="none">
-
-      <ion-label>
-
-        Cuenta activa
-
-      </ion-label>
-
-      <ion-toggle
-
-        [(ngModel)]="model.activa">
-
-      </ion-toggle>
-
+      <ion-label>Cuenta activa</ion-label>
+      <ion-toggle [(ngModel)]="model.activa"></ion-toggle>
     </ion-item>
-
-    <!-- =====================================
-    🔥 BOTONES
-    ====================================== -->
-
-    <div class="acciones">
-
-      <ion-button
-
-        expand="block"
-
-        fill="outline"
-
-        color="medium"
-
-        (click)="cerrar()">
-
-        Cancelar
-
-      </ion-button>
-
-      <ion-button
-
-        expand="block"
-
-        color="primary"
-
-        [disabled]="guardando"
-
-        (click)="guardar()">
-
-        <ion-spinner
-
-          *ngIf="guardando"
-
-          name="crescent">
-
-        </ion-spinner>
-
-        <span *ngIf="!guardando">
-
-          {{
-
-            isEdit
-
-            ?
-
-            'Actualizar Cuenta'
-
-            :
-
-            'Guardar Cuenta'
-          }}
-
-        </span>
-
-      </ion-button>
-
-    </div>
 
   </div>
 
-</ion-content>
+</div>
+
+<div class="acciones-bar">
+  <ion-button
+    expand="block"
+    fill="outline"
+    color="medium"
+    (click)="cerrar()">
+    Cancelar
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    color="primary"
+    [disabled]="guardando"
+    (click)="guardar()">
+    <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+    <span *ngIf="!guardando">
+      {{ isEdit ? 'Actualizar Cuenta' : 'Guardar Cuenta' }}
+    </span>
+  </ion-button>
+</div>

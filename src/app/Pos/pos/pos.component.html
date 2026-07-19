@@ -28,7 +28,7 @@
 
   *ngIf="usaOrdenes"
 
-  class="btn-amarillo"
+  class="btn-amarillo btn-header-pos"
 
   (click)="abrirOrdenesModal()"
 
@@ -39,7 +39,7 @@
     slot="start">
   </ion-icon>
 
-  Órdenes
+  <span class="btn-label">Órdenes</span>
 
 </ion-button>
 
@@ -47,7 +47,7 @@
 
   *ngIf="usaCotizaciones"
 
-  class="btn-amarillo"
+  class="btn-amarillo btn-header-pos"
 
   (click)="abrirCotizacionesModal()"
 
@@ -58,7 +58,7 @@
     slot="start">
   </ion-icon>
 
-  Cotizaciones
+  <span class="btn-label">Cotizaciones</span>
 
 </ion-button>
     
@@ -66,6 +66,7 @@
   <!-- 🔥 TOGGLE ITBIS -->
 <!-- 🔥 BOTÓN ITBIS -->
 <ion-button *ngIf="facturarITBIS"
+  class="btn-header-pos"
 
   [class.btn-amarillo]="aplicarITBIS"
 
@@ -86,13 +87,14 @@
     slot="start">
   </ion-icon>
 
+  <span class="btn-label">
   ITBIS:
-
   {{
     aplicarITBIS
       ? 'ON'
       : 'OFF'
   }}
+  </span>
 
 </ion-button>
 
@@ -487,69 +489,74 @@ class="right-panel"
 
     </div>
 
-    <!-- CONFIGURACION FACTURA -->
+    <!-- CONFIGURACION FACTURA: Contado / Crédito (siempre) -->
     <div
       class="row-config"
-
-      *ngIf="
-      tipoDocumento === 'Factura' &&
-      facturacionElectronica
-      ">
+      *ngIf="tipoDocumento === 'Factura'">
 
       <div class="col">
-
-        <ion-select
-          (ionChange)="onTipoComprobanteChange()"
-          [(ngModel)]="tipoComprobante"
-          interface="popover">
-
-          <ion-select-option value="FACT">
-
-            FACT
-
-          </ion-select-option>
-
-          <ion-select-option value="Consumidor Final">
-
-            Consumidor Final
-
-          </ion-select-option>
-
-          <ion-select-option value="Crédito Fiscal">
-
-            Crédito Fiscal
-
-          </ion-select-option>
-
-          <ion-select-option value="Gubernamental">
-
-            Gubernamental
-
-          </ion-select-option>
-
-        </ion-select>
-
+        <label class="cfg-label">Condición de pago</label>
+        <ion-segment [(ngModel)]="tipoPago">
+          <ion-segment-button value="CONTADO">
+            Contado
+          </ion-segment-button>
+          <ion-segment-button value="CREDITO" *ngIf="usaCxC">
+            Crédito
+          </ion-segment-button>
+        </ion-segment>
       </div>
 
+      <div class="col" *ngIf="tipoPago === 'CREDITO'">
+        <label class="cfg-label">Plazo de crédito *</label>
+        <ion-select
+          [(ngModel)]="plazoCreditoCodigo"
+          (ionChange)="onPlazoCreditoChange()"
+          interface="popover"
+          placeholder="Seleccione plazo">
+          <ion-select-option
+            *ngFor="let p of plazosCredito"
+            [value]="p.value">
+            {{ p.label }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <div class="col" *ngIf="tipoPago === 'CREDITO' && plazoCreditoCodigo === 'custom'">
+        <label class="cfg-label">Días personalizados *</label>
+        <ion-input
+          type="number"
+          min="0"
+          [(ngModel)]="plazoCreditoDiasCustom"
+          placeholder="Ej. 20">
+        </ion-input>
+      </div>
+
+      <div class="col col-vence" *ngIf="tipoPago === 'CREDITO' && fechaVencimientoCreditoPreview">
+        <label class="cfg-label">Vence</label>
+        <div class="vence-preview">
+          {{ fechaVencimientoCreditoPreview | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIGURACION COMPROBANTE FISCAL (FE) -->
+    <div
+      class="row-config"
+      *ngIf="tipoDocumento === 'Factura' && facturacionElectronica">
+
       <div class="col">
-
-        <ion-segment
-          [(ngModel)]="tipoPago">
-
-          <ion-segment-button value="CONTADO">
-
-            Contado
-
-          </ion-segment-button>
-
-          <ion-segment-button value="CREDITO">
-
-            Crédito
-
-          </ion-segment-button>
-
-        </ion-segment>
-
+        <ion-select
+          (ionChange)="onTipoEcfChange()"
+          [(ngModel)]="tipoEcfDgii"
+          interface="popover"
+          placeholder="Tipo comprobante">
+          <ion-select-option
+            *ngFor="let tc of tiposComprobante"
+            [value]="tc.value"
+            [disabled]="tc.disabled">
+            {{ tc.label }}
+          </ion-select-option>
+        </ion-select>
       </div>
 
     </div>
@@ -938,7 +945,7 @@ class="right-panel"
   </a>
   <button
     class="btn-cerrar-mobile"
-    (click)="isCartOpen = false">
+    (click)="cerrarCart()">
 
     <ion-icon name="close"></ion-icon>
 
@@ -955,7 +962,7 @@ class="right-panel"
 <button
   class="cart-float"
   #cartIcon
-  *ngIf="!isCartOpen"
+  *ngIf="esModoCompacto && !isCartOpen"
   (click)="toggleCart()">
 
   <ion-icon name="receipt-outline"></ion-icon>
@@ -969,7 +976,7 @@ class="right-panel"
  
 <div
 class="cart-overlay"
-*ngIf="isCartOpen"
+*ngIf="esModoCompacto && isCartOpen"
 (click)="toggleCart()">
 </div>
     

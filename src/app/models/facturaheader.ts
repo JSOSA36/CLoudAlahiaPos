@@ -40,6 +40,8 @@ export class facturaheader
     rnc:string="";
     nombreEmpresa:string="";
     ncf:string="";
+    /** Llevar | ComerAqui | Delivery | DeliveryExterno */
+    tipoOrden:string="";
     clientes?: clientes;
     
 }

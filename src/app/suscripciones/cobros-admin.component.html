@@ -1,0 +1,313 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Cobros y Suscripciones</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cb-content">
+<div class="page">
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Billing · MacroBits</p>
+      <h1>Cobros y Suscripciones</h1>
+      <p class="sub">
+        Ciclo fijo día 30 → 3 · suspensión automática desde el día 4.
+        Gestiona cargos, precios especiales y validación de pagos.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="btn btn-ghost-hero" (click)="cargar()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Actualizar
+      </button>
+      <button type="button" class="btn btn-solid" (click)="procesarDiario()">
+        <ion-icon name="play-outline"></ion-icon>
+        Procesar ciclo
+      </button>
+    </div>
+  </header>
+
+  <section class="kpis" *ngIf="resumen">
+    <article class="kpi">
+      <span>Activas</span>
+      <strong>{{ resumen.activas }}</strong>
+    </article>
+    <article class="kpi kpi--warn">
+      <span>Pendiente pago</span>
+      <strong>{{ resumen.pendientePago }}</strong>
+    </article>
+    <article class="kpi kpi--info">
+      <span>Pago reportado</span>
+      <strong>{{ resumen.pagoReportado }}</strong>
+    </article>
+    <article class="kpi kpi--danger">
+      <span>Suspendidas</span>
+      <strong>{{ resumen.suspendidas }}</strong>
+    </article>
+    <article class="kpi kpi--accent">
+      <span>Por validar</span>
+      <strong>{{ resumen.pagosPendientesValidacion }}</strong>
+    </article>
+  </section>
+
+  <!-- Asignar cargos -->
+  <section class="panel panel--picker">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Clientes</p>
+        <h2>Asignar cargos a un cliente</h2>
+      </div>
+    </div>
+    <p class="hint">
+      Elige el cliente y agrega recargos (certificación, módulos, etc.).
+      Sumarán al total de <strong>Pago de Suscripción</strong>.
+    </p>
+    <div class="picker-row">
+      <label>Cliente</label>
+      <select
+        class="empresa-select"
+        [ngModel]="empresaCargosId"
+        (ngModelChange)="onEmpresaCargosChange($event)">
+        <option [ngValue]="null">Seleccione un cliente…</option>
+        <option *ngFor="let e of empresasCliente" [ngValue]="e.idEmpresa">
+          {{ e.nombreComercial }} — {{ e.estadoServicio }}{{ e.nombrePlan ? ' · ' + e.nombrePlan : '' }}
+        </option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Detalle cargos empresa -->
+  <section class="panel" *ngIf="empresaCargosId">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Facturación del cliente</p>
+        <h2>
+          {{ empresaCargosNombre }}
+          <small>#{{ empresaCargosId }}</small>
+        </h2>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="mostrarAltaCargo = !mostrarAltaCargo">
+        {{ mostrarAltaCargo ? 'Ocultar formulario' : '+ Agregar cargo' }}
+      </button>
+    </div>
+
+    <div class="calculo" *ngIf="calculo">
+      <div>
+        <span>Plan</span>
+        <strong>USD {{ calculo.montoPlan | number:'1.2-2' }}</strong>
+        <em>RD$ {{ (calculo.montoPlanDop ?? calculo.montoPlan * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
+      </div>
+      <div>
+        <span>Cargos</span>
+        <strong>USD {{ calculo.montoCargos | number:'1.2-2' }}</strong>
+        <em>RD$ {{ (calculo.montoCargosDop ?? calculo.montoCargos * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
+      </div>
+      <div class="total">
+        <span>Total del ciclo</span>
+        <strong>USD {{ calculo.total | number:'1.2-2' }}</strong>
+        <em>RD$ {{ (calculo.totalDop ?? calculo.total * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
+      </div>
+    </div>
+    <p class="tasa-nota" *ngIf="calculo">
+      Cobro en USD · equivalente DOP a tasa fija 1 USD = {{ calculo.tasaUsdDop || 60 }} RD$
+    </p>
+    <ul class="desglose" *ngIf="calculo?.lineas?.length">
+      <li *ngFor="let l of calculo!.lineas">
+        <span>{{ l.tipoLinea }} — {{ l.nombre }}</span>
+        <strong>
+          USD {{ l.monto | number:'1.2-2' }}
+          <small>RD$ {{ (l.montoDop ?? l.monto * (calculo?.tasaUsdDop || 60)) | number:'1.2-2' }}</small>
+        </strong>
+      </li>
+    </ul>
+
+    <div class="precio-especial">
+      <h3>Precio especial del plan</h3>
+      <p>
+        Catálogo {{ calculo?.nombrePlan || 'plan' }}:
+        <strong>USD {{ precioPlanCatalogo | number:'1.2-2' }}</strong>
+        <span *ngIf="calculo?.usaPrecioPlanEspecial" class="badge-esp">
+          · cobrando especial USD {{ calculo?.montoPlan | number:'1.2-2' }}
+        </span>
+      </p>
+      <div class="precio-especial-row">
+        <label>Cobrar USD</label>
+        <input
+          type="number"
+          [(ngModel)]="precioPlanEspecialInput"
+          placeholder="Ej. 70"
+          min="0"
+          step="0.01" />
+        <button type="button" class="btn btn-primary" (click)="guardarPrecioPlanEspecial()">Aplicar</button>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          *ngIf="calculo?.usaPrecioPlanEspecial"
+          (click)="quitarPrecioPlanEspecial()">
+          Quitar especial
+        </button>
+      </div>
+      <p class="hint">Solo este cliente. No cambia el precio global del plan.</p>
+    </div>
+
+    <div class="alta" *ngIf="mostrarAltaCargo">
+      <label>Tipo
+        <select [(ngModel)]="nuevoCargo.tipoCargo" (ngModelChange)="onTipoCargoChange()">
+          <option value="SERVICIO">SERVICIO</option>
+          <option value="OTRO">OTRO</option>
+          <option value="INTEGRACION">INTEGRACION</option>
+          <option value="MODULO">MODULO</option>
+          <option value="USUARIOS">USUARIOS</option>
+          <option value="ALMACENAMIENTO">ALMACENAMIENTO</option>
+        </select>
+      </label>
+
+      <ng-container *ngIf="nuevoCargo.tipoCargo === 'MODULO'">
+        <label>Módulo (catálogo)
+          <select [(ngModel)]="nuevoCargo.idModulo" (ngModelChange)="onModuloChange()">
+            <option [ngValue]="null">Seleccione…</option>
+            <option *ngFor="let m of modulosCatalogo" [ngValue]="m.id || m.moduloId">{{ m.nombre }} ({{ m.codigo || m.id }})</option>
+          </select>
+        </label>
+      </ng-container>
+
+      <label>Nombre
+        <input type="text" [(ngModel)]="nuevoCargo.nombre" placeholder="Ej. Certificación electrónica" />
+      </label>
+      <label>Código
+        <input type="text" [(ngModel)]="nuevoCargo.codigo" placeholder="Ej. CERT_FE_50" />
+      </label>
+      <label>Monto USD
+        <input type="number" [(ngModel)]="nuevoCargo.montoMensual" placeholder="Ej. 150" />
+      </label>
+      <label>Observación
+        <input type="text" [(ngModel)]="nuevoCargo.observacion" placeholder="Detalle del acuerdo" />
+      </label>
+      <button type="button" class="btn btn-primary alta-save" (click)="guardarCargo()">Guardar cargo</button>
+    </div>
+
+    <div class="tabla cargos">
+      <div class="row-c head">
+        <span>Tipo</span>
+        <span>Nombre</span>
+        <span>Monto</span>
+        <span>Estado</span>
+        <span>Acciones</span>
+      </div>
+      <div class="row-c" *ngFor="let c of cargos">
+        <span><span class="pill">{{ c.tipoCargo }}</span></span>
+        <span class="nombre-cell">
+          {{ c.nombre }}
+          <small *ngIf="c.codigo">{{ c.codigo }}</small>
+        </span>
+        <span>
+          <strong>USD {{ c.montoMensual | number:'1.2-2' }}</strong>
+          <small class="dop-mini">RD$ {{ (c.montoMensual * (calculo?.tasaUsdDop || 60)) | number:'1.2-2' }}</small>
+        </span>
+        <span>
+          <span class="status" [class.status--ok]="c.activo" [class.status--muted]="!c.activo">
+            {{ c.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </span>
+        <span class="acciones" *ngIf="c.activo">
+          <button type="button" class="action" (click)="editarMonto(c)">Editar</button>
+          <button type="button" class="action action--bad" (click)="desactivarCargo(c)">Desactivar</button>
+        </span>
+      </div>
+      <div class="empty" *ngIf="!cargos.length">Sin cargos adicionales</div>
+    </div>
+    <p class="hint">Los cargos no dan permisos de módulo; solo suman al monto a cobrar.</p>
+  </section>
+
+  <!-- Pagos -->
+  <section class="section-block">
+    <div class="section-head">
+      <div>
+        <p class="panel-eyebrow">Validación</p>
+        <h2>Pagos reportados</h2>
+      </div>
+    </div>
+
+    <div class="filters">
+      <button type="button" class="chip" [class.active]="filtroEstado === ''" (click)="filtroEstado = ''">Todos</button>
+      <button type="button" class="chip chip--warn" [class.active]="filtroEstado === 'PENDIENTE'" (click)="filtroEstado = 'PENDIENTE'">Pendiente</button>
+      <button type="button" class="chip chip--ok" [class.active]="filtroEstado === 'APROBADO'" (click)="filtroEstado = 'APROBADO'">Aprobado</button>
+      <button type="button" class="chip chip--bad" [class.active]="filtroEstado === 'RECHAZADO'" (click)="filtroEstado = 'RECHAZADO'">Rechazado</button>
+    </div>
+
+    <div class="tabla panel-tabla">
+      <div class="row head">
+        <span>Empresa</span>
+        <span>Monto</span>
+        <span>Banco / Ref</span>
+        <span>Estado</span>
+        <span>Fecha</span>
+        <span>Acciones</span>
+      </div>
+      <div class="row" *ngFor="let p of pagosFiltrados" [attr.data-estado]="(p.estado || '').toUpperCase()">
+        <span class="empresa-cell">
+          <strong>{{ p.nombreEmpresa || ('#' + p.idEmpresa) }}</strong>
+          <span class="row-links">
+            <button type="button" class="link" (click)="verEventos(p.idEmpresa)">Historial</button>
+            <button type="button" class="link" (click)="verCargos(p.idEmpresa)">Cargos</button>
+          </span>
+        </span>
+        <span>
+          <strong>USD {{ p.monto | number:'1.2-2' }}</strong>
+          <small class="dop-mini">RD$ {{ (p.monto * (calculo?.tasaUsdDop || 60)) | number:'1.2-2' }}</small>
+        </span>
+        <span class="banco-cell">{{ p.banco || '—' }} <small>{{ p.referencia || '—' }}</small></span>
+        <span>
+          <span class="status" [ngClass]="estadoPagoClass(p.estado)">{{ p.estado }}</span>
+        </span>
+        <span class="fecha">{{ p.fechaSubida | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span class="acciones" *ngIf="p.estado === 'PENDIENTE'">
+          <button type="button" class="action action--ok" (click)="aprobar(p)">Aprobar</button>
+          <button type="button" class="action action--bad" (click)="rechazar(p)">Rechazar</button>
+        </span>
+        <span class="muted" *ngIf="p.estado !== 'PENDIENTE'">{{ p.usuarioValida || '—' }}</span>
+      </div>
+      <div class="empty" *ngIf="!loading && !pagosFiltrados.length">Sin pagos en este filtro</div>
+    </div>
+  </section>
+
+  <section class="panel" *ngIf="ciclos?.length">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Ciclos</p>
+        <h2>Abiertos / vencidos</h2>
+      </div>
+    </div>
+    <div class="ciclo" *ngFor="let c of ciclos">
+      <div>
+        <strong>{{ c.nombreEmpresa || ('#' + c.idEmpresa) }}</strong>
+        <p>{{ c.mes }}/{{ c.anio }} · {{ c.estado }}</p>
+      </div>
+      <div class="ciclo-monto">
+        <strong>USD {{ c.monto | number:'1.2-2' }}</strong>
+        <small>RD$ {{ (c.monto * (calculo?.tasaUsdDop || 60)) | number:'1.2-2' }}</small>
+      </div>
+      <button type="button" class="action" (click)="verCargos(c.idEmpresa)">Gestionar cargos</button>
+    </div>
+  </section>
+
+  <section class="panel" *ngIf="empresaEventosId">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Auditoría</p>
+        <h2>Historial empresa #{{ empresaEventosId }}</h2>
+      </div>
+    </div>
+    <div class="evento" *ngFor="let e of eventos">
+      <div class="evento-top">
+        <strong>{{ e.tipo }}</strong>
+        <span>{{ e.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <p>{{ e.detalle }}</p>
+    </div>
+  </section>
+</div>
+</ion-content>

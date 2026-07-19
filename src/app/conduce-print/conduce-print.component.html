@@ -1,0 +1,154 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Conduce {{ conduce?.numero }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="imprimir()" [disabled]="exportandoPdf">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        Imprimir
+      </ion-button>
+      <ion-button (click)="exportarPdf()" [disabled]="exportandoPdf">
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        PDF
+      </ion-button>
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="conduce-page" #conducePage *ngIf="conduce">
+    <header class="doc-header">
+      <div class="empresa-block">
+        <img
+          *ngIf="empresa?.logoUrl"
+          [src]="empresa?.logoUrl"
+          alt="Logo"
+          class="logo"
+        />
+        <h1>{{ nombreComercial }}</h1>
+        <p *ngIf="empresa?.direccion">{{ empresa?.direccion }}</p>
+        <p *ngIf="empresa?.telefono">Tel: {{ empresa?.telefono }}</p>
+        <p *ngIf="empresa?.rnc">RNC: {{ empresa?.rnc }}</p>
+      </div>
+
+      <div class="doc-meta">
+        <h2>CONDUCE / ENTREGA</h2>
+        <p><strong>No.:</strong> {{ conduce.numero }}</p>
+        <p>
+          <strong>Fecha:</strong>
+          {{ conduce.fecha | date:'dd/MM/yyyy hh:mm a' }}
+        </p>
+      </div>
+    </header>
+
+    <section class="info-block">
+      <div class="info-grid">
+        <p><strong>Factura:</strong> {{ conduce.numeroFactura || ('#' + conduce.idFacturaHeader) }}</p>
+        <p *ngIf="conduce.ncf"><strong>NCF:</strong> {{ conduce.ncf }}</p>
+        <p><strong>Cliente:</strong> {{ conduce.clienteNombre || '—' }}</p>
+        <p *ngIf="conduce.almacenNombre">
+          <strong>Almacén:</strong> {{ conduce.almacenNombre }}
+        </p>
+        <p *ngIf="conduce.quienEntrega">
+          <strong>Entrega:</strong> {{ conduce.quienEntrega }}
+        </p>
+        <p *ngIf="conduce.quienRecibe">
+          <strong>Recibe:</strong> {{ conduce.quienRecibe }}
+        </p>
+      </div>
+      <p *ngIf="conduce.observacion" class="observacion">
+        <strong>Observación:</strong> {{ conduce.observacion }}
+      </p>
+    </section>
+
+    <h3 class="section-title">Ítems de este conduce</h3>
+    <table class="detalle">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th>Producto</th>
+          <th class="col-qty">Entregado</th>
+          <th class="col-qty">Facturado</th>
+          <th class="col-qty">Pendiente</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of detalles; let i = index">
+          <td class="col-num">{{ i + 1 }}</td>
+          <td>{{ item.productoNombre }}</td>
+          <td class="col-qty">{{ item.cantidadEntregada | number:'1.0-4' }}</td>
+          <td class="col-qty">{{ item.cantidadFacturada | number:'1.0-4' }}</td>
+          <td class="col-qty">{{ item.cantidadPendiente | number:'1.0-4' }}</td>
+        </tr>
+        <tr *ngIf="!detalles.length">
+          <td colspan="5" class="empty-row">Sin ítems</td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="detalles.length">
+        <tr>
+          <td colspan="2" class="tfoot-label">Total entregado (este conduce)</td>
+          <td class="col-qty">{{ totalEntregadoEste | number:'1.0-4' }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <ng-container *ngIf="estado">
+      <h3 class="section-title">Estado de entrega de la factura</h3>
+      <div class="resumen-kpi">
+        <div>
+          <span>Facturado neto</span>
+          <strong>{{ estado.totalFacturado | number:'1.0-4' }}</strong>
+        </div>
+        <div class="ok">
+          <span>Entregado</span>
+          <strong>{{ estado.totalEntregado | number:'1.0-4' }}</strong>
+        </div>
+        <div class="pend">
+          <span>Pendiente</span>
+          <strong>{{ estado.totalPendiente | number:'1.0-4' }}</strong>
+        </div>
+      </div>
+
+      <table class="detalle">
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th>Producto</th>
+            <th class="col-qty">Facturado</th>
+            <th class="col-qty">Devuelto</th>
+            <th class="col-qty">Entregado</th>
+            <th class="col-qty">Pendiente</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let l of lineasEstado; let i = index"
+              [class.row-pendiente]="l.cantidadPendiente > 0"
+              [class.row-completo]="l.cantidadPendiente <= 0">
+            <td class="col-num">{{ i + 1 }}</td>
+            <td>{{ l.productoNombre }}</td>
+            <td class="col-qty">{{ l.cantidadFacturada | number:'1.0-4' }}</td>
+            <td class="col-qty">{{ l.cantidadDevuelta | number:'1.0-4' }}</td>
+            <td class="col-qty">{{ l.cantidadEntregada | number:'1.0-4' }}</td>
+            <td class="col-qty">{{ l.cantidadPendiente | number:'1.0-4' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-container>
+
+    <section class="firmas">
+      <div class="firma-box">
+        <div class="firma-linea"></div>
+        <p class="firma-titulo">Quien entrega</p>
+        <p class="firma-hint">{{ conduce.quienEntrega || 'Nombre y firma' }}</p>
+      </div>
+      <div class="firma-box">
+        <div class="firma-linea"></div>
+        <p class="firma-titulo">Quien recibe</p>
+        <p class="firma-hint">{{ conduce.quienRecibe || 'Nombre y firma' }}</p>
+      </div>
+    </section>
+  </div>
+</ion-content>

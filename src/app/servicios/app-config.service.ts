@@ -10,10 +10,10 @@ export class AppConfigService {
 
 //public readonly apiUrl: string = 'http://localhost:5000/api';
 
-  //api de desarrollo
-    public readonly apiUrl: string = 'http://localhost:5139/api';
+  //api de desarrollo (Alahia AI y features nuevas locales)
+  public readonly apiUrl: string = 'http://localhost:5139/api';
 
-    //api de QA
-    //public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
+  //api de QA
+  //public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
    
 }

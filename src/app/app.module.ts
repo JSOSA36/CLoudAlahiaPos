@@ -12,6 +12,18 @@ import { ReporteserviciosComponent } from './ReporteServicio/reporteservicios/re
 // 🔹 Formularios
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PoliticasComponent } from './politicas/politicas.component';
+import { PoliticasEsperaComponent } from './politicas/politicas-espera.component';
+import { PoliticasAdminComponent } from './politicas/politicas-admin.component';
+import { PoliticasAceptacionesComponent } from './politicas/politicas-aceptaciones.component';
+import { ServicioSuspendidoComponent } from './suscripciones/servicio-suspendido.component';
+import { CobrosAdminComponent } from './suscripciones/cobros-admin.component';
+import { PagoSuscripcionComponent } from './suscripciones/pago-suscripcion.component';
+import { TicketsComponent } from './tickets/tickets.component';
+import { TicketDesdeLoginComponent } from './tickets/ticket-desde-login.component';
+import { TicketsAdminComponent } from './tickets/tickets-admin.component';
+import { CentroProduccionComponent } from './centro-produccion/centro-produccion.component';
+import { NotificacionBellComponent } from './notificaciones/notificacion-bell.component';
+import { NotificacionPanelComponent } from './notificaciones/notificacion-panel.component';
 // 🔹 Animaciones y QR
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -68,6 +80,7 @@ import { ListadoUsuariosComponent } from './listado-usuarios/listado-usuarios.co
 import { MessageModalComponent } from './message-modal/message-modal.component';
 import { CatalogoInicioComponent } from './catalogo-inicio/catalogo-inicio.component';
 import { FacturasporcobrarComponent } from './facturasporcobrar/facturasporcobrar.component';
+import { EstadoCuentaClienteComponent } from './facturasporcobrar/estado-cuenta-cliente/estado-cuenta-cliente.component';
 import { PagoFacturaComponent } from './pago-factura/pago-factura.component';
 import { IngresosAddComponent } from './ingresos-add/ingresos-add.component';
 import { IngresosListComponent } from './ingresos-list/ingresos-list.component';
@@ -82,6 +95,7 @@ import { EmpleadoFormComponent } from './listado-empleados/empleado-form/emplead
 import { ListadoempleadosComisionComponent } from './EmpleadoListado/listadoempleados/listadoempleadosComision.component';
 import { ListadoEmpleadosComponent } from './listado-empleados/listado-empleados.component';
 import { HoraRdPipe } from './pipes/hora-rd.pipe';
+import { PoliticasMarcaPipe } from './pipes/politicas-marca.pipe';
 import { PagoEncargoComponent } from './bizcocho/pago-encargo/pago-encargo.component';
 import { FormEncargosComponent } from './bizcocho/form-encargos/form-encargos.component';
 import { WhatsappPlanesComponent } from './whatsapp-planes/whatsapp-planes.component';
@@ -91,6 +105,7 @@ import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/d
 import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
 import { AnularGastoComponent } from 'src/app/Modales/anular-gasto/anular-gasto.component';
 import { PagoProveedorModalComponent } from 'src/app/Modales/pago-proveedor/pago-proveedor-modal.component';
+import { PagoMultipleFacturaComponent } from 'src/app/Modales/pago-multiple-factura/pago-multiple-factura.component';
 import { HistorialPagosProveedorComponent } from 'src/app/Modales/historial-pagos-proveedor/historial-pagos-proveedor.component';
 import { NotaCreditoPreviewComponent } from './nota-credito-preview/nota-credito-preview.component';
 import { ListadoNotasCreditoComponent } from './listado-notas-credito/listado-notas-credito.component';
@@ -112,6 +127,9 @@ import { ModalMetodoPagoCuentaComponent } from './Components/modal-metodo-pago-c
 import { ModalTransferenciaFinancieraComponent } from './Components/modal-transferencia-financiera/modal-transferencia-financiera.component';
 import { MovimientosFinancierosComponent } from './Components/movimientos-financieros/movimientos-financieros.component';
 import { HistoricoMovimientosInventarioComponent } from './Components/historico-movimientos-inventario/historico-movimientos-inventario.component';
+import { ConducesComponent } from './Components/conduces/conduces.component';
+import { EmitirConduceComponent } from './Components/conduces/emitir-conduce.component';
+import { ConducePrintComponent } from './conduce-print/conduce-print.component';
 import { HistorialServiciosComponent } from './HistorialServicios/historial-servicios/historial-servicios.component';
 import { ContabilidadCuentasComponent } from './Components/contabilidad-cuentas/contabilidad-cuentas.component';
 import { ContabilidadAsientosComponent } from './Components/contabilidad-asientos/contabilidad-asientos.component';
@@ -136,6 +154,7 @@ import { CxpProveedoresComponent } from './Compras/cxp-proveedores/cxp-proveedor
 import { EstadoCuentaProveedorComponent } from './Compras/estado-cuenta-proveedor/estado-cuenta-proveedor.component';
 import { AnalisisProductoProveedorComponent } from './Compras/analisis-producto-proveedor/analisis-producto-proveedor.component';
 import { Reporte606Component } from './Compras/reporte-606/reporte-606.component';
+import { AntiguedadSaldosComponent } from './Reportes/antiguedad-saldos/antiguedad-saldos.component';
 import { ActivosFijosListComponent } from './ActivosFijos/activos-fijos-list/activos-fijos-list.component';
 import { ActivoFijoDetalleComponent } from './ActivosFijos/activo-fijo-detalle/activo-fijo-detalle.component';
 import { ReporteProductosComponent } from './Reportes/reporte-productos/reporte-productos.component';
@@ -143,6 +162,16 @@ import { ReporteProveedoresComponent } from './Reportes/reporte-proveedores/repo
 import { ReporteClientesComponent } from './Reportes/reporte-clientes/reporte-clientes.component';
 import { ReporteEmpleadosComponent } from './Reportes/reporte-empleados/reporte-empleados.component';
 import { CuentaContableSelectorComponent } from './Components/cuenta-contable-selector/cuenta-contable-selector.component';
+import { EcfPreviewComponent } from './ecf-preview/ecf-preview.component';
+import { FeConfiguracionComponent } from './facturacion-electronica/fe-configuracion.component';
+import { FeSecuenciasComponent } from './facturacion-electronica/fe-secuencias.component';
+import { FeCertificadoComponent } from './facturacion-electronica/fe-certificado.component';
+import { FeEstadoDgiiComponent } from './facturacion-electronica/fe-estado-dgii.component';
+import { FeHistorialComponent } from './facturacion-electronica/fe-historial.component';
+import { FeReprocesarComponent } from './facturacion-electronica/fe-reprocesar.component';
+import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.component';
+import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
+import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -152,6 +181,8 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     IngresosListComponent,
     MovimientosInventarioComponent,
     HistoricoMovimientosInventarioComponent,
+    ConducesComponent,
+    EmitirConduceComponent,
     EmpleadoFormComponent,
     MovimientoCajaComponent,
     MovimientosFinancierosComponent,
@@ -178,6 +209,7 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     AnularFacturaComponent,
     AnularGastoComponent,
     PagoProveedorModalComponent,
+    PagoMultipleFacturaComponent,
     HistorialPagosProveedorComponent,
     NotaCreditoPreviewComponent,
     ListadoNotasCreditoComponent,
@@ -188,6 +220,18 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     WhatsappPlanesComponent,
     PagoEncargoComponent,
     PoliticasComponent,
+    PoliticasEsperaComponent,
+    PoliticasAdminComponent,
+    PoliticasAceptacionesComponent,
+    ServicioSuspendidoComponent,
+    CobrosAdminComponent,
+    PagoSuscripcionComponent,
+    TicketsComponent,
+    TicketDesdeLoginComponent,
+    TicketsAdminComponent,
+    CentroProduccionComponent,
+    NotificacionBellComponent,
+    NotificacionPanelComponent,
     ProductosComponent,
     CatalogoInicioComponent,
     DescuentoListComponent,
@@ -204,6 +248,7 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     HorarioestilistaComponent,
     CitainicioComponent,
     FacturasporcobrarComponent,
+    EstadoCuentaClienteComponent,
     EmpresaComponent,
     ClientesAddComponent,
     ReporteserviciosComponent,
@@ -228,6 +273,7 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     PrinterComponent,
     CotizacionPrintComponent,
     MovimientoInventarioPrintComponent,
+    ConducePrintComponent,
     TurnosComponent,
     ComisionesComponent,
     ListadocategoriasComponent,
@@ -237,6 +283,7 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     CuentaxPagarComponent,
     OrdenesComponent,
     HoraRdPipe,
+    PoliticasMarcaPipe,
     ContabilidadCuentasComponent,
     ContabilidadAsientosComponent,
     ContabilidadLibroDiarioComponent,
@@ -261,12 +308,23 @@ import { CuentaContableSelectorComponent } from './Components/cuenta-contable-se
     EstadoCuentaProveedorComponent,
     AnalisisProductoProveedorComponent,
     Reporte606Component,
+    AntiguedadSaldosComponent,
     ActivosFijosListComponent,
     ActivoFijoDetalleComponent,
     ReporteProductosComponent,
     ReporteProveedoresComponent,
     ReporteClientesComponent,
-    ReporteEmpleadosComponent
+    ReporteEmpleadosComponent,
+    EcfPreviewComponent,
+    FeConfiguracionComponent,
+    FeSecuenciasComponent,
+    FeCertificadoComponent,
+    FeEstadoDgiiComponent,
+    FeHistorialComponent,
+    FeReprocesarComponent,
+    FeMonitoreoComponent,
+    AlahiaAiComponent,
+    AlahiaAiFabComponent
   ],
   imports: [
     BrowserModule,

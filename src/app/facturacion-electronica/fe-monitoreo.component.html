@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Monitoreo de Respuestas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()"><ion-icon name="refresh-outline"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <div class="dashboard-grid" *ngIf="!loading">
+    <div class="dash-card total">
+      <div class="dash-value">{{ dashboard.totalDocumentos }}</div>
+      <div class="dash-label">Total Documentos</div>
+    </div>
+
+    <div class="dash-card aceptados">
+      <div class="dash-value">{{ dashboard.aceptados }}</div>
+      <div class="dash-label">Aceptados</div>
+      <div class="dash-pct">{{ porcentaje(dashboard.aceptados) }}%</div>
+    </div>
+
+    <div class="dash-card rechazados">
+      <div class="dash-value">{{ dashboard.rechazados }}</div>
+      <div class="dash-label">Rechazados</div>
+      <div class="dash-pct">{{ porcentaje(dashboard.rechazados) }}%</div>
+    </div>
+
+    <div class="dash-card pendientes">
+      <div class="dash-value">{{ dashboard.pendientes }}</div>
+      <div class="dash-label">Pendientes</div>
+      <div class="dash-pct">{{ porcentaje(dashboard.pendientes) }}%</div>
+    </div>
+
+    <div class="dash-card errores">
+      <div class="dash-value">{{ dashboard.errores }}</div>
+      <div class="dash-label">Errores</div>
+      <div class="dash-pct">{{ porcentaje(dashboard.errores) }}%</div>
+    </div>
+
+    <div class="dash-card condicionales">
+      <div class="dash-value">{{ dashboard.condicionales }}</div>
+      <div class="dash-label">Aceptados Condicional</div>
+      <div class="dash-pct">{{ porcentaje(dashboard.condicionales) }}%</div>
+    </div>
+  </div>
+
+  <div class="summary-bar" *ngIf="!loading && dashboard.totalDocumentos > 0">
+    <div class="bar-segment aceptados" [style.width.%]="porcentaje(dashboard.aceptados)"></div>
+    <div class="bar-segment condicionales" [style.width.%]="porcentaje(dashboard.condicionales)"></div>
+    <div class="bar-segment pendientes" [style.width.%]="porcentaje(dashboard.pendientes)"></div>
+    <div class="bar-segment errores" [style.width.%]="porcentaje(dashboard.errores)"></div>
+    <div class="bar-segment rechazados" [style.width.%]="porcentaje(dashboard.rechazados)"></div>
+  </div>
+</ion-content>

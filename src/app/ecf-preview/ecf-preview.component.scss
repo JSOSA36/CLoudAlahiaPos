@@ -1,0 +1,224 @@
+.preview-container {
+  max-width: 400px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.estado-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+
+  &.aceptado {
+    background: #d4edda;
+    color: #155724;
+  }
+  &.rechazado {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  &.pendiente {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  ion-icon {
+    font-size: 1.4rem;
+  }
+}
+
+.empresa-header {
+  text-align: center;
+  border-bottom: 2px solid #333;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  p {
+    margin: 2px 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+}
+
+.tipo-documento {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #1a73e8;
+  padding: 8px 0;
+  border-bottom: 1px dashed #ccc;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.ecf-info {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.ecf-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.ecf-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.ecf-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &.encf {
+    font-size: 1.1rem;
+    color: #1a73e8;
+    font-family: monospace;
+  }
+  &.trackid {
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: #888;
+  }
+}
+
+.cliente-info {
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #ccc;
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+  }
+  .comprador-nombre {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+  }
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+
+  thead {
+    border-bottom: 1px solid #333;
+  }
+  th {
+    padding: 6px 4px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #eee;
+  }
+  .text-right {
+    text-align: right;
+  }
+}
+
+.totales {
+  border-top: 2px solid #333;
+  padding-top: 8px;
+  margin-bottom: 16px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.9rem;
+
+  &.total-general {
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+}
+
+.qr-section {
+  text-align: center;
+  padding: 16px 0;
+  border-top: 1px dashed #ccc;
+  border-bottom: 1px dashed #ccc;
+  margin-bottom: 12px;
+}
+
+.qr-image {
+  max-width: 200px;
+  height: auto;
+}
+
+.qr-caption {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 8px;
+}
+
+.mensajes-dgii {
+  background: #fff8e1;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+
+  h4 {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    color: #f57f17;
+  }
+  .msg-item {
+    font-size: 0.8rem;
+    margin: 4px 0;
+    color: #666;
+  }
+}
+
+.footer-info {
+  text-align: center;
+  padding-top: 12px;
+  p {
+    margin: 2px 0;
+    font-size: 0.75rem;
+    color: #aaa;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .preview-container {
+    max-width: 100%;
+  }
+}

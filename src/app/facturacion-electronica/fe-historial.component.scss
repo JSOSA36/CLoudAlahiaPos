@@ -1,0 +1,103 @@
+.filtros-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f4ff, #f8f9fa);
+  border-radius: 14px;
+  border: 1px solid #e3e8f0;
+
+  ion-item {
+    --background: #fff;
+    --border-radius: 10px;
+    --border-color: #d0d7e2;
+    min-width: 150px;
+    flex: 1;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  ion-button { align-self: flex-end; height: 44px; font-size: 0.95rem; }
+}
+
+.tabla-container {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+
+.historial-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  th {
+    background: linear-gradient(135deg, #1a73e8, #1557b0);
+    color: #fff;
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+
+    &:first-child { border-radius: 14px 0 0 0; }
+    &:last-child { border-radius: 0 14px 0 0; }
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    color: #333;
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+    &:hover { background: #f0f6ff; }
+    &:nth-child(even) { background: #fafbfc; }
+    &:nth-child(even):hover { background: #f0f6ff; }
+  }
+}
+
+.mono {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+.num {
+  text-align: right;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #222;
+}
+
+.small {
+  font-size: 0.8rem;
+  color: #777;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+ion-badge {
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+  ion-icon { font-size: 4rem; margin-bottom: 16px; color: #ccc; }
+  p { font-size: 1.1rem; }
+}

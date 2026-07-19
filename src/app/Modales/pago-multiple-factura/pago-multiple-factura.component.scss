@@ -1,0 +1,104 @@
+:host {
+  --pm-primary: var(--ion-color-primary, #1976d2);
+  --pm-bg: #f3f6fb;
+  --pm-card: #fff;
+  --pm-border: #e2e8f0;
+  --pm-text: #1e293b;
+  --pm-muted: #64748b;
+}
+
+.pago-multi-content {
+  --background: var(--pm-bg);
+}
+
+.pago-multi-page {
+  padding: 14px 16px 28px;
+}
+
+.cliente-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.cliente-banner ion-icon {
+  color: var(--pm-primary);
+  font-size: 1.4rem;
+  margin-top: 2px;
+}
+
+.cliente-banner strong {
+  display: block;
+  color: var(--pm-text);
+}
+
+.cliente-banner small {
+  display: block;
+  margin-top: 2px;
+  color: var(--pm-muted);
+  font-size: 0.82rem;
+}
+
+.lineas-list {
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.lineas-list h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--pm-text);
+}
+
+.lineas-list p {
+  font-size: 0.78rem;
+  color: var(--pm-muted);
+}
+
+.monto-input {
+  max-width: 120px;
+  text-align: right;
+  font-weight: 700;
+  --padding-end: 4px;
+}
+
+.form-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(25, 118, 210, 0.08);
+}
+
+.hint {
+  margin: 6px 4px 12px;
+  font-size: 0.75rem;
+  color: var(--pm-muted);
+  line-height: 1.35;
+}
+
+.totales {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px 14px;
+  font-size: 0.9rem;
+  color: var(--pm-muted);
+}
+
+.totales strong {
+  color: #b45309;
+  font-size: 1.15rem;
+}
+
+.btn-confirmar {
+  --border-radius: 10px;
+  font-weight: 700;
+  height: 44px;
+}

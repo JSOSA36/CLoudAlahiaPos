@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Alahia AI</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ai-page">
+  <div class="ai-hero">
+    <p class="ai-hero__eyebrow">Asesor empresarial</p>
+    <h1>Alahia AI</h1>
+    <p>
+      Pregunta en lenguaje natural. Respondo con la información real de tu ERP:
+      ventas, cobros, inventario, utilidad y gastos.
+    </p>
+  </div>
+
+  <div class="ai-tips">
+    <button type="button" *ngFor="let tip of tips" (click)="askTip(tip)">{{ tip }}</button>
+  </div>
+
+  <div class="ai-chat">
+    <div
+      class="ai-bubble"
+      *ngFor="let m of messages"
+      [class.user]="m.role === 'user'"
+      [class.bot]="m.role === 'assistant'"
+    >
+      <pre>{{ m.content }}</pre>
+    </div>
+    <div class="ai-bubble bot" *ngIf="loading">
+      <ion-spinner name="dots"></ion-spinner>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ai-footer">
+  <div class="ai-footer__actions" *ngIf="lastSuggestTicket || conversationId">
+    <ion-button
+      expand="block"
+      color="warning"
+      fill="solid"
+      [disabled]="!conversationId || creatingTicket"
+      (click)="crearTicket()"
+    >
+      {{ creatingTicket ? 'Creando ticket…' : 'Crear ticket con esta conversación' }}
+    </ion-button>
+  </div>
+  <div class="ai-composer">
+    <ion-input
+      [(ngModel)]="input"
+      placeholder="Escribe tu pregunta…"
+      (keyup.enter)="send()"
+    ></ion-input>
+    <ion-button (click)="send()" [disabled]="loading || !input.trim()">
+      Enviar
+    </ion-button>
+  </div>
+</ion-footer>

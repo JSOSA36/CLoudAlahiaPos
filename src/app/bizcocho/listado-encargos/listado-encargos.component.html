@@ -275,11 +275,74 @@
 
     </table>
 
-    <!-- MOBILE -->
+    <!-- MOBILE / TABLET -->
 
     <div class="mobile-view">
 
-      <!-- Tus cards aquí exactamente como las tienes -->
+      <div
+        class="card-encargo"
+        *ngFor="let e of encargosFiltrados"
+        (click)="editar(e)">
+
+        <div class="card-header-row">
+          <span class="card-cliente">{{ e.cliente || 'N/A' }}</span>
+          <span class="estado-badge" [ngClass]="getColor(e)">
+            <ng-container [ngSwitch]="getColor(e)">
+              <span *ngSwitchCase="'pagado'">Entregado</span>
+              <span *ngSwitchCase="'vencido'">Vencido</span>
+              <span *ngSwitchCase="'hoy'">Hoy</span>
+              <span *ngSwitchDefault>Próximo</span>
+            </ng-container>
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div class="card-line">
+            <span class="card-label">Doc:</span>
+            <span>{{ e.numeroDocumento || 'N/A' }}</span>
+          </div>
+          <div class="card-line">
+            <span class="card-label">Celular:</span>
+            <span>{{ e.celular || 'N/A' }}</span>
+          </div>
+          <div class="card-line">
+            <span class="card-label">Entrega:</span>
+            <span>{{ e.fechaEntrega | date:'dd/MM/yyyy hh:mm a' }}</span>
+          </div>
+          <div class="card-line">
+            <span class="card-label">Lbs:</span>
+            <span>{{ e.facturaDetalles?.[0]?.libras || 0 }}</span>
+          </div>
+        </div>
+
+        <div class="card-totals">
+          <div class="card-total-item">
+            <span>Total</span>
+            <strong>RD$ {{ total(e) | number:'1.2-2' }}</strong>
+          </div>
+          <div class="card-total-item abono-text">
+            <span>Abono</span>
+            <strong>RD$ {{ e.abono | number:'1.2-2' }}</strong>
+          </div>
+          <div class="card-total-item pendiente-text">
+            <span>Pendiente</span>
+            <strong>RD$ {{ pendiente(e) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <ion-button color="warning" size="small" *ngIf="!estaPagado(e)" (click)="editar(e); $event.stopPropagation()">
+            <ion-icon name="create-outline"></ion-icon> Editar
+          </ion-button>
+          <ion-button color="success" size="small" *ngIf="!estaPagado(e)" (click)="pagar(e); $event.stopPropagation()">
+            <ion-icon name="cash-outline"></ion-icon> Pagar
+          </ion-button>
+          <ion-button color="primary" size="small" *ngIf="estaPagado(e)" (click)="entregar(e); $event.stopPropagation()">
+            <ion-icon name="cube-outline"></ion-icon> Entregar
+          </ion-button>
+        </div>
+
+      </div>
 
     </div>
 

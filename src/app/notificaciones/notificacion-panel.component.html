@@ -1,0 +1,44 @@
+<ng-container *ngIf="open$ | async">
+  <div class="notif-backdrop" (click)="cerrar()"></div>
+  <div class="notif-modal" role="dialog" aria-label="Centro de notificaciones" (click)="$event.stopPropagation()">
+    <header class="panel-head">
+      <div>
+        <strong>Notificaciones</strong>
+        <p>Solo no leídas · Alahia ERP</p>
+      </div>
+      <div class="panel-actions">
+        <button type="button" class="link" (click)="marcarTodas()">Marcar todas leídas</button>
+        <button type="button" class="close" (click)="cerrar()" aria-label="Cerrar">×</button>
+      </div>
+    </header>
+
+    <div class="panel-body" *ngIf="(items$ | async) as items">
+      <div class="empty" *ngIf="!items.length">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+        <p>No hay notificaciones recientes</p>
+      </div>
+
+      <article
+        class="item"
+        *ngFor="let n of items"
+        [ngClass]="[cssPrioridad(n.prioridad), !n.leida ? 'unread' : '']"
+        (click)="abrir(n)">
+        <div class="dot"></div>
+        <div class="body">
+          <h4>{{ n.titulo }}</h4>
+          <p>{{ n.mensaje }}</p>
+          <time>{{ n.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</time>
+        </div>
+        <div class="item-actions">
+          <button
+            type="button"
+            class="btn-leer"
+            (click)="marcarLeida(n, $event)"
+            aria-label="Marcar como leída">
+            Marcar leída
+          </button>
+        </div>
+      </article>
+    </div>
+  </div>
+</ng-container>

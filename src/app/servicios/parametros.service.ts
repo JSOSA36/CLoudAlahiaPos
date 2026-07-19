@@ -11,6 +11,18 @@ import { EmpresaDto } from '../models/empresadto.models';
 import { ZonasService } from './zonas.service';
 import { FacturaHeaderService } from './factura-header.service';
 import { clientes } from '../models/clientes';
+import { FiscalFeatureFlags } from './dgii-config.service';
+
+/** Features fiscales apagados (default seguro / sin config). */
+export const FISCAL_FEATURES_OFF: FiscalFeatureFlags = {
+  idEmpresa: 0,
+  tieneConfiguracion: false,
+  fiscalActivo: false,
+  generar606: false,
+  generar607: false,
+  generarIt1: false,
+  facturacionElectronicaActiva: false
+};
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +55,46 @@ public PuedeEditarPrecioCarrito: boolean = false;
   public NombreEmpresa = '';
   public NumeroMesa = '';
   public Buscar = '';
-public nombrePlan: string = '';
+  public nombrePlan: string = '';
+
+  /** Aviso de cobro SaaS (gracia día 30→3). Null si no aplica. */
+  public alertaPago: {
+    tipo: string;
+    mensaje: string;
+    diaCobro?: number;
+    diasRestantes?: number;
+  } | null = null;
+  private alertaPagoSubject = new BehaviorSubject<{
+    tipo: string;
+    mensaje: string;
+    diaCobro?: number;
+    diasRestantes?: number;
+  } | null>(null);
+  public alertaPago$ = this.alertaPagoSubject.asObservable();
+
+  setAlertaPago(alerta: {
+    tipo: string;
+    mensaje: string;
+    diaCobro?: number;
+    diasRestantes?: number;
+  } | null) {
+    this.alertaPago = alerta;
+    this.alertaPagoSubject.next(alerta);
+    if (alerta?.mensaje) {
+      sessionStorage.setItem('alerta_pago', JSON.stringify(alerta));
+    } else {
+      sessionStorage.removeItem('alerta_pago');
+    }
+  }
+
+  restoreAlertaPago() {
+    try {
+      const raw = sessionStorage.getItem('alerta_pago');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.mensaje) this.setAlertaPago(parsed);
+    } catch { /* ignore */ }
+  }
   public IdMesa = 0;
   public IdZona = 0;
   public IdCategoria = 0;
@@ -74,6 +125,11 @@ public nombrePlan: string = '';
   // ==================================================
   private modulosActivos = new Set<number>();
   private modulosActivos$ = new BehaviorSubject<number[]>([]);
+  private modulosCodigos = new Set<string>();
+
+  /** Flags DGII (cargados al login vía FiscalFeatureService API). Sin config = off. */
+  private fiscalFeatures: FiscalFeatureFlags = { ...FISCAL_FEATURES_OFF };
+  private fiscalFeatures$ = new BehaviorSubject<FiscalFeatureFlags>({ ...FISCAL_FEATURES_OFF });
 
   // ==================================================
   // 🔄 REFRESH DE MENÚ (EVENTO PURO)
@@ -98,12 +154,15 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   // ==================================================
   // 🧩 MÓDULOS
   // ==================================================
-  setModulosActivos(modulos: number[]) {
+  setModulosActivos(modulos: number[], codigos?: string[], emitRefresh = true) {
     this.modulosActivos = new Set(modulos);
+    if (codigos) {
+      this.modulosCodigos = new Set(codigos);
+    }
     this.modulosActivos$.next([...this.modulosActivos]);
-
-    // 🔥 avisar a la UI que debe reconstruir menú
-    this.refrescarMenu();
+    if (emitRefresh) {
+      this.refrescarMenu();
+    }
   }
 
   getModulosActivos$() {
@@ -113,6 +172,56 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   puedeUsarModuloId(moduloId?: number): boolean {
     if (moduloId === undefined || moduloId === null) return true;
     return this.modulosActivos.has(moduloId);
+  }
+
+  tieneModulo(codigo: string): boolean {
+    return this.modulosCodigos.has(codigo);
+  }
+
+  getModulosCodigos(): string[] {
+    return Array.from(this.modulosCodigos);
+  }
+
+  // ==================================================
+  // 🏛 FLAGS FISCALES DGII
+  // ==================================================
+  setFiscalFeatures(features: FiscalFeatureFlags | null | undefined) {
+    this.fiscalFeatures = features
+      ? { ...FISCAL_FEATURES_OFF, ...features, idEmpresa: features.idEmpresa || this.IdEmpresa }
+      : { ...FISCAL_FEATURES_OFF, idEmpresa: this.IdEmpresa };
+    this.fiscalFeatures$.next(this.fiscalFeatures);
+    this.refrescarMenu();
+  }
+
+  getFiscalFeatures(): FiscalFeatureFlags {
+    return this.fiscalFeatures;
+  }
+
+  getFiscalFeatures$() {
+    return this.fiscalFeatures$.asObservable();
+  }
+
+  isFiscalActivo(): boolean {
+    return !!this.fiscalFeatures.fiscalActivo;
+  }
+
+  isGenerarIt1(): boolean {
+    return !!this.fiscalFeatures.fiscalActivo && !!this.fiscalFeatures.generarIt1;
+  }
+
+  /**
+   * IT-1 / config fiscal: módulo comercial (Empresa_Modulos) + flag DGII.
+   * REPORTE_606 / REPORTE_607 no usan este filtro (siguen solo por módulo).
+   */
+  puedeMostrarMenuFiscal(codigoModulo: string, tieneModuloComercial: boolean): boolean {
+    if (!tieneModuloComercial) return false;
+    if (codigoModulo === 'IT1' || codigoModulo === 'DGII_FISCAL') {
+      return this.isGenerarIt1();
+    }
+    if (codigoModulo === 'CONFIGURACION_DGII' || codigoModulo === 'CONFIGURACION_FISCAL') {
+      return this.isFiscalActivo() || (this.Rol || '').toLowerCase() === 'admin';
+    }
+    return true;
   }
 
   // ==================================================
@@ -205,9 +314,11 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this._Cat = new categorias();
     this._Mesa = new Mesas();
 
-    // 🔥 limpiar módulos
     this.modulosActivos.clear();
+    this.modulosCodigos.clear();
     this.modulosActivos$.next([]);
+    this.setFiscalFeatures(null);
+    this.setAlertaPago(null);
 
     // 🔥 reconstruir menú
     this.refrescarMenu();

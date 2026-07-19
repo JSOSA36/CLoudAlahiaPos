@@ -1,0 +1,61 @@
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.config-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+  ion-icon { font-size: 1.4rem; color: #1a73e8; }
+}
+
+.card-body { padding: 16px; }
+
+.info-row, .status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.9rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  &.conectado { color: #4caf50; }
+  &.desconectado { color: #f44336; }
+}
+
+.ambiente-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  &.pruebas { background: #fff3e0; color: #e65100; }
+  &.produccion { background: #e8f5e9; color: #2e7d32; }
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 12px;
+  line-height: 1.4;
+}

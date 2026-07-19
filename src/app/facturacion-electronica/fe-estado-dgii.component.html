@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Estado DGII — Health Check</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="check()" [disabled]="gatewayStatus === 'checking'">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="health-grid">
+
+    <div class="health-card" [class.online]="gatewayStatus === 'online'"
+         [class.offline]="gatewayStatus === 'offline'"
+         [class.checking]="gatewayStatus === 'checking'">
+      <div class="health-icon">
+        <ion-spinner name="dots" *ngIf="gatewayStatus === 'checking'"></ion-spinner>
+        <ion-icon name="cloud-done-outline" *ngIf="gatewayStatus === 'online'"></ion-icon>
+        <ion-icon name="cloud-offline-outline" *ngIf="gatewayStatus === 'offline'"></ion-icon>
+      </div>
+      <h2>Gateway Fiscal → Proveedor</h2>
+      <p class="status-text" *ngIf="gatewayStatus === 'online'">Conexión activa con el proveedor de facturación electrónica</p>
+      <p class="status-text" *ngIf="gatewayStatus === 'offline'">Sin conexión al proveedor</p>
+      <p class="status-text" *ngIf="gatewayStatus === 'checking'">Verificando...</p>
+      <span class="last-check" *ngIf="lastCheck">Último chequeo: {{ lastCheck | date:'HH:mm:ss' }}</span>
+    </div>
+
+    <div class="health-card info">
+      <div class="health-icon">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+      </div>
+      <h2>Proveedor → DGII</h2>
+      <p class="status-text">El estado de la conexión proveedor-DGII se refleja en las respuestas de cada documento enviado. Consulte el Historial de Envíos para ver el detalle.</p>
+    </div>
+
+  </div>
+</ion-content>

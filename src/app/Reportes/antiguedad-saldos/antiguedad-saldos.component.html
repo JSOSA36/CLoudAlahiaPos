@@ -1,0 +1,242 @@
+<ion-header class="as-header no-print">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="as-title-wrap">
+        <span>{{ titulo }}</span>
+        <small>{{ nombreEmpresa }}</small>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportarExcel()" [disabled]="cargando || !data?.lineas?.length">
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+        Excel
+      </ion-button>
+      <ion-button (click)="exportarPdf()" [disabled]="cargando || exportando || !data?.lineas?.length">
+        <ion-icon slot="start" name="document-outline"></ion-icon>
+        {{ exportando ? 'PDF…' : 'PDF' }}
+      </ion-button>
+      <ion-button (click)="imprimir()" [disabled]="cargando || !data?.lineas?.length">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        Imprimir
+      </ion-button>
+      <ion-button (click)="consultar()" [disabled]="cargando">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Actualizar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="as-content">
+  <div class="as-page">
+    <section class="as-filtros no-print">
+      <div class="as-field">
+        <label>{{ etiquetaTercero }}</label>
+        <ion-select [(ngModel)]="idTercero" interface="popover" placeholder="Todos">
+          <ion-select-option [value]="0">Todos</ion-select-option>
+          <ng-container *ngIf="modo === 'cxc'">
+            <ion-select-option *ngFor="let c of clientes" [value]="c.idCliente">
+              {{ c.nombreComercial }}
+            </ion-select-option>
+          </ng-container>
+          <ng-container *ngIf="modo === 'cxp'">
+            <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
+              {{ p.nombreComercial }}
+            </ion-select-option>
+          </ng-container>
+        </ion-select>
+      </div>
+
+      <div class="as-field">
+        <label>Documento</label>
+        <ion-input [(ngModel)]="documento" placeholder="No. / NCF"></ion-input>
+      </div>
+
+      <div class="as-field">
+        <label>Fecha factura desde</label>
+        <ion-input type="date" [(ngModel)]="fechaDesde"></ion-input>
+      </div>
+
+      <div class="as-field">
+        <label>Fecha factura hasta</label>
+        <ion-input type="date" [(ngModel)]="fechaHasta"></ion-input>
+      </div>
+
+      <div class="as-field">
+        <label>Fecha de corte</label>
+        <ion-input type="date" [(ngModel)]="fechaCorte"></ion-input>
+      </div>
+
+      <div class="as-checks">
+        <ion-item lines="none">
+          <ion-checkbox [(ngModel)]="soloPendientes" slot="start"></ion-checkbox>
+          <ion-label>Solo pendientes</ion-label>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-checkbox [(ngModel)]="soloVencidas" slot="start"></ion-checkbox>
+          <ion-label>Solo vencidas</ion-label>
+        </ion-item>
+      </div>
+
+      <div class="as-actions">
+        <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button fill="outline" color="medium" (click)="limpiarFiltros()" [disabled]="cargando">
+          Limpiar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="as-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Generando análisis de antigüedad…</p>
+    </div>
+
+    <div id="as-export-root" *ngIf="!cargando && data as r">
+      <header class="as-print-header">
+        <div>
+          <h2>{{ titulo }}</h2>
+          <p>{{ nombreEmpresa }} · Corte {{ r.fechaCorte | date:'dd/MM/yyyy' }}</p>
+        </div>
+        <div class="as-print-meta">
+          <span>{{ totales.cantidadDocumentos }} documentos</span>
+          <strong>{{ totales.totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </header>
+
+      <section class="as-kpis">
+        <article class="kpi pending">
+          <span class="label">Total pendiente</span>
+          <strong>{{ totales.totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>{{ totales.cantidadDocumentos }} documentos</small>
+        </article>
+        <article class="kpi">
+          <span class="label">Total {{ etiquetaTerceros | lowercase }}</span>
+          <strong>{{ ind.totalTerceros }}</strong>
+        </article>
+        <article class="kpi">
+          <span class="label">Promedio por {{ etiquetaTercero | lowercase }}</span>
+          <strong>{{ ind.promedioPorTercero | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </article>
+        <article class="kpi">
+          <span class="label">Saldo promedio</span>
+          <strong>{{ ind.saldoPromedioDocumento | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>por documento</small>
+        </article>
+        <article class="kpi crit">
+          <span class="label">Mayor deuda</span>
+          <strong>{{ ind.mayorDeuda | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>{{ ind.terceroMayorDeuda || '—' }}</small>
+        </article>
+        <article class="kpi">
+          <span class="label">Promedio días vencidos</span>
+          <strong>{{ ind.promedioDiasVencidos | number:'1.0-1' }}</strong>
+        </article>
+      </section>
+
+      <section class="as-kpis as-kpis-rangos">
+        <article class="kpi ok">
+          <span class="label">0-30 días</span>
+          <strong>{{ totales.total0a30 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </article>
+        <article class="kpi warn">
+          <span class="label">31-60 días</span>
+          <strong>{{ totales.total31a60 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </article>
+        <article class="kpi risk">
+          <span class="label">61-90 días</span>
+          <strong>{{ totales.total61a90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </article>
+        <article class="kpi crit">
+          <span class="label">Más de 90 días</span>
+          <strong>{{ totales.totalMas90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </article>
+      </section>
+
+      <section class="as-charts">
+        <article class="as-chart-card">
+          <header>
+            <h3>Distribución por antigüedad</h3>
+            <small>Por fecha de vencimiento</small>
+          </header>
+          <div class="as-chart-wrap">
+            <canvas id="chartAntiguedad"></canvas>
+          </div>
+        </article>
+        <article class="as-chart-card">
+          <header>
+            <h3>{{ tituloTop }}</h3>
+            <small>Top 10</small>
+          </header>
+          <div class="as-chart-wrap">
+            <canvas id="chartTopTerceros"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="as-table-card" *ngIf="r.lineas?.length; else vacio">
+        <div class="as-table-scroll">
+          <table class="as-table">
+            <thead>
+              <tr>
+                <th>{{ etiquetaTercero }}</th>
+                <th>Documento</th>
+                <th>Fecha factura</th>
+                <th>Vencimiento</th>
+                <th class="num">Días</th>
+                <th>Rango</th>
+                <th class="num">Saldo</th>
+                <th class="num">0-30</th>
+                <th class="num">31-60</th>
+                <th class="num">61-90</th>
+                <th class="num">&gt;90</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let l of r.lineas" [class]="'row-' + tonoRango(l.rangoCodigo)">
+                <td><strong>{{ l.terceroNombre }}</strong></td>
+                <td>{{ l.documento }}</td>
+                <td>{{ l.fechaDocumento | date:'dd/MM/yyyy' }}</td>
+                <td>{{ l.fechaVencimiento | date:'dd/MM/yyyy' }}</td>
+                <td class="num" [class.late]="l.diasVencidos > 0">{{ l.diasVencidos }}</td>
+                <td>
+                  <span class="rango-badge" [ngClass]="'badge-' + tonoRango(l.rangoCodigo)">
+                    {{ etiquetaRango(l) }}
+                  </span>
+                </td>
+                <td class="num saldo">{{ l.saldoPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                <td class="num cell-ok">{{ l.rango0a30 ? (l.rango0a30 | currency:'DOP':'symbol-narrow':'1.2-2') : '—' }}</td>
+                <td class="num cell-warn">{{ l.rango31a60 ? (l.rango31a60 | currency:'DOP':'symbol-narrow':'1.2-2') : '—' }}</td>
+                <td class="num cell-risk">{{ l.rango61a90 ? (l.rango61a90 | currency:'DOP':'symbol-narrow':'1.2-2') : '—' }}</td>
+                <td class="num cell-crit">{{ l.rangoMas90 ? (l.rangoMas90 | currency:'DOP':'symbol-narrow':'1.2-2') : '—' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6"><strong>Totales</strong></td>
+                <td class="num"><strong>{{ totales.totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></td>
+                <td class="num"><strong>{{ totales.total0a30 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></td>
+                <td class="num"><strong>{{ totales.total31a60 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></td>
+                <td class="num"><strong>{{ totales.total61a90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></td>
+                <td class="num"><strong>{{ totales.totalMas90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <ng-template #vacio>
+        <div class="as-empty">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <h3>Sin saldos pendientes</h3>
+          <p>No hay documentos con saldo para los filtros seleccionados.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</ion-content>

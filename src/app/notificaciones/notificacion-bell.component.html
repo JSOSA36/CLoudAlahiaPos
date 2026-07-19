@@ -1,0 +1,8 @@
+<div class="notif-bell" (click)="$event.stopPropagation()">
+  <button type="button" class="bell-btn" (click)="toggle($event)" aria-label="Notificaciones">
+    <ion-icon name="notifications-outline"></ion-icon>
+    <ng-container *ngIf="unread$ | async as n">
+      <span class="badge" [class.show]="n > 0">{{ n > 99 ? '99+' : n }}</span>
+    </ng-container>
+  </button>
+</div>

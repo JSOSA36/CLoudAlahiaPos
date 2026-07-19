@@ -1,4 +1,19 @@
 <ion-app>
+  <ng-container *ngIf="mostrarCampanaNotificaciones">
+    <app-notificacion-bell class="toolbar-notif-bell"></app-notificacion-bell>
+    <app-notificacion-panel></app-notificacion-panel>
+  </ng-container>
+  <div
+    class="pago-banner"
+    *ngIf="alertaPagoBanner"
+    [class.pago-banner--critico]="alertaPagoBanner.tipo === 'critico'"
+    [class.pago-banner--warn]="alertaPagoBanner.tipo !== 'critico'">
+    <span>{{ alertaPagoBanner.mensaje }}</span>
+    <div class="pago-banner-actions">
+      <button type="button" class="pago-banner-pay" (click)="abrirPagoSuscripcion()">Pagar ahora</button>
+      <button type="button" class="pago-banner-close" (click)="cerrarAlertaPago()" aria-label="Cerrar">×</button>
+    </div>
+  </div>
   <ion-split-pane contentId="main-content" when="false">
     <ion-menu contentId="main-content" type="overlay">
       
@@ -94,4 +109,5 @@
 
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
+  <app-alahia-ai-fab></app-alahia-ai-fab>
 </ion-app>

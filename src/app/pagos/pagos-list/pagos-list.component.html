@@ -1,102 +1,190 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Pagos</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Pagos</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="pg-content">
+<div class="page">
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Suscripciones · MacroBits</p>
+      <h1>Pagos reportados</h1>
+      <p class="sub">
+        Valida comprobantes de transferencia. Aprueba o rechaza según el voucher adjunto.
+      </p>
+    </div>
+    <button type="button" class="btn-refresh" (click)="cargarPagos()" [disabled]="cargando">
+      <ion-icon name="refresh-outline"></ion-icon>
+      Actualizar
+    </button>
+  </header>
 
-  <ion-spinner *ngIf="cargando"></ion-spinner>
+  <section class="kpis" *ngIf="!cargando && pagos.length">
+    <article class="kpi">
+      <span>Total</span>
+      <strong>{{ pagos.length }}</strong>
+    </article>
+    <article class="kpi kpi--warn">
+      <span>Pendientes</span>
+      <strong>{{ countBy('PENDIENTE') }}</strong>
+    </article>
+    <article class="kpi kpi--ok">
+      <span>Aprobados</span>
+      <strong>{{ countBy('APROBADO') }}</strong>
+    </article>
+    <article class="kpi kpi--bad">
+      <span>Rechazados</span>
+      <strong>{{ countBy('RECHAZADO') }}</strong>
+    </article>
+  </section>
 
-  <ion-card *ngFor="let pago of pagos" class="pago-card">
+  <section class="filters">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="filtroEstado === ''"
+      (click)="filtroEstado = ''">
+      Todos
+    </button>
+    <button
+      type="button"
+      class="chip chip--warn"
+      [class.active]="filtroEstado === 'PENDIENTE'"
+      (click)="filtroEstado = 'PENDIENTE'">
+      Pendiente
+      <em *ngIf="countBy('PENDIENTE')">{{ countBy('PENDIENTE') }}</em>
+    </button>
+    <button
+      type="button"
+      class="chip chip--ok"
+      [class.active]="filtroEstado === 'APROBADO'"
+      (click)="filtroEstado = 'APROBADO'">
+      Aprobado
+    </button>
+    <button
+      type="button"
+      class="chip chip--bad"
+      [class.active]="filtroEstado === 'RECHAZADO'"
+      (click)="filtroEstado = 'RECHAZADO'">
+      Rechazado
+    </button>
+  </section>
 
-    <ion-card-header>
+  <div class="loading" *ngIf="cargando">
+    <div class="spinner"></div>
+    <span>Cargando pagos…</span>
+  </div>
 
-      <ion-card-subtitle>
-        {{ pago.nombreEmpresa }}
-      </ion-card-subtitle>
+  <div class="lista" *ngIf="!cargando">
+    <article
+      class="pago-card"
+      *ngFor="let pago of filtrados"
+      [attr.data-estado]="(pago.estado || '').toUpperCase()">
 
-      <ion-card-title>
-        RD$ {{ pago.monto | number:'1.0-0' }}
-      </ion-card-title>
-
-      <ion-badge [color]="
-        pago.estado === 'APROBADO' ? 'success' :
-        pago.estado === 'RECHAZADO' ? 'danger' : 'warning'
-      ">
-        {{ pago.estado }}
-      </ion-badge>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <p><strong>Fecha:</strong> {{ pago.fechaSubida | date:'short' }}</p>
-
-      <!-- 🔥 BOTÓN VER -->
-      <ion-button 
-        size="small" 
-        fill="outline" 
-        color="primary"
-        (click)="abrirModal(pago.archivoUrl)">
-
-        <ion-icon name="eye-outline" slot="start"></ion-icon>
-        Ver comprobante
-      </ion-button>
-
-      <!-- 🔥 ACCIONES -->
-      <div *ngIf="pago.estado === 'PENDIENTE'" class="acciones">
-
-        <ion-button color="success" (click)="aprobar(pago)">
-          Aprobar
-        </ion-button>
-
-        <ion-button color="danger" (click)="rechazar(pago)">
-          Rechazar
-        </ion-button>
-
+      <div class="pago-top">
+        <div class="pago-who">
+          <span class="avatar" aria-hidden="true">{{ inicial(pago.nombreEmpresa) }}</span>
+          <div>
+            <p class="empresa">{{ pago.nombreEmpresa || ('Empresa #' + pago.idEmpresa) }}</p>
+            <p class="meta-id">#{{ pago.id }} · {{ pago.fechaSubida | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+        <span class="status" [ngClass]="estadoClass(pago.estado)">{{ pago.estado }}</span>
       </div>
 
-    </ion-card-content>
+      <div class="pago-amount">
+        <span class="amount-label">Monto reportado</span>
+        <div class="amount-usd"><em>USD</em> {{ pago.monto | number:'1.2-2' }}</div>
+        <div class="amount-dop">RD$ {{ (pago.monto * tasa) | number:'1.2-2' }}</div>
+      </div>
 
-  </ion-card>
+      <div class="pago-meta">
+        <div *ngIf="pago.banco">
+          <span>Banco</span>
+          <strong>{{ pago.banco }}</strong>
+        </div>
+        <div *ngIf="pago.referencia">
+          <span>Referencia</span>
+          <strong class="mono">{{ pago.referencia }}</strong>
+        </div>
+        <div *ngIf="pago.fechaPago">
+          <span>Fecha pago</span>
+          <strong>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</strong>
+        </div>
+        <div *ngIf="pago.usuarioValida">
+          <span>Validado por</span>
+          <strong>{{ pago.usuarioValida }}</strong>
+        </div>
+      </div>
 
+      <p class="obs" *ngIf="pago.observacion">{{ pago.observacion }}</p>
+
+      <div class="pago-actions">
+        <button
+          type="button"
+          class="btn-voucher"
+          *ngIf="pago.archivoUrl"
+          (click)="abrirModal(pago.archivoUrl)">
+          <ion-icon name="document-attach-outline"></ion-icon>
+          Ver comprobante
+        </button>
+
+        <ng-container *ngIf="(pago.estado || '').toUpperCase() === 'PENDIENTE'">
+          <button type="button" class="btn-ok" (click)="aprobar(pago)">Aprobar</button>
+          <button type="button" class="btn-bad" (click)="rechazar(pago)">Rechazar</button>
+        </ng-container>
+      </div>
+    </article>
+
+    <div class="empty" *ngIf="!filtrados.length">
+      <div class="empty-icon" aria-hidden="true">
+        <ion-icon name="wallet-outline"></ion-icon>
+      </div>
+      <h2 *ngIf="!pagos.length">Sin pagos reportados</h2>
+      <h2 *ngIf="pagos.length">Sin resultados en este filtro</h2>
+      <p *ngIf="!pagos.length">Cuando un cliente envíe un voucher, aparecerá aquí para validación.</p>
+      <p *ngIf="pagos.length">Cambia el filtro para ver otros estados.</p>
+    </div>
+  </div>
+</div>
 </ion-content>
 
-<!-- 🔥 MODAL INLINE -->
-<ion-modal 
-  [isOpen]="modalAbierto" 
-  (didDismiss)="cerrarModal()" 
-  class="modal-fullscreen">
+<ion-modal
+  [isOpen]="modalAbierto"
+  (didDismiss)="cerrarModal()"
+  class="modal-comprobante">
 
   <ng-template>
     <ion-header>
-      <ion-toolbar color="dark">
+      <ion-toolbar color="primary">
         <ion-title>Comprobante</ion-title>
-
         <ion-buttons slot="end">
-          <ion-button (click)="cerrarModal()">
-            <ion-icon name="close"></ion-icon>
+          <ion-button (click)="cerrarModal()" aria-label="Cerrar">
+            <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content [scrollY]="true" class="viewer" fullscreen="true">
-
-      <img 
-        *ngIf="urlSeleccionado && !urlSeleccionado.toLowerCase().includes('.pdf')" 
-        [src]="urlSeleccionado" 
-        class="img-full"
-      />
-
-      <iframe 
-        *ngIf="urlSeleccionado && urlSeleccionado.toLowerCase().includes('.pdf')" 
-        [src]="getSafeUrl(urlSeleccionado)" 
-        class="pdf-full">
-      </iframe>
-
+    <ion-content class="viewer" fullscreen="true">
+      <div class="viewer-wrap">
+        <img
+          *ngIf="urlSeleccionado && !esPdf(urlSeleccionado)"
+          [src]="urlSeleccionado"
+          class="img-full"
+          alt="Comprobante de pago"
+        />
+        <iframe
+          *ngIf="urlSeleccionado && esPdf(urlSeleccionado)"
+          [src]="getSafeUrl(urlSeleccionado)"
+          class="pdf-full"
+          title="Comprobante PDF">
+        </iframe>
+      </div>
     </ion-content>
   </ng-template>
-
 </ion-modal>

@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Configuración — Facturación Electrónica</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="config-grid">
+
+    <div class="config-card">
+      <div class="card-header">
+        <ion-icon name="business-outline"></ion-icon>
+        <h3>Empresa Emisora</h3>
+      </div>
+      <div class="card-body">
+        <div class="info-row"><span>ID Empresa:</span><strong>{{ parametro.IdEmpresa }}</strong></div>
+        <p class="hint">La configuración del RNC emisor, razón social y dirección se administra desde el módulo Empresa.</p>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="card-header">
+        <ion-icon name="cloud-outline"></ion-icon>
+        <h3>Gateway Fiscal</h3>
+      </div>
+      <div class="card-body">
+        <div class="status-row">
+          <span>Estado de conexión:</span>
+          <span class="status-indicator" *ngIf="!verificando"
+                [class.conectado]="gatewayConectado"
+                [class.desconectado]="!gatewayConectado">
+            <ion-icon [name]="gatewayConectado ? 'checkmark-circle' : 'close-circle'"></ion-icon>
+            {{ gatewayConectado ? 'Conectado' : 'Sin conexión' }}
+          </span>
+          <ion-spinner name="dots" *ngIf="verificando"></ion-spinner>
+        </div>
+        <ion-button size="small" fill="outline" (click)="verificarConexion()" [disabled]="verificando" class="ion-margin-top">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Verificar conexión
+        </ion-button>
+        <p class="hint">El Gateway conecta con el proveedor de facturación electrónica configurado (BaseUrl / API Key en appsettings). El ERP no depende de un vendor concreto.</p>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="card-header">
+        <ion-icon name="settings-outline"></ion-icon>
+        <h3>Ambiente</h3>
+      </div>
+      <div class="card-body">
+        <div class="ambiente-badge pruebas">SANDBOX (Pruebas)</div>
+        <p class="hint">El ambiente se configura por secuencia e-CF. Cuando todas las secuencias activas sean de producción, el sistema operará en modo producción.</p>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

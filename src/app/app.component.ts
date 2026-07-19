@@ -2,20 +2,22 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AlertController, Platform } from '@ionic/angular';
+import { AlertController, Platform, ToastController } from '@ionic/angular';
 import { ParametrosService } from './servicios/parametros.service';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { filter } from 'rxjs/operators';
-import { ToastController } from '@ionic/angular';
 import { CitasService } from './servicios/citas.service';
 import { PosComponent } from './Pos/pos/pos.component';
+import { PoliticasGateService } from './servicios/politicas-gate.service';
+import { NotificacionesService } from './servicios/notificaciones.service';
 import {
   MENU_GRUPOS,
   MENU_GRUPO_OTROS,
   MODULOS_EXCLUIDOS_MENU,
   CONTABILIDAD_MODULO_PADRE,
-  CONTABILIDAD_SUBMODULOS_TITULOS
+  CONTABILIDAD_SUBMODULOS_TITULOS,
+  MODULO_TITULOS_MENU
 } from './config/menu-grupos.config';
 import { MenuGrupoView, MenuItemView, MenuSalirView } from './models/menu.models';
 
@@ -24,12 +26,14 @@ import { MenuGrupoView, MenuItemView, MenuSalirView } from './models/menu.models
 // ===============================
 export const MODULO_RUTAS: Record<string, string> = {
   DASHBOARD: '/dashboard-gerencial',
+  ALAHIA_AI: '/alahia-ai',
   ORDENES: '/Ordenes',
   REPORTE_607: '/reporte607',
   REPORTE_VENTA: '/reporteventa',
   REPORTE_SERVICIOS: '/reporteservicios',
   REPORTE_COMISIONES: '/comisiones',
   MOVIMIENTO_INVENTARIO: '/movimientosinventario',
+  CONDUCES: '/conduces',
   REPORTE_PERDIDAS: '/reporteperdidas',
   CATEGORIAS: '/Listadocategorias',
   PRODUCTOS: '/listproducto',
@@ -50,6 +54,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   LISTADO_DEVOLUCIONES: '/listadodevoluciones',
   NOTAS_CREDITO_APLICADAS: '/notascreditoaplicadas',
   CUENTAS_COBRAR: '/cuentaxcobrar',
+  ANTIGUEDAD_CXC: '/cuentaxcobrar/antiguedad',
   DESCUENTOS: '/Descuento',
   BIZCOCHO_ENCARGO: '/bizcocho',
   LISTADO_CAJA: '/listadocaja',
@@ -84,11 +89,27 @@ export const MODULO_RUTAS: Record<string, string> = {
   ANALISIS_COMPRAS_PRODUCTO: '/compras/analisis-producto',
   REPORTE_606: '/compras/reporte-606',
   CUENTAS_PAGAR_PROVEEDOR: '/compras/cxp',
+  ANTIGUEDAD_CXP: '/compras/antiguedad-cxp',
   ACTIVOS_FIJOS: '/activos-fijos',
   REPORTE_PRODUCTOS: '/reportes/productos',
   REPORTE_PROVEEDORES: '/reportes/proveedores',
   REPORTE_CLIENTES: '/reportes/clientes',
-  REPORTE_EMPLEADOS: '/reportes/empleados'
+  REPORTE_EMPLEADOS: '/reportes/empleados',
+  FE_CONFIGURACION: '/fe-configuracion',
+  FE_SECUENCIAS: '/fe-secuencias',
+  FE_CERTIFICADO: '/fe-certificado',
+  FE_ESTADO_DGII: '/fe-estado-dgii',
+  FE_HISTORIAL: '/fe-historial',
+  FE_REPROCESAR: '/fe-reprocesar',
+  FE_MONITOREO: '/fe-monitoreo',
+  POLITICAS_VERSIONES: '/politicas-admin',
+  POLITICAS_ACEPTACIONES: '/politicas-aceptaciones',
+  MACROBITS_ADMIN: '/politicas-admin',
+  SUSCRIPCIONES_COBROS: '/cobros-admin',
+  PAGO_SUSCRIPCION: '/pago-suscripcion',
+  TICKETS: '/tickets',
+  TICKETS_ADMIN: '/tickets-admin',
+  CENTRO_PRODUCCION: '/centro-produccion'
 };
 
 // ===============================
@@ -116,6 +137,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   PARAMETROS: 'gift',
   LISTADO_CAJA: 'wallet',
   MOVIMIENTO_INVENTARIO: 'box-open',
+  CONDUCES: 'truck',
   REPORTE_PERDIDAS: 'exclamation-triangle',
   GASTOS: 'wallet',
   INGRESOS: 'cash-register',
@@ -130,7 +152,8 @@ export const MODULO_ICONOS: Record<string, string> = {
   ALMACENES: 'warehouse',
   EMPLEADOS_COMISION: 'percentage',
   CIERRE_CAJA: 'cash-register',
-  CUENTAS_COBRAR: 'file-invoice',
+  CUENTAS_COBRAR: 'hand-holding-dollar',
+  ANTIGUEDAD_CXC: 'chart-bar',
   DESCUENTOS: 'tags',
 
   EMPRESA: 'building',
@@ -156,11 +179,28 @@ export const MODULO_ICONOS: Record<string, string> = {
   FACTURAS_COMPRA: 'file-invoice',
   ANALISIS_COMPRAS_PRODUCTO: 'chart-line',
   CUENTAS_PAGAR_PROVEEDOR: 'hand-holding-usd',
+  ANTIGUEDAD_CXP: 'chart-bar',
   ACTIVOS_FIJOS: 'file-invoice-dollar',
   REPORTE_PRODUCTOS: 'box',
   REPORTE_PROVEEDORES: 'truck',
   REPORTE_CLIENTES: 'users',
-  REPORTE_EMPLEADOS: 'user-tie'
+  REPORTE_EMPLEADOS: 'user-tie',
+  FE_CONFIGURACION: 'cog',
+  FE_SECUENCIAS: 'list-ol',
+  FE_CERTIFICADO: 'certificate',
+  FE_ESTADO_DGII: 'heartbeat',
+  FE_HISTORIAL: 'history',
+  FE_REPROCESAR: 'redo',
+  FE_MONITOREO: 'tachometer-alt',
+  POLITICAS_VERSIONES: 'file-contract',
+  POLITICAS_ACEPTACIONES: 'clipboard-check',
+  MACROBITS_ADMIN: 'shield-alt',
+  SUSCRIPCIONES_COBROS: 'file-invoice-dollar',
+  PAGO_SUSCRIPCION: 'credit-card',
+  TICKETS: 'headset',
+  TICKETS_ADMIN: 'life-ring',
+  CENTRO_PRODUCCION: 'industry',
+  ALAHIA_AI: 'robot'
 };
 
 @Component({
@@ -180,7 +220,14 @@ export class AppComponent implements OnInit, OnDestroy {
     icon: 'sign-out-alt',
     iconFa: ['fas', 'sign-out-alt']
   };
+  public alertaPagoBanner: { tipo: string; mensaje: string } | null = null;
   private destroy$ = new Subject<void>();
+
+  get mostrarCampanaNotificaciones(): boolean {
+    if (this.isPublicRoute()) return false;
+    if (this.router.url.includes('/login')) return false;
+    return !!(localStorage.getItem('token_sesion') || this._Parametro.IdEmpresa);
+  }
 
   // ===============================
   // 🔐 INACTIVIDAD / SESIÓN
@@ -219,14 +266,21 @@ getPlanColor(plan: string): string {
     private alertCtrl: AlertController,
     private platform: Platform,
     private updates: SwUpdate,
-private toastCtrl: ToastController,
-private citasService: CitasService,private authService: AuthService
+    private toastCtrl: ToastController,
+    private citasService: CitasService,
+    private authService: AuthService,
+    private politicasGate: PoliticasGateService,
+    private notificaciones: NotificacionesService
   ) {}
 
   // ===============================
   // 🔄 INIT
   // ===============================
   ngOnInit() {
+    this._Parametro.restoreAlertaPago();
+    this._Parametro.alertaPago$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(a => this.alertaPagoBanner = a);
 
   this.citasService.nuevaCita$
   .pipe(takeUntil(this.destroy$))
@@ -311,10 +365,14 @@ setInterval(async () => {
       .subscribe(() => {
         this.cargarMenu();
         this.startIdleWatcher();
+        this.iniciarCentroNotificaciones();
       });
 
     // 🔥 arrancar watcher si hay sesión
     this.startIdleWatcher();
+    this.iniciarCentroNotificaciones();
+    // Revalidar políticas en refresh / sesión existente (el login también valida)
+    setTimeout(() => this.validarPoliticasSesion(), 300);
 
     // 🔥 cuando la app vuelve del background
    this.platform.resume.subscribe(() => {
@@ -333,6 +391,14 @@ setInterval(async () => {
     this.destroy$.complete();
     clearTimeout(this.idleTimer);
     clearTimeout(this.warningTimer);
+  }
+
+  cerrarAlertaPago() {
+    this._Parametro.setAlertaPago(null);
+  }
+
+  async abrirPagoSuscripcion() {
+    this.router.navigateByUrl('/pago-suscripcion');
   }
 
   // ===============================
@@ -462,6 +528,7 @@ private startIdleWatcher() {
   // 🔥 LIMPIAR TODO
   this._Parametro.logout();
   localStorage.clear();
+  await this.notificaciones.stop();
 
   this.router.navigateByUrl('/login', { replaceUrl: true });
 }
@@ -484,6 +551,12 @@ private startIdleWatcher() {
       return;
     }
 
+    this._Parametro.setModulosActivos(
+      modulos.map((m: any) => m.moduloId).filter((id: any) => id != null),
+      modulos.map((m: any) => m.codigo).filter((c: string) => !!c),
+      false // evita bucle: cargarMenu ← menuRefresh ← setModulosActivos
+    );
+
     const modulosUsuario = new Map<string, { title: string; codigo: string }>();
     let tieneContabilidadHub = false;
 
@@ -501,11 +574,24 @@ private startIdleWatcher() {
       const ruta = MODULO_RUTAS[codigo];
       if (!ruta) return;
 
+      // IT-1 / config fiscal: módulo comercial + flags DgiiConfiguracionEmpresa
+      if (
+        (codigo === 'IT1' ||
+          codigo === 'DGII_FISCAL' ||
+          codigo === 'CONFIGURACION_DGII' ||
+          codigo === 'CONFIGURACION_FISCAL') &&
+        !this._Parametro.puedeMostrarMenuFiscal(codigo, true)
+      ) {
+        return;
+      }
+
       modulosUsuario.set(codigo, {
         codigo,
-        title: m.nombre || codigo
+        title: MODULO_TITULOS_MENU[codigo] || m.nombre || codigo
       });
     });
+
+
 
     const codigosAsignados = new Set<string>();
     const grupos: MenuGrupoView[] = [];
@@ -527,7 +613,7 @@ private startIdleWatcher() {
 
         items.push({
           codigo,
-          title: modulo?.title || CONTABILIDAD_SUBMODULOS_TITULOS[codigo] || codigo,
+          title: MODULO_TITULOS_MENU[codigo] || modulo?.title || CONTABILIDAD_SUBMODULOS_TITULOS[codigo] || codigo,
           url: MODULO_RUTAS[codigo],
           icon: MODULO_ICONOS[codigo] || 'th-large',
           iconFa: this.crearIconFa(MODULO_ICONOS[codigo] || 'th-large')
@@ -601,6 +687,29 @@ private startIdleWatcher() {
   // ===============================
   logout() {
     this.forceLogout();
+  }
+
+  private async validarPoliticasSesion(): Promise<void> {
+    if (this.isPublicRoute()) return;
+    if (!this._Parametro.IdEmpresa || !this._Parametro.IdUsuario) return;
+    if (!localStorage.getItem('token_sesion')) return;
+
+    const gate = await this.politicasGate.validarAcceso();
+    if (!gate.ok) {
+      await this.forceLogout();
+    }
+  }
+
+  private iniciarCentroNotificaciones(): void {
+    if (this.isPublicRoute()) return;
+    const idEmpresa = Number(
+      this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa() || localStorage.getItem('IdEmpresa') || 0
+    );
+    const idUsuario = Number(
+      this._Parametro.IdUsuario || localStorage.getItem('IdUsuario') || 0
+    );
+    if (!idEmpresa || !localStorage.getItem('token_sesion')) return;
+    void this.notificaciones.start(idEmpresa, idUsuario);
   }
   
 }

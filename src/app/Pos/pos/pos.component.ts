@@ -1,5 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { PrinterComponent } from 'src/app/printer/printer.component';
+import { EcfPreviewComponent } from 'src/app/ecf-preview/ecf-preview.component';
+import { EmisionEcfRequest, EmisionEcfResultadoCompleto } from 'src/app/models/facturacion-electronica.models';
 import { IonModal, ModalController,AlertController,IonSearchbar, ToastController } from '@ionic/angular';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
 import { ProductosService } from 'src/app/servicios/productos.service';
@@ -23,6 +25,14 @@ import { OrdenesComponent } from 'src/app/Ordenes/ordenes/ordenes.component';
 import { AperturaCajaComponent } from 'src/app/Components/apertura-caja/apertura-caja.component';
 import { facturaheader } from 'src/app/models/facturaheader';
 import { facturadetalles } from 'src/app/models/facturadetalles';
+import {
+  PLAZOS_CREDITO,
+  calcularFechaVencimiento,
+  etiquetaPlazo,
+  resolverDiasPlazo,
+} from 'src/app/shared/plazo-credito.util';
+import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
+import { TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
 type ItemCarrito = {
   idProducto: number;
   nombre: string;
@@ -43,7 +53,7 @@ type ItemCarrito = {
   templateUrl: './pos.component.html',
   styleUrls: ['./pos.component.scss'],
 })
-export class PosComponent implements OnInit {
+export class PosComponent implements OnInit, OnDestroy {
 
   @ViewChild('cartIcon', { static: false }) cartIcon!: ElementRef;
   @ViewChild('cartItems') cartItems!: ElementRef;
@@ -84,12 +94,21 @@ aplicarITBIS: boolean = true;
 
 
 tipoPago: 'CONTADO' | 'CREDITO' = 'CONTADO';
+  /** Código de plazo de crédito (0,15,30… o custom). */
+  plazoCreditoCodigo = '30';
+  /** Días cuando el plazo es personalizado. */
+  plazoCreditoDiasCustom: number | null = 30;
+  readonly plazosCredito = PLAZOS_CREDITO;
 
 tipoServicio: 'LOCAL' | 'DELIVERY' | 'LLEVAR' = 'LOCAL';
   searchOpen = false;
   mostrarSearch = true;
   catsOpen = true;
   isCartOpen = false;
+  /** Hasta 1100px: catálogo full + carrito sheet/FAB (tablet/móvil). */
+  esModoCompacto = false;
+  private compactMq?: MediaQueryList;
+  private compactMqListener?: (e: MediaQueryListEvent) => void;
   mostrarPanel = false;
 carritoModal = false;
 estadoRnc = '';
@@ -115,7 +134,11 @@ usaCotizaciones: boolean = false;
 
 usaOrdenes: boolean = false;
 
+usaCxC: boolean = false;
+
 facturacionElectronica: boolean = false;
+tiposComprobante: TipoComprobanteOption[] = [];
+tipoEcfDgii: number | null = null;
   // Toggles header carrito
  
   aplicarPropina: boolean = false;
@@ -136,6 +159,7 @@ facturacionElectronica: boolean = false;
       private rncService: RncCLienteDGIIService,
       private _CajaApertura:
   CajaAperturaService,
+  private feService: FacturacionElectronicaService,
   ) {
 
     
@@ -209,6 +233,23 @@ getTextoBoton(): string {
 
     default:
       return 'Continuar';
+  }
+}
+
+get diasPlazoCredito(): number {
+  return resolverDiasPlazo(this.plazoCreditoCodigo, this.plazoCreditoDiasCustom);
+}
+
+get fechaVencimientoCreditoPreview(): Date | null {
+  if (this.tipoPago !== 'CREDITO') return null;
+  const dias = this.diasPlazoCredito;
+  if (dias < 0) return null;
+  return calcularFechaVencimiento(dias);
+}
+
+onPlazoCreditoChange(): void {
+  if (this.plazoCreditoCodigo === 'custom' && (this.plazoCreditoDiasCustom == null || this.plazoCreditoDiasCustom < 0)) {
+    this.plazoCreditoDiasCustom = 30;
   }
 }
 consultarRnc() {
@@ -344,6 +385,12 @@ cargarParametrosPOS() {
       this.facturacionElectronica =
         facturaElectronica?.valor === 'true';
 
+      this.usaCxC = this.parametro.tieneModulo('CUENTAS_COBRAR');
+
+      if (this.facturacionElectronica) {
+        this.cargarTiposComprobante();
+      }
+
       // =====================================
       // 🔥 IMPRESIÓN
       // =====================================
@@ -377,11 +424,52 @@ cargarParametrosPOS() {
     });
 }
   ngOnInit() {
+    this.initModoCompacto();
     this.cargarCategorias();
     this.cargarProductos();
   
     this.recalcularTotales();
     this.validarCajaAbierta();
+  }
+
+  ngOnDestroy() {
+    this.teardownModoCompacto();
+    this.setBodyScrollLocked(false);
+  }
+
+  private initModoCompacto() {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+    this.compactMq = window.matchMedia('(max-width: 1100px)');
+    this.esModoCompacto = this.compactMq.matches;
+    this.compactMqListener = (e: MediaQueryListEvent) => {
+      this.esModoCompacto = e.matches;
+      if (!e.matches) {
+        this.isCartOpen = false;
+        this.setBodyScrollLocked(false);
+      }
+    };
+    if (this.compactMq.addEventListener) {
+      this.compactMq.addEventListener('change', this.compactMqListener);
+    } else {
+      // Safari viejo
+      (this.compactMq as any).addListener(this.compactMqListener);
+    }
+  }
+
+  private teardownModoCompacto() {
+    if (!this.compactMq || !this.compactMqListener) return;
+    if (this.compactMq.removeEventListener) {
+      this.compactMq.removeEventListener('change', this.compactMqListener);
+    } else {
+      (this.compactMq as any).removeListener(this.compactMqListener);
+    }
+  }
+
+  private setBodyScrollLocked(locked: boolean) {
+    if (typeof document === 'undefined') return;
+    document.body.style.overflow = locked ? 'hidden' : '';
   }
 
  
@@ -512,6 +600,7 @@ async openModalCobro(imprimirCotizacion = false) {
     header.subTotal = this.subtotalProductos;
     header.totalItbis = this.montoItbis;
     header.totalDescuento = this.montoDescuento;
+    header.tipoOrden = this.tipoOrden;
 
     this.carrito.forEach(item => {
 
@@ -573,18 +662,14 @@ async openModalCobro(imprimirCotizacion = false) {
               })
             ).present();
           } else if (this.imprimirOrden && idOrden) {
-
-            for (let i = 0; i < this.cantidadCopiasOrden; i++) {
-
-              this._printService
-                .printTicket(
-                  idOrden,
-                  this.parametro.IdEmpresa
-                )
-                .subscribe();
-
-            }
-
+            void this.imprimirTicketDocumento(
+              idOrden,
+              this.cantidadCopiasOrden,
+              this.armarTicketDesdeCarrito(idOrden, {
+                numeroDocumento: numeroDocumento,
+                tipoFactura: 'Orden'
+              })
+            );
           }
 
           this.resetPOS();
@@ -609,13 +694,49 @@ async openModalCobro(imprimirCotizacion = false) {
       this.tipoPago === 'CREDITO'
   ) {
 
+    if (!this.usaCxC) {
+      this.tipoPago = 'CONTADO';
+      (
+        await this.toastCtrl.create({
+          message: 'Módulo Cuentas por Cobrar no disponible',
+          duration: 2000,
+          color: 'danger',
+          position: 'top',
+        })
+      ).present();
+      return;
+    }
+
+    if (!this.clienteSeleccionado?.id) {
+      (
+        await this.toastCtrl.create({
+          message: 'Debe seleccionar un cliente para venta a crédito',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        })
+      ).present();
+      return;
+    }
+
+    const dias = this.diasPlazoCredito;
+    if (dias < 0) {
+      (
+        await this.toastCtrl.create({
+          message: 'Indique un plazo de crédito válido',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        })
+      ).present();
+      return;
+    }
+
     const facturaDTO = this.armarFacturaDTO({
-
-      tipoFactura: 'CREDITO',
-
-      imprimir: true,
-
-      pagos: [] // 👈 Sin pagos
+      tipoFactura: 'Credito',
+      imprimir: false,
+      pagos: [],
+      plazoDias: dias,
     });
 
     this._FacturaHeader
@@ -623,7 +744,15 @@ async openModalCobro(imprimirCotizacion = false) {
 
       .subscribe({
 
-        next: (resp: any) => {
+        next: async (resp: any) => {
+
+          const carritoSnap = [...this.carrito];
+          const itbisSnap = this.montoItbis;
+          const totalSnap = this.total;
+          const clienteSnap = this.clienteSeleccionado ? { ...this.clienteSeleccionado } : null;
+          const rncSnap = this.rncFiscal;
+          const nombreFiscalSnap = this.nombreFiscal;
+          const ecfTipoSnap = this.tipoEcfDgii;
 
           this.resetPOS();
 
@@ -633,14 +762,20 @@ async openModalCobro(imprimirCotizacion = false) {
             resp;
 
           if (idFactura) {
+            if (ecfTipoSnap) {
+              this.carrito = carritoSnap;
+              this.montoItbis = itbisSnap;
+              this.total = totalSnap;
+              this.clienteSeleccionado = clienteSnap;
+              this.rncFiscal = rncSnap;
+              this.nombreFiscal = nombreFiscalSnap;
+              this.tipoEcfDgii = ecfTipoSnap;
 
-            this._printService
-              .printTicket(
-                idFactura,
-                this.parametro.IdEmpresa
-              )
-              .subscribe();
+              await this.procesarEcfYPreview(idFactura);
 
+              this.resetPOS();
+            }
+            // Crédito: sin modal de impresión → no envía a printer automáticamente
           }
 
           this.parametro.IdFacturaHeader = 0;
@@ -706,7 +841,22 @@ async openModalCobro(imprimirCotizacion = false) {
 
     .subscribe({
 
-      next: (resp: any) => {
+      next: async (resp: any) => {
+
+        const carritoSnap = [...this.carrito];
+        const itbisSnap = this.montoItbis;
+        const totalSnap = this.total;
+        const clienteSnap = this.clienteSeleccionado ? { ...this.clienteSeleccionado } : null;
+        const rncSnap = this.rncFiscal;
+        const nombreFiscalSnap = this.nombreFiscal;
+        const ecfTipoSnap = this.tipoEcfDgii;
+        const ticketSnap = this.armarTicketDesdeCarrito(0, {
+          carrito: carritoSnap,
+          total: totalSnap,
+          itbis: itbisSnap,
+          cliente: clienteSnap,
+          tipoFactura: 'Contado'
+        });
 
         this.resetPOS();
 
@@ -716,32 +866,131 @@ async openModalCobro(imprimirCotizacion = false) {
           resp;
 
         if (idFactura) {
+          if (ecfTipoSnap) {
+            this.carrito = carritoSnap;
+            this.montoItbis = itbisSnap;
+            this.total = totalSnap;
+            this.clienteSeleccionado = clienteSnap;
+            this.rncFiscal = rncSnap;
+            this.nombreFiscal = nombreFiscalSnap;
+            this.tipoEcfDgii = ecfTipoSnap;
 
-          this._printService
-            .printTicket(
-              idFactura,
-              this.parametro.IdEmpresa
-            )
-            .subscribe();
+            await this.procesarEcfYPreview(idFactura);
+
+            this.resetPOS();
+            } else {
+              if (data?.imprimir) {
+                ticketSnap.idFacturaHeader = idFactura;
+                ticketSnap.numeroDocumento =
+                  resp?.numeroDocumento || idFactura;
+                void this.imprimirTicketDocumento(
+                  idFactura,
+                  1,
+                  ticketSnap
+                );
+              }
+            }
+          }
+
+          this.parametro.IdFacturaHeader = 0;
+
+        },
+
+        error: (err) => {
+
+          console.error(
+            '❌ Error creando factura',
+            err
+          );
 
         }
 
-        this.parametro.IdFacturaHeader = 0;
-
-      },
-
-      error: (err) => {
-
-        console.error(
-          '❌ Error creando factura',
-          err
-        );
-
-      }
-
-    });
+      });
 
 }
+
+  /**
+   * Tablet: preview térmico + window del navegador.
+   * Desktop: ApiPrint remoto (cantidadCopias solo aplica ahí).
+   */
+  private async imprimirTicketDocumento(
+    idDocumento: number,
+    cantidadCopias = 1,
+    facturaLocal?: any
+  ): Promise<void> {
+    if (this.esModoCompacto) {
+      try {
+        await this._printService.openTicketPosPreview(
+          idDocumento,
+          facturaLocal
+        );
+      } catch (err) {
+        console.error('❌ Error abriendo vista previa del ticket', err);
+        (
+          await this.toastCtrl.create({
+            message: 'No se pudo abrir la vista previa del ticket',
+            duration: 2500,
+            color: 'danger',
+            position: 'top'
+          })
+        ).present();
+      }
+      return;
+    }
+
+    const copias = Math.max(1, cantidadCopias || 1);
+    for (let i = 0; i < copias; i++) {
+      this._printService
+        .printTicket(idDocumento, this.parametro.IdEmpresa)
+        .subscribe({
+          error: (err) => console.error('❌ Error ApiPrint ticket', err)
+        });
+    }
+  }
+
+
+  /** Snapshot local del carrito para ticket térmico (evita GetFactura en tablet). */
+  private armarTicketDesdeCarrito(
+    idDocumento: number,
+    opts?: {
+      carrito?: any[];
+      total?: number;
+      itbis?: number;
+      cliente?: any;
+      numeroDocumento?: string | number;
+      tipoFactura?: string;
+    }
+  ): any {
+    const items = opts?.carrito ?? this.carrito;
+    const cliente = opts?.cliente ?? this.clienteSeleccionado;
+
+    return {
+      idFacturaHeader: idDocumento,
+      numeroDocumento: opts?.numeroDocumento || idDocumento,
+      fechaInseccion: new Date(),
+      tipoFactura: opts?.tipoFactura || this.tipoPago || 'Contado',
+      total: opts?.total ?? this.total,
+      totalItbis: opts?.itbis ?? this.montoItbis,
+      clientes: {
+        nombreComercial:
+          cliente?.nombre ||
+          cliente?.nombreComercial ||
+          'Al Portador'
+      },
+      facturaDetalles: (items || []).map((item: any) => ({
+        cantidad: item.cantidad,
+        precioOferta: item.precioBase ?? item.precio,
+        precio: item.precioBase ?? item.precio,
+        subTotal: item.subtotal,
+        itbis: item.itbisProducto || 0,
+        productos: {
+          nombre: item.nombre,
+          descripcion: item.nombre
+        }
+      }))
+    };
+  }
+
 private resetPOS() {
 
   // Carrito
@@ -754,6 +1003,8 @@ private resetPOS() {
   // Documento
   this.tipoDocumento = 'Factura';
   this.tipoPago = 'CONTADO';
+  this.plazoCreditoCodigo = '30';
+  this.plazoCreditoDiasCustom = 30;
   this.tipoComprobante = 'FACT';
   this.tipoOrden = 'Llevar';
 
@@ -825,6 +1076,12 @@ this.parametro.IdFacturaHeader =
   });
 
   this.recalcularTotales();
+
+  // En tablet/móvil el carrito está minimizado: abrirlo al editar orden/cotización
+  this.isCartOpen = true;
+  if (this.esModoCompacto) {
+    this.setBodyScrollLocked(true);
+  }
 }
 
 private armarCotizacionParaImprimir(
@@ -909,29 +1166,49 @@ private armarFacturaDTO(dataModal: any) {
       ? 2
       : 14;
 
+  const tipoRaw = (dataModal.tipoFactura || this.tipoPago || 'Contado').toString();
+  const tipoFactura =
+    tipoRaw.toUpperCase() === 'CREDITO' || tipoRaw === 'Credito'
+      ? 'Credito'
+      : 'Contado';
+
+  let plazo = '';
+  let fechaBencimiento: string | undefined;
+
+  if (tipoFactura === 'Credito') {
+    const dias =
+      dataModal.plazoDias != null
+        ? Number(dataModal.plazoDias)
+        : this.diasPlazoCredito;
+    const diasOk = Number.isFinite(dias) && dias >= 0 ? Math.floor(dias) : 0;
+    plazo = etiquetaPlazo(diasOk);
+    fechaBencimiento = calcularFechaVencimiento(diasOk).toISOString();
+  }
+
   return {
     header: {
       idEmpresa: this.parametro.IdEmpresa,
       idUsuario: this.parametro.IdUsuario,
 
       idCliente: this.clienteSeleccionado?.id || null,
-tipoFactura: this.tipoPago, // 👈 AGREGAR
+      iDCliente: this.clienteSeleccionado?.id || null,
+      tipoFactura,
+      plazo,
+      fechaBencimiento,
       rnc: this.rncFiscal || null,
       nombreEmpresa: this.nombreFiscal || null,
- idFacturaHeader:
-    this.parametro.IdFacturaHeader,
+      idFacturaHeader: this.parametro.IdFacturaHeader,
       idMoso: 1,
 
-      // 🔥 AGREGAR ESTO
       idTipoDocumentos: idTipoDocumento,
 
       tipoDocumento: this.tipoDocumento,
       tipoComprobante: this.tipoComprobante,
       tipoOrden: this.tipoOrden,
-      tipoPago: dataModal.tipoFactura,
+      tipoPago: tipoFactura === 'Credito' ? 'CREDITO' : 'CONTADO',
 
       subTotal: this.subtotalProductos,
-      totalDescuento: this.montoDescuento,   // 👈 AGREGAR ESTA LÍNEA
+      totalDescuento: this.montoDescuento,
       totalItbis: this.montoItbis,
       montoPropina: this.montoPropina,
       total: this.total,
@@ -948,7 +1225,7 @@ tipoFactura: this.tipoPago, // 👈 AGREGAR
       }))
     },
 
-    pagos: dataModal.pagos.map((p: any) => ({
+    pagos: (dataModal.pagos || []).map((p: any) => ({
       metodo: p.metodo,
       monto: p.monto
     }))
@@ -982,6 +1259,136 @@ onTipoComprobanteChange() {
 
   // 🔥 RECALCULAR
   this.recalcularTotales();
+}
+
+cargarTiposComprobante() {
+  const idEmpresa = this.parametro.IdEmpresa;
+  if (!idEmpresa) return;
+
+  this.feService.getSecuenciasDisponibles(idEmpresa).subscribe({
+    next: (secuencias) => {
+      this.tiposComprobante = [
+        { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
+      ];
+
+      for (const s of secuencias) {
+        const disabled = s.agotada || s.vencida;
+        const alertaBaja = !disabled && s.restantes <= s.stockMinimo;
+        let label = `e${s.tipoEcfDgii} - ${s.descripcion}`;
+        if (disabled) label += ' (No disponible)';
+        else if (alertaBaja) label += ` (${s.restantes} restantes)`;
+
+        this.tiposComprobante.push({
+          value: s.tipoEcfDgii,
+          label,
+          disabled,
+          alertaBaja,
+          restantes: s.restantes
+        });
+      }
+    },
+    error: () => {
+      this.tiposComprobante = [
+        { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
+      ];
+    }
+  });
+}
+
+onTipoEcfChange() {
+  if (this.tipoEcfDgii === null) {
+    this.tipoComprobante = 'FACT';
+    this.aplicarITBIS = false;
+  } else if (this.tipoEcfDgii === 32) {
+    this.tipoComprobante = 'Consumidor Final';
+    this.aplicarITBIS = true;
+  } else if (this.tipoEcfDgii === 45) {
+    this.tipoComprobante = 'Gubernamental';
+    this.aplicarITBIS = true;
+  } else {
+    this.tipoComprobante = 'Crédito Fiscal';
+    this.aplicarITBIS = true;
+  }
+
+  if (!this.requiereDatosFiscales()) {
+    this.rncFiscal = '';
+    this.nombreFiscal = '';
+    this.mensajeRnc = '';
+    this.estadoRnc = '';
+  }
+  this.recalcularTotales();
+}
+
+private async procesarEcfYPreview(idFactura: number) {
+  if (!this.tipoEcfDgii) return;
+
+  const request: EmisionEcfRequest = {
+    idEmpresa: this.parametro.IdEmpresa,
+    tipoEcfDgii: this.tipoEcfDgii,
+    origenDocumento: 1,
+    idOrigen: idFactura,
+    idUsuario: this.parametro.IdUsuario
+  };
+
+  try {
+    const resultado = await this.feService.emitirYEnviar(request).toPromise();
+
+    if (!resultado || !resultado.exitoso) {
+      const toast = await this.toastCtrl.create({
+        message: `Error e-CF: ${resultado?.mensajeError || 'Error desconocido'}`,
+        duration: 4000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    const tipoLabel = this.tipoEcfDgii === 31 ? 'Factura de Crédito Fiscal Electrónica'
+      : this.tipoEcfDgii === 32 ? 'Factura de Consumo Electrónica'
+      : this.tipoEcfDgii === 33 ? 'Nota de Débito Electrónica'
+      : this.tipoEcfDgii === 34 ? 'Nota de Crédito Electrónica'
+      : this.tipoEcfDgii === 44 ? 'Regímenes Especiales Electrónica'
+      : this.tipoEcfDgii === 45 ? 'Gubernamental Electrónica'
+      : `e-CF Tipo ${this.tipoEcfDgii}`;
+
+    const facturaPreview = {
+      empresa: resultado.razonSocialEmisor,
+      fecha: new Date(),
+      tipoDocumentoFiscal: tipoLabel,
+      cliente: this.nombreFiscal || this.clienteSeleccionado?.nombre || 'Consumidor',
+      rnc: this.rncFiscal || this.clienteSeleccionado?.cedulaRNC || null,
+      items: this.carrito.map(item => ({
+        nombre: item.nombre,
+        cantidad: item.cantidad,
+        precio: item.precio,
+        subTotal: item.subtotal
+      })),
+      totalItbis: this.montoItbis,
+      total: this.total,
+    };
+
+    const previewModal = await this.modal.create({
+      component: EcfPreviewComponent,
+      cssClass: 'modal-factura-full',
+      componentProps: {
+        factura: facturaPreview,
+        ecfData: resultado
+      }
+    });
+
+    await previewModal.present();
+
+  } catch (err: any) {
+    console.error('Error emisión e-CF', err);
+    const toast = await this.toastCtrl.create({
+      message: `Error al emitir e-CF: ${err?.error?.mensajeError || err?.message || 'Error'}`,
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
 }
 
 requiereDatosFiscales(): boolean {
@@ -1816,6 +2223,14 @@ if (
 
   toggleCart() {
     this.isCartOpen = !this.isCartOpen;
+    if (this.esModoCompacto) {
+      this.setBodyScrollLocked(this.isCartOpen);
+    }
+  }
+
+  cerrarCart() {
+    this.isCartOpen = false;
+    this.setBodyScrollLocked(false);
   }
 
   onCatsAccordionChange(ev: any) {

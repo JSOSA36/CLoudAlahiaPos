@@ -780,13 +780,13 @@ footer-warning
   font-weight: 800;
 }
 /* ============================
-   MOBILE: FACTURA COMO SHEET
+   TABLET/MOVIL: FACTURA COMO SHEET (hasta 1100px)
 ============================ */
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   /* tu layout en móvil */
   .pos-layout{
-    grid-template-columns: 1fr 460px !important;
+    grid-template-columns: 1fr !important;
     height: auto !important;
   }
 
@@ -798,8 +798,8 @@ footer-warning
     bottom: 0 !important;
 
     width: 100% !important;
-    height: 85vh !important;
-    max-height: 85vh !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
 
     transform: translateY(100%) !important;
     transition: transform .28s ease !important;
@@ -1304,7 +1304,7 @@ footer-warning
   --padding-start:10px;
 
 }
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   .pos-layout{
     grid-template-columns: 1fr !important;
@@ -1312,7 +1312,7 @@ footer-warning
   }
 
 }
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   ion-col{
     flex: 0 0 50%;
@@ -1320,7 +1320,7 @@ footer-warning
   }
 
 }
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   .producto-card{
     height:180px;
@@ -1331,15 +1331,10 @@ footer-warning
   }
 
 }
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   .cats-row{
-    padding:8px 10px;
-  }
-
-  .cat-card{
-    min-width:120px;
-    width:120px;
+    padding: 6px 4px;
   }
 
 }
@@ -1761,9 +1756,9 @@ ion-buttons[slot="end"] {
   margin-top: 8px;
 }
 /* ============================
-   FIX FINAL MOVIL (NO ROMPE PC)
+   FIX FINAL TABLET/MOVIL (NO ROMPE PC)
 ============================ */
-@media (max-width: 992px){
+@media (max-width: 1100px){
 
   /* layout 1 columna */
   .pos-layout{
@@ -1780,7 +1775,7 @@ ion-buttons[slot="end"] {
     bottom: 0;
 
     width: 100%;
-    height: 95vh;
+    height: 92vh;
 
     transform: translateY(100%);
     transition: transform .28s ease;
@@ -1803,7 +1798,7 @@ ion-buttons[slot="end"] {
     z-index: 1001;
   }
 
-  /* productos 2 columnas */
+  /* productos 2 columnas en tablet estrecha */
   ion-col{
     flex: 0 0 50%;
     max-width: 50%;
@@ -1874,18 +1869,18 @@ ion-buttons[slot="end"] {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .mobile-only {
     display: block;
   }
 }
-/* 🔴 OCULTAR SEARCH SUPERIOR EN MÓVIL */
-@media (max-width: 768px) {
+/* 🔴 OCULTAR SEARCH SUPERIOR EN TABLET/MÓVIL */
+@media (max-width: 1100px) {
   .search-top {
     display: none !important;
   }
 }
-@media (max-width: 768px){
+@media (max-width: 1100px){
 
   .right-panel{
 
@@ -1894,16 +1889,16 @@ ion-buttons[slot="end"] {
 
     position: fixed !important;
 
-    top: 0 !important;
+    top: 56px !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
 
     width: 100vw !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
 
-    border-radius: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
 
     z-index: 1002 !important;
 
@@ -2079,6 +2074,37 @@ ion-buttons[slot="end"] {
 .row-config .col {
 
   flex:1;
+}
+
+.cfg-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.vence-preview {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgba(25, 118, 210, 0.12);
+  border: 1px solid rgba(25, 118, 210, 0.35);
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+.row-config ion-input {
+  --background: #1f2937;
+  --color: #fff;
+  border-radius: 12px;
+  min-height: 46px;
+  padding-left: 10px;
+  border: 1px solid rgba(255,255,255,.08);
 }
 
 /* =========================================
@@ -2313,7 +2339,7 @@ ion-buttons[slot="end"] {
 📱 MOBILE
 ========================================= */
 
-@media(max-width:768px){
+@media(max-width:1100px){
 
   .row-config {
 
@@ -2392,8 +2418,8 @@ ion-buttons[slot="end"] {
   font-size: 18px;
 }
 
-/* MOBILE */
-@media(max-width:768px){
+/* MOBILE / TABLET */
+@media(max-width:1100px){
 
   .btn-amarillo {
 
@@ -2428,22 +2454,18 @@ ion-buttons[slot="end"] {
     rgba(0,0,0,.25);
 }
 /* =========================================
-📱 OCULTAR FLECHAS CATEGORÍAS EN MÓVIL
+📱 OCULTAR FLECHAS CATEGORÍAS EN TABLET/MÓVIL
 ========================================= */
 
-@media (max-width: 768px){
+@media (max-width: 1100px){
 
   .scroll-btn{
     display: none !important;
   }
 
-  .cats-row{
-    padding: 8px 10px !important;
-  }
-
 }
 /* =========================================
-🔥 BOTON FLOTANTE SOLO MOVIL
+🔥 BOTON FLOTANTE SOLO TABLET/MOVIL
 ========================================= */
 
 .cart-float{
@@ -2452,10 +2474,10 @@ ion-buttons[slot="end"] {
 }
 
 /* =========================================
-📱 MOSTRAR SOLO EN CELULAR
+📱 MOSTRAR HASTA 1100px
 ========================================= */
 
-@media (max-width: 768px){
+@media (max-width: 1100px){
 
   .cart-float{
 
@@ -2503,10 +2525,10 @@ ion-buttons[slot="end"] {
   gap: 4px;
 }
 /* =========================================
-💻 DESKTOP
+💻 DESKTOP (solo pantallas anchas)
 ========================================= */
 
-@media (min-width: 769px){
+@media (min-width: 1101px){
 
   .pos-layout{
     display:grid;
@@ -2545,10 +2567,10 @@ ion-buttons[slot="end"] {
 
 }
 /* =========================================
-📱 MOVIL
+📱 TABLET / MOVIL
 ========================================= */
 
-@media (max-width:768px){
+@media (max-width:1100px){
 
   .pos-layout{
     grid-template-columns:1fr !important;
@@ -2559,14 +2581,15 @@ ion-buttons[slot="end"] {
 
     position:fixed !important;
 
-    top:0 !important;
+    /* Debajo del ion-header (~56px) para no tapar Orden/Cotización/Factura */
+    top: 56px !important;
     left:0 !important;
     right:0 !important;
     bottom:0 !important;
 
     width:100vw !important;
-    height:100vh !important;
-    max-height:100vh !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
 
     display:flex !important;
     flex-direction:column !important;
@@ -2577,7 +2600,7 @@ ion-buttons[slot="end"] {
 
     z-index:1002 !important;
 
-    border-radius:0 !important;
+    border-radius:18px 18px 0 0 !important;
 
     box-shadow:
       0 -12px 30px rgba(0,0,0,.28);
@@ -2599,14 +2622,29 @@ ion-buttons[slot="end"] {
     display:flex;
   }
 
+  /* Tipo documento siempre visible arriba del sheet */
+  .tipo-doc-header {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    background: #0f172a;
+    padding-top: 8px;
+    margin-bottom: 8px;
+  }
+
+  .tipo-doc-header ion-segment-button {
+    min-height: 46px;
+    font-size: 0.95rem;
+  }
+
 }
 /* Ocultar en escritorio */
 .btn-cerrar-mobile{
   display: none;
 }
 
-/* Mostrar solo en móvil */
-@media (max-width: 768px){
+/* Mostrar en tablet/móvil */
+@media (max-width: 1100px){
 
   .btn-cerrar-mobile{
     display: flex;
@@ -2829,4 +2867,133 @@ ion-buttons[slot="end"] {
 
   width: 100%;
 
+}
+
+/* =========================================
+TABLET UX: header con mismas etiquetas + grid + footer cobro
+========================================= */
+@media (max-width: 1100px) {
+  /* Misma info que desktop: no ocultar textos */
+  .btn-header-pos .btn-label {
+    display: inline;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .btn-header-pos {
+    --padding-start: 8px;
+    --padding-end: 10px;
+    height: 36px;
+    margin-inline: 2px;
+  }
+
+  .btn-header-pos ion-icon {
+    font-size: 16px;
+    margin-inline-end: 4px;
+  }
+
+  ion-toolbar ion-buttons[slot='end'] {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 72%;
+    gap: 4px;
+  }
+
+  /* 3 columnas en tablet landscape / ancha */
+  .panel-products ion-col,
+  ion-col.producto-col {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+  }
+
+  .producto-card {
+    min-height: 190px;
+    height: auto;
+  }
+
+  .producto-img-wrap {
+    height: 120px;
+  }
+
+  /* Footer de cobro siempre visible en el sheet */
+  .footer-warning,
+  .panel-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    flex-shrink: 0 !important;
+  }
+
+  .btn-vender,
+  .btn-guardar {
+    min-height: 48px;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .cart-float {
+    min-height: 52px;
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .panel-products ion-col,
+  ion-col.producto-col {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+/* =========================================
+TABLET/MÓVIL: categorías pequeñas en 2 columnas
+========================================= */
+@media (max-width: 1100px) {
+  .cats-wrapper {
+    padding: 0 !important;
+  }
+
+  .cats-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: 140px !important;
+    padding: 6px 4px !important;
+    flex-wrap: unset !important;
+  }
+
+  .cats-row::-webkit-scrollbar {
+    display: block !important;
+    width: 4px;
+  }
+
+  .cat-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 52px !important;
+    padding: 6px 8px !important;
+    border-radius: 10px !important;
+    border-width: 1.5px !important;
+    flex: unset !important;
+  }
+
+  .cat-name {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    max-width: none !important;
+    line-height: 1.15 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden !important;
+  }
+
+  .scroll-btn {
+    display: none !important;
+  }
 }

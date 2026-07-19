@@ -1,368 +1,544 @@
-import { Component, OnInit } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
-import { IngresosService } from 'src/app/servicios/ingresos.service';
-import { GastosService } from 'src/app/servicios/gastos.service';
-import { ParametrosService } from 'src/app/servicios/parametros.service';
-import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
-import { ClienteService } from 'src/app/servicios/cliente.service';
-import { clientes as Cliente } from 'src/app/models/clientes';
-import { HistoricoIngresosDto } from 'src/app/models/historico-ingresos.dto';
-import { ComisionesResultDto } from '../models/comisionesresultdto';
-import { map } from 'rxjs/operators';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { registerLocaleData } from '@angular/common';
 import localeEsDo from '@angular/common/locales/es-DO';
-import { CitasService } from 'src/app/servicios/citas.service';
-import { ServicioRankingDto } from '../models/ServicioRankingDto .models';
-import { CuentaPorCobrarDto } from '../models/CuentaPorCobrarDto .models';
+import { IconName } from '@fortawesome/fontawesome-svg-core';
+import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { DashboardGerencialService } from 'src/app/servicios/dashboard-gerencial.service';
+import { AlahiaAiService } from 'src/app/servicios/alahia-ai.service';
+import { ALAHIA_AI_TIPS, AlahiaAiResumenResponse } from 'src/app/models/alahia-ai.models';
+import { Router } from '@angular/router';
+import {
+  DashboardGerencialDto,
+  DashboardGerencialIndicadoresDto,
+  DashboardGerencialPlDto,
+  EstadoResultadosPasoDto,
+  ProductoRentabilidadDto,
+} from 'src/app/models/dashboard-gerencial.dto';
 
 registerLocaleData(localeEsDo);
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard-gerencial',
   templateUrl: './dashboard-gerencial.component.html',
   styleUrls: ['./dashboard-gerencial.component.scss'],
 })
-export class DashboardGerencialComponent implements OnInit {
+export class DashboardGerencialComponent implements OnInit, OnDestroy {
+  loading = false;
+  errorMsg = '';
+  data: DashboardGerencialDto | null = null;
 
-  totalDia: number = 0;
-  totalMes: number = 0;
-  totalComisiones: number = 0;
-  totalGastos: number = 0;
- topServicios: ServicioRankingDto[] = []; // ✅ ahora será dinámico
-  meses: string[] = [];
-  ingresosMensuales: number[] = [];
-  cuentasPorCobrar: CuentaPorCobrarDto[] = [];
-  totaldeudacobrar:number=0;
+  plCards: { label: string; value: number; tone: string }[] = [];
+  indCards: { label: string; value: number; icon: IconName; tone: string }[] = [];
+  margenCards: { label: string; value: number; hint: string }[] = [];
 
-  // 📅 Citas del día (reales)
-  citasHoy: any[] = [];
+  mostrarResumenAi = false;
+  aiLoading = false;
+  aiError = '';
+  aiResumen: AlahiaAiResumenResponse | null = null;
+  readonly aiTips = ALAHIA_AI_TIPS.slice(0, 3);
 
-  private chartIngresos!: Chart<'bar'>;
-  private chartBalance!: Chart<'doughnut'>;
+  private charts: Chart[] = [];
 
   constructor(
-    private ingresosService: IngresosService,
-    private gastosService: GastosService,
-    private facturaHeaderService: FacturaHeaderService,
-    private parametrosService: ParametrosService,
-    private clienteService: ClienteService,
-    private citasService: CitasService
-  ) {
-    Chart.register(...registerables);
+    private dashboardService: DashboardGerencialService,
+    private parametros: ParametrosService,
+    private alahiaAi: AlahiaAiService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    // Resumen: ALAHIA_AI o DASHBOARD; FAB solo con ALAHIA_AI.
+    this.mostrarResumenAi =
+      this.parametros.tieneModulo('ALAHIA_AI') || this.parametros.tieneModulo('DASHBOARD');
+    this.cargar();
+    if (this.mostrarResumenAi) {
+      this.cargarResumenAi();
+    }
   }
 
-  ngOnInit() {
-    this.cargarDatosDashboard();
-    this.cargarCumpleaneros();
-    this.cargarCitasHoy();
-     this.cargarTopServicios();
-
-     this.facturaHeaderService.GetCuentasPorCobrar(this.parametrosService.IdEmpresa).subscribe({
-    next: (data) => {
-      this.cuentasPorCobrar = data;
-      this.totaldeudacobrar = data.reduce((sum, c) => sum + c.totalDeuda, 0);
-    },
-    error: (err) => console.error('Error al obtener cuentas por cobrar', err)
-  });
+  preguntarAi(tip: string): void {
+    void this.router.navigate(['/alahia-ai'], { queryParams: { q: tip } });
   }
 
-  handleRefresh(event: any) {
-    this.cargarDatosDashboard(() => event.target.complete());
+  ngOnDestroy(): void {
+    this.destroyCharts();
   }
 
-  private cargarDatosDashboard(callback?: () => void) {
-    const idEmpresa = this.parametrosService.IdEmpresa;
-
-    this.ingresosService.getTotalDia(idEmpresa).subscribe({
-      next: (res) => (this.totalDia = res),
-      error: (err) => console.error('Error al cargar total del día', err),
-    });
-
-    this.ingresosService.getTotalMes(idEmpresa).subscribe({
-      next: (res) => (this.totalMes = res),
-      error: (err) => console.error('Error al cargar total del mes', err),
-    });
-
-    this.gastosService.getTotalGastos(idEmpresa).subscribe({
-      next: (res) => (this.totalGastos = res),
-      error: (err) => console.error('Error al cargar total de gastos', err),
-    });
-
-    this.getTotalComisionesMes(idEmpresa);
-
-    this.ingresosService.getHistorico(idEmpresa).subscribe({
-      next: (data: HistoricoIngresosDto[]) => {
-        data.sort((a, b) => {
-          const fechaA = new Date(a.mes);
-          const fechaB = new Date(b.mes);
-          return fechaA.getTime() - fechaB.getTime();
-        });
-
-        this.meses = data.map(x => x.mes || 'Sin Mes');
-        this.ingresosMensuales = data.map(x => Number(x.total) || 0);
-
-        this.renderGraficoIngresos();
-        this.renderGraficoBalance();
-      },
-      error: (err) => console.error('Error cargando histórico', err),
-      complete: () => callback?.(),
-    });
+  get pl(): DashboardGerencialPlDto {
+    return (
+      this.data?.pl ?? {
+        ventasBrutas: 0,
+        costoVenta: 0,
+        utilidadBruta: 0,
+        gastosOperativos: 0,
+        comisiones: 0,
+        perdidasInventario: 0,
+        otrosIngresos: 0,
+        otrosEgresos: 0,
+        utilidadOperativa: 0,
+        margenBrutoPct: 0,
+        margenOperativoPct: 0,
+      }
+    );
   }
 
-  private getTotalComisionesMes(idEmpresa: number) {
-    const hoy = new Date();
-    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-    const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
+  get ind(): DashboardGerencialIndicadoresDto {
+    return (
+      this.data?.indicadores ?? {
+        caja: 0,
+        bancos: 0,
+        valorInventario: 0,
+        valorActivosFijos: 0,
+        cuentasPorCobrar: 0,
+        cuentasPorPagar: 0,
+      }
+    );
+  }
 
-    this.facturaHeaderService.GetComisiones(inicioMes, finMes, idEmpresa)
-      .pipe(map((res: ComisionesResultDto[]) => res.reduce((acc, c) => acc + c.totalComisiones, 0)))
-      .subscribe({
-        next: (total) => {
-          this.totalComisiones = total;
-          this.renderGraficoBalance();
-        },
-        error: (err) => console.error('Error al cargar comisiones del mes', err),
+  get estadoResultados(): EstadoResultadosPasoDto[] {
+    const fromApi = this.data?.charts?.estadoResultados ?? [];
+    if (fromApi.length) return fromApi;
+    return this.buildEstadoResultadosLocal(this.pl);
+  }
+
+  get topRentables(): ProductoRentabilidadDto[] {
+    return this.data?.charts?.topProductosRentables ?? [];
+  }
+
+  get flujoNeto(): number {
+    const flujo = this.data?.charts?.flujoEfectivo ?? [];
+    const neto = flujo.find((x) => x.nombre === 'Neto');
+    return neto?.monto ?? 0;
+  }
+
+  private buildEstadoResultadosLocal(pl: DashboardGerencialPlDto): EstadoResultadosPasoDto[] {
+    const pasos: EstadoResultadosPasoDto[] = [];
+    let acum = 0;
+
+    const push = (concepto: string, monto: number, tipo: string) => {
+      if (tipo === 'base') acum = monto;
+      else if (tipo === 'resta') acum -= monto;
+      else if (tipo === 'suma') acum += monto;
+      else acum = monto;
+
+      pasos.push({
+        concepto,
+        monto,
+        acumulado: acum,
+        tipo,
       });
+    };
+
+    push('Ventas brutas', pl.ventasBrutas || 0, 'base');
+    push('Costo de venta', pl.costoVenta || 0, 'resta');
+    push('Utilidad bruta', pl.utilidadBruta || 0, 'subtotal');
+    push('Gastos operativos', pl.gastosOperativos || 0, 'resta');
+    push('Comisiones', pl.comisiones || 0, 'resta');
+    push('Pérdidas de inventario', pl.perdidasInventario || 0, 'resta');
+    if ((pl.otrosEgresos || 0) > 0) push('Otros egresos', pl.otrosEgresos, 'resta');
+    if ((pl.otrosIngresos || 0) > 0) push('Otros ingresos', pl.otrosIngresos, 'suma');
+    push('Utilidad operativa', pl.utilidadOperativa || 0, 'total');
+    return pasos;
   }
 
-  get totalGanancia(): number {
-    return (this.totalMes || 0) - (this.totalGastos || 0) - (this.totalComisiones || 0);
+  handleRefresh(event: any): void {
+    this.cargar(() => {
+      if (this.mostrarResumenAi) {
+        this.cargarResumenAi();
+      }
+      event?.target?.complete?.();
+    });
   }
 
-  // 📊 GRÁFICO DE INGRESOS MENSUALES
-  private renderGraficoIngresos() {
-    const ctx = document.getElementById('ingresosChart') as HTMLCanvasElement;
-    if (!ctx) return;
+  cargarResumenAi(): void {
+    if (!this.mostrarResumenAi) return;
+    this.aiLoading = true;
+    this.aiError = '';
+    this.alahiaAi.resumen().subscribe({
+      next: (res) => {
+        this.aiResumen = res;
+        this.aiLoading = false;
+        if (!res?.bullets?.length && !res?.greeting) {
+          this.aiError = 'Sin insights por ahora.';
+        }
+      },
+      error: () => {
+        this.aiLoading = false;
+        this.aiError = 'No se pudo cargar el resumen inteligente.';
+      },
+    });
+  }
 
-    if (this.chartIngresos) this.chartIngresos.destroy();
+  cargar(done?: () => void): void {
+    const idEmpresa = this.parametros.IdEmpresa;
+    if (!idEmpresa) {
+      this.errorMsg = 'No hay empresa en sesión.';
+      done?.();
+      return;
+    }
 
-    this.chartIngresos = new Chart<'bar'>(ctx, {
+    this.loading = true;
+    this.errorMsg = '';
+
+    this.dashboardService.getMesActual(idEmpresa).subscribe({
+      next: (res) => {
+        this.data = res;
+        this.refreshCards();
+        this.loading = false;
+        setTimeout(() => this.renderCharts(), 80);
+        done?.();
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+        this.errorMsg = 'No se pudo cargar el Panel Gerencial.';
+        done?.();
+      },
+    });
+  }
+
+  private refreshCards(): void {
+    const p = this.pl;
+    const i = this.ind;
+
+    this.plCards = [
+      { label: 'Ventas brutas', value: p.ventasBrutas, tone: 'blue' },
+      { label: 'Costo de venta', value: p.costoVenta, tone: 'orange' },
+      { label: 'Utilidad bruta', value: p.utilidadBruta, tone: 'yellow' },
+      { label: 'Gastos operativos', value: p.gastosOperativos, tone: 'red' },
+      { label: 'Comisiones', value: p.comisiones, tone: 'amber' },
+      { label: 'Pérdidas inventario', value: p.perdidasInventario, tone: 'red' },
+      { label: 'Otros ingresos', value: p.otrosIngresos, tone: 'navy' },
+      { label: 'Otros egresos', value: p.otrosEgresos, tone: 'slate' },
+    ];
+
+    this.margenCards = [
+      {
+        label: 'Margen bruto',
+        value: p.margenBrutoPct,
+        hint: 'Utilidad bruta / ventas',
+      },
+      {
+        label: 'Margen operativo',
+        value: p.margenOperativoPct,
+        hint: 'Utilidad operativa / ventas',
+      },
+    ];
+
+    const cards: { label: string; value: number; icon: IconName; tone: string }[] = [
+      { label: 'Caja', value: i.caja, icon: 'cash-register', tone: 'yellow' },
+      { label: 'Bancos', value: i.bancos, icon: 'building-columns', tone: 'navy' },
+      { label: 'Valor inventario', value: i.valorInventario, icon: 'boxes-stacked', tone: 'amber' },
+      { label: 'Activos fijos', value: i.valorActivosFijos, icon: 'warehouse', tone: 'blue' },
+    ];
+
+    if (this.parametros.tieneModulo('CUENTAS_COBRAR')) {
+      cards.push({ label: 'Cuentas por cobrar', value: i.cuentasPorCobrar, icon: 'hand-holding-dollar', tone: 'orange' });
+    }
+
+    cards.push({ label: 'Cuentas por pagar', value: i.cuentasPorPagar, icon: 'file-invoice-dollar', tone: 'slate' });
+
+    this.indCards = cards;
+  }
+
+  private destroyCharts(): void {
+    this.charts.forEach((c) => c.destroy());
+    this.charts = [];
+  }
+
+  private renderCharts(): void {
+    this.destroyCharts();
+    if (!this.data) return;
+
+    const charts = this.data.charts;
+
+    this.createChart('chartVentasCostosUtilidad', {
       type: 'bar',
       data: {
-        labels: this.meses,
+        labels: charts.ventasVsCostosVsUtilidad.map((x) => x.nombre),
         datasets: [
           {
-            label: 'Ingresos por Mes (RD$)',
-            data: this.ingresosMensuales,
+            data: charts.ventasVsCostosVsUtilidad.map((x) => x.monto),
+            backgroundColor: ['#1976d2', '#ef6c00', '#ffc107'],
+            borderRadius: 6,
+            barPercentage: 0.55,
+          },
+        ],
+      },
+      options: this.moneyBarOptions(false),
+    });
+
+    this.createChart('chartEvolucionVentas', {
+      type: 'line',
+      data: {
+        labels: charts.evolucionVentasMes.map((x) => x.fecha),
+        datasets: [
+          {
+            label: 'Ventas',
+            data: charts.evolucionVentasMes.map((x) => x.monto),
+            borderColor: '#1976d2',
+            backgroundColor: 'rgba(25, 118, 210, 0.12)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 2,
+          },
+        ],
+      },
+      options: this.moneyBarOptions(false),
+    });
+
+    this.createChart('chartDistribucionGastos', {
+      type: 'doughnut',
+      data: {
+        labels: charts.distribucionGastos.map((x) => x.nombre),
+        datasets: [
+          {
+            data: charts.distribucionGastos.map((x) => x.monto),
+            backgroundColor: this.palette(charts.distribucionGastos.length),
+            borderWidth: 2,
+            borderColor: '#fff',
+          },
+        ],
+      },
+      options: this.doughnutOptions(),
+    });
+
+    this.createChart('chartDistribucionPerdidas', {
+      type: 'doughnut',
+      data: {
+        labels: charts.distribucionPerdidas.map((x) => x.nombre),
+        datasets: [
+          {
+            data: charts.distribucionPerdidas.map((x) => x.monto),
+            backgroundColor: this.palette(charts.distribucionPerdidas.length, true),
+            borderWidth: 2,
+            borderColor: '#fff',
+          },
+        ],
+      },
+      options: this.doughnutOptions(),
+    });
+
+    this.createChart('chartComisionesEmpleado', {
+      type: 'bar',
+      data: {
+        labels: charts.comisionesPorEmpleado.map((x) => x.nombre),
+        datasets: [
+          {
+            label: 'Comisión',
+            data: charts.comisionesPorEmpleado.map((x) => x.monto),
+            backgroundColor: '#ffc107',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: { ...this.moneyBarOptions(false), indexAxis: 'y' },
+    });
+
+    this.createChart('chartTopRentables', {
+      type: 'bar',
+      data: {
+        labels: charts.topProductosRentables.map((x) => x.nombre),
+        datasets: [
+          {
+            label: 'Margen',
+            data: charts.topProductosRentables.map((x) => x.margen),
             backgroundColor: '#1976d2',
-            borderRadius: 8,
-            borderSkipped: false,
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: { ...this.moneyBarOptions(false), indexAxis: 'y' },
+    });
+
+    this.createChart('chartTopPerdidas', {
+      type: 'bar',
+      data: {
+        labels: charts.topProductosPerdidas.map((x) => x.nombre),
+        datasets: [
+          {
+            label: 'Pérdida',
+            data: charts.topProductosPerdidas.map((x) => x.monto),
+            backgroundColor: '#c62828',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: { ...this.moneyBarOptions(false), indexAxis: 'y' },
+    });
+
+    // Flujo de efectivo (reemplaza Caja vs Bancos)
+    const flujo = (charts.flujoEfectivo || []).filter((x) => x.nombre !== 'Neto');
+    this.createChart('chartFlujoEfectivo', {
+      type: 'bar',
+      data: {
+        labels: flujo.map((x) => x.nombre),
+        datasets: [
+          {
+            data: flujo.map((x) => x.monto),
+            backgroundColor: ['#1976d2', '#ffc107'],
+            borderRadius: 6,
+            barPercentage: 0.5,
+          },
+        ],
+      },
+      options: this.moneyBarOptions(false),
+    });
+
+    // Waterfall Estado de Resultados (API o fallback local desde P&L)
+    this.renderWaterfall(this.estadoResultados);
+  }
+
+  private renderWaterfall(pasos: EstadoResultadosPasoDto[]): void {
+    if (!pasos.length) return;
+
+    const labels = pasos.map((p) => p.concepto);
+    const bases: number[] = [];
+    const deltas: number[] = [];
+    const colors: string[] = [];
+
+    let running = 0;
+    for (const p of pasos) {
+      if (p.tipo === 'base') {
+        bases.push(0);
+        deltas.push(p.monto);
+        colors.push('#1976d2');
+        running = p.monto;
+      } else if (p.tipo === 'resta') {
+        bases.push(running - p.monto);
+        deltas.push(p.monto);
+        colors.push('#c62828');
+        running -= p.monto;
+      } else if (p.tipo === 'suma') {
+        bases.push(running);
+        deltas.push(p.monto);
+        colors.push('#ffc107');
+        running += p.monto;
+      } else {
+        // subtotal / total — barra desde 0
+        bases.push(0);
+        deltas.push(p.acumulado);
+        colors.push(p.tipo === 'total' ? (p.acumulado >= 0 ? '#1e3c72' : '#c62828') : '#2a5298');
+        running = p.acumulado;
+      }
+    }
+
+    this.createChart('chartEstadoResultados', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Base',
+            data: bases,
+            backgroundColor: 'rgba(0,0,0,0)',
+            borderWidth: 0,
+            stack: 'wf',
+            barPercentage: 0.6,
+          },
+          {
+            label: 'Monto',
+            data: deltas,
+            backgroundColor: colors,
+            borderRadius: 4,
+            stack: 'wf',
+            barPercentage: 0.6,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { right: 20 } },
-        animation: { duration: 1200, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(0,0,0,0.85)',
-            titleFont: { size: 13, weight: 'bold' },
-            bodyFont: { size: 12 },
+            filter: (item) => item.datasetIndex === 1,
             callbacks: {
               label: (ctx) => {
-                const val = Number(ctx.raw ?? 0);
-                return `RD$ ${val.toLocaleString('es-DO')}`;
+                const paso = pasos[ctx.dataIndex];
+                const signo =
+                  paso.tipo === 'resta' ? '−' : paso.tipo === 'suma' ? '+' : '';
+                return `${signo}RD$ ${Number(paso.monto).toLocaleString('es-DO')}  →  acum. ${Number(
+                  paso.acumulado
+                ).toLocaleString('es-DO')}`;
               },
             },
           },
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#555', font: { size: 13 } } },
-          x: { grid: { display: false }, ticks: { color: '#555', font: { size: 13 } } },
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { color: '#475569', maxRotation: 45, minRotation: 0, font: { size: 11 } },
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            grid: { color: '#e2e8f0' },
+            ticks: { color: '#64748b' },
+          },
         },
       },
     });
   }
 
-  // ⚖️ GRÁFICO DE INGRESOS VS GASTOS
-  private renderGraficoBalance() {
-    const ctx = document.getElementById('ingresosGastosChart') as HTMLCanvasElement;
-    if (!ctx) return;
+  private createChart(canvasId: string, config: ChartConfiguration): void {
+    const el = document.getElementById(canvasId) as HTMLCanvasElement | null;
+    if (!el) return;
+    this.charts.push(new Chart(el, config));
+  }
 
-    if (this.chartBalance) this.chartBalance.destroy();
-
-    const config: any = {
-      type: 'doughnut',
-      data: {
-        labels: ['Ingresos', 'Gastos', 'Comisiones'],
-        datasets: [
-          {
-            data: [this.totalMes, this.totalGastos, this.totalComisiones],
-            backgroundColor: ['#4CAF50', '#E53935', '#FFC107'],
-            hoverBackgroundColor: ['#66BB6A', '#EF5350', '#FFD54F'],
-            borderWidth: 3,
-            borderColor: '#fff',
-            spacing: 4,
-            cutout: '55%',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: 10 },
-        animation: { animateRotate: true, animateScale: true, duration: 1300, easing: 'easeOutQuart' },
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#222',
-              font: { size: 15, weight: '600' },
-              usePointStyle: true,
-              padding: 20,
+  private moneyBarOptions(showLegend: boolean): ChartConfiguration['options'] {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: showLegend, position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = Number(ctx.raw ?? 0);
+              return `RD$ ${val.toLocaleString('es-DO')}`;
             },
           },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            titleFont: { size: 14, weight: 'bold' },
-            bodyFont: { size: 13 },
-            callbacks: {
-              label: (ctx: any) => {
-                const label = ctx.label || '';
-                const value = Number(ctx.raw || 0).toLocaleString('es-DO');
-                return `${label}: RD$ ${value}`;
-              },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#64748b' } },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#e2e8f0' },
+          ticks: { color: '#64748b' },
+        },
+      },
+    };
+  }
+
+  private doughnutOptions(): ChartConfiguration['options'] {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = Number(ctx.raw ?? 0);
+              return `${ctx.label}: RD$ ${val.toLocaleString('es-DO')}`;
             },
           },
         },
       },
     };
-
-    this.chartBalance = new Chart(ctx, config);
-
-    const total = (this.totalMes || 0) - (this.totalGastos || 0);
-    const centerText = total >= 0 ? `+${total.toLocaleString('es-DO')}` : `${total.toLocaleString('es-DO')}`;
-
-    setTimeout(() => {
-      const ctx2 = ctx.getContext('2d');
-      if (!ctx2) return;
-      const centerX = ctx.width / 2;
-      const centerY = ctx.height / 2;
-      ctx2.save();
-      ctx2.font = 'bold 18px Poppins';
-      ctx2.fillStyle = '#333';
-      ctx2.textAlign = 'center';
-      ctx2.textBaseline = 'middle';
-      ctx2.fillText(centerText, centerX, centerY);
-      ctx2.restore();
-    }, 700);
   }
 
-  // 🎂 CUMPLEAÑEROS
-  clientesCumple: Cliente[] = [];
-
-  cargarCumpleaneros() {
-    const idEmpresa = this.parametrosService.IdEmpresa;
-
-    this.citasService.GetListadoCitas(idEmpresa).subscribe({
-      next: (data) => {
-        const hoy = new Date().toISOString().substring(0, 10);
-        const empleados = this.parametrosService._Empresa?.empleados || [];
-
-        this.citasHoy = (data || [])
-          .filter(c => c.fecha?.substring(0, 10) === hoy)
-          .map(c => {
-            const emp = empleados.find((e: any) => e.idEmpleados === c.idEmpleado);
-            return {
-              ...c,
-              estilista: emp ? (emp.userName || emp.nombre) : 'No asignado'
-            };
-          });
-      },
-      error: (err) => console.error('Error cargando citas del día', err),
-    });
-  }
-
-  // 📅 CITAS DEL DÍA (Versión ajustada)
-// 📅 CITAS DEL DÍA (Versión final usando el backend con estilista)
-cargarCitasHoy() {
-  const idEmpresa = this.parametrosService.IdEmpresa;
-
-  this.citasService.GetCitasConEmpleado(idEmpresa).subscribe({
-    next: (data: any[]) => {
-
-      const mapped = (data || []).map(c => {
-        // hora 12h
-        let horaFormateada = c.hora;
-        if (c.hora && typeof c.hora === 'string' && c.hora.includes(':')) {
-          const [hStr, mStr] = c.hora.split(':');
-          const h = Number(hStr);
-          const m = Number(mStr);
-          if (!Number.isNaN(h) && !Number.isNaN(m)) {
-            const d = new Date();
-            d.setHours(h, m, 0, 0);
-            horaFormateada = d.toLocaleTimeString('es-DO', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            });
-          }
-        }
-
-        return {
-          idCita: c.idCita,
-          nombreCliente: c.nombreCliente ?? '—',
-          servicio: c.nombreServicio ?? '—',
-          hora: horaFormateada ?? '—',
-          fecha: c.fecha,
-          empleado: (c.nombreEstilista ?? '').trim(),
-          estado: c.estado ?? 'Programada',
-        };
-      });
-
-      console.table(mapped); // snapshot real
-      this.citasHoy = mapped; // asignación final
-    },
-    error: (err) => {
-      console.error('Error cargando citas del día', err);
-      this.citasHoy = [];
-    },
-  });
-}
-
-
-
-  private hoyISO(): string {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  getEstadoColor(estado?: string) {
-    switch (estado) {
-      case 'Programada': return 'warning';
-      case 'En curso':   return 'success';
-      case 'Completada': return 'secondary';
-      case 'Cancelada':  return 'danger';
-      default:           return 'medium';
-    }
-  }
-
-  cargarTopServicios() {
-    const idEmpresa = this.parametrosService.IdEmpresa;
-
-    this.facturaHeaderService.GetTopServicios(idEmpresa).subscribe({
-      next: (data: ServicioRankingDto[]) => {
-        this.topServicios = (data || []).map(s => ({
-          nombreServicio: s.nombreServicio,
-          veces: s.veces,
-          totalFacturado: s.totalFacturado
-        }));
-      },
-      error: (err) => console.error('Error cargando servicios más ofrecidos', err),
-    });
-  }
-
- 
-
-  
-
-  trackById(index: number, item: any): number | string {
-    return item?.idCita ?? index;
+  private palette(n: number, warm = false): string[] {
+    const cool = ['#1976d2', '#2a5298', '#1e3c72', '#42a5f5', '#1565c0', '#ffc107', '#f9a825', '#64b5f6'];
+    const hot = ['#c62828', '#ef6c00', '#ffc107', '#d84315', '#f9a825', '#e53935', '#ff7043', '#b71c1c'];
+    const base = warm ? hot : cool;
+    if (n <= 0) return base;
+    return Array.from({ length: n }, (_, i) => base[i % base.length]);
   }
 }

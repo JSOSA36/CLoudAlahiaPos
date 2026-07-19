@@ -1,0 +1,231 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Centro de Producción</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleMute()" [title]="mute ? 'Activar sonido' : 'Silenciar'">
+        <ion-icon slot="icon-only" [name]="mute ? 'volume-mute-outline' : 'volume-high-outline'"></ion-icon>
+      </ion-button>
+      <ion-button (click)="refrescar()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="cp-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="cp-shell">
+
+    <div class="cp-state" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando tablero…</p>
+    </div>
+
+    <div class="cp-state error" *ngIf="!loading && errorMsg">
+      <p>{{ errorMsg }}</p>
+      <ion-button (click)="cargarInicial()">Reintentar</ion-button>
+    </div>
+
+    <ng-container *ngIf="!loading && !errorMsg">
+
+      <section class="cp-topbar">
+        <div class="cp-brand">
+          <span class="cp-live"></span>
+          <div>
+            <p class="cp-eyebrow">Operación en vivo</p>
+            <h1>Centro de Producción</h1>
+          </div>
+        </div>
+        <p class="cp-hero-sub" *ngIf="flujo">
+          {{ flujo.nombre }} · SLA {{ formatearDuracion(flujo.slaObjetivoSegundos) }}
+          <span *ngIf="flujo.slaModoInicio === 'INICIO_PREPARACION'"> · desde inicio</span>
+          <span *ngIf="flujo.slaModoInicio !== 'INICIO_PREPARACION'"> · desde creación</span>
+        </p>
+      </section>
+
+      <section class="cp-kpis" *ngIf="resumen">
+        <div class="cp-kpi kpi-pend">
+          <span class="cp-kpi-label">Pendientes</span>
+          <strong>{{ resumen.pendientes }}</strong>
+        </div>
+        <div class="cp-kpi kpi-curso">
+          <span class="cp-kpi-label">En curso</span>
+          <strong>{{ resumen.enEjecucion }}</strong>
+        </div>
+        <div class="cp-kpi kpi-late" *ngIf="resumen.retrasados > 0">
+          <span class="cp-kpi-label">Retrasados</span>
+          <strong>{{ resumen.retrasados }}</strong>
+        </div>
+        <div class="cp-kpi kpi-ok">
+          <span class="cp-kpi-label">Completados hoy</span>
+          <strong>{{ resumen.completadosHoy }}</strong>
+        </div>
+      </section>
+
+      <section class="cp-filters">
+        <ion-searchbar
+          [(ngModel)]="filtroTexto"
+          placeholder="Buscar número, cliente o ítem"
+          debounce="200"
+          animated="false">
+        </ion-searchbar>
+        <ion-select
+          interface="popover"
+          placeholder="Prioridad"
+          [(ngModel)]="filtroPrioridad"
+          class="cp-prioridad-filter">
+          <ion-select-option value="">Todas</ion-select-option>
+          <ion-select-option *ngFor="let p of prioridades" [value]="p">{{ p }}</ion-select-option>
+        </ion-select>
+      </section>
+
+      <div class="cp-board" *ngIf="columnas.length; else sinFlujo">
+        <section
+          class="cp-col"
+          *ngFor="let col of columnas"
+          [attr.data-estado]="col.codigo">
+          <header class="cp-col-head">
+            <h2>{{ col.nombreVisible }}</h2>
+            <span class="cp-col-count">{{ trabajosEnColumna(col.codigo).length }}</span>
+          </header>
+
+          <article
+            class="cp-card"
+            *ngFor="let t of trabajosEnColumna(col.codigo)"
+            [ngClass]="claseSemaforo(semaforo(t))"
+            [class.busy]="accionId === t.idTrabajo"
+            [class.prio-alta]="t.prioridad === 'Alta'"
+            [class.prio-urgente]="t.prioridad === 'Urgente'">
+
+            <div class="cp-card-top">
+              <div class="cp-id-block">
+                <div class="cp-num">#{{ t.numeroVisible }}</div>
+                <div class="cp-name" *ngIf="!config || config.mostrarNombreCliente !== false">
+                  {{ t.nombreVisible }}
+                </div>
+              </div>
+              <div class="cp-timer-block" [attr.data-sem]="semaforo(t)">
+                <span class="cp-timer">{{ elapsed(t) }}</span>
+                <span class="cp-sem-label">{{ etiquetaSemaforo(semaforo(t)) }}</span>
+              </div>
+            </div>
+
+            <div class="cp-relojes">
+              <span title="Tiempo en cola"><em>Cola</em> {{ formatearDuracion(metricas(t).segundosEnCola) }}</span>
+              <span title="Tiempo de preparación"><em>Prep</em> {{ formatearDuracion(metricas(t).segundosPreparacion) }}</span>
+              <span title="Tiempo total"><em>Total</em> {{ formatearDuracion(metricas(t).segundosTotal) }}</span>
+            </div>
+
+            <div class="cp-meta" *ngIf="t.etiquetaContexto || t.referencia || t.prioridad !== 'Normal'">
+              <span class="cp-chip" *ngIf="t.etiquetaContexto || t.referencia">
+                {{ etiquetaTipoOrden(t.etiquetaContexto || t.referencia) }}
+              </span>
+              <span class="cp-chip prio" *ngIf="t.prioridad !== 'Normal'" [attr.data-p]="t.prioridad">
+                {{ t.prioridad }}
+              </span>
+            </div>
+
+            <p class="cp-obs" *ngIf="t.observacion">{{ t.observacion }}</p>
+
+            <ul class="cp-items" *ngIf="t.items?.length">
+              <li *ngFor="let it of t.items | slice:0:2">
+                <span class="cp-qty">{{ it.cantidad | number:'1.0-2' }}×</span>
+                <span class="cp-item-name">{{ it.nombreItem }}</span>
+              </li>
+              <li class="cp-more" *ngIf="t.items.length > 2">
+                +{{ t.items.length - 2 }} más
+              </li>
+            </ul>
+
+            <div class="cp-actions">
+              <button
+                type="button"
+                class="cp-btn cp-btn-main"
+                *ngIf="siguiente(t)"
+                [disabled]="accionId === t.idTrabajo"
+                (click)="avanzar(t)">
+                {{ etiquetaAvance(t) }}
+              </button>
+
+              <button
+                type="button"
+                class="cp-btn cp-btn-ghost"
+                [disabled]="accionId === t.idTrabajo"
+                (click)="abrirHistorial(t)"
+                title="Historial">
+                Hist.
+              </button>
+
+              <button
+                type="button"
+                class="cp-btn cp-btn-danger"
+                [disabled]="accionId === t.idTrabajo"
+                (click)="pedirCancelar(t)"
+                title="Cancelar">
+                ✕
+              </button>
+
+              <ion-select
+                class="cp-prio-select"
+                interface="popover"
+                [value]="t.prioridad"
+                [disabled]="accionId === t.idTrabajo"
+                (ionChange)="cambiarPrioridad(t, $any($event).detail.value)"
+                title="Prioridad">
+                <ion-select-option *ngFor="let p of prioridades" [value]="p">{{ p }}</ion-select-option>
+              </ion-select>
+            </div>
+          </article>
+
+          <p class="cp-empty-col" *ngIf="trabajosEnColumna(col.codigo).length === 0">
+            Sin trabajos
+          </p>
+        </section>
+      </div>
+
+      <ng-template #sinFlujo>
+        <div class="cp-state">
+          <p>No hay un flujo activo configurado para esta empresa.</p>
+        </div>
+      </ng-template>
+
+    </ng-container>
+  </div>
+
+  <div class="cp-drawer-backdrop" *ngIf="historialAbierto" (click)="cerrarHistorial()"></div>
+  <aside class="cp-drawer" *ngIf="historialAbierto" (click)="$event.stopPropagation()">
+    <header>
+      <div>
+        <h3>Historial</h3>
+        <p *ngIf="historialTrabajo">#{{ historialTrabajo.numeroVisible }} · {{ historialTrabajo.nombreVisible }}</p>
+      </div>
+      <ion-button fill="clear" (click)="cerrarHistorial()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </header>
+
+    <div class="cp-drawer-body" *ngIf="historialLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <ul class="cp-hist" *ngIf="!historialLoading">
+      <li *ngFor="let h of historialItems">
+        <div class="cp-hist-main">
+          <strong>{{ h.codigoEstadoAnterior || '—' }} → {{ h.codigoEstadoNuevo }}</strong>
+          <span>{{ h.fecha | date:'short' }}</span>
+        </div>
+        <div class="cp-hist-sub">
+          <span>{{ h.origen }}</span>
+          <span *ngIf="h.motivo"> · {{ h.motivo }}</span>
+        </div>
+      </li>
+      <li *ngIf="historialItems.length === 0" class="cp-hist-empty">Sin eventos aún.</li>
+    </ul>
+  </aside>
+</ion-content>

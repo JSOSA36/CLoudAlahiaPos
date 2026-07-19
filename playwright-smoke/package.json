@@ -1,0 +1,15 @@
+{
+  "name": "alahia-playwright-smoke",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Prueba funcional simple de Alahia ERP con grabación de video",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^22.15.0"
+  }
+}

@@ -1,0 +1,49 @@
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.health-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 36px;
+  text-align: center;
+  border-top: 4px solid #ccc;
+  transition: border-color 0.3s;
+
+  &.online { border-top-color: #4caf50; }
+  &.offline { border-top-color: #f44336; }
+  &.checking { border-top-color: #ff9800; }
+  &.info { border-top-color: #1a73e8; }
+}
+
+.health-icon {
+  margin-bottom: 16px;
+  ion-icon { font-size: 3.5rem; }
+  .online & ion-icon { color: #4caf50; }
+  .offline & ion-icon { color: #f44336; }
+  .info & ion-icon { color: #1a73e8; }
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.status-text {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.last-check {
+  font-size: 0.75rem;
+  color: #999;
+}

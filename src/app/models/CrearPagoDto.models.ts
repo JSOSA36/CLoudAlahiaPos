@@ -3,4 +3,8 @@ export interface CrearPagoDto {
   monto: number;
   imagen?: File | null;
   archivoUrl?: string;
+  fechaPago?: string;
+  banco?: string;
+  referencia?: string;
+  idUsuarioReporta?: number;
 }

@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Reprocesar Documentos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()"><ion-icon name="refresh-outline"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <div class="error-list" *ngIf="!loading">
+    <div class="error-card" *ngFor="let item of items">
+      <div class="error-header">
+        <span class="encf">{{ item.encf }}</span>
+        <ion-badge color="danger">{{ item.estadoDGII || 'Error' }}</ion-badge>
+      </div>
+      <div class="error-body">
+        <div class="error-row"><span>Tipo:</span><strong>e{{ item.tipoEcfDgii }}</strong></div>
+        <div class="error-row"><span>Receptor:</span><strong>{{ item.nombreReceptor || '—' }}</strong></div>
+        <div class="error-row"><span>Monto:</span><strong>{{ item.montoTotal | number:'1.2-2' }}</strong></div>
+        <div class="error-row"><span>Fecha:</span><strong>{{ item.fechaEmision | date:'dd/MM/yy HH:mm' }}</strong></div>
+        <div class="error-msg" *ngIf="item.mensajeRespuesta">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ item.mensajeRespuesta }}</span>
+        </div>
+      </div>
+      <div class="error-actions">
+        <ion-button color="primary" (click)="confirmarReprocesar(item)" [disabled]="reprocesando[item.idEcf]">
+          <ion-spinner name="dots" *ngIf="reprocesando[item.idEcf]" slot="start"></ion-spinner>
+          <ion-icon name="reload-outline" slot="start" *ngIf="!reprocesando[item.idEcf]"></ion-icon>
+          Reprocesar
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="items.length === 0">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <h3>Sin documentos con error</h3>
+      <p>Todos los documentos electrónicos fueron procesados correctamente</p>
+    </div>
+  </div>
+</ion-content>

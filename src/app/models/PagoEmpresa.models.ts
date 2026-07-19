@@ -5,10 +5,14 @@ export interface PagoEmpresa {
   idFacturaHeader?: number;
   fechaSubida: string;
   archivoUrl: string;
-  estado: string; // PENDIENTE | APROBADO | RECHAZADO
+  estado: string;
   observacion?: string;
   fechaValidacion?: string;
   nombreEmpresa?: string;
   usuarioValida?: string;
   mostrarImagen?: boolean;
+  fechaPago?: string;
+  banco?: string;
+  referencia?: string;
+  idCiclo?: number;
 }

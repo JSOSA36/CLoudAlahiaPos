@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Certificado Digital</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="cert-card">
+    <div class="cert-icon">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+    </div>
+    <h2>{{ certificadoInfo.estado }}</h2>
+    <p>{{ certificadoInfo.mensaje }}</p>
+    <div class="cert-detail">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>La firma digital de los e-CF es responsabilidad exclusiva del proveedor de facturación electrónica, conforme a la arquitectura aprobada del Gateway Fiscal.</span>
+    </div>
+  </div>
+</ion-content>

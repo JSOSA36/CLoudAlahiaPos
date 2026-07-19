@@ -1,0 +1,170 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Políticas del Servicio</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pv-content">
+<div class="page">
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Gobernanza · MacroBits</p>
+      <h1>Políticas del Servicio</h1>
+      <p class="sub">
+        Versiones inmutables. Publica una nueva versión y las empresas deberán aceptarla de nuevo.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="btn btn-ghost-hero" (click)="cargar()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Actualizar
+      </button>
+      <button
+        class="btn btn-solid"
+        type="button"
+        (click)="abrirNueva()"
+        *ngIf="!mostrandoForm">
+        <ion-icon name="add-outline"></ion-icon>
+        Nueva versión
+      </button>
+    </div>
+  </header>
+
+  <section class="kpis" *ngIf="!loading && !mostrandoForm && versiones.length">
+    <article class="kpi">
+      <span>Versiones</span>
+      <strong>{{ versiones.length }}</strong>
+    </article>
+    <article class="kpi kpi--ok">
+      <span>Publicada</span>
+      <strong>{{ totalPublicadas }}</strong>
+    </article>
+    <article class="kpi kpi--warn">
+      <span>Borradores</span>
+      <strong>{{ totalBorradores }}</strong>
+    </article>
+    <article class="kpi kpi--info">
+      <span>Activa</span>
+      <strong class="kpi-sm">{{ versionActivaLabel }}</strong>
+    </article>
+  </section>
+
+  <!-- Formulario nuevo borrador -->
+  <div class="panel panel--form" *ngIf="mostrandoForm">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Borrador</p>
+        <h2>Nueva versión</h2>
+      </div>
+      <button type="button" class="btn-ghost" (click)="cancelarForm()">Cerrar</button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Número de versión
+        <input [(ngModel)]="form.numeroVersion" placeholder="ej. 1.1" />
+      </label>
+      <label>
+        Título
+        <input [(ngModel)]="form.titulo" />
+      </label>
+      <label class="full">
+        Notas (opcional)
+        <input [(ngModel)]="form.notas" placeholder="Resumen del cambio para auditoría" />
+      </label>
+      <label class="full">
+        Contenido completo
+        <textarea [(ngModel)]="form.contenido" rows="16" placeholder="Escribe el texto legal completo…"></textarea>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-ghost" (click)="cancelarForm()">Cancelar</button>
+      <button type="button" class="btn-primary" [disabled]="creando" (click)="guardarBorrador()">
+        {{ creando ? 'Guardando…' : 'Guardar borrador' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Detalle documento -->
+  <div class="panel panel--detalle" *ngIf="versionDetalle">
+    <div class="detalle-head">
+      <div>
+        <p class="panel-eyebrow">Vista previa</p>
+        <h2>{{ versionDetalle.titulo }}</h2>
+        <div class="detalle-meta">
+          <span class="pill pill--ver">v{{ versionDetalle.numeroVersion }}</span>
+          <span class="status" [ngClass]="estadoClass(versionDetalle.estado)">
+            {{ versionDetalle.estado }}
+          </span>
+        </div>
+      </div>
+      <button type="button" class="btn-ghost" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+    <article class="documento">
+      <ng-container *ngFor="let b of bloquesDetalle">
+        <h3 class="seccion" *ngIf="b.tipo === 'titulo'" [innerHTML]="b.texto | politicasMarca"></h3>
+        <p class="parrafo" *ngIf="b.tipo === 'parrafo'" [innerHTML]="b.texto | politicasMarca"></p>
+        <ul class="lista" *ngIf="b.tipo === 'lista'">
+          <li *ngFor="let item of b.items" [innerHTML]="item | politicasMarca"></li>
+        </ul>
+      </ng-container>
+    </article>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Cargando versiones…</span>
+  </div>
+
+  <!-- Listado -->
+  <div class="panel panel--tabla" *ngIf="!loading && !mostrandoForm">
+    <div class="tabla" *ngIf="versiones.length">
+      <div class="row head">
+        <span>Versión</span>
+        <span>Título</span>
+        <span>Estado</span>
+        <span>Publicación</span>
+        <span>Acciones</span>
+      </div>
+      <div class="row" *ngFor="let v of versiones">
+        <span>
+          <span class="pill pill--ver">v{{ v.numeroVersion }}</span>
+        </span>
+        <span class="titulo-cell">
+          <strong>{{ v.titulo }}</strong>
+          <small *ngIf="v.notas">{{ v.notas }}</small>
+        </span>
+        <span>
+          <span class="status" [ngClass]="estadoClass(v.estado)">{{ v.estado }}</span>
+        </span>
+        <span class="fecha">
+          {{ v.fechaPublicacion ? (v.fechaPublicacion | date:'dd/MM/yyyy HH:mm') : '—' }}
+        </span>
+        <span class="acciones">
+          <button type="button" class="action" (click)="verDetalle(v)">Ver</button>
+          <button
+            type="button"
+            class="action action--publish"
+            *ngIf="v.estado === 'Borrador'"
+            (click)="publicar(v)">
+            Publicar
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!versiones.length">
+      <div class="empty-icon" aria-hidden="true">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+      </div>
+      <h2>No hay versiones registradas</h2>
+      <p>Crea un borrador y publícalo para que las empresas puedan aceptarlo.</p>
+      <button type="button" class="btn-primary" (click)="abrirNueva()">Nueva versión</button>
+    </div>
+  </div>
+</div>
+</ion-content>

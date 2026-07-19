@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar color="warning">
+    <ion-title>Acceso pendiente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="espera-box">
+    <div class="icono">⏳</div>
+    <h2>Esperando validación de políticas</h2>
+    <p>
+      El administrador de la empresa debe revisar y aceptar las
+      <strong>Políticas del Servicio</strong> vigentes antes de que puedas
+      utilizar el sistema.
+    </p>
+    <p class="hint">
+      Si eres el administrador, inicia sesión con tu usuario administrador
+      para completar la aceptación.
+    </p>
+
+    <ion-button expand="block" color="primary" fill="outline" (click)="abrirTicketSoporte()">
+      Crear ticket de soporte
+    </ion-button>
+
+    <ion-button expand="block" color="medium" (click)="cerrarSesion()">
+      Cerrar sesión
+    </ion-button>
+  </div>
+</ion-content>

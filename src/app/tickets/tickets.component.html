@@ -1,0 +1,205 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Tickets de Soporte</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tk-content">
+  <div class="page">
+
+    <!-- LISTA -->
+    <ng-container *ngIf="vista === 'lista'">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Soporte Alahia ERP</p>
+          <h1>Mis tickets</h1>
+          <p class="sub">Reporte incidencias y dé seguimiento a cada conversación con el equipo MacroBits.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-ghost-hero" type="button" (click)="cargar()" [disabled]="loading">
+            <ion-icon name="refresh-outline"></ion-icon> Actualizar
+          </button>
+          <button class="btn btn-solid" type="button" (click)="irNuevo()">
+            <ion-icon name="add-circle-outline"></ion-icon> Nuevo ticket
+          </button>
+        </div>
+      </section>
+
+      <div class="kpis" *ngIf="metricas">
+        <article class="kpi"><span>Abiertos</span><strong>{{ metricas.abiertos }}</strong></article>
+        <article class="kpi kpi--info"><span>En proceso</span><strong>{{ metricas.enProceso }}</strong></article>
+        <article class="kpi kpi--warn"><span>Pend. cliente</span><strong>{{ metricas.pendientesCliente }}</strong></article>
+        <article class="kpi kpi--ok"><span>Resueltos</span><strong>{{ metricas.resueltos }}</strong></article>
+        <article class="kpi"><span>Cerrados</span><strong>{{ metricas.cerrados }}</strong></article>
+      </div>
+
+      <div class="loading" *ngIf="loading">Cargando tickets…</div>
+
+      <div class="empty" *ngIf="!loading && !tickets.length">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <h3>Sin tickets todavía</h3>
+        <p>Cuando tenga una incidencia, créela aquí. Quedará registrada con historial completo.</p>
+        <button class="btn btn-solid" type="button" (click)="irNuevo()">Crear primer ticket</button>
+      </div>
+
+      <div class="ticket-list" *ngIf="!loading && tickets.length">
+        <article class="ticket-card" *ngFor="let t of tickets" (click)="abrirDetalle(t)">
+          <header>
+            <div>
+              <span class="num">{{ t.numero }}</span>
+              <h3>{{ t.asunto }}</h3>
+            </div>
+            <div class="badges">
+              <span class="badge" [ngClass]="clasePrioridad(t.prioridad)">{{ t.prioridad }}</span>
+              <span class="badge" [ngClass]="claseEstado(t.estado)">{{ etiquetaEstado(t.estado) }}</span>
+            </div>
+          </header>
+          <footer>
+            <span>{{ t.categoria }}</span>
+            <span *ngIf="textoEstimado(t.horasEstimadasMin, t.horasEstimadasMax) as est" class="eta">
+              Est. {{ est }}
+            </span>
+            <span>{{ t.fechaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ t.cantidadMensajes }} mensaje(s)</span>
+          </footer>
+        </article>
+      </div>
+    </ng-container>
+
+    <!-- NUEVO -->
+    <ng-container *ngIf="vista === 'nuevo'">
+      <section class="hero hero--compact">
+        <div>
+          <p class="eyebrow">Nueva solicitud</p>
+          <h1>Crear ticket</h1>
+          <p class="sub">Describa el problema con el mayor detalle posible. Puede adjuntar capturas o documentos.</p>
+          <p class="sla-hint">Tiempo estimado de atención según la cola: entre <strong>2 y 24 horas</strong>. Puede resolverse antes.</p>
+        </div>
+        <button class="btn btn-ghost-hero" type="button" (click)="volverLista()">Volver</button>
+      </section>
+
+      <section class="panel form-panel">
+        <label>Asunto
+          <input type="text" [(ngModel)]="asunto" maxlength="250" placeholder="Ej. No genera e-CF en POS" />
+        </label>
+        <div class="row-2">
+          <label>Categoría
+            <select [(ngModel)]="categoria">
+              <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+            </select>
+          </label>
+          <label>Prioridad
+            <select [(ngModel)]="prioridad">
+              <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+            </select>
+          </label>
+        </div>
+        <label>Descripción
+          <textarea rows="7" [(ngModel)]="descripcion" placeholder="Qué ocurrió, en qué módulo, pasos para reproducir…"></textarea>
+        </label>
+        <label class="file-label required">
+          Evidencia (obligatoria) — imagen, PDF, Office o video &lt; 25 MB
+          <input type="file" multiple required (change)="onFiles($event, 'crear')"
+            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.webm,.mov" />
+        </label>
+        <p class="file-req" *ngIf="!archivos.length">Adjunte al menos un archivo para poder enviar el ticket.</p>
+        <ul class="file-list" *ngIf="archivos.length">
+          <li *ngFor="let f of archivos">{{ f.name }}</li>
+        </ul>
+        <div class="form-actions">
+          <button class="btn btn-ghost" type="button" (click)="volverLista()">Cancelar</button>
+          <button class="btn btn-solid" type="button" (click)="crear()" [disabled]="enviando || !archivos.length">
+            Enviar ticket
+          </button>
+        </div>
+      </section>
+    </ng-container>
+
+    <!-- DETALLE / CHAT -->
+    <ng-container *ngIf="vista === 'detalle' && detalle">
+      <section class="hero hero--compact">
+        <div>
+          <p class="eyebrow">{{ detalle.numero }}</p>
+          <h1>{{ detalle.asunto }}</h1>
+          <div class="badges">
+            <span class="badge" [ngClass]="clasePrioridad(detalle.prioridad)">{{ detalle.prioridad }}</span>
+            <span class="badge" [ngClass]="claseEstado(detalle.estado)">{{ etiquetaEstado(detalle.estado) }}</span>
+            <span class="meta-chip">{{ detalle.categoria }}</span>
+            <span class="meta-chip meta-chip--eta" *ngIf="textoEstimado(detalle.horasEstimadasMin, detalle.horasEstimadasMax) as est">
+              Est. {{ est }}
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-ghost-hero" type="button" (click)="volverLista()">Volver</button>
+      </section>
+
+      <div class="detail-grid">
+        <section class="panel chat-panel">
+          <div class="msg" *ngFor="let m of detalle.mensajes"
+               [class.msg--admin]="m.esRespuestaAdmin"
+               [class.msg--me]="!m.esRespuestaAdmin">
+            <header>
+              <strong>{{ m.nombreUsuario }}</strong>
+              <span *ngIf="m.esRespuestaAdmin" class="tag-admin">MacroBits</span>
+              <em>{{ m.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</em>
+            </header>
+            <p>{{ m.mensaje }}</p>
+            <div class="adjuntos" *ngIf="m.adjuntos?.length">
+              <a *ngFor="let a of m.adjuntos" [href]="a.url" target="_blank" rel="noopener">{{ a.nombreArchivo }}</a>
+            </div>
+          </div>
+
+          <div class="composer" *ngIf="detalle.estado !== 'CERRADO'">
+            <textarea rows="3" [(ngModel)]="mensaje" placeholder="Escriba su respuesta…"></textarea>
+            <div class="composer-actions">
+              <label class="file-btn">
+                <ion-icon name="attach-outline"></ion-icon>
+                <input type="file" multiple hidden (change)="onFiles($event, 'mensaje')"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.mp4,.webm,.mov" />
+              </label>
+              <span class="file-hint" *ngIf="archivosMensaje.length">{{ archivosMensaje.length }} archivo(s)</span>
+              <button class="btn btn-solid" type="button" (click)="enviarMensaje()" [disabled]="enviando">Enviar</button>
+            </div>
+          </div>
+          <p class="closed-hint" *ngIf="detalle.estado === 'CERRADO'">Este ticket está cerrado.</p>
+        </section>
+
+        <aside class="panel meta-panel">
+          <h3>Detalles</h3>
+          <dl>
+            <div><dt>Creado</dt><dd>{{ detalle.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+            <div *ngIf="textoEstimado(detalle.horasEstimadasMin, detalle.horasEstimadasMax) as est">
+              <dt>Estimado</dt><dd>{{ est }}</dd>
+            </div>
+            <div><dt>Usuario</dt><dd>{{ detalle.usuarioCrea }}</dd></div>
+            <div><dt>Dispositivo</dt><dd>{{ detalle.dispositivo || '—' }}</dd></div>
+            <div><dt>SO</dt><dd>{{ detalle.sistemaOperativo || '—' }}</dd></div>
+            <div><dt>Navegador</dt><dd class="truncate">{{ detalle.navegador || '—' }}</dd></div>
+            <div><dt>Versión</dt><dd>{{ detalle.versionSistema || '—' }}</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>
+
+<!-- Modal confirmación al crear -->
+<div class="tk-confirm-root" *ngIf="confirmacionCreacion" (click)="cerrarConfirmacion()">
+  <div class="tk-confirm" role="dialog" aria-label="Ticket enviado" (click)="$event.stopPropagation()">
+    <div class="tk-confirm-icon">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </div>
+    <h2>Ticket enviado</h2>
+    <p class="tk-confirm-num" *ngIf="confirmacionCreacion.numero">{{ confirmacionCreacion.numero }}</p>
+    <p>
+      Su solicitud fue registrada correctamente.
+      En un plazo de <strong>{{ confirmacionCreacion.rango }}</strong> recibirá respuesta del equipo MacroBits.
+    </p>
+    <p class="tk-confirm-note">Puede resolverse antes según la prioridad y la cola de atención.</p>
+    <button class="btn btn-solid" type="button" (click)="cerrarConfirmacion()">Entendido</button>
+  </div>
+</div>

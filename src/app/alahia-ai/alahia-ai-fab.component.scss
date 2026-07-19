@@ -1,0 +1,155 @@
+.ai-fab-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
+}
+
+.ai-fab-btn {
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  font-weight: 800;
+  color: #072a66;
+  background: linear-gradient(145deg, #f5c518, #e0b100);
+  box-shadow: 0 12px 28px rgba(7, 42, 102, 0.35);
+  cursor: pointer;
+}
+
+.ai-fab-panel {
+  width: min(360px, calc(100vw - 1.5rem));
+  max-height: min(70vh, 520px);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(10, 61, 145, 0.15);
+  box-shadow: 0 22px 50px rgba(7, 42, 102, 0.28);
+}
+
+.ai-fab-panel__tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  background: #fff;
+  border-bottom: 1px solid rgba(10, 61, 145, 0.08);
+  max-height: 7.5rem;
+  overflow: auto;
+}
+
+.ai-fab-panel__tips button {
+  border: 1px solid rgba(10, 61, 145, 0.2);
+  background: #f4f7fc;
+  color: #072a66;
+  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.ai-fab-panel__tips button:hover {
+  background: #fff8d9;
+  border-color: rgba(245, 197, 24, 0.7);
+}
+
+.ai-fab-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  background: linear-gradient(135deg, #072a66, #0a3d91);
+  color: #fff;
+}
+
+.ai-fab-panel__head button {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ai-fab-panel__body {
+  overflow: auto;
+  padding: 0.75rem;
+  background: #f4f7fc;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ai-fab-msg {
+  max-width: 90%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+}
+
+.ai-fab-msg pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.ai-fab-msg.bot {
+  background: #fff;
+  justify-self: start;
+}
+
+.ai-fab-msg.user {
+  background: #0a3d91;
+  color: #fff;
+  justify-self: end;
+}
+
+.ai-fab-panel__ticket {
+  padding: 0.35rem 0.75rem 0;
+  background: #fff;
+}
+
+.ai-fab-panel__ticket button {
+  width: 100%;
+  border: 1px solid rgba(245, 197, 24, 0.7);
+  background: #fff8d9;
+  color: #072a66;
+  border-radius: 10px;
+  padding: 0.45rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ai-fab-panel__composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem 0.8rem;
+  background: #fff;
+}
+
+.ai-fab-panel__composer input {
+  border: 1px solid rgba(10, 61, 145, 0.18);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.88rem;
+}
+
+.ai-fab-panel__composer button {
+  border: none;
+  border-radius: 10px;
+  background: #0a3d91;
+  color: #fff;
+  width: 42px;
+  cursor: pointer;
+}
