@@ -1,8 +1,8 @@
 <ion-header>
-  <ion-toolbar class="emitir-toolbar">
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-button *ngIf="paso === 'lineas'" (click)="volverFacturas()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>
@@ -10,134 +10,184 @@
     </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cerrar()">
-        <ion-icon name="close-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="emitir-content">
+<ion-content class="ec-content">
+
   <!-- Paso 1: factura -->
-  <div *ngIf="paso === 'factura'" class="paso-factura">
-    <ion-card>
-      <ion-card-content>
-        <ion-item lines="none">
-          <ion-label position="stacked">Buscar factura / NCF / cliente</ion-label>
-          <ion-input
-            [(ngModel)]="qFactura"
-            placeholder="Ej. 1001 o B010..."
-            (keyup.enter)="buscarFacturas()">
-          </ion-input>
-          <ion-button slot="end" (click)="buscarFacturas()" [disabled]="cargando">
-            Buscar
-          </ion-button>
-        </ion-item>
-        <p class="hint">Solo se muestran facturas con ítems pendientes de entrega.</p>
-      </ion-card-content>
-    </ion-card>
+  <div *ngIf="paso === 'factura'" class="ec-page">
 
-    <ion-list *ngIf="!cargando">
-      <ion-item
-        *ngFor="let f of facturas"
-        button
-        detail
-        (click)="abrirFactura(f)">
-        <ion-label>
-          <h2>{{ f.numeroDocumento }}</h2>
-          <p>{{ f.clienteNombre || 'Cliente' }} · {{ f.fecha | date:'dd/MM/yyyy' }}</p>
-          <p *ngIf="f.ncf">NCF: {{ f.ncf }}</p>
-        </ion-label>
-        <ion-note slot="end" color="danger">
-          {{ f.cantidadPendienteTotal | number:'1.0-2' }} pend.
-        </ion-note>
-      </ion-item>
-      <ion-item *ngIf="!facturas.length">
-        <ion-label color="medium">No hay facturas con entrega pendiente.</ion-label>
-      </ion-item>
-    </ion-list>
+    <section class="ec-banner">
+      <div class="ec-banner-icon">
+        <ion-icon name="receipt-outline"></ion-icon>
+      </div>
+      <div class="ec-banner-text">
+        <h2>Facturas pendientes</h2>
+        <p>Elige una factura con ítems aún por entregar.</p>
+      </div>
+    </section>
 
-    <div *ngIf="cargando" class="loading-box">
-      <ion-spinner></ion-spinner>
+    <section class="ec-search">
+      <div class="ec-search-row">
+        <ion-input
+          [(ngModel)]="qFactura"
+          placeholder="Factura, NCF o cliente…"
+          (keyup.enter)="buscarFacturas()">
+        </ion-input>
+        <ion-button color="warning" (click)="buscarFacturas()" [disabled]="cargando">
+          <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+        </ion-button>
+      </div>
+      <p class="ec-hint">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Solo facturas con entrega pendiente
+      </p>
+    </section>
+
+    <div class="ec-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Buscando facturas…</p>
     </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="ec-empty" *ngIf="!facturas.length">
+        <ion-icon name="document-outline"></ion-icon>
+        <h3>Sin pendientes</h3>
+        <p>No hay facturas con ítems por entregar.</p>
+      </div>
+
+      <article
+        class="ec-factura"
+        *ngFor="let f of facturas; let i = index"
+        [style.animation-delay]="(i * 35) + 'ms'"
+        (click)="abrirFactura(f)">
+        <div class="ec-factura-avatar">
+          <ion-icon name="document-text"></ion-icon>
+        </div>
+        <div class="ec-factura-info">
+          <div class="ec-factura-top">
+            <h3>{{ f.numeroDocumento }}</h3>
+            <span class="ec-pend">
+              {{ f.cantidadPendienteTotal | number:'1.0-0' }} pend.
+            </span>
+          </div>
+          <p>
+            <ion-icon name="person-outline"></ion-icon>
+            {{ f.clienteNombre || 'Cliente' }}
+          </p>
+          <p>
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ f.fecha | date:'dd/MM/yyyy' }}
+            <ng-container *ngIf="f.ncf"> · NCF {{ f.ncf }}</ng-container>
+          </p>
+        </div>
+        <ion-icon class="ec-chevron" name="chevron-forward"></ion-icon>
+      </article>
+    </ng-container>
   </div>
 
   <!-- Paso 2: líneas -->
-  <div *ngIf="paso === 'lineas'" class="paso-lineas">
-    <ion-card class="meta-card" *ngIf="facturaSeleccionada">
-      <ion-card-header>
-        <ion-card-title>{{ facturaSeleccionada.numeroDocumento }}</ion-card-title>
-        <ion-card-subtitle>
-          {{ facturaSeleccionada.clienteNombre || 'Cliente' }}
-        </ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item>
-          <ion-label position="stacked">Almacén</ion-label>
+  <div *ngIf="paso === 'lineas'" class="ec-page ec-page-lineas">
+
+    <section class="ec-banner compact" *ngIf="facturaSeleccionada">
+      <div class="ec-banner-icon">
+        <ion-icon name="cube"></ion-icon>
+      </div>
+      <div class="ec-banner-text">
+        <h2>{{ facturaSeleccionada.numeroDocumento }}</h2>
+        <p>{{ facturaSeleccionada.clienteNombre || 'Cliente' }}</p>
+      </div>
+    </section>
+
+    <section class="ec-form-card">
+      <h3>Datos de entrega</h3>
+      <div class="ec-grid">
+        <div class="ec-field">
+          <label>Almacén</label>
           <ion-select [(ngModel)]="idAlmacen" interface="popover" placeholder="Opcional">
             <ion-select-option [value]="null">—</ion-select-option>
             <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
               {{ a.nombre }}
             </ion-select-option>
           </ion-select>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Quien entrega</ion-label>
+        </div>
+        <div class="ec-field">
+          <label>Quien entrega</label>
           <ion-input [(ngModel)]="quienEntrega"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Quien recibe</ion-label>
-          <ion-input [(ngModel)]="quienRecibe" placeholder="Nombre del cliente / receptor"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Observación</ion-label>
-          <ion-textarea [(ngModel)]="observacion" rows="2"></ion-textarea>
-        </ion-item>
-        <ion-button expand="block" fill="outline" size="small" (click)="entregarTodo()">
-          Entregar todo lo pendiente
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
+        </div>
+        <div class="ec-field ec-field-full">
+          <label>Quien recibe</label>
+          <ion-input [(ngModel)]="quienRecibe" placeholder="Nombre del receptor"></ion-input>
+        </div>
+        <div class="ec-field ec-field-full">
+          <label>Observación</label>
+          <ion-textarea [(ngModel)]="observacion" rows="2" autoGrow="true"></ion-textarea>
+        </div>
+      </div>
+      <ion-button expand="block" fill="outline" color="primary" size="small" (click)="entregarTodo()">
+        <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+        Entregar todo lo pendiente
+      </ion-button>
+    </section>
 
-    <ion-list>
-      <ion-item *ngFor="let l of lineas" [class.sel]="l.seleccionado">
-        <ion-checkbox
-          slot="start"
-          [(ngModel)]="l.seleccionado"
-          (ngModelChange)="onCantidadChange(l)">
-        </ion-checkbox>
-        <ion-label>
-          <h3>{{ l.productoNombre }}</h3>
-          <p>
-            Facturado {{ l.cantidadFacturada | number:'1.0-4' }}
-            · Entregado {{ l.cantidadEntregada | number:'1.0-4' }}
-            · Pendiente <strong>{{ l.cantidadPendiente | number:'1.0-4' }}</strong>
-          </p>
-        </ion-label>
+    <div class="ec-lineas-head">
+      <h3>Ítems a entregar</h3>
+      <span>{{ lineas.length }} línea(s)</span>
+    </div>
+
+    <div class="ec-empty" *ngIf="!lineas.length">
+      <ion-icon name="cube-outline"></ion-icon>
+      <h3>Sin pendientes</h3>
+      <p>Esta factura no tiene ítems por entregar.</p>
+    </div>
+
+    <article
+      class="ec-linea"
+      *ngFor="let l of lineas"
+      [class.on]="l.seleccionado"
+      (click)="l.seleccionado = !l.seleccionado; onCantidadChange(l)">
+      <ion-checkbox
+        [(ngModel)]="l.seleccionado"
+        (ngModelChange)="onCantidadChange(l)"
+        (click)="$event.stopPropagation()">
+      </ion-checkbox>
+      <div class="ec-linea-info">
+        <h4>{{ l.productoNombre }}</h4>
+        <div class="ec-linea-meta">
+          <span>Fact. {{ l.cantidadFacturada | number:'1.0-2' }}</span>
+          <span>Ent. {{ l.cantidadEntregada | number:'1.0-2' }}</span>
+          <span class="pend">Pend. {{ l.cantidadPendiente | number:'1.0-2' }}</span>
+        </div>
+      </div>
+      <div class="ec-qty" (click)="$event.stopPropagation()">
+        <label>Entregar</label>
         <ion-input
-          class="qty-input"
           type="number"
           [(ngModel)]="l.entregarAhora"
           (ionChange)="onCantidadChange(l)"
           [disabled]="!l.seleccionado">
         </ion-input>
-      </ion-item>
-      <ion-item *ngIf="!lineas.length">
-        <ion-label color="medium">Esta factura no tiene pendientes.</ion-label>
-      </ion-item>
-    </ion-list>
+      </div>
+    </article>
   </div>
 </ion-content>
 
-<ion-footer *ngIf="paso === 'lineas'">
-  <ion-toolbar>
-    <div class="footer-bar">
-      <span>A entregar: <strong>{{ totalAEntregar | number:'1.0-4' }}</strong></span>
-      <ion-button
-        class="btn-guardar"
-        (click)="guardar()"
-        [disabled]="guardando || totalAEntregar <= 0">
-        Emitir conduce
-      </ion-button>
+<ion-footer *ngIf="paso === 'lineas'" class="ec-footer">
+  <div class="ec-footer-inner">
+    <div class="ec-footer-total">
+      <span>A entregar</span>
+      <strong>{{ totalAEntregar | number:'1.0-2' }}</strong>
     </div>
-  </ion-toolbar>
+    <ion-button
+      color="warning"
+      (click)="guardar()"
+      [disabled]="guardando || totalAEntregar <= 0">
+      <ion-icon slot="start" name="send-outline"></ion-icon>
+      Emitir conduce
+    </ion-button>
+  </div>
 </ion-footer>

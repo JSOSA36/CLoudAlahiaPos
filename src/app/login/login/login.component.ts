@@ -26,8 +26,8 @@ export class LoginComponent implements OnInit {
 
   Usuario = '';
   PassWord = '';
-  logoUrl = 'assets/Logo.png';
-  logoFallback = 'assets/favicon.svg';
+  logoUrl = 'assets/alahia-logo.png';
+  logoFallback = 'assets/Logo.png';
 
   constructor(
     private router: Router,
@@ -42,7 +42,17 @@ export class LoginComponent implements OnInit {
   ) {}
 
   // ❌ NO limpiar sesión aquí
-  ngOnInit() {}
+  ngOnInit() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get('email');
+      if (email) {
+        this.Usuario = email;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   onLogoError(): void {
     if (this.logoUrl !== this.logoFallback) {
@@ -245,7 +255,16 @@ async login() {
 
         const empresa = resp?.empresa || {};
         const usuario = resp?.usuario || {};
-        const modulos = resp?.modulos || [];
+        const modulosRaw = resp?.modulos || [];
+        const modulos = (Array.isArray(modulosRaw) ? modulosRaw : []).map((m: any) => {
+          let codigo = String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase();
+          if (codigo === 'KDS') codigo = 'CENTRO_PRODUCCION';
+          return {
+            moduloId: m?.moduloId ?? m?.ModuloId ?? null,
+            codigo,
+            nombre: m?.nombre ?? m?.Nombre ?? ''
+          };
+        }).filter((m: any) => !!m.codigo);
 
         // 🔐 TOKEN
         if (resp?.token) {
@@ -281,7 +300,7 @@ async login() {
         );
 
         this.parametros.setModulosActivos(
-          modulos.map((m: any) => m.moduloId),
+          modulos.map((m: any) => m.moduloId).filter((id: any) => id != null),
           modulos.map((m: any) => m.codigo).filter((c: string) => !!c)
         );
 
@@ -310,34 +329,8 @@ async login() {
 
         await loading.dismiss();
 
-        // Aviso de pago en periodo de gracia (día 30 → 3): warning informativo, sin bloquear
-        if (resp?.alertaPlan?.mensaje) {
-          const tipo = (resp.alertaPlan.tipo || 'advertencia').toLowerCase();
-          this.parametros.setAlertaPago({
-            tipo,
-            mensaje: resp.alertaPlan.mensaje,
-            diaCobro: resp.alertaPlan.diaCobro,
-            diasRestantes: resp.alertaPlan.diasRestantes
-          });
-          setTimeout(async () => {
-            const pagoEnviado = await this.mostrarMensaje(
-              'Pago pendiente',
-              resp.alertaPlan.mensaje,
-              tipo === 'critico' ? 'alert-circle-outline' : 'card-outline',
-              false,
-              true,
-              {
-                diaCobro: resp.alertaPlan.diaCobro,
-                diasRestantes: resp.alertaPlan.diasRestantes
-              }
-            );
-            if (pagoEnviado) {
-              this.parametros.setAlertaPago(null);
-            }
-          }, 400);
-        } else {
-          this.parametros.setAlertaPago(null);
-        }
+        // Sin banner amarillo. Políticas primero; aviso de cobro después (si aplica).
+        this.parametros.setAlertaPago(null);
 
         // 📜 Políticas: TODOS los clientes (sin excepciones). MacroBits publica; cada empresa acepta.
         const gate = await this.politicasGate.validarAcceso(
@@ -358,7 +351,34 @@ async login() {
           return;
         }
 
-        this.redirigirSegunModulos(modulos);
+        await this.redirigirSegunModulos(modulos);
+
+        // Aviso de cobro solo día 30 / día 3. Nunca si admin ya aprobó (ACTIVA / pagado).
+        const diaCobro = Number(resp?.alertaPlan?.diaCobro);
+        const idEmp = empresa.idEmpresa || 0;
+        const estadoServ = String(empresa?.estadoServicio || '').toUpperCase();
+        const yaPagadoOActivo =
+          !!empresa?.pagadoServicio ||
+          estadoServ === 'ACTIVA';
+        if (
+          !yaPagadoOActivo &&
+          resp?.alertaPlan?.mensaje &&
+          (diaCobro === 30 || diaCobro === 3) &&
+          !this.yaMostroAlertaCobro(idEmp, diaCobro)
+        ) {
+          await this.mostrarMensaje(
+            diaCobro === 3 ? 'Último aviso de pago' : 'Renovación de suscripción',
+            resp.alertaPlan.mensaje,
+            diaCobro === 3 ? 'alert-circle-outline' : 'card-outline',
+            false,
+            true,
+            {
+              diaCobro: resp.alertaPlan.diaCobro,
+              diasRestantes: resp.alertaPlan.diasRestantes
+            }
+          );
+          this.marcarAlertaCobroVista(idEmp, diaCobro);
+        }
       },
 
       error: async (err) => {
@@ -400,63 +420,88 @@ async abrirPlanes() {
   irARegistro() {
     this.abrirPlanes();
   }
-private redirigirSegunModulos(modulos: any[]) {
+private async redirigirSegunModulos(modulos: any[]) {
 
-  const ids = modulos.map(m => m.moduloId);
+  const lista = Array.isArray(modulos) ? modulos : [];
+  const ids = lista
+    .map(m => Number(m?.moduloId ?? m?.ModuloId ?? m?.id ?? m?.Id))
+    .filter(id => Number.isFinite(id) && id > 0);
+  const codigos = lista
+    .map(m => String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase())
+    .filter(c => !!c);
 
-  // 🍰 Bizcocho
-  const tieneBizcocho = ids.includes(28);
+  const tieneCodigo = (...codes: string[]) =>
+    codes.some(c => codigos.includes(c.toUpperCase()));
 
-  // 📊 Dashboard
-  const tieneDashboard = ids.includes(1);
+  // Preferir códigos (estables); IDs como respaldo
+  const tieneDashboard =
+    tieneCodigo('DASHBOARD', 'DASHBOARD_GERENCIAL') || ids.includes(1);
 
-  // 🛒 POS
-  const tienePos = ids.includes(22);
+  const tienePos = tieneCodigo('POS') || ids.includes(22);
 
-  // 🔥 PRIORIDADES
+  const tieneBizcocho =
+    tieneCodigo('BIZCOCHO_ENCARGO') || ids.includes(28);
 
-  // 1. Si tiene Dashboard, siempre entra ahí
+  const tieneHistorico =
+    tieneCodigo('HISTORICO_FACTURAS') || ids.includes(24);
+
   if (tieneDashboard) {
-
-    this.router.navigateByUrl(
-      '/dashboard-gerencial',
-      { replaceUrl: true }
-    );
-
+    await this.router.navigateByUrl('/dashboard-gerencial', { replaceUrl: true });
     return;
   }
 
-  // 2. Si no tiene Dashboard pero tiene POS
   if (tienePos) {
-
-    this.router.navigateByUrl(
-      '/pos',
-      { replaceUrl: true }
-    );
-
+    await this.router.navigateByUrl('/pos', { replaceUrl: true });
     return;
   }
 
-  // 3. Si solo tiene Bizcocho
   if (tieneBizcocho) {
-
-    this.router.navigateByUrl(
-      '/bizcocho',
-      { replaceUrl: true }
-    );
-
+    await this.router.navigateByUrl('/bizcocho', { replaceUrl: true });
     return;
   }
 
-  // 🚫 Sin módulo conocido
-  this.router.navigateByUrl(
-    '/acceso-denegado',
-    { replaceUrl: true }
+  if (tieneHistorico) {
+    await this.router.navigateByUrl('/historicofact', { replaceUrl: true });
+    return;
+  }
+
+  // Sin landing conocido: no navegar a ruta inexistente
+  console.warn('Login sin módulo de entrada. Módulos recibidos:', lista);
+  await this.mostrarMensaje(
+    'Sin acceso al menú',
+    'Tu usuario no tiene un módulo de inicio (Dashboard/POS). Revisa el perfil o contacta al administrador.',
+    'alert-circle-outline',
+    false
   );
+  await this.router.navigateByUrl('/login', { replaceUrl: true });
 }
   // ===============================
   // 📱 DEVICE ID (ESTABLE)
   // ===============================
+  private claveAlertaCobro(idEmpresa: number, diaCobro: number): string {
+    const now = new Date();
+    // Ciclo: día 30 usa mes actual; día 3 usa el ciclo abierto el 30 del mes anterior
+    const ref = diaCobro === 30 ? now : new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const periodo = `${ref.getFullYear()}${String(ref.getMonth() + 1).padStart(2, '0')}`;
+    return `cobro_alerta_vista_${idEmpresa}_${periodo}_${diaCobro}`;
+  }
+
+  private yaMostroAlertaCobro(idEmpresa: number, diaCobro: number): boolean {
+    if (!idEmpresa || (diaCobro !== 30 && diaCobro !== 3)) return true;
+    try {
+      return localStorage.getItem(this.claveAlertaCobro(idEmpresa, diaCobro)) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private marcarAlertaCobroVista(idEmpresa: number, diaCobro: number): void {
+    if (!idEmpresa) return;
+    try {
+      localStorage.setItem(this.claveAlertaCobro(idEmpresa, diaCobro), '1');
+    } catch { /* ignore */ }
+  }
+
   private obtenerDeviceId(): string {
     let id = localStorage.getItem('device_id');
     if (!id) {

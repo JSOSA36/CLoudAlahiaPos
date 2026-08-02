@@ -3,84 +3,152 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Reporte 607</ion-title>
+    <ion-title>Formato 607 — Ventas DGII</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="rpt-content">
-  <div class="rpt-page">
+<ion-content class="r607-content">
+  <div class="r607-page">
 
-    <section class="rpt-filtros">
-      <div class="rpt-field">
+    <section class="r607-filtros">
+      <div class="r607-field">
         <label>Desde</label>
         <ion-input type="date" [(ngModel)]="desde"></ion-input>
       </div>
-      <div class="rpt-field">
+      <div class="r607-field">
         <label>Hasta</label>
         <ion-input type="date" [(ngModel)]="hasta"></ion-input>
       </div>
-      <div class="rpt-actions">
-        <ion-button color="primary" (click)="cargarReporte()" [disabled]="cargando">
+      <div class="r607-field">
+        <label>Período TXT (AAAAMM)</label>
+        <ion-input
+          [(ngModel)]="periodo"
+          maxlength="6"
+          placeholder="202607">
+        </ion-input>
+      </div>
+      <div class="r607-actions">
+        <ion-button (click)="cargarReporte()" [disabled]="cargando">
           <ion-icon slot="start" name="search-outline"></ion-icon>
           Consultar
+        </ion-button>
+        <ion-button
+          color="warning"
+          fill="solid"
+          [disabled]="!data?.cantidadRegistros"
+          (click)="descargarTxt()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Descargar TXT DGII
         </ion-button>
       </div>
     </section>
 
-    <div class="rpt-loading" *ngIf="cargando">
+    <div class="r607-loading" *ngIf="cargando">
       <ion-spinner name="crescent"></ion-spinner>
       Generando 607…
     </div>
 
-    <ng-container *ngIf="!cargando">
-      <section class="rpt-resumen" *ngIf="listado607.length">
+    <ng-container *ngIf="!cargando && data as r">
+      <section class="r607-resumen">
         <div>
-          <span class="label">Facturas</span>
-          <strong>{{ totalFacturas }}</strong>
+          <span class="label">Empresa</span>
+          <strong>{{ r.nombreEmpresa || '—' }}</strong>
+          <small>RNC {{ r.rncEmpresa || '—' }}</small>
         </div>
         <div>
-          <span class="label">Total ITBIS</span>
-          <strong>{{ totalItbis | number:'1.2-2' }}</strong>
+          <span class="label">Registros TXT</span>
+          <strong>{{ r.cantidadRegistros }}</strong>
         </div>
-        <div class="accent">
-          <span class="label">Total general</span>
-          <strong>{{ totalGeneral | number:'1.2-2' }}</strong>
+        <div>
+          <span class="label">Con alertas</span>
+          <strong [class.warn]="r.cantidadConAlertas > 0">{{ r.cantidadConAlertas }}</strong>
+        </div>
+        <div>
+          <span class="label">Monto facturado</span>
+          <strong>{{ r.totalMontoFacturado | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">ITBIS</span>
+          <strong>{{ r.totalItbisFacturado | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">FC &lt; 250K (resumen OFV)</span>
+          <strong>{{ r.resumenFcCantidad }}</strong>
+          <small>
+            {{ r.resumenFcMonto | number:'1.2-2' }} /
+            ITBIS {{ r.resumenFcItbis | number:'1.2-2' }}
+          </small>
         </div>
       </section>
 
-      <p class="rpt-hint">
-        Ventas fiscales (formato 607) del rango seleccionado.
+      <p class="r607-hint">
+        Incluye facturas de venta y notas de crédito con NCF/e-CF del rango.
+        Las facturas de consumo (B02/E32) menores a RD$250,000 van al resumen OFV, no al TXT.
+        Complete RNC del cliente y NCF modificado en NC para envío limpio.
       </p>
 
-      <div class="rpt-empty" *ngIf="!listado607.length">
-        No existen registros para el rango seleccionado.
-      </div>
-
-      <div class="rpt-table-wrap" *ngIf="listado607.length">
-        <table class="rpt-table">
+      <div class="r607-table-wrap" *ngIf="lineasDetalle.length; else vacio">
+        <table class="r607-table">
           <thead>
             <tr>
               <th>Fecha</th>
-              <th>RNC</th>
-              <th>e-CF / NCF</th>
-              <th>Forma pago</th>
+              <th>Tipo</th>
+              <th>Cliente</th>
+              <th>RNC/Céd</th>
+              <th>NCF</th>
+              <th>NCF Mod.</th>
+              <th>Ing.</th>
+              <th class="num">Monto</th>
               <th class="num">ITBIS</th>
-              <th class="num">Total</th>
+              <th class="num">Efectivo</th>
+              <th class="num">Transf.</th>
+              <th class="num">Tarjeta</th>
+              <th class="num">Crédito</th>
+              <th class="num">Otras</th>
+              <th>Estado TXT</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of listado607">
-              <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-              <td>{{ item.rnc }}</td>
-              <td>{{ item.ncf }}</td>
-              <td>{{ item.formaPago }}</td>
-              <td class="num">{{ item.itbis | number:'1.2-2' }}</td>
-              <td class="num">{{ item.total | number:'1.2-2' }}</td>
+            <tr
+              *ngFor="let l of lineasDetalle"
+              [class.row-alert]="!l.esValidaParaEnvio"
+              [class.row-nc]="l.tipoDocumentoAlahia === 'NotaCredito'">
+              <td>{{ l.fechaComprobante | date:'dd/MM/yyyy' }}</td>
+              <td>{{ etiquetaTipoDoc(l.tipoDocumentoAlahia) }}</td>
+              <td>{{ l.clienteNombre || '—' }}</td>
+              <td>
+                {{ l.rncCedulaComprador || '—' }}
+                <small *ngIf="l.tipoIdentificacion">{{ etiquetaTipoId(l.tipoIdentificacion) }}</small>
+              </td>
+              <td>{{ l.ncf || '—' }}</td>
+              <td>{{ l.ncfModificado || '—' }}</td>
+              <td>{{ l.tipoIngreso }}</td>
+              <td class="num">{{ l.montoFacturado | number:'1.2-2' }}</td>
+              <td class="num">{{ l.itbisFacturado | number:'1.2-2' }}</td>
+              <td class="num">{{ l.efectivo | number:'1.2-2' }}</td>
+              <td class="num">{{ l.chequeTransferenciaDeposito | number:'1.2-2' }}</td>
+              <td class="num">{{ l.tarjetaDebitoCredito | number:'1.2-2' }}</td>
+              <td class="num">{{ l.ventaCredito | number:'1.2-2' }}</td>
+              <td class="num">{{ l.otrasFormasVenta | number:'1.2-2' }}</td>
+              <td>
+                <span class="ok" *ngIf="l.esValidaParaEnvio">OK</span>
+                <span class="bad" *ngIf="!l.esValidaParaEnvio" [title]="l.alertas?.join(' · ')">
+                  {{ l.alertas?.[0] || 'Revisar' }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-    </ng-container>
 
+      <ng-template #vacio>
+        <div class="r607-empty">
+          No hay comprobantes fiscales para el detalle TXT en este rango
+          <span *ngIf="r.resumenFcCantidad">
+            (sí hay {{ r.resumenFcCantidad }} facturas de consumo &lt; 250K para el resumen OFV).
+          </span>
+        </div>
+      </ng-template>
+    </ng-container>
   </div>
 </ion-content>

@@ -1,0 +1,30 @@
+.page-header {
+  margin-bottom: 12px;
+
+  h2 { margin: 0 0 4px; }
+  p { margin: 0; color: #666; font-size: 0.9rem; }
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.empty {
+  text-align: center;
+  padding: 24px;
+  color: #888;
+}
+
+.loader {
+  display: block;
+  margin: 24px auto;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}

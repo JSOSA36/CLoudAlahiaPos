@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar [color]="esEntrada ? 'success' : 'danger'">
+    <ion-title>{{ titulo }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="cerrar()" aria-label="Cerrar">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="maf-content">
+  <div class="maf" [class.maf--entrada]="esEntrada" [class.maf--salida]="!esEntrada">
+
+    <section class="maf-hero">
+      <div class="maf-hero__icon" aria-hidden="true">
+        <ion-icon [name]="esEntrada ? 'arrow-down-circle' : 'arrow-up-circle'"></ion-icon>
+      </div>
+      <div class="maf-hero__copy">
+        <p class="maf-hero__badge">{{ tipoLabel }}</p>
+        <h2>{{ titulo }}</h2>
+        <p>{{ subtitulo }}</p>
+      </div>
+    </section>
+
+    <section class="maf-cuenta" *ngIf="nombreCuenta">
+      <div class="maf-cuenta__icon" aria-hidden="true">
+        <ion-icon name="wallet-outline"></ion-icon>
+      </div>
+      <div>
+        <span class="maf-cuenta__label">Cuenta</span>
+        <strong>{{ nombreCuenta }}</strong>
+      </div>
+    </section>
+
+    <section class="maf-card">
+      <ion-item lines="none" class="maf-field">
+        <ion-label position="stacked">Monto</ion-label>
+        <ion-input
+          type="number"
+          inputmode="decimal"
+          fill="outline"
+          placeholder="0.00"
+          [(ngModel)]="monto"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="maf-field">
+        <ion-label position="stacked">Motivo (obligatorio)</ion-label>
+        <ion-input
+          fill="outline"
+          placeholder="Ej: Interés acreditado, comisión, corrección..."
+          [(ngModel)]="motivo"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="maf-field">
+        <ion-label position="stacked">Observación</ion-label>
+        <ion-textarea
+          fill="outline"
+          autoGrow="true"
+          rows="2"
+          placeholder="Detalle adicional (opcional)"
+          [(ngModel)]="observacion"
+        ></ion-textarea>
+      </ion-item>
+    </section>
+
+    <section class="maf-resumen" *ngIf="monto && monto > 0">
+      <div class="maf-resumen__row">
+        <span>Tipo</span>
+        <strong [class.is-in]="esEntrada" [class.is-out]="!esEntrada">{{ tipoLabel }}</strong>
+      </div>
+      <div class="maf-resumen__row">
+        <span>Monto a registrar</span>
+        <strong class="maf-resumen__monto" [class.is-in]="esEntrada" [class.is-out]="!esEntrada">
+          {{ esEntrada ? '+' : '-' }}{{ monto | currency:'DOP':'symbol-narrow':'1.2-2' }}
+        </strong>
+      </div>
+    </section>
+  </div>
+</ion-content>
+
+<ion-footer class="maf-footer">
+  <ion-toolbar>
+    <div class="maf-actions">
+      <ion-button expand="block" fill="outline" color="medium" (click)="cerrar()" [disabled]="guardando">
+        Cancelar
+      </ion-button>
+      <ion-button
+        expand="block"
+        [color]="esEntrada ? 'success' : 'danger'"
+        (click)="guardar()"
+        [disabled]="guardando"
+      >
+        <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+        <span *ngIf="!guardando">Registrar</span>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

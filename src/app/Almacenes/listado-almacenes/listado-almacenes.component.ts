@@ -11,6 +11,10 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
 })
 export class ListadoAlmacenesComponent implements OnInit {
   almacenes: Almacen[] = [];
+  filtrados: Almacen[] = [];
+  filtro = '';
+  soloActivos = true;
+  cargando = false;
   isModalOpen = false;
   editingAlmacen: Almacen | null = null;
 
@@ -26,17 +30,39 @@ export class ListadoAlmacenesComponent implements OnInit {
     this.loadAlmacenes();
   }
 
+  get totalActivos(): number {
+    return this.almacenes.filter((a) => a.activo).length;
+  }
+
+  get totalPrincipales(): number {
+    return this.almacenes.filter((a) => a.esPrincipal && a.activo).length;
+  }
+
   loadAlmacenes(): void {
-    this.almacenesService
-      .getAlmacenes(this.para.IdEmpresa)
-      .subscribe({
-        next: (res) => {
-          this.almacenes = (res || []).sort((a, b) =>
-            a.nombre.localeCompare(b.nombre)
-          );
-        },
-        error: () => this.showToast('Error cargando almacenes'),
-      });
+    this.cargando = true;
+    this.almacenesService.getAlmacenes(this.para.IdEmpresa).subscribe({
+      next: (res) => {
+        this.almacenes = (res || []).sort((a, b) =>
+          a.nombre.localeCompare(b.nombre)
+        );
+        this.filtrar();
+        this.cargando = false;
+      },
+      error: () => {
+        this.cargando = false;
+        this.showToast('Error cargando almacenes');
+      },
+    });
+  }
+
+  filtrar(): void {
+    const q = (this.filtro || '').trim().toLowerCase();
+    this.filtrados = this.almacenes.filter((a) => {
+      if (this.soloActivos && !a.activo) return false;
+      if (!q) return true;
+      const haystack = `${a.nombre || ''} ${a.descripcion || ''}`.toLowerCase();
+      return haystack.includes(q);
+    });
   }
 
   openModal(almacen?: Almacen): void {

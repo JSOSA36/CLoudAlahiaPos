@@ -1,6 +1,7 @@
 .pos-page {
   --padding-top: 0;
   --padding-bottom: 0;
+  --overflow: hidden;
 }
 
 /* =============================
@@ -8,9 +9,10 @@
 ============================= */
 .pos-layout {
   display: grid;
- grid-template-columns: 1fr 450px;
+  grid-template-columns: 1fr 480px;
   height: calc(100vh - 56px);
   background: #f6f8fb;
+  overflow: hidden;
 }
 
 /* =============================
@@ -439,33 +441,32 @@ footer-warning
 }
 
 /* =============================
-   ITEM DEL CARRITO
+   ITEM DEL CARRITO (compacto)
 ============================= */
 .item{
-
-  display: grid;
-  grid-template-columns: 1fr 90px 110px;
-
-  gap: 10px;
-
-  padding: 12px;
-
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
   background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  align-items: stretch;
+  border-left: 3px solid #f7c948;
+  transition: all 0.15s ease;
+}
 
-  border-radius: 12px;
-
-  box-shadow: 0 4px 10px rgba(0,0,0,.08);
-
+.item-main{
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
   align-items: center;
-
-  border-left: 4px solid #f7c948; /* 🔥 tu color */
-
-  transition: all 0.2s ease;
 }
 
 /* HOVER */
 .item:hover{
-  transform: translateY(-2px);
+  transform: none;
+  box-shadow: 0 3px 8px rgba(0,0,0,.1);
 }
 
 /* =============================
@@ -605,17 +606,31 @@ footer-warning
 .body-warning{
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
+.body-warning .panel-header{
+  flex-shrink: 0;
+}
+
+.body-warning .panel-footer{
+  flex-shrink: 0;
+}
+
 .body-warning .items{
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  max-height: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 
   background: rgba(255,255,255,.85);
   border-radius: 12px;
-  padding: 2px 2px;
+  padding: 6px;
+  gap: 8px;
 }
 .item-qty{
   display: flex;
@@ -1295,12 +1310,16 @@ footer-warning
 .empleado-select{
 
   width:100%;
+  min-height: 32px;
+  max-height: 36px;
+  font-size: 12px;
 
   --background:#2f7be5;
-
   --border-radius:8px;
+  --padding-top: 4px;
+  --padding-bottom: 4px;
   color: white;
--placeholder-color:#ffffff; /* placeholder */
+  --placeholder-color:#ffffff;
   --padding-start:10px;
 
 }
@@ -1767,7 +1786,8 @@ ion-buttons[slot="end"] {
 
   /* 🔥 convierte carrito en modal */
   .right-panel{
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
 
     position: fixed !important;
     left: 0;
@@ -1776,6 +1796,8 @@ ion-buttons[slot="end"] {
 
     width: 100%;
     height: 92vh;
+    max-height: 92vh;
+    overflow: hidden !important;
 
     transform: translateY(100%);
     transition: transform .28s ease;
@@ -1849,15 +1871,23 @@ ion-buttons[slot="end"] {
 
 /* 🔥 SOLO LOS ITEMS SCROLLEAN */
 .items{
-  flex: 1 !important;
+  flex: 1 1 0 !important;
   min-height: 0 !important;
+  max-height: 100% !important;
 
+  overflow-x: hidden !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* 🔒 HEADER FIJO */
 .panel-header{
+  flex-shrink: 0 !important;
+}
+
+.panel-footer,
+.footer-warning{
   flex-shrink: 0 !important;
 }
 
@@ -2532,8 +2562,9 @@ ion-buttons[slot="end"] {
 
   .pos-layout{
     display:grid;
-    grid-template-columns: 1fr 450px;
+    grid-template-columns: 1fr 480px;
     height: calc(100vh - 56px);
+    overflow: hidden;
   }
 
   .right-panel{
@@ -2543,10 +2574,12 @@ ion-buttons[slot="end"] {
     display:flex !important;
     flex-direction:column !important;
 
-    width:450px !important;
-    min-width:450px !important;
+    width:480px !important;
+    min-width:480px !important;
 
     height:100% !important;
+    max-height:100% !important;
+    overflow: hidden !important;
 
     transform:none !important;
 
@@ -2590,6 +2623,7 @@ ion-buttons[slot="end"] {
     width:100vw !important;
     height: calc(100vh - 56px) !important;
     max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
 
     display:flex !important;
     flex-direction:column !important;
@@ -2677,13 +2711,15 @@ ion-buttons[slot="end"] {
 
 .items{
 
-  flex:1 !important;
+  flex: 1 1 0 !important;
 
-  min-height:0 !important;
+  min-height: 0 !important;
 
-  overflow-y:auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 
-  -webkit-overflow-scrolling:touch;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 
@@ -2733,8 +2769,11 @@ ion-buttons[slot="end"] {
 }
 
 .cart-items-row .items {
-  height: 100%;
-  overflow-y: auto;
+  height: auto !important;
+  max-height: none;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
   background: var(--ion-color-warning) !important;
   padding: 8px !important;
 }
@@ -2996,4 +3035,202 @@ TABLET/MÓVIL: categorías pequeñas en 2 columnas
   .scroll-btn {
     display: none !important;
   }
+}
+
+/* =========================================
+   CARRITO: espacio + descuento desplegable
+========================================= */
+.right-panel {
+  min-width: 0;
+  overflow: hidden !important;
+}
+
+.body-warning {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+.items {
+  gap: 8px !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  margin: 0 !important;
+}
+
+.item-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.item-info .name {
+  font-size: 12.5px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-info .sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.item-descuento-inline {
+  color: #dc2626;
+}
+
+.item-qty {
+  min-width: 72px;
+  padding: 2px 4px;
+}
+
+.item-total .price {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.panel-footer.footer-warning {
+  gap: 8px !important;
+  padding-top: 6px;
+}
+
+.invoice-summary {
+  padding: 8px 10px !important;
+}
+
+.sum-line.descuento-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  color: inherit;
+}
+
+.sum-line.descuento-toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sum-line.descuento-toggle ion-icon {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.sum-line.descuento-toggle .has-descuento {
+  color: #dc2626;
+}
+
+.sum-line.descuento-toggle .descuento-agregar {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.descuento-sheet {
+  margin: 4px 0 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.descuento-sheet-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.descuento-tipo {
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.descuento-valor {
+  flex: 1;
+  text-align: right;
+  --padding-end: 8px;
+}
+
+.descuento-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.bottom-row {
+  margin-top: 4px !important;
+  padding: 6px 4px !important;
+}
+
+/* Header carrito colapsable */
+.header-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(247, 201, 72, 0.55);
+  border-radius: 10px;
+  background: rgba(255, 248, 220, 0.92);
+  cursor: pointer;
+  text-align: left;
+  color: #1f2937;
+}
+
+.header-summary-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-cliente {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summary-meta {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-summary ion-icon {
+  font-size: 18px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.header-details {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-header.header-warning {
+  padding-bottom: 8px !important;
 }

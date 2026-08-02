@@ -454,7 +454,15 @@ implements OnInit {
         x.nombre
         ===
         nombre
-    );
+
+    ) || {
+
+      nombre,
+
+      icono:'card-outline',
+
+      color:'#64748b'
+    };
   }
 
   /* =====================================

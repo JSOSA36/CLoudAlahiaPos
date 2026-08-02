@@ -24,6 +24,21 @@
 
   <div class="fc-list-page">
     <div class="fc-toolbar-card">
+      <div class="fc-fechas">
+        <div class="fc-fecha-field">
+          <label>Desde</label>
+          <ion-input type="date" [(ngModel)]="desde"></ion-input>
+        </div>
+        <div class="fc-fecha-field">
+          <label>Hasta</label>
+          <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+        </div>
+        <ion-button class="fc-fecha-btn" color="primary" (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+      </div>
+
       <ion-searchbar
         [(ngModel)]="filtro"
         placeholder="Buscar por OC, proveedor..."
@@ -54,10 +69,10 @@
     <ng-container *ngIf="!cargando">
       <div class="fc-empty" *ngIf="!filtradas.length">
         <ion-icon name="clipboard-outline"></ion-icon>
-        <h3 *ngIf="!ordenes.length">Aún no hay órdenes de compra</h3>
+        <h3 *ngIf="!ordenes.length">Sin órdenes en este rango</h3>
         <h3 *ngIf="ordenes.length">Sin resultados con este filtro</h3>
         <p *ngIf="!ordenes.length">
-          Crea una OC, emítela (OC-0001) y envíala al proveedor. Luego genera la factura de compra.
+          Amplía el rango de fechas o crea una nueva OC para el proveedor.
         </p>
         <ion-button *ngIf="!ordenes.length" color="primary" (click)="nueva()">
           <ion-icon slot="start" name="add-outline"></ion-icon>

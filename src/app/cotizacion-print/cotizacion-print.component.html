@@ -4,7 +4,7 @@
     <header class="doc-header">
       <div class="empresa-block">
         <img
-          *ngIf="empresa?.logoUrl"
+          *ngIf="mostrarLogo"
           [src]="empresa?.logoUrl"
           alt="Logo"
           class="logo" />
@@ -95,24 +95,39 @@
   </div>
 </ion-content>
 
-<ion-footer class="no-print">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="end">
+<ion-footer class="no-print cotizacion-footer">
+  <ion-toolbar class="cotizacion-toolbar">
+    <ion-buttons slot="start">
       <ion-button
-        color="success"
+        class="btn-copiar-link"
+        fill="solid"
+        [disabled]="compartiendo"
+        (click)="copiarLink()">
+        <ion-icon
+          class="icon-copiar-link"
+          name="link-outline"
+          slot="start"
+          style="color: #111111; fill: #111111;">
+        </ion-icon>
+        {{ compartiendo ? 'Copiando…' : 'Copiar link' }}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end" class="cotizacion-actions">
+      <ion-button
+        class="btn-accion"
+        fill="clear"
         [disabled]="exportandoPdf"
         (click)="exportarPdf()">
         <ion-icon name="document-outline" slot="start"></ion-icon>
         {{ exportandoPdf ? 'Generando...' : 'Exportar PDF' }}
       </ion-button>
-      <ion-button color="warning" (click)="imprimir()">
+      <ion-button class="btn-accion" fill="clear" (click)="imprimir()">
         <ion-icon name="print-outline" slot="start"></ion-icon>
         Imprimir
       </ion-button>
       <ion-button
-        fill="solid"
-        color="light"
         class="btn-cerrar-cotizacion"
+        fill="outline"
         (click)="cerrar()">
         <ion-icon name="close-outline" slot="start"></ion-icon>
         Cerrar

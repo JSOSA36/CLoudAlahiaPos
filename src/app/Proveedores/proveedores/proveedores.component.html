@@ -1,38 +1,113 @@
-<ion-header>
+<ion-header class="pv-header">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Proveedores</ion-title>
+    <ion-title>
+      <div class="pv-title-wrap">
+        <span>Proveedores</span>
+        <small *ngIf="!cargando">{{ filtrados.length }} registro(s)</small>
+      </div>
+    </ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="abrirForm()">
-        <ion-icon name="add-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-searchbar [(ngModel)]="filtro" (ionInput)="filtrar()" placeholder="Buscar proveedor..."></ion-searchbar>
-    <ion-item lines="none">
-      <ion-label>Solo activos</ion-label>
-      <ion-toggle [(ngModel)]="soloActivos" (ionChange)="cargar()"></ion-toggle>
-    </ion-item>
-  </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-list>
-    <ion-item *ngFor="let p of filtrados">
-      <ion-label>
-        <h2>{{ p.nombreComercial }}</h2>
-        <p>RNC: {{ p.rnc || '—' }} · {{ p.telefono || '—' }}</p>
-        <p *ngIf="!p.isActivo"><ion-badge color="medium">Inactivo</ion-badge></p>
-      </ion-label>
-      <ion-button fill="clear" slot="end" (click)="abrirForm(p)">
-        <ion-icon name="create-outline"></ion-icon>
-      </ion-button>
-      <ion-button fill="clear" color="danger" slot="end" *ngIf="p.isActivo" (click)="desactivar(p)">
-        <ion-icon name="ban-outline"></ion-icon>
-      </ion-button>
-    </ion-item>
-  </ion-list>
+<ion-content class="pv-content">
+  <div class="pv-page">
+    <section class="pv-toolbar">
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        (ionInput)="filtrar()"
+        placeholder="Buscar por nombre, RNC, teléfono…"
+        debounce="200"
+        show-clear-button="focus">
+      </ion-searchbar>
+
+      <div class="pv-filter-row">
+        <div>
+          <strong>Solo activos</strong>
+          <p>Oculta proveedores desactivados</p>
+        </div>
+        <ion-toggle [(ngModel)]="soloActivos" (ionChange)="cargar()"></ion-toggle>
+      </div>
+    </section>
+
+    <div class="pv-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando proveedores…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+      <div class="pv-empty" *ngIf="!filtrados.length">
+        <ion-icon name="business-outline"></ion-icon>
+        <h3 *ngIf="!proveedores.length">Aún no hay proveedores</h3>
+        <h3 *ngIf="proveedores.length">Sin resultados</h3>
+        <p *ngIf="!proveedores.length">
+          Registra tu primer suplidor para compras, CxP y facturas.
+        </p>
+        <p *ngIf="proveedores.length">Prueba otra búsqueda o muestra inactivos.</p>
+        <ion-button *ngIf="!proveedores.length" color="warning" (click)="abrirForm()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Nuevo proveedor
+        </ion-button>
+      </div>
+
+      <article
+        class="pv-card"
+        *ngFor="let p of filtrados"
+        [class.is-inactive]="!p.isActivo"
+        (click)="abrirForm(p, $event)">
+        <div class="pv-avatar" [attr.data-letter]="iniciales(p.nombreComercial)">
+          {{ iniciales(p.nombreComercial) }}
+        </div>
+
+        <div class="pv-info">
+          <div class="pv-name-row">
+            <h2>{{ p.nombreComercial }}</h2>
+            <ion-badge [color]="p.isActivo ? 'success' : 'medium'">
+              {{ p.isActivo ? 'Activo' : 'Inactivo' }}
+            </ion-badge>
+          </div>
+          <p class="pv-meta">
+            <ion-icon name="id-card-outline"></ion-icon>
+            RNC {{ p.rnc || '—' }}
+          </p>
+          <p class="pv-meta" *ngIf="p.telefono">
+            <ion-icon name="call-outline"></ion-icon>
+            {{ p.telefono }}
+          </p>
+          <p class="pv-meta" *ngIf="p.email">
+            <ion-icon name="mail-outline"></ion-icon>
+            {{ p.email }}
+          </p>
+        </div>
+
+        <div class="pv-actions" (click)="$event.stopPropagation()">
+          <ion-button fill="solid" color="primary" size="small" (click)="abrirForm(p, $event)">
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Editar
+          </ion-button>
+          <ion-button
+            *ngIf="p.isActivo"
+            fill="outline"
+            color="danger"
+            size="small"
+            (click)="desactivar(p, $event)">
+            <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </article>
+    </ng-container>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-above-ai">
+    <ion-fab-button color="warning" (click)="abrirForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

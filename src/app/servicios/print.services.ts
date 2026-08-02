@@ -197,18 +197,44 @@ printCierreEncargos(
   async openCotizacionCarta(
     cotizacion: any
   ): Promise<void> {
+    const empresa = this.empresaParaDocumento();
 
     const modal = await this.modalCtrl.create({
       component: CotizacionPrintComponent,
       cssClass: 'modal-fullscreen',
       componentProps: {
         cotizacion,
-        empresa: this.parametros._Empresa,
+        empresa,
         nombreEmpresa: this.parametros.NombreEmpresa
       }
     });
 
     await modal.present();
+  }
+
+  /** Copia de empresa para documentos: sin logo si la empresa no tiene uno propio. */
+  private empresaParaDocumento(): any {
+    const src = this.parametros._Empresa as any;
+    if (!src) {
+      return undefined;
+    }
+
+    const copia = { ...src };
+    const logo = String(copia.logo || copia.logoUrl || '').trim();
+
+    // Sin logo, o logo compartido erróneo (Total Clean) asignado a otra empresa.
+    const sinLogo =
+      !logo ||
+      /7a8a3d84-ee21-4781-848e-a70b7c23cccd/i.test(logo);
+
+    if (sinLogo) {
+      copia.logo = undefined;
+      copia.logoUrl = undefined;
+      src.logo = undefined;
+      src.logoUrl = undefined;
+    }
+
+    return copia;
   }
 
   async openMovimientoInventarioCarta(

@@ -1,5 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Router } from '@angular/router';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { ModalController, AlertController, ToastController } from '@ionic/angular';
 import { ClienteService } from 'src/app/servicios/cliente.service';
@@ -12,30 +11,14 @@ import { clientes } from 'src/app/models/clientes';
   styleUrls: ['./clientes.component.scss'],
 })
 export class ClientesComponent implements OnInit {
-
-  // 🔹 Nuevo input para determinar si está en modo selección
-  @Input() isModalSeleccion: boolean = false;
-
-  form: any = {
-    idCliente: 0,
-    nombreComercial: '',
-    telefono: '',
-    celular: '',
-    fechaNacimiento: '',
-    email: '',
-    direccion: '',
-    cedulaRNC: '',
-    nota: '',
-    estado: true
-  };
+  @Input() isModalSeleccion = false;
 
   clientes: clientes[] = [];
   clientesFiltrados: clientes[] = [];
-  filtro: string = '';
+  filtro = '';
 
   constructor(
     public _Parametro: ParametrosService,
-    private router: Router,
     public modal: ModalController,
     private _cliente: ClienteService,
     private alertCtrl: AlertController,
@@ -45,24 +28,28 @@ export class ClientesComponent implements OnInit {
   ngOnInit(): void {
     this.cargarClientes();
   }
-cerrarModal() {
-  this.modal.dismiss();
-}
-  // 🔹 Cargar todos los clientes desde el API
+
+  cerrarModal() {
+    this.modal.dismiss();
+  }
+
   cargarClientes() {
     this._cliente.GetListadoClientes(this._Parametro.GetIdEmpresa()).subscribe({
       next: (data) => {
-        this.clientes = data || [];
-        this.clientesFiltrados = [...this.clientes];
-        console.log('Clientes cargados:', this.clientes);
+        this.clientes = (data || []).map(c => this.normalizar(c));
+        this.filtrarClientes();
       },
-      error: (err) => {
-        console.error('Error cargando clientes', err);
+      error: async () => {
+        const t = await this.toastCtrl.create({
+          message: 'Error cargando clientes',
+          duration: 2000,
+          color: 'danger'
+        });
+        t.present();
       }
     });
   }
 
-  // 🔎 Filtrar clientes
   filtrarClientes() {
     const q = this.normalize(this.filtro);
     if (!q) {
@@ -76,96 +63,59 @@ cerrarModal() {
         c?.celular,
         c?.email,
         c?.direccion,
+        c?.cedulaRNC,
         c?.nota
       ].map(v => this.normalize(String(v ?? '')));
       return campos.some(txt => txt.includes(q));
     });
   }
 
-  // 🔹 Abrir modal para crear o editar
-  async openModal(cliente: clientes | null) {
-  const clienteData = cliente ? { ...cliente } : new clientes(); // 👈 se asegura que siempre tenga estructura
-  const modal = await this.modal.create({
-    component: ClientesAddComponent,
-    componentProps: {
-      cliente: clienteData,
-      isEdit: !!cliente
-    }
-  });
-
-  await modal.present();
-  const { data } = await modal.onDidDismiss();
-
-  if (data) {
-    this.cargarClientes();
-    const t = await this.toastCtrl.create({
-      message: 'Cambios aplicados ✅',
-      duration: 1400,
-      color: 'success'
-    });
-    t.present();
+  iniciales(nombre?: string): string {
+    const parts = (nombre || '?').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-}
 
+  async openModal(cliente: clientes | null, ev?: Event) {
+    ev?.stopPropagation();
+    ev?.preventDefault();
 
-  // 🔹 Seleccionar cliente (solo si es modal de selección)
+    const clienteData = cliente
+      ? this.normalizar(cliente)
+      : Object.assign(new clientes(), {
+          idEmpresa: this._Parametro.GetIdEmpresa()
+        });
+
+    const modal = await this.modal.create({
+      component: ClientesAddComponent,
+      cssClass: 'cliente-form-modal',
+      componentProps: {
+        cliente: { ...clienteData },
+        isEdit: !!(cliente && cliente.idCliente > 0)
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+
+    if (data) {
+      this.cargarClientes();
+    }
+  }
+
   seleccionarCliente(c: clientes) {
     if (this.isModalSeleccion) {
-      console.log('✅ Cliente seleccionado:', c);
       this.modal.dismiss({ cliente: c });
     }
   }
 
-  // 🔹 Guardar cliente (modo inline)
-guardarCliente() {
-  console.log('🔥 ENTRÓ A guardarCliente()');
+  async eliminarCliente(cliente: any, ev?: Event) {
+    ev?.stopPropagation();
+    ev?.preventDefault();
 
-  if (!this.form?.nombreComercial?.trim()) {
-    this.toastCtrl.create({
-      message: 'Nombre requerido',
-      duration: 1500,
-      color: 'warning'
-    }).then(t => t.present());
-    return;
-  }
-
-  const esNuevo = this.form.idCliente === 0;
-
-  const obs$ = esNuevo
-    ? this._cliente.EnviarItem(this.form)
-    : this._cliente.EditarClientes(this.form);
-
-  obs$.subscribe({
-    next: async () => {
-      const msg = esNuevo ? 'Cliente creado ✅' : 'Cliente actualizado ✅';
-
-      (await this.toastCtrl.create({
-        message: msg,
-        duration: 1500,
-        color: 'success'
-      })).present();
-    },
-
-    error: (err) => console.error('❌ Error guardando cliente', err),
-
-    complete: () => {
-      console.warn("🔥 COMPLETE EJECUTADO — redirigiendo si es nuevo");
-
-      this.cargarClientes();
-      this.resetForm();
-
-      if (esNuevo) {
-        this.router.navigateByUrl('/categoria');
-      }
-    }
-  });
-}
-
-
-  // 🔹 Eliminar cliente
-  async eliminarCliente(cliente: any) {
     const alert = await this.alertCtrl.create({
-      header: 'Eliminar',
+      header: 'Eliminar cliente',
       message: `¿Seguro que deseas eliminar a ${cliente?.nombreComercial}?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -175,10 +125,22 @@ guardarCliente() {
           handler: () => {
             this._cliente.DeleteIten(cliente.idCliente).subscribe({
               next: async () => {
-                (await this.toastCtrl.create({ message: 'Cliente eliminado ✅', duration: 1400, color: 'success' })).present();
+                (await this.toastCtrl.create({
+                  message: 'Cliente eliminado',
+                  duration: 1400,
+                  color: 'success',
+                  position: 'top'
+                })).present();
                 this.cargarClientes();
               },
-              error: (err) => console.error('Error eliminando cliente', err)
+              error: async () => {
+                (await this.toastCtrl.create({
+                  message: 'No se pudo eliminar el cliente',
+                  duration: 2000,
+                  color: 'danger',
+                  position: 'top'
+                })).present();
+              }
             });
           }
         }
@@ -187,22 +149,33 @@ guardarCliente() {
     await alert.present();
   }
 
-  // 🔹 Resetear formulario
-  resetForm() {
-    this.form = {
-      idCliente: 0,
-      nombreComercial: '',
-      telefono: '',
-      celular: '',
-      fechaNacimiento: '',
-      email: '',
-      direccion: '',
-      nota: '',
-      estado: true
-    };
+  private normalizar(raw: any): clientes {
+    const c = new clientes();
+    c.idCliente = Number(raw?.idCliente ?? raw?.IdCliente ?? 0);
+    c.idEmpresa = Number(raw?.idEmpresa ?? raw?.IdEmpresa ?? this._Parametro.GetIdEmpresa());
+    c.nombreComercial = String(raw?.nombreComercial ?? raw?.NombreComercial ?? '');
+    c.telefono = String(raw?.telefono ?? raw?.Telefono ?? '');
+    c.celular = String(raw?.celular ?? raw?.Celular ?? '');
+    c.email = String(raw?.email ?? raw?.Email ?? '');
+    c.direccion = String(raw?.direccion ?? raw?.Direccion ?? '');
+    c.cedulaRNC = String(raw?.cedulaRNC ?? raw?.CedulaRNC ?? '');
+    c.nota = String(raw?.nota ?? raw?.Nota ?? '');
+    c.limiteCredito = Number(raw?.limiteCredito ?? raw?.LimiteCredito ?? 0);
+
+    const fecha = raw?.fechaNacimiento ?? raw?.FechaNacimiento ?? '';
+    c.fechaNacimiento = this.toDateInput(fecha);
+    return c;
   }
 
-  // 🔹 Utilidades
+  private toDateInput(value: any): string {
+    if (!value) return '';
+    const s = String(value);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
   private normalize(s: string): string {
     return (s || '')
       .toLowerCase()
@@ -211,6 +184,5 @@ guardarCliente() {
       .trim();
   }
 
-  // 🔹 Para *ngFor performance
   trackByCliente = (_: number, c: any) => c?.idCliente ?? _;
 }

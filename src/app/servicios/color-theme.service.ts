@@ -77,7 +77,7 @@ export class ColorThemeService {
       if (uniq.length >= 3) break;
     }
 
-    const primary   = uniq[0] ?? '#1976D2';
+    const primary   = uniq[0] ?? '#1454B8';
     const secondary = uniq[1] ?? this.shade(primary, +18);
     const tertiary  = uniq[2] ?? this.shade(primary, -18);
 

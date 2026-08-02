@@ -34,6 +34,20 @@
   }
 }
 
+.estado-hint {
+  text-align: center;
+  margin: -8px 0 16px;
+  padding: 0 8px;
+
+  p {
+    margin: 0 0 8px;
+    font-size: 0.8rem;
+    color: #856404;
+    text-transform: none;
+    font-weight: 400;
+  }
+}
+
 .empresa-header {
   text-align: center;
   border-bottom: 2px solid #333;
@@ -173,11 +187,10 @@
   border-top: 1px dashed #ccc;
   border-bottom: 1px dashed #ccc;
   margin-bottom: 12px;
-}
 
-.qr-image {
-  max-width: 200px;
-  height: auto;
+  ::ng-deep qrcode {
+    display: inline-block;
+  }
 }
 
 .qr-caption {

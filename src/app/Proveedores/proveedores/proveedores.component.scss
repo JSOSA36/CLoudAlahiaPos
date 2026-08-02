@@ -1,0 +1,208 @@
+:host {
+  --pv-primary: var(--ion-color-primary, #1454B8);
+  --pv-navy: var(--ion-color-primary-shade, #0B419B);
+  --pv-yellow: #fcd34d;
+  --pv-bg: #f3f6fb;
+  --pv-card: #fff;
+  --pv-border: #e2e8f0;
+  --pv-text: #0f172a;
+  --pv-muted: #64748b;
+}
+
+.pv-header ion-toolbar {
+  --background: var(--pv-primary);
+  --color: #fff;
+}
+
+.pv-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.pv-title-wrap small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+.pv-content {
+  --background: var(--pv-bg);
+}
+
+.pv-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 16px 100px;
+}
+
+.pv-toolbar {
+  background: var(--pv-card);
+  border: 1px solid var(--pv-border);
+  border-radius: 16px;
+  padding: 8px 8px 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(20, 84, 184, 0.07);
+}
+
+.pv-toolbar ion-searchbar {
+  --background: #f8fafc;
+  --border-radius: 10px;
+  --box-shadow: none;
+  padding: 0 4px 4px;
+}
+
+.pv-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px 2px;
+}
+
+.pv-filter-row strong {
+  display: block;
+  color: var(--pv-text);
+  font-size: 0.9rem;
+}
+
+.pv-filter-row p {
+  margin: 2px 0 0;
+  color: var(--pv-muted);
+  font-size: 0.75rem;
+}
+
+.pv-loading,
+.pv-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--pv-muted);
+}
+
+.pv-empty ion-icon {
+  font-size: 2.6rem;
+  color: var(--pv-primary);
+  opacity: 0.7;
+}
+
+.pv-empty h3 {
+  margin: 10px 0 6px;
+  color: var(--pv-text);
+}
+
+.pv-empty p {
+  margin: 0 auto 14px;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.pv-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--pv-card);
+  border: 1px solid var(--pv-border);
+  border-left: 4px solid var(--pv-primary);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: pvRise 0.35s ease both;
+}
+
+.pv-card:active {
+  transform: scale(0.99);
+}
+
+.pv-card.is-inactive {
+  border-left-color: #94a3b8;
+  opacity: 0.85;
+}
+
+.pv-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pv-primary), var(--pv-navy));
+  border: 2px solid var(--pv-yellow);
+  flex-shrink: 0;
+}
+
+.pv-info {
+  min-width: 0;
+}
+
+.pv-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.pv-name-row h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--pv-text);
+  word-break: break-word;
+}
+
+.pv-meta {
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pv-muted);
+  font-size: 0.82rem;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.pv-meta ion-icon {
+  color: var(--pv-primary);
+  flex-shrink: 0;
+}
+
+.pv-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.pv-actions ion-button {
+  margin: 0;
+  --border-radius: 10px;
+  font-weight: 700;
+  height: 34px;
+}
+
+@keyframes pvRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .pv-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .pv-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+:host ::ng-deep ion-fab.fab-above-ai {
+  bottom: 88px;
+  right: 16px;
+}

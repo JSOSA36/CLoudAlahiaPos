@@ -1,8 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ClienteService } from '../servicios/cliente.service';
 import { clientes } from '../models/clientes';
-import { ToastController, NavController, ModalController } from '@ionic/angular';
-import { ParametrosService } from '../servicios/parametros.service'; // ✅ importar ParametrosService
+import { ToastController, ModalController, LoadingController } from '@ionic/angular';
+import { ParametrosService } from '../servicios/parametros.service';
 
 @Component({
   selector: 'app-cliente-form',
@@ -10,110 +10,98 @@ import { ParametrosService } from '../servicios/parametros.service'; // ✅ impo
   styleUrls: ['./clientesadd.component.scss'],
 })
 export class ClientesAddComponent implements OnInit {
-
   @Input() cliente: clientes = new clientes();
   @Input() isEdit = false;
+  guardando = false;
 
   constructor(
     private clienteService: ClienteService,
     private toastCtrl: ToastController,
-    private navCtrl: NavController,
+    private loadingCtrl: LoadingController,
     private modalCtrl: ModalController,
-    private _Para: ParametrosService // ✅ inyectamos ParametrosService
+    private _Para: ParametrosService
   ) {}
 
-  async ngOnInit() {
-
-    // ⚠️ Evitar sobrescribir cliente existente
+  ngOnInit() {
     if (!this.cliente) {
       this.cliente = new clientes();
     }
 
-    // ✅ Esperar que ParametrosService tenga el IdEmpresa disponible
-    await this.cargarEmpresa();
+    this.cliente.idEmpresa = this.cliente.idEmpresa || this._Para.GetIdEmpresa();
+    this.cliente.fechaNacimiento = this.toDateInput(this.cliente.fechaNacimiento);
 
-    console.log('🧾 Cliente recibido:', this.cliente);
-    console.log('🆔 idCliente:', this.cliente?.idCliente, 'idEmpresa:', this.cliente?.idEmpresa);
+    if (!this.isEdit) {
+      this.cliente.idCliente = 0;
+    }
   }
 
-  // ======================================================
-  // 🔹 Método que asegura que el IdEmpresa esté cargado
-  // ======================================================
-  private async cargarEmpresa() {
-    let intentos = 0;
-    while ((!this._Para.IdEmpresa || this._Para.IdEmpresa === 0) && intentos < 10) {
-      await new Promise(r => setTimeout(r, 200)); // espera 200ms
-      intentos++;
-    }
-
-    // 🔹 Solo asignar IdEmpresa si el cliente no lo tiene
-    if (!this.cliente.idEmpresa || this.cliente.idEmpresa === 0) {
-      this.cliente.idEmpresa = this._Para.IdEmpresa;
-    }
-
-    console.log('✅ IdEmpresa asignado correctamente:', this.cliente.idEmpresa);
+  get iniciales(): string {
+    const parts = (this.cliente?.nombreComercial || '?').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
-  // ======================================================
-  // 💾 Guardar cliente (nuevo o edición)
-  // ======================================================
-  guardar() {
-    // ✅ asegurar que antes de enviar esté el IdEmpresa correcto
-    this.cliente.idEmpresa = this._Para.IdEmpresa;
+  async guardar() {
+    this.cliente.idEmpresa = this._Para.GetIdEmpresa();
 
     if (!this.cliente.nombreComercial?.trim()) {
-      this.mostrarToast('El nombre comercial es obligatorio');
+      await this.mostrarToast('El nombre comercial es obligatorio', 'warning');
       return;
     }
 
-    if (this.isEdit && this.cliente.idCliente) {
-      this.clienteService.EditarClientes(this.cliente).subscribe(() => {
-        this.mostrarToast('Cliente actualizado correctamente');
-        this.cerrar(true);
-      });
-    } else {
-      this.clienteService.EnviarItem(this.cliente).subscribe(() => {
-        this.mostrarToast('Cliente registrado correctamente');
-        this.cerrar(true);
-      });
-    }
-  }
+    if (this.guardando) return;
+    this.guardando = true;
 
-  // ======================================================
-  // 🗑️ Eliminar cliente
-  // ======================================================
-  eliminar() {
-    if (!this.cliente.idCliente) {
-      this.mostrarToast('No se puede eliminar sin un ID válido');
-      return;
-    }
+    const loading = await this.loadingCtrl.create({
+      message: this.isEdit ? 'Actualizando…' : 'Guardando…'
+    });
+    await loading.present();
 
-    this.clienteService.DeleteIten(this.cliente.idCliente).subscribe(() => {
-      this.mostrarToast('Cliente eliminado correctamente');
-      this.cerrar(true);
+    this.cliente.nombreComercial = this.cliente.nombreComercial.trim();
+    const req$ = this.isEdit && this.cliente.idCliente
+      ? this.clienteService.EditarClientes(this.cliente)
+      : this.clienteService.EnviarItem(this.cliente);
+
+    req$.subscribe({
+      next: async () => {
+        await loading.dismiss();
+        this.guardando = false;
+        await this.mostrarToast(
+          this.isEdit ? 'Cliente actualizado correctamente' : 'Cliente registrado correctamente',
+          'success'
+        );
+        this.cerrar(true);
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        this.guardando = false;
+        const msg = err?.error?.message || err?.message || 'No se pudo guardar el cliente';
+        await this.mostrarToast(msg, 'danger');
+      }
     });
   }
 
-  // ======================================================
-  // 🔙 Cerrar modal o vista
-  // ======================================================
   cerrar(actualizado = false) {
-    if (this.modalCtrl) {
-      this.modalCtrl.dismiss(actualizado);
-    } else {
-      this.navCtrl.back();
-    }
+    this.modalCtrl.dismiss(actualizado);
   }
 
-  // ======================================================
-  // 🍞 Mostrar notificación Toast
-  // ======================================================
-  private async mostrarToast(msg: string) {
+  private toDateInput(value: any): string {
+    if (!value) return '';
+    const s = String(value);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  private async mostrarToast(msg: string, color: 'success' | 'danger' | 'warning' = 'success') {
     const toast = await this.toastCtrl.create({
       message: msg,
-      duration: 2000,
-      color: 'success'
+      duration: 2200,
+      color,
+      position: 'top'
     });
-    toast.present();
+    await toast.present();
   }
 }

@@ -469,11 +469,29 @@
                 color="warning"
                 fill="solid"
                 (click)="abrirDevolucion(iten)"
-                [disabled]="iten.estaCancelada">
+                [disabled]="iten.estaCancelada"
+                title="Devolución">
 
                 <ion-icon
                   slot="icon-only"
                   name="return-down-back-outline">
+                </ion-icon>
+
+              </ion-button>
+
+              <!-- 🔥 NOTA DE CRÉDITO COMERCIAL (solo si tiene NCF y no hay NC previa) -->
+
+              <ion-button
+                *ngIf="puedeCrearNotaCreditoComercial(iten)"
+                size="small"
+                color="danger"
+                fill="solid"
+                (click)="abrirNotaCreditoComercial(iten); $event.stopPropagation()"
+                title="Crear Nota de Crédito">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="document-text-outline">
                 </ion-icon>
 
               </ion-button>

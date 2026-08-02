@@ -35,6 +35,28 @@ export interface LibroDiarioLinea {
   credito: number;
   referencia?: string;
   origenModulo: string;
+  origenReferenciaId?: number | null;
+  tipoOperacion?: string;
+  esAutomatico?: boolean;
+}
+
+/** Asiento agrupado para presentación tipo ERP del Libro Diario. */
+export interface LibroDiarioAsientoGrupo {
+  idAsientoContable: number;
+  numero: string;
+  fecha: string;
+  concepto: string;
+  estado: string;
+  origenModulo: string;
+  origenLabel: string;
+  origenReferenciaId?: number | null;
+  tipoOperacion?: string;
+  esAutomatico?: boolean;
+  lineas: LibroDiarioLinea[];
+  totalDebito: number;
+  totalCredito: number;
+  cuadrado: boolean;
+  puedeAbrirOrigen: boolean;
 }
 
 export interface MayorGeneralLinea {

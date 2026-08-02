@@ -120,6 +120,25 @@
           </strong>
         </div>
 
+        <div>
+          <span>Estado DGII</span>
+          <strong [class.emision-pendiente]="item.emisionPendiente">
+            {{ item.estadoDgii || (item.ncf ? 'Emitido' : 'Sin emisión') }}
+          </strong>
+        </div>
+
+        <div *ngIf="item.trackId">
+          <span>TrackId</span>
+          <strong>{{ item.trackId }}</strong>
+        </div>
+
+        <div *ngIf="(item.saldoDisponible || 0) > 0">
+          <span>Saldo a favor</span>
+          <strong>
+            RD$ {{ item.saldoDisponible | number:'1.2-2' }}
+          </strong>
+        </div>
+
         <div class="productos-devueltos">
           <span>Producto devuelto</span>
           <strong>{{ item.productosDevueltos || '—' }}</strong>
@@ -149,6 +168,19 @@
             slot="start">
           </ion-icon>
           Vista previa
+        </ion-button>
+
+        <ion-button
+          *ngIf="item.emisionPendiente"
+          size="small"
+          color="tertiary"
+          [disabled]="reintentandoId === item.idNotaCredito"
+          (click)="reintentarEmision(item)">
+          <ion-icon
+            name="refresh-outline"
+            slot="start">
+          </ion-icon>
+          Reintentar e-CF
         </ion-button>
 
         <ion-button

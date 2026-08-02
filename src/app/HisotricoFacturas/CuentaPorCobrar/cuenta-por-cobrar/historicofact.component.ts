@@ -17,6 +17,7 @@ import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
+import { NotaCreditoComercialComponent } from 'src/app/Modales/nota-credito-comercial/nota-credito-comercial.component';
 import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
 @Component({
   selector: 'app-historicofact',
@@ -649,6 +650,53 @@ getPendiente(iten: any): number {
     if (data?.refresh) {
       this.LoadListaFactura();
     }
+  }
+
+  async abrirNotaCreditoComercial(factura: facturaheader): Promise<void> {
+    if (!this.puedeCrearNotaCreditoComercial(factura)) return;
+
+    let facturaActualizada: any = factura;
+    try {
+      const fresh = await firstValueFrom(
+        this._FacturaHeader.PrintFact(factura.idFacturaHeader)
+      );
+      if (fresh?.length) {
+        facturaActualizada = fresh[0];
+      }
+    } catch (error) {
+      console.warn('No se pudo refrescar la factura para NC comercial.', error);
+    }
+
+    if (!this.puedeCrearNotaCreditoComercial(facturaActualizada)) {
+      await this.toast(
+        'Esta factura no admite nota de crédito (sin NCF, anulada o ya tiene NC).'
+      );
+      this.LoadListaFactura();
+      return;
+    }
+
+    const modal = await this.modal.create({
+      component: NotaCreditoComercialComponent,
+      cssClass: 'modal-producto-grande',
+      componentProps: { factura: facturaActualizada }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.refresh) {
+      this.LoadListaFactura();
+    }
+  }
+
+  /** NC comercial: requiere NCF (fiscal o consumo) y que no tenga NC / anulación. */
+  puedeCrearNotaCreditoComercial(factura: any): boolean {
+    if (!factura || factura.estaCancelada) return false;
+    if ((factura.montoNotaCredito || 0) > 0) return false;
+
+    const ncf = String(factura.ncf || factura.nCF || factura.NCF || '').trim();
+    if (!ncf) return false;
+
+    return true;
   }
 
  async LoadListaFactura() {

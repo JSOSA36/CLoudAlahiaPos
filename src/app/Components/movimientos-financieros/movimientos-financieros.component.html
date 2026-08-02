@@ -1,530 +1,166 @@
 <ion-header>
-
   <ion-toolbar color="primary">
-  <ion-buttons slot="start">
+    <ion-buttons slot="start">
       <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
-    <ion-title>
-      📑 Movimientos Financieros
-    </ion-title>
-
+    <ion-title>📑 Movimientos Financieros</ion-title>
     <ion-buttons slot="end">
-
-      <ion-button
-        fill="clear"
-        (click)="NuevaTransferencia()">
-
-        <ion-icon
-          slot="start"
-          name="swap-horizontal-outline">
-        </ion-icon>
-
-        Transferencia
-
+      <ion-button fill="clear" (click)="RegistrarAjuste(true)" title="Ajuste entrada">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Ajuste +
       </ion-button>
-
+      <ion-button fill="clear" (click)="RegistrarAjuste(false)" title="Ajuste salida">
+        <ion-icon slot="start" name="remove-circle-outline"></ion-icon>
+        Ajuste -
+      </ion-button>
+      <ion-button fill="clear" (click)="NuevaTransferencia()">
+        <ion-icon slot="start" name="swap-horizontal-outline"></ion-icon>
+        Transferencia
+      </ion-button>
     </ion-buttons>
-
   </ion-toolbar>
-
 </ion-header>
 
 <ion-content class="ion-padding">
 
-  <!-- =====================================
-  🔥 DASHBOARD
-  ====================================== -->
-
   <div class="dashboard-grid">
-
-    <!-- ENTRADAS -->
-
     <div class="dashboard-card entradas">
-
       <div class="icon-box">
-
-        <ion-icon
-          name="arrow-down-outline">
-        </ion-icon>
-
+        <ion-icon name="arrow-down-outline"></ion-icon>
       </div>
-
       <div class="info">
-
-        <span>
-          Entradas
-        </span>
-
-        <h2>
-
-          {{
-            totalEntradas
-            |
-            currency:'DOP'
-          }}
-
-        </h2>
-
+        <span>Entradas</span>
+        <h2>{{ totalEntradas | currency:'DOP':'code':'1.2-2' }}</h2>
       </div>
-
     </div>
-
-    <!-- SALIDAS -->
-
     <div class="dashboard-card salidas">
-
       <div class="icon-box">
-
-        <ion-icon
-          name="arrow-up-outline">
-        </ion-icon>
-
+        <ion-icon name="arrow-up-outline"></ion-icon>
       </div>
-
       <div class="info">
-
-        <span>
-          Salidas
-        </span>
-
-        <h2>
-
-          {{
-            totalSalidas
-            |
-            currency:'DOP'
-          }}
-
-        </h2>
-
+        <span>Salidas</span>
+        <h2>{{ totalSalidas | currency:'DOP':'code':'1.2-2' }}</h2>
       </div>
-
     </div>
-
-    <!-- TRANSFERENCIAS -->
-
     <div class="dashboard-card transferencias">
-
       <div class="icon-box">
-
-        <ion-icon
-          name="swap-horizontal-outline">
-        </ion-icon>
-
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
       </div>
-
       <div class="info">
-
-        <span>
-          Transferencias
-        </span>
-
-        <h2>
-
-          {{
-            totalTransferencias
-            |
-            currency:'DOP'
-          }}
-
-        </h2>
-
+        <span>Transferencias</span>
+        <h2>{{ totalTransferencias | currency:'DOP':'code':'1.2-2' }}</h2>
       </div>
-
     </div>
-
   </div>
-
-  <!-- =====================================
-  🔥 FILTROS
-  ====================================== -->
 
   <div class="filtros-box">
-
-    <!-- FECHA -->
-
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Desde
-
-      </ion-label>
-
-      <ion-input
-
-        type="date"
-
-        [(ngModel)]="fechaDesde">
-
-      </ion-input>
-
+      <ion-label position="stacked">Desde</ion-label>
+      <ion-input type="date" [(ngModel)]="fechaDesde"></ion-input>
     </ion-item>
-
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Hasta
-
-      </ion-label>
-
-      <ion-input
-
-        type="date"
-
-        [(ngModel)]="fechaHasta">
-
-      </ion-input>
-
+      <ion-label position="stacked">Hasta</ion-label>
+      <ion-input type="date" [(ngModel)]="fechaHasta"></ion-input>
     </ion-item>
-
-    <!-- CUENTA -->
-
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Cuenta
-
-      </ion-label>
-
-      <ion-select
-
-        interface="popover"
-
-        [(ngModel)]="idCuenta"
-
-        (ionChange)="Filtrar()">
-
-        <ion-select-option
-          [value]="null">
-
-          Todas
-
-        </ion-select-option>
-
-        <ion-select-option
-
-          *ngFor="
-            let cuenta of cuentas
-          "
-
-          [value]="
-            cuenta.idCuentaFinanciera
-          ">
-
+      <ion-label position="stacked">Cuenta *</ion-label>
+      <ion-select interface="popover" [(ngModel)]="idCuenta" placeholder="Seleccione cuenta">
+        <ion-select-option *ngFor="let cuenta of cuentas" [value]="cuenta.idCuentaFinanciera">
           {{ cuenta.nombre }}
-
         </ion-select-option>
-
       </ion-select>
-
     </ion-item>
-
-    <!-- TIPO -->
-
     <ion-item lines="none">
-
-      <ion-label position="stacked">
-
-        Tipo
-
-      </ion-label>
-
-      <ion-select
-
-        interface="popover"
-
-        [(ngModel)]="tipoMovimiento"
-
-        (ionChange)="Filtrar()">
-
-        <ion-select-option value="">
-
-          Todos
-
-        </ion-select-option>
-
-        <ion-select-option value="ENTRADA">
-
-          ENTRADA
-
-        </ion-select-option>
-
-        <ion-select-option value="SALIDA">
-
-          SALIDA
-
-        </ion-select-option>
-
-        <ion-select-option value="TRANSFERENCIA">
-
-          TRANSFERENCIA
-
-        </ion-select-option>
-
+      <ion-label position="stacked">Tipo</ion-label>
+      <ion-select interface="popover" [(ngModel)]="tipoMovimiento">
+        <ion-select-option value="">Todos</ion-select-option>
+        <ion-select-option *ngFor="let t of tiposMovimiento" [value]="t">{{ t }}</ion-select-option>
       </ion-select>
-
     </ion-item>
-
-    <!-- SEARCH -->
-
-    <ion-searchbar
-
-      placeholder="Buscar movimiento..."
-
-      [(ngModel)]="search"
-
-      (ionInput)="Filtrar()">
-
-    </ion-searchbar>
-
-    <!-- BOTON -->
-
-    <ion-button
-
-      color="primary"
-
-      (click)="CargarMovimientos()">
-
-      <ion-icon
-        slot="start"
-        name="search-outline">
-      </ion-icon>
-
+    <ion-item lines="none">
+      <ion-label position="stacked">Categoría</ion-label>
+      <ion-input [(ngModel)]="categoria" placeholder="Ej: AJUSTE"></ion-input>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label position="stacked">Estado</ion-label>
+      <ion-select interface="popover" [(ngModel)]="estado">
+        <ion-select-option value="">Activos (sin anulados)</ion-select-option>
+        <ion-select-option *ngFor="let e of estados" [value]="e">{{ e }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label position="stacked">Conciliación</ion-label>
+      <ion-select interface="popover" [(ngModel)]="estadoConciliacion">
+        <ion-select-option value="">Todos</ion-select-option>
+        <ion-select-option *ngFor="let e of estadosConciliacion" [value]="e">{{ e }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-searchbar placeholder="Buscar motivo, comprobante..." [(ngModel)]="search"></ion-searchbar>
+    <ion-button color="primary" (click)="CargarMovimientos()">
+      <ion-icon slot="start" name="search-outline"></ion-icon>
       Consultar
-
     </ion-button>
-
+    <ion-button color="danger" fill="outline" (click)="AnularSeleccionados()" [disabled]="seleccionados.size === 0">
+      <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+      Anular ({{ seleccionados.size }})
+    </ion-button>
   </div>
 
-  <!-- =====================================
-  🔥 LOADING
-  ====================================== -->
-
-  <div
-
-    class="loading-box"
-
-    *ngIf="cargando">
-
-    <ion-spinner
-      name="crescent">
-    </ion-spinner>
-
-    <p>
-      Cargando movimientos...
-    </p>
-
+  <div class="loading-box" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando movimientos...</p>
   </div>
 
-  <!-- =====================================
-  🔥 LISTADO
-  ====================================== -->
-
-  <div
-
-    class="movimientos-list"
-
-    *ngIf="!cargando">
-
-    <div
-
-      class="movimiento-card"
-
-      *ngFor="
-        let item of
-        movimientosFiltrados
-      ">
-
-      <!-- =====================================
-      🔥 ICONO
-      ====================================== -->
-
+  <div class="table-wrap" *ngIf="!cargando && movimientos.length > 0">
+    <div class="table-box">
+      <div class="table-header">
+        <span></span>
+        <span>Fecha</span>
+        <span>Tipo</span>
+        <span>Motivo</span>
+        <span>Estado</span>
+        <span>Concil.</span>
+        <span class="num">Monto</span>
+        <span class="num">Saldo</span>
+      </div>
       <div
-
-        class="tipo-icon"
-
-        [style.background]="
-          GetColor(
-            item.tipoMovimiento
-          )
-        ">
-
-        <ion-icon
-
-          [name]="
-            GetIcono(
-              item.tipoMovimiento
-            )
-          ">
-        </ion-icon>
-
-      </div>
-
-      <!-- =====================================
-      🔥 INFO
-      ====================================== -->
-
-      <div class="movimiento-info">
-
-        <div class="top-info">
-
-          <h2>
-
-            {{
-              item.tipoMovimiento
-            }}
-
-          </h2>
-
-          <span class="fecha">
-
-            {{
-
-              item.fechaMovimiento
-              |
-              date:
-              'dd/MM/yyyy hh:mm a'
-            }}
-
+        class="table-row"
+        *ngFor="let item of movimientos"
+        [class.seleccionado]="estaSeleccionado(item.idMovimientoFinanciero)"
+        [class.anulado]="item.estado === 'ANULADO'"
+        (click)="toggleSeleccion(item)">
+        <span class="chk">
+          <ion-checkbox
+            *ngIf="item.estado === 'CONFIRMADO'"
+            [checked]="estaSeleccionado(item.idMovimientoFinanciero)"
+            (click)="$event.stopPropagation()"
+            (ionChange)="toggleSeleccion(item)">
+          </ion-checkbox>
+        </span>
+        <span class="fecha">{{ item.fechaMovimiento | date:'dd/MM/yyyy' }}</span>
+        <span>
+          <span class="pill" [style.background]="GetColor(item.tipoMovimiento) + '22'" [style.color]="GetColor(item.tipoMovimiento)">
+            {{ item.tipoMovimiento }}
           </span>
-
-        </div>
-
-        <!-- MOTIVO -->
-
-        <div class="motivo">
-
-          {{
-            item.motivo
-            ||
-            'Sin motivo'
-          }}
-
-        </div>
-
-        <!-- OBS -->
-
-        <div
-
-          class="obs"
-
-          *ngIf="
-            item.observacion
-          ">
-
-          {{
-            item.observacion
-          }}
-
-        </div>
-
-        <!-- CUENTAS -->
-
-        <div class="cuentas-info">
-
-          <!-- ORIGEN -->
-
-          <span
-
-            *ngIf="
-              item.idCuentaOrigen
-            ">
-
-            ⬆️
-
-            {{
-              GetNombreCuenta(
-                item.idCuentaOrigen
-              )
-            }}
-
-          </span>
-
-          <!-- DESTINO -->
-
-          <span
-
-            *ngIf="
-              item.idCuentaDestino
-            ">
-
-            ⬇️
-
-            {{
-              GetNombreCuenta(
-                item.idCuentaDestino
-              )
-            }}
-
-          </span>
-
-        </div>
-
+        </span>
+        <span class="motivo-cell" [title]="item.motivo">{{ item.motivo || 'Sin motivo' }}</span>
+        <span>
+          <span class="pill estado-pill" [attr.data-estado]="item.estado">{{ item.estado }}</span>
+        </span>
+        <span>
+          <span class="pill concil-pill" [attr.data-estado]="item.estadoConciliacion">{{ item.estadoConciliacion }}</span>
+        </span>
+        <span class="num money" [style.color]="GetColor(item.tipoMovimiento)">{{ item.monto | currency:'DOP':'code':'1.2-2' }}</span>
+        <span class="num money saldo">{{ item.saldoAcumulado | currency:'DOP':'code':'1.2-2' }}</span>
       </div>
-
-      <!-- =====================================
-      🔥 MONTO
-      ====================================== -->
-
-      <div class="monto-box">
-
-        <strong
-
-          [style.color]="
-            GetColor(
-              item.tipoMovimiento
-            )
-          ">
-
-          {{
-            item.monto
-            |
-            currency:'DOP'
-          }}
-
-        </strong>
-
-      </div>
-
     </div>
-
   </div>
 
-  <!-- =====================================
-  🔥 EMPTY
-  ====================================== -->
-
-  <div
-
-    class="empty-box"
-
-    *ngIf="
-
-      !cargando
-
-      &&
-
-      movimientosFiltrados.length === 0
-    ">
-
-    <ion-icon
-      name="wallet-outline">
-    </ion-icon>
-
-    <h2>
-      No existen movimientos
-    </h2>
-
-    <p>
-
-      No se encontraron
-      movimientos financieros.
-
-    </p>
-
+  <div class="empty-box" *ngIf="!cargando && movimientos.length === 0">
+    <ion-icon name="wallet-outline"></ion-icon>
+    <h2>No existen movimientos</h2>
+    <p *ngIf="!idCuenta">Seleccione una cuenta y pulse Consultar.</p>
+    <p *ngIf="idCuenta">No se encontraron movimientos con los filtros aplicados.</p>
   </div>
 
 </ion-content>

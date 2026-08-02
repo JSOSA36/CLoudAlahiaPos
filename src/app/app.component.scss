@@ -65,8 +65,8 @@ ion-menu ion-content {
 
   background: linear-gradient(
     135deg,
-    #2F80ED,
-    #174A70
+    #1454B8,
+    #0B419B
   );
 
   padding: 16px 0 12px;
@@ -80,19 +80,14 @@ ion-menu ion-content {
 /* 🔹 Logo dentro del menú */
 .menu-logo {
 
-  width: 70px;
-  height: 70px;
+  width: 72px;
+  height: 72px;
   margin-bottom: 6px;
 
   border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #2F80ED,
-    #174A70
-  );
-
-  border: 3px solid #F2C94C;
+  overflow: hidden;
+  background: transparent;
+  border: none;
 
   display: flex;
   align-items: center;
@@ -101,8 +96,8 @@ ion-menu ion-content {
 }
 .menu-logo img {
   width: 100%;
-  height: auto;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
 }
 /* 🔹 Títulos */
 .menu-title h2 {

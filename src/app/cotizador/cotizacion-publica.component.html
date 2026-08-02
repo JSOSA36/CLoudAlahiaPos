@@ -1,0 +1,40 @@
+<div class="pub-page">
+  <header class="pub-hero">
+    <div class="brand">Alahia ERP</div>
+    <h1>Propuesta comercial</h1>
+    <p *ngIf="vista">Folio {{ vista.folio }} · {{ vista.fechaCreacion | date:'dd/MM/yyyy' }}</p>
+  </header>
+
+  <div *ngIf="cargando" class="state">Cargando cotización…</div>
+  <div *ngIf="!cargando && error" class="state error">{{ error }}</div>
+
+  <section *ngIf="vista" class="pub-card">
+    <p class="resumen" *ngIf="vista.resumen">{{ vista.resumen }}</p>
+
+    <div class="meta">
+      <div><span>Usuarios</span><strong>{{ vista.usuarios }}</strong></div>
+      <div><span>Sucursales</span><strong>{{ vista.sucursales }}</strong></div>
+      <div *ngIf="vista.usaFacturacionElectronica">
+        <span>Docs e-CF / mes</span><strong>{{ vista.documentosElectronicosMensuales }}</strong>
+      </div>
+    </div>
+
+    <h2>Desglose</h2>
+    <table>
+      <tr *ngFor="let l of vista.desglose">
+        <td>{{ l.concepto }}</td>
+        <td>{{ l.montoUSD | number:'1.2-2' }} {{ vista.moneda }}</td>
+      </tr>
+      <tr class="total">
+        <td>Total mensual estimado</td>
+        <td>{{ vista.precioMensualUSD | number:'1.2-2' }} {{ vista.moneda }}</td>
+      </tr>
+    </table>
+
+    <ul class="expl" *ngIf="vista.explicaciones?.length">
+      <li *ngFor="let e of vista.explicaciones">{{ e }}</li>
+    </ul>
+
+    <p class="aviso">{{ vista.aviso }}</p>
+  </section>
+</div>

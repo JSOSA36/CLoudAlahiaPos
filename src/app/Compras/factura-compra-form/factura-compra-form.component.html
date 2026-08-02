@@ -89,7 +89,7 @@
             <strong>{{ fechaDocumento | date:'dd/MM/yyyy' }}</strong>
           </div>
           <div class="fc-meta-item" *ngIf="numeroComprobante">
-            <span class="label">NCF / Comprobante</span>
+            <span class="label">e-NCF</span>
             <strong>{{ numeroComprobante }}</strong>
           </div>
           <div class="fc-meta-item">
@@ -186,18 +186,19 @@
           </div>
 
           <div class="fc-field">
-            <label>Nº comprobante del proveedor</label>
+            <label>e-NCF del proveedor</label>
             <ion-input
-              placeholder="Ej. B0100000001"
+              placeholder="Ej. E310000000001"
               [(ngModel)]="numeroComprobante"
               [readonly]="!esBorrador">
             </ion-input>
+            <small class="fc-field-hint">Solo comprobantes electrónicos (13 posiciones: E31, E32, E41…).</small>
           </div>
 
           <div class="fc-field" *ngIf="!esOrdenCompra">
-            <label>NCF / documento modificado</label>
+            <label>e-NCF / documento modificado</label>
             <ion-input
-              placeholder="Solo NC/ND que modifica otro NCF"
+              placeholder="Solo NC/ND electrónica que modifica otro e-NCF"
               [(ngModel)]="ncfModificado"
               [readonly]="!esBorrador">
             </ion-input>
@@ -296,6 +297,50 @@
           <div class="fc-field fc-field-full">
             <label>ITBIS sujeto a proporcionalidad Art. 349 (opcional)</label>
             <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisProporcionalidad" [readonly]="!esBorrador"></ion-input>
+          </div>
+        </div>
+
+        <div class="fc-retencion-box" *ngIf="mostrarClasificacionItbis && !esOrdenCompra">
+          <div class="fc-retencion-toggle">
+            <div>
+              <strong>Destino del ITBIS (Anexo A / IT-1)</strong>
+              <p class="fc-field-hint">
+                Clasifica el ITBIS de esta compra para la liquidación. Confirme cuando el destino sea definitivo.
+              </p>
+            </div>
+            <ion-toggle
+              [(ngModel)]="clasificacionConfirmada"
+              [disabled]="!esBorrador || !destinoItbis">
+            </ion-toggle>
+          </div>
+          <div class="fc-grid fc-grid-2">
+            <div class="fc-field fc-field-full">
+              <label>Destino ITBIS <span class="req">*</span></label>
+              <ion-select
+                [(ngModel)]="destinoItbis"
+                [disabled]="!esBorrador"
+                interface="popover"
+                placeholder="Seleccione destino">
+                <ion-select-option *ngFor="let d of destinosItbisAnexoA" [value]="d.codigo">
+                  {{ d.etiqueta }}
+                </ion-select-option>
+              </ion-select>
+              <small class="fc-field-hint">
+                Toggle = clasificación confirmada. Sin confirmar, el IT-1 advierte en casillas 45–53.
+              </small>
+            </div>
+            <div class="fc-field">
+              <label>ITBIS compras locales</label>
+              <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisComprasLocales" [readonly]="!esBorrador"></ion-input>
+            </div>
+            <div class="fc-field">
+              <label>ITBIS servicios</label>
+              <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisServicios" [readonly]="!esBorrador"></ion-input>
+            </div>
+            <div class="fc-field">
+              <label>ITBIS importaciones</label>
+              <ion-input type="number" min="0" step="0.01" [(ngModel)]="itbisImportaciones" [readonly]="!esBorrador"></ion-input>
+            </div>
           </div>
         </div>
 

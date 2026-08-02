@@ -1,0 +1,25 @@
+---
+description: Professional ERP design standards for all new features
+alwaysApply: true
+---
+
+# Estándares de ERP profesional
+
+Toda funcionalidad nueva o mejora material debe diseñarse como ERP profesional, no como parche de pantalla.
+
+## Principios
+
+1. **No duplicar información** — una fuente de verdad; referencias, no copias divergentes.
+2. **Automatizar lo repetible** — evitar procesos manuales cuando el sistema pueda derivar, calcular o publicar eventos.
+3. **Guiar al usuario** — flujos claros, validaciones tempranas, defaults sensatos, mensajes accionables.
+4. **Registrar una sola vez** — capturar el dato en el origen; el resto del ERP consume ese registro.
+5. **Trazabilidad y auditoría** — cada movimiento relevante deja quién, cuándo, qué y por qué (o vínculo al documento origen).
+6. **Parametrizable** — comportamiento por empresa/configuración, no hardcode por cliente.
+7. **No sacrificar arquitectura** por solución rápida — sin atajos que rompan capas, integridad o contratos.
+8. **Escalabilidad, mantenibilidad y simplicidad** — en ese orden de tensión: simple primero, sin cerrar puertas a escala ni dejar deuda opaca.
+
+## Al implementar
+
+- Preferir reutilizar servicios, eventos y tablas existentes frente a tablas/pantallas espejo.
+- Si hace falta un bypass temporal, documentarlo y no presentarlo como diseño final.
+- Ante duda entre “rápido” y “correcto para ERP”, elegir correcto y proponer el camino corto solo si el usuario lo pide explícitamente.

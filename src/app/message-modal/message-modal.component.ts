@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { ModalController, AlertController } from '@ionic/angular';
+import { ModalController, AlertController, ToastController } from '@ionic/angular';
 import { PlanesCloudService, PlanCloud } from '../servicios/lanes-cloud.service';
 import { ParametrosService } from '../servicios/parametros.service';
 import { PagoEmpresaService } from '../servicios/PagoEmpresaService';
@@ -8,6 +8,7 @@ import {
   EmpresaCargosRecurrentesService,
   SuscripcionLineaFactura
 } from '../servicios/empresa-cargos-recurrentes.service';
+import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
 
 @Component({
   selector: 'app-message-modal',
@@ -32,6 +33,7 @@ export class MessageModalComponent {
   PlanActual: PlanCloud | null = null;
   planActualNombre: string = '';
   desglose: SuscripcionLineaFactura[] = [];
+  cuentasCobro: SuscripcionCuentaCobro[] = [];
   tasa = 60;
   totalDop = 0;
 
@@ -51,7 +53,9 @@ export class MessageModalComponent {
     private parametros: ParametrosService,
     private pagoService: PagoEmpresaService,
     private cargosSvc: EmpresaCargosRecurrentesService,
-    private alertCtrl: AlertController
+    private cobrosSvc: SuscripcionCobrosService,
+    private alertCtrl: AlertController,
+    private toastCtrl: ToastController
   ) {}
 
   cerrar() {
@@ -81,8 +85,11 @@ export class MessageModalComponent {
   }
 
   get nombrePlanLinea(): string {
-    const n = this.lineaPlan?.nombre || 'Plan';
-    return n.replace(/^PLAN\s*[—\-]\s*/i, '').trim() || n;
+    const n = this.lineaPlan?.nombre
+      || this.parametros.NombreEmpresa
+      || 'Plan';
+    if (/^Plan\s+/i.test(n)) return n;
+    return `Plan ${n}`.trim();
   }
 
   ngOnInit() {
@@ -92,6 +99,10 @@ export class MessageModalComponent {
     if (this.mostrarPago) {
       this.pagoForm.monto = this.precioPlan || 0;
       this.totalDop = (this.precioPlan || 0) * this.tasa;
+      this.cobrosSvc.cuentasCobro(true).subscribe({
+        next: (list) => this.cuentasCobro = list || [],
+        error: () => this.cuentasCobro = []
+      });
       this.cargosSvc.calculo(this.parametros.IdEmpresa).subscribe({
         next: (c) => {
           this.precioPlan = c.total;
@@ -101,17 +112,7 @@ export class MessageModalComponent {
           this.totalDop = c.totalDop ?? (c.total * this.tasa);
         },
         error: () => {
-          this.service.getPlanesPorEmpresa(this.parametros.IdEmpresa).subscribe({
-            next: (planes: PlanCloud[]) => {
-              const actual = (planes || []).find((p: PlanCloud) => p.esActual);
-              if (actual?.precio) {
-                this.pagoForm.monto = actual.precio;
-                this.precioPlan = actual.precio;
-                this.totalDop = actual.precio * this.tasa;
-              }
-            },
-            error: () => {}
-          });
+          // Sin fallback a catálogo de planes: el total viene de MontoServicio + CargoAdicional.
         }
       });
     }
@@ -145,6 +146,29 @@ export class MessageModalComponent {
     const file = event.target.files[0];
     if (file) {
       this.archivo = file;
+    }
+  }
+
+  async copiarTexto(valor: string, etiqueta: string) {
+    const texto = (valor || '').trim();
+    if (!texto) return;
+    try {
+      await navigator.clipboard.writeText(texto);
+      const t = await this.toastCtrl.create({
+        message: `${etiqueta} copiada`,
+        duration: 1800,
+        color: 'success',
+        position: 'top'
+      });
+      await t.present();
+    } catch {
+      const t = await this.toastCtrl.create({
+        message: 'No se pudo copiar',
+        duration: 2000,
+        color: 'warning',
+        position: 'top'
+      });
+      await t.present();
     }
   }
 
@@ -191,12 +215,6 @@ export class MessageModalComponent {
         );
       }
     });
-  }
-
-  copiarTexto(texto: string) {
-    navigator.clipboard.writeText(texto)
-      .then(() => console.log('Copiado:', texto))
-      .catch(err => console.error('Error al copiar:', err));
   }
 
   cargarPlanes() {

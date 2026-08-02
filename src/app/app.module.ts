@@ -17,6 +17,7 @@ import { PoliticasAdminComponent } from './politicas/politicas-admin.component';
 import { PoliticasAceptacionesComponent } from './politicas/politicas-aceptaciones.component';
 import { ServicioSuspendidoComponent } from './suscripciones/servicio-suspendido.component';
 import { CobrosAdminComponent } from './suscripciones/cobros-admin.component';
+import { EmpresasAdminComponent } from './Empresa/empresas-admin/empresas-admin.component';
 import { PagoSuscripcionComponent } from './suscripciones/pago-suscripcion.component';
 import { TicketsComponent } from './tickets/tickets.component';
 import { TicketDesdeLoginComponent } from './tickets/ticket-desde-login.component';
@@ -56,6 +57,7 @@ import { ClienteshappyComponent } from './Clientes/clienteshappy/clienteshappy.c
 import { CitaAddComponent } from './Citas/citasadd/citasadd.component';
 import { CitasComponent } from './Citas/citas/citas.component';
 import { GastoFormPage } from './Gastos/gastoadd/gastoadd.component';
+import { CategoriasGastoComponent } from './Gastos/categorias-gasto/categorias-gasto.component';
 import { ListadogastosComponent } from './Gastos/listadogastos/listadogastos.component';
 import { ListadoDocumentosClinicosComponent } from './DocumentosClinicos/listado-documentos-clinicos/listado-documentos-clinicos.component';
 import { DocumentoClinicoFormComponent } from './DocumentosClinicos/documento-clinico-form/documento-clinico-form.component';
@@ -103,6 +105,7 @@ import { ParametrosConfigComponent } from './parametros-config/parametros-config
 import { LavadorDashboardComponent } from './lavador-dashboard/lavador-dashboard.component';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
 import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
+import { NotaCreditoComercialComponent } from 'src/app/Modales/nota-credito-comercial/nota-credito-comercial.component';
 import { AnularGastoComponent } from 'src/app/Modales/anular-gasto/anular-gasto.component';
 import { PagoProveedorModalComponent } from 'src/app/Modales/pago-proveedor/pago-proveedor-modal.component';
 import { PagoMultipleFacturaComponent } from 'src/app/Modales/pago-multiple-factura/pago-multiple-factura.component';
@@ -112,6 +115,7 @@ import { ListadoNotasCreditoComponent } from './listado-notas-credito/listado-no
 import { HistoricofactComponent } from './HisotricoFacturas/CuentaPorCobrar/cuenta-por-cobrar/historicofact.component';
 import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.component';
 import { Reporte607Component } from './Components/reporte607/reporte607.component';
+import { ReporteIt1Component } from './Components/reporte-it1/reporte-it1.component';
 import { ReportePerdidasComponent } from './Components/reporte-perdidas/reporte-perdidas.component';
 import { PagosListComponent } from './pagos/pagos-list/pagos-list.component';
 import { CierreCajaComponent } from './Components/cierre-caja/cierre-caja.component';
@@ -125,7 +129,11 @@ import { ModalCuentaFinancieraComponent } from './Components/modal-cuenta-financ
 import { CuentasFinancierasComponent } from './Components/cuentas-financieras/cuentas-financieras.component';
 import { ModalMetodoPagoCuentaComponent } from './Components/modal-metodo-pago-cuenta/modal-metodo-pago-cuenta.component';
 import { ModalTransferenciaFinancieraComponent } from './Components/modal-transferencia-financiera/modal-transferencia-financiera.component';
+import { ModalAjusteFinancieroComponent } from './Components/modal-ajuste-financiero/modal-ajuste-financiero.component';
 import { MovimientosFinancierosComponent } from './Components/movimientos-financieros/movimientos-financieros.component';
+import { ConciliacionBancariaComponent } from './Components/conciliacion-bancaria/conciliacion-bancaria.component';
+import { ExtractoBancarioComponent } from './Components/extracto-bancario/extracto-bancario.component';
+import { TransferenciasFinancierasComponent } from './Components/transferencias-financieras/transferencias-financieras.component';
 import { HistoricoMovimientosInventarioComponent } from './Components/historico-movimientos-inventario/historico-movimientos-inventario.component';
 import { ConducesComponent } from './Components/conduces/conduces.component';
 import { EmitirConduceComponent } from './Components/conduces/emitir-conduce.component';
@@ -186,16 +194,21 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     EmpleadoFormComponent,
     MovimientoCajaComponent,
     MovimientosFinancierosComponent,
+    ConciliacionBancariaComponent,
+    ExtractoBancarioComponent,
+    TransferenciasFinancierasComponent,
     MetodosPagoCuentaComponent,
     ModalMetodoPagoCuentaComponent,
     ModalCuentaFinancieraComponent,
     ModalTransferenciaFinancieraComponent,
+    ModalAjusteFinancieroComponent,
     CuentasFinancierasComponent,
     AperturaCajaComponent,
     CierreCajaComponent,
     FormEncargosComponent,
     ListadoEncargosComponent,
     Reporte607Component,
+    ReporteIt1Component,
     ReportePerdidasComponent,
     PagosListComponent,
     ListadoCajaComponent,
@@ -207,6 +220,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     HistoricofactComponent,
     DevolucionFacturaComponent,
     AnularFacturaComponent,
+    NotaCreditoComercialComponent,
     AnularGastoComponent,
     PagoProveedorModalComponent,
     PagoMultipleFacturaComponent,
@@ -225,6 +239,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     PoliticasAceptacionesComponent,
     ServicioSuspendidoComponent,
     CobrosAdminComponent,
+    EmpresasAdminComponent,
     PagoSuscripcionComponent,
     TicketsComponent,
     TicketDesdeLoginComponent,
@@ -259,6 +274,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     CitaAddComponent,
     CitasComponent,
     GastoFormPage,
+    CategoriasGastoComponent,
     ListadogastosComponent,
     ListadoDocumentosClinicosComponent,
     DocumentoClinicoFormComponent,

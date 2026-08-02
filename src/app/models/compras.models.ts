@@ -48,6 +48,14 @@ export interface FacturaCompra {
   tipoRetencionIsr?: number | null;
   montoRetencionRenta?: number;
   fechaPagoFiscal?: string;
+  destinoItbis?: number | null;
+  destinoItbisSugerido?: number | null;
+  clasificacionConfirmada?: boolean;
+  itbisComprasLocales?: number;
+  itbisServicios?: number;
+  itbisImportaciones?: number;
+  codigoNormaRetencionItbis?: string;
+  baseRetencionItbis?: number;
   totalDescuento: number;
   totalItbis: number;
   total: number;
@@ -101,6 +109,13 @@ export interface GuardarFacturaCompraRequest {
   tipoRetencionIsr?: number | null;
   montoRetencionRenta?: number;
   fechaPagoFiscal?: string;
+  destinoItbis?: number | null;
+  clasificacionConfirmada?: boolean;
+  itbisComprasLocales?: number;
+  itbisServicios?: number;
+  itbisImportaciones?: number;
+  codigoNormaRetencionItbis?: string;
+  baseRetencionItbis?: number;
   detalles: GuardarFacturaCompraDetalleRequest[];
 }
 

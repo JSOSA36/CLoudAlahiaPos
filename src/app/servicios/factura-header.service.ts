@@ -10,6 +10,7 @@ import { FacturaHeaderDto } from '../Modales/facturaheader.dto';
 import { ServicioRankingDto } from '../models/ServicioRankingDto .models';
 import { CuentaPorCobrarDto } from '../models/CuentaPorCobrarDto .models';
 import { CierreCajaDto } from '../models/CierreCajaDto.models';
+import { Reporte607 } from '../models/reporte607.models';
 @Injectable({ providedIn: 'root' })
 export class FacturaHeaderService {
 
@@ -102,14 +103,15 @@ GetListadoOrdenesByFecha(
 GetReporte607(
   desde: string,
   hasta: string,
-  idEmpresa: number
-): Observable<any[]> {
-
-  return this.httpClient.get<any[]>(
-
-    `${this.baseUrl}/Reporte607?desde=${desde}&hasta=${hasta}&idEmpresa=${idEmpresa}`
-
-  );
+  idEmpresa: number,
+  periodo?: string
+): Observable<Reporte607> {
+  let url =
+    `${this.baseUrl}/Reporte607?desde=${desde}&hasta=${hasta}&idEmpresa=${idEmpresa}`;
+  if (periodo) {
+    url += `&periodo=${encodeURIComponent(periodo)}`;
+  }
+  return this.httpClient.get<Reporte607>(url);
 }
   GetAllFacturaPendiente(IdCliente: number, IdEmpresa: number): Observable<FacturaHeaderDto[]> {
     return this.httpClient.get<FacturaHeaderDto[]>(
@@ -180,4 +182,86 @@ GenerarOrdenDesdeCita(idCita: number): Observable<any> {
   return this.httpClient.get<CuentaPorCobrarDto[]>(`${this.baseUrl}/GetCuentasPorCobrar/${idEmpresa}`);
 }
 
+  /** Link firmado para que el cliente final abra la cotización POS sin login. */
+  crearLinkCotizacionPublica(
+    idFacturaHeader: number,
+    idEmpresa: number,
+    publicBaseUrl?: string
+  ): Observable<CotizacionPublicaLink> {
+    const base =
+      publicBaseUrl ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+    return this.httpClient.post<CotizacionPublicaLink>(
+      `${this.baseUrl}/cotizacion/${idFacturaHeader}/compartir?idEmpresa=${idEmpresa}`,
+      { publicBaseUrl: base }
+    );
+  }
+
+  obtenerCotizacionPublica(token: string): Observable<CotizacionPublicaVista> {
+    return this.httpClient.get<CotizacionPublicaVista>(
+      `${this.baseUrl}/cotizacion-publica/${encodeURIComponent(token)}`
+    );
+  }
+
+  /** Preferir URL corta https (clickeable en WhatsApp) sobre localhost. */
+  buildLinkCotizacionPublica(link: CotizacionPublicaLink | string): string {
+    if (typeof link === 'string') {
+      const origin =
+        typeof window !== 'undefined' && window.location?.origin
+          ? window.location.origin
+          : '';
+      return `${origin}/cotizacion/ver/${link}`;
+    }
+
+    const corta = (link.urlCorta || '').trim();
+    if (corta) {
+      return corta;
+    }
+
+    const larga = (link.url || '').trim();
+    if (larga) {
+      return larga;
+    }
+
+    const origin =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : '';
+    return `${origin}/cotizacion/ver/${link.token}`;
+  }
+
+}
+
+export interface CotizacionPublicaLink {
+  token: string;
+  idFacturaHeader: number;
+  numeroDocumento: string;
+  url?: string;
+  urlCorta?: string;
+}
+
+export interface CotizacionPublicaLinea {
+  cantidad: number;
+  descripcion: string;
+  precioUnitario: number;
+  subTotal: number;
+}
+
+export interface CotizacionPublicaVista {
+  numeroDocumento: string;
+  fecha: string;
+  fechaValidez: string;
+  nombreEmpresa: string;
+  telefonoEmpresa?: string;
+  direccionEmpresa?: string;
+  logoEmpresa?: string;
+  rncEmpresa?: string;
+  clienteNombre: string;
+  subTotal: number;
+  totalItbis: number;
+  totalDescuento: number;
+  total: number;
+  nota?: string;
+  moneda?: string;
+  lineas: CotizacionPublicaLinea[];
 }

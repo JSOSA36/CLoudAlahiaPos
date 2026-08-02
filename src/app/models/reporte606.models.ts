@@ -1,5 +1,7 @@
 export interface Reporte606Linea {
   idOrdenCompraHeader: number;
+  /** Compra | Gasto */
+  origenDocumento?: string;
   numeroDocumento?: string;
   proveedorNombre?: string;
   rncCedula: string;

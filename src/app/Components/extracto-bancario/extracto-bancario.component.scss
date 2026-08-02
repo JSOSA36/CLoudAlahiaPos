@@ -1,0 +1,438 @@
+:host { display: block; height: 100%; }
+
+ion-content { --background: #f4f7fb; }
+
+.panel {
+  background: white;
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.panel h3 {
+  margin: 0 0 4px;
+  font-weight: 900;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+ion-item {
+  --background: #f8fafc;
+  --border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  margin-bottom: 12px;
+}
+
+// ---------- Carga ----------
+
+.upload-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.upload-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon { font-size: 24px; color: #fff; }
+}
+
+.guia {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px 16px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 18px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: 0.15s ease;
+  margin-bottom: 14px;
+
+  &:hover { border-color: #2563eb; background: #eff6ff; }
+
+  ion-icon { font-size: 32px; color: #64748b; }
+
+  &.con-archivo {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+}
+
+.dz-titulo { font-weight: 700; color: #0f172a; }
+.dz-sub { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+
+.nombre-archivo {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-csv {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.pegar-csv { margin-top: 8px; }
+
+// ---------- Metadatos ----------
+
+.meta-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.meta-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  min-width: 0;
+
+  span {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+  }
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ---------- KPIs ----------
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px 16px;
+  min-width: 0;
+
+  ion-icon { font-size: 26px; flex-shrink: 0; color: #64748b; }
+
+  span {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  strong {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #0f172a;
+  }
+
+  > div { min-width: 0; }
+}
+
+.kpi-ok    { border-color: #86efac; background: #f0fdf4; ion-icon { color: #16a34a; } }
+.kpi-info  { border-color: #93c5fd; background: #eff6ff; ion-icon { color: #2563eb; } }
+.kpi-warn  { border-color: #fcd34d; background: #fffbeb; ion-icon { color: #d97706; } }
+.kpi-danger{ border-color: #fca5a5; background: #fef2f2; ion-icon { color: #dc2626; } }
+.kpi-gasto { ion-icon { color: #dc2626; } }
+.kpi-ingreso { ion-icon { color: #16a34a; } }
+
+// ---------- Tabla ----------
+
+.tabla-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tabla-head-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtro-segment {
+  width: auto;
+  min-width: 260px;
+  --background: #f1f5f9;
+  border-radius: 12px;
+
+  ion-segment-button {
+    --indicator-color: #2563eb;
+    font-weight: 700;
+    text-transform: none;
+    min-width: auto;
+    font-size: 0.78rem;
+  }
+}
+
+.meta-head-derecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  ion-button {
+    --border-radius: 12px;
+    text-transform: none;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.tabla-lineas { min-width: 1320px; }
+
+.tabla-lineas .row {
+  display: grid;
+  grid-template-columns:
+    96px 110px minmax(220px, 1.4fr) 120px 120px 130px 118px minmax(190px, 1fr) 64px 168px;
+  gap: 8px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #eef2f7;
+  align-items: center;
+}
+
+.tabla-lineas .row:last-child { border-bottom: none; }
+
+.tabla-lineas .row.head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fila-auto { background: #fbfefb; }
+
+.fecha {
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.ref {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.descripcion {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.desc-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.reco-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef9c3;
+  color: #854d0e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ion-icon { font-size: 12px; flex-shrink: 0; }
+}
+
+.num {
+  text-align: right;
+  justify-self: end;
+  width: 100%;
+}
+
+.money {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  white-space: nowrap;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.86rem;
+}
+
+.money.debito { color: #b91c1c; }
+.money.credito { color: #15803d; }
+
+.conf {
+  font-weight: 800;
+  color: #475569;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
+.estado-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: #e2e8f0;
+  color: #475569;
+
+  ion-icon { font-size: 11px; }
+}
+
+.estado-pill[data-estado='pendiente'] { background: #fef3c7; color: #b45309; }
+.estado-pill[data-estado='sugerido']  { background: #dbeafe; color: #1d4ed8; }
+.estado-pill[data-estado='confirmado']{ background: #dcfce7; color: #15803d; }
+.estado-pill[data-estado='auto']      { background: #d1fae5; color: #047857; }
+.estado-pill[data-estado='ignorado']  { background: #e2e8f0; color: #64748b; }
+
+.sugerido-cell {
+  min-width: 0;
+  color: #334155;
+  font-size: 0.82rem;
+}
+
+.sug-texto {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+
+  ion-button {
+    --border-radius: 10px;
+    margin: 0;
+    text-transform: none;
+    font-weight: 700;
+  }
+}
+
+.sin-accion { color: #94a3b8; }
+
+// ---------- Genéricos ----------
+
+.loading-box,
+.empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #64748b;
+
+  ion-icon { font-size: 36px; }
+}
+
+@media (max-width: 640px) {
+  .upload-head { flex-direction: column; }
+}

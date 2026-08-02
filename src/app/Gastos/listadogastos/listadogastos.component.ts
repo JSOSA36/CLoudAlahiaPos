@@ -3,6 +3,7 @@ import { ToastController } from '@ionic/angular';
 import { GastosService } from 'src/app/servicios/gastos.service';
 import { ModalController } from '@ionic/angular';
 import { GastoFormPage } from '../gastoadd/gastoadd.component';
+import { CategoriasGastoComponent } from '../categorias-gasto/categorias-gasto.component';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { AnularGastoComponent } from 'src/app/Modales/anular-gasto/anular-gasto.component';
 @Component({
@@ -156,6 +157,14 @@ export class ListadogastosComponent implements OnInit {
       }
     });
 
+    return await modal.present();
+  }
+
+  async abrirCategorias() {
+    const modal = await this.modalCtrl.create({
+      component: CategoriasGastoComponent,
+      cssClass: 'modal-gasto',
+    });
     return await modal.present();
   }
 }

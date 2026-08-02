@@ -45,7 +45,7 @@ export class EmpresaComponent implements OnInit {
 
       // 🎨 Colores
       titleColor: ['#000000', Validators.required],
-      primaryColor: ['#1976D2'],
+      primaryColor: ['#1454B8'],
       secondaryColor: ['#388E3C'],
       tertiaryColor: ['#F57C00'],
       correoSMTP: [''],                 // 👈 lo escribe el usuario

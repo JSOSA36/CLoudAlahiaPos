@@ -1,28 +1,35 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;" ></ion-menu-button>
+      <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
     <ion-title>Categorías</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-list>
-    <ion-card *ngFor="let categoria of ListadoCategoria; let i = index" style="margin: 4px 0; padding: 4px;">
+<ion-content class="cat-content">
+  <div class="cat-page">
+    <ion-card *ngFor="let categoria of ListadoCategoria; let i = index" class="cat-card">
       <ion-item lines="none">
-        <!-- Avatar -->
-        <ion-avatar slot="start" style="width: 50px; height: 50px;">
-          <img *ngIf="!categoria.imagenPath" src="./assets/servicio.png">
-          <img *ngIf="categoria.imagenPath" [src]="categoria.imagenPath">
-        </ion-avatar>
+        <div
+          slot="start"
+          class="cat-avatar"
+          *ngIf="!tieneImagen(categoria); else imgTpl">
+          <ion-icon name="grid-outline"></ion-icon>
+        </div>
+        <ng-template #imgTpl>
+          <ion-avatar slot="start" class="cat-avatar-img">
+            <img
+              [src]="categoria.imagenPath"
+              alt=""
+              (error)="onImgError(categoria)" />
+          </ion-avatar>
+        </ng-template>
 
-        <!-- Nombre -->
         <ion-label style="font-size: 16px; font-weight: 600;">
           {{ categoria.nombre }}
         </ion-label>
 
-        <!-- Botón editar -->
         <ion-button (click)="openModal(categoria)" color="primary" size="small" slot="end">
           <ion-icon name="pencil-outline" size="small"></ion-icon>
         </ion-button>
@@ -31,16 +38,14 @@
         </ion-button>
       </ion-item>
     </ion-card>
-  </ion-list>
+  </div>
 </ion-content>
 
-<!-- Footer con botón agregar -->
 <ion-footer>
   <ion-toolbar color="light">
     <ion-row>
       <ion-col size="12" class="ion-text-center">
         <ion-button expand="block" color="warning" (click)="openModal(null)">
-         
           Nueva Categoría
         </ion-button>
       </ion-col>

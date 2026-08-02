@@ -1,7 +1,10 @@
 import { Component, Input } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
-import { TicketNotaCredito } from 'src/app/servicios/notas-credito.service';
+import {
+  NotasCreditoService,
+  TicketNotaCredito
+} from 'src/app/servicios/notas-credito.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { PrintService } from 'src/app/servicios/print.services';
 
@@ -15,12 +18,14 @@ export class NotaCreditoPreviewComponent {
   @Input() ticket!: TicketNotaCredito;
 
   imprimiendo = false;
+  reintentando = false;
 
   constructor(
     private modalCtrl: ModalController,
     private printService: PrintService,
     private parametros: ParametrosService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private notasCreditoService: NotasCreditoService
   ) {}
 
   get esPreview(): boolean {
@@ -37,6 +42,44 @@ export class NotaCreditoPreviewComponent {
 
   imprimirPantalla() {
     window.print();
+  }
+
+  async reintentarEmision() {
+    if (!this.ticket?.idNotaCredito) {
+      return;
+    }
+
+    this.reintentando = true;
+    try {
+      const res = await firstValueFrom(
+        this.notasCreditoService.reintentarEmision(
+          this.ticket.idNotaCredito,
+          this.parametros.GetIdEmpresa(),
+          this.parametros.IdUsuario
+        )
+      );
+
+      this.ticket = {
+        ...this.ticket,
+        ncf: res.ncf || this.ticket.ncf,
+        trackId: res.trackId,
+        estadoDgii: res.estadoDgii,
+        emisionPendiente: res.emisionPendiente,
+        mensajeEmision: res.mensajeEmision
+      };
+
+      await this.toast(
+        res?.mensaje || 'Reintento completado',
+        res?.emisionPendiente ? 'warning' : 'success'
+      );
+    } catch (err: any) {
+      await this.toast(
+        err?.error || 'No se pudo reintentar la emisión',
+        'danger'
+      );
+    } finally {
+      this.reintentando = false;
+    }
   }
 
   async imprimirPos() {

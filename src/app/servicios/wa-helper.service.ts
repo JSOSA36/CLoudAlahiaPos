@@ -1,50 +1,127 @@
 import { Injectable } from '@angular/core';
 
 export interface WaOpenOptions {
-  /** Reusar la misma pestaña (default: true) */
+  /** Reusar la misma pestaña abierta por Alahia (default: true) */
   reuse?: boolean;
-  /** Nombre del target de la ventana (default: 'wa_chat_window') */
+  /** Nombre del target de la ventana (default: 'whatsapp_web') */
   targetName?: string;
-  /** Usar api.whatsapp.com en lugar de wa.me (default: false) */
-  preferApi?: boolean;
+  /**
+   * 'web' = WhatsApp Web.
+   * 'api' = api.whatsapp.com.
+   * 'auto' = web en escritorio, wa.me en móvil (default).
+   */
+  mode?: 'auto' | 'web' | 'api';
 }
 
 @Injectable({ providedIn: 'root' })
 export class WaHelperService {
   private waRef: Window | null = null;
-  private defaultTarget = 'wa_chat_window';
+  private defaultTarget = 'whatsapp_web';
+
+  /** True si Alahia ya tiene una pestaña de WhatsApp bajo su control. */
+  hasManagedWindow(): boolean {
+    return !!(this.waRef && !this.waRef.closed);
+  }
 
   /**
-   * Abre el chat de WhatsApp Web para el número E.164 SIN '+' (ej: "18095551234").
-   * Devuelve `true` si el navegador permitió abrir/navegar la pestaña (no bloqueó popup).
-   * IMPORTANTE: Llama esto dentro de un gesto del usuario (click/tap) para evitar bloqueos.
+   * Abre o reutiliza el chat. Solo reutiliza pestañas abiertas antes por Alahia
+   * (el navegador no permite saltar a una pestaña de WhatsApp abierta a mano).
    */
   openChat(phoneE164NoPlus: string, text?: string, opts?: WaOpenOptions): boolean {
+    const phone = (phoneE164NoPlus || '').replace(/\D/g, '');
+    if (!phone) {
+      return this.openCompose(text, opts);
+    }
+
     const msg = encodeURIComponent(text || '');
-    const useApi = !!opts?.preferApi;
+    const url = this.buildUrl({ phone, msg, mode: opts?.mode });
+    return this.navigate(url, opts);
+  }
 
-    // Ambas funcionan, wa.me redirige a web/app según plataforma
-    const url = useApi
-      ? `https://api.whatsapp.com/send?phone=${phoneE164NoPlus}&text=${msg}`
-      : `https://wa.me/${phoneE164NoPlus}?text=${msg}`;
+  openCompose(text?: string, opts?: WaOpenOptions): boolean {
+    const msg = encodeURIComponent(text || '');
+    const url = this.buildUrl({ msg, mode: opts?.mode });
+    return this.navigate(url, opts);
+  }
 
+  /**
+   * Si ya hay pestaña gestionada por Alahia → navega ahí.
+   * Si no → no abre pestaña nueva (evita duplicar WhatsApp Web).
+   * Devuelve 'focused' | 'none'.
+   */
+  focusManagedOrNone(
+    phoneE164NoPlus: string | null,
+    text?: string,
+    opts?: WaOpenOptions
+  ): 'focused' | 'none' {
+    if (!this.hasManagedWindow()) {
+      return 'none';
+    }
+
+    const phone = (phoneE164NoPlus || '').replace(/\D/g, '');
+    const msg = encodeURIComponent(text || '');
+    const url = phone
+      ? this.buildUrl({ phone, msg, mode: opts?.mode || 'web' })
+      : this.buildUrl({ msg, mode: opts?.mode || 'web' });
+
+    return this.navigate(url, { ...opts, reuse: true }) ? 'focused' : 'none';
+  }
+
+  private buildUrl(args: {
+    phone?: string;
+    msg: string;
+    mode?: WaOpenOptions['mode'];
+  }): string {
+    const mode = args.mode || 'auto';
+    const useWeb = mode === 'web' || (mode === 'auto' && this.isDesktop());
+    const phone = args.phone || '';
+
+    if (useWeb) {
+      return phone
+        ? `https://web.whatsapp.com/send?phone=${phone}&text=${args.msg}`
+        : `https://web.whatsapp.com/send?text=${args.msg}`;
+    }
+
+    if (mode === 'api') {
+      return phone
+        ? `https://api.whatsapp.com/send?phone=${phone}&text=${args.msg}`
+        : `https://api.whatsapp.com/send?text=${args.msg}`;
+    }
+
+    return phone
+      ? `https://wa.me/${phone}?text=${args.msg}`
+      : `https://wa.me/?text=${args.msg}`;
+  }
+
+  private navigate(url: string, opts?: WaOpenOptions): boolean {
     const reuse = opts?.reuse !== false;
     const target = opts?.targetName || this.defaultTarget;
 
-    // Reusar SIEMPRE la misma pestaña que abrimos nosotros
-    if (reuse && this.waRef && !this.waRef.closed) {
+    // Patrón: obtener/crear ventana con nombre fijo y luego navegar.
+    // Así los siguientes clics reutilizan la misma pestaña de Alahia.
+    if (reuse) {
       try {
-        this.waRef.location.href = url; // navega la pestaña ya abierta
-        this.waRef.focus();
-        return true;
+        const w = window.open('', target);
+        if (w) {
+          this.waRef = w;
+          w.location.href = url;
+          w.focus();
+          return true;
+        }
       } catch {
-        // si hay restricción de cross-origin, reabrimos más abajo
+        // fallback abajo
       }
     }
 
-    // Abrir (o reabrir) una pestaña con nombre fijo -> el navegador la reutiliza
     const w = window.open(url, target);
     this.waRef = w ?? null;
     return !!w;
+  }
+
+  private isDesktop(): boolean {
+    if (typeof navigator === 'undefined') {
+      return true;
+    }
+    return !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
   }
 }

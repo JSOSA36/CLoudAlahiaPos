@@ -1,0 +1,153 @@
+<ion-header class="nc-header">
+  <ion-toolbar color="primary">
+    <ion-title>Crear Nota de Crédito</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="nc-content">
+  <div class="nc-shell">
+
+    <div class="nc-badge">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      <span>Documento comercial · no anula ni es devolución</span>
+    </div>
+
+    <!-- Origen -->
+    <section class="nc-panel origen" *ngIf="idFactura; else origenCliente">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Factura origen</p>
+          <h2>{{ numeroFactura }}</h2>
+        </div>
+        <button type="button" class="chip-total" (click)="usarTotalFactura()" title="Usar total de la factura">
+          RD$ {{ totalFactura | number:'1.2-2' }}
+        </button>
+      </div>
+
+      <div class="factura-grid">
+        <div>
+          <span>Subtotal</span>
+          <strong>RD$ {{ subTotalFactura | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>ITBIS factura</span>
+          <strong>RD$ {{ itbisFactura | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Total</span>
+          <strong>RD$ {{ totalFactura | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <p class="panel-note">
+        El ITBIS de la NC se calcula solo a partir de esta factura. No hay que digitario.
+      </p>
+    </section>
+
+    <ng-template #origenCliente>
+      <section class="nc-panel origen">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Origen</p>
+            <h2>Desde cliente</h2>
+          </div>
+        </div>
+        <p class="panel-note">
+          Sin factura asociada el monto se registra sin ITBIS desglosado (ajuste comercial).
+        </p>
+      </section>
+    </ng-template>
+
+    <!-- Receptor: desde factura = RNC/nombre del e-CF (solo lectura). Sin factura = elegir catálogo. -->
+    <section class="nc-panel">
+      <p class="eyebrow">{{ factura ? 'Receptor (factura)' : 'Cliente' }}</p>
+
+      <div class="cliente-box" *ngIf="factura; else clientePicker">
+        <div class="avatar">{{ (nombreCliente || 'R').charAt(0) }}</div>
+        <div>
+          <h3>{{ nombreCliente || '—' }}</h3>
+          <p *ngIf="rncCliente">RNC {{ rncCliente }}</p>
+          <p *ngIf="!rncCliente" class="warn-inline">Sin RNC en la factura</p>
+        </div>
+      </div>
+
+      <ng-template #clientePicker>
+        <button type="button" class="cliente-box pick" (click)="abrirClientes()">
+          <div class="avatar">+</div>
+          <div>
+            <h3 *ngIf="idCliente">{{ nombreCliente }}</h3>
+            <h3 *ngIf="!idCliente">Seleccionar cliente</h3>
+            <p *ngIf="rncCliente">RNC {{ rncCliente }}</p>
+            <p *ngIf="!idCliente">Toque para buscar</p>
+          </div>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+      </ng-template>
+    </section>
+
+    <!-- Formulario -->
+    <section class="nc-panel form">
+      <label class="field">
+        <span>Concepto / motivo *</span>
+        <textarea
+          [(ngModel)]="concepto"
+          rows="3"
+          placeholder="Ej: Descuento comercial, corrección de monto, ajuste acordado…"></textarea>
+      </label>
+
+      <label class="field">
+        <span>Monto total de la NC *</span>
+        <div class="money-input">
+          <span>RD$</span>
+          <input
+            type="number"
+            [(ngModel)]="monto"
+            min="0"
+            step="0.01"
+            placeholder="0.00">
+        </div>
+      </label>
+
+      <!-- Desglose transparente -->
+      <div class="desglose" *ngIf="montoTotal > 0">
+        <div class="desglose-title">
+          <ion-icon name="calculator-outline"></ion-icon>
+          Desglose automático
+        </div>
+        <div class="desglose-row">
+          <span>Neto</span>
+          <strong>RD$ {{ netoDerivado | number:'1.2-2' }}</strong>
+        </div>
+        <div class="desglose-row">
+          <span>
+            ITBIS
+            <em *ngIf="idFactura && ratioItbisFactura > 0">
+              ({{ tasaItbisPct }}% según factura)
+            </em>
+            <em *ngIf="!idFactura || ratioItbisFactura <= 0">
+              (sin desglose)
+            </em>
+          </span>
+          <strong>RD$ {{ itbisDerivado | number:'1.2-2' }}</strong>
+        </div>
+        <div class="desglose-row total">
+          <span>Total NC</span>
+          <strong>RD$ {{ montoTotal | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <ion-button
+      expand="block"
+      class="btn-generar"
+      (click)="guardar()"
+      [disabled]="procesando">
+      <ion-icon slot="start" name="document-text-outline"></ion-icon>
+      {{ procesando ? 'Generando…' : 'Generar Nota de Crédito' }}
+    </ion-button>
+
+  </div>
+</ion-content>

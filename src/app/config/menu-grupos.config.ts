@@ -14,8 +14,33 @@ export interface MenuGrupoConfig {
 export const MODULOS_EXCLUIDOS_MENU: string[] = [
   'CONTABILIDAD',
   // Misma pantalla que POLITICAS_VERSIONES (/politicas-admin); evita duplicado en menú.
-  'MACROBITS_ADMIN'
+  'MACROBITS_ADMIN',
+  // Capacidad interna del Centro de Conciliación Bancaria (no módulo vendible separado).
+  'EXTRACTO_BANCARIO',
+  // Ya cubiertos dentro de Facturación Electrónica (Configuración / Historial).
+  'FE_CERTIFICADO',
+  'FE_ESTADO_DGII',
+  'FE_REPROCESAR'
 ];
+
+/**
+ * Permisos / capacidades: se asignan al perfil pero NO abren pantalla de menú.
+ * Controlan acciones dentro de otra pantalla (p. ej. Centro de Producción).
+ */
+export const MODULOS_PERMISO_SIN_MENU: string[] = [
+  'PRODUCCION_GESTIONAR',
+  'PRODUCCION_CANCELAR',
+  'PRODUCCION_PRIORIDAD',
+  'PRODUCCION_CONFIG',
+  'PRODUCCION_VER',
+  'PRODUCCION_REPORTES',
+  'PRODUCCION_REABRIR'
+];
+
+export function esModuloPermisoSinMenu(codigo: string | null | undefined): boolean {
+  if (!codigo) return false;
+  return MODULOS_PERMISO_SIN_MENU.includes(String(codigo).trim().toUpperCase());
+}
 
 /** Si el usuario tiene el módulo padre CONTABILIDAD, mostrar estos hijos en el menú. */
 export const CONTABILIDAD_MODULO_PADRE = 'CONTABILIDAD';
@@ -53,6 +78,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'HISTORICO_FACTURAS',
       'LISTADO_DEVOLUCIONES',
       'NOTAS_CREDITO_APLICADAS',
+      'SALDOS_A_FAVOR',
       'DESCUENTOS',
       'CUMPLEANEROS',
       'BIZCOCHO_ENCARGO'
@@ -65,7 +91,8 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     orden: 3,
     modulos: [
       'CLIENTES',
-      'CUENTAS_COBRAR'
+      'CUENTAS_COBRAR',
+      'NOTAS_CREDITO'
     ]
   },
   {
@@ -106,6 +133,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'CIERRE_CAJA',
       'CUENTAS_FINANCIERAS',
       'MOVIMIENTO_FINANCIERO',
+      'CONCILIACION_BANCARIA',
       'METODO_PAGO_CUENTAS',
       'TRANSFERENCIAS_FINANCIERAS',
       'GASTOS',
@@ -133,7 +161,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
   },
   {
     id: 'salon',
-    titulo: 'Salón y Servicios',
+    titulo: 'Agenda y Servicios',
     icono: 'layer-group',
     orden: 8,
     modulos: [
@@ -171,6 +199,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'REPORTE_COMISIONES',
       'REPORTE_607',
       'REPORTE_606',
+      'IT1',
       'ANTIGUEDAD_CXC',
       'ANTIGUEDAD_CXP',
       'ACTIVOS_FIJOS',
@@ -188,8 +217,6 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     modulos: [
       'FE_CONFIGURACION',
       'FE_SECUENCIAS',
-      'FE_CERTIFICADO',
-      'FE_ESTADO_DGII',
       'FE_HISTORIAL',
       'FE_MONITOREO'
     ]
@@ -210,6 +237,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'POLITICAS_VERSIONES',
       'POLITICAS_ACEPTACIONES',
       'MACROBITS_ADMIN',
+      'EMPRESAS_ADMIN',
       'SUSCRIPCIONES_COBROS',
       'PAGO_SUSCRIPCION',
       'TICKETS',
@@ -222,10 +250,17 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
 export const MODULO_TITULOS_MENU: Record<string, string> = {
   CUENTAS_COBRAR: 'Facturas por cobrar',
   CLIENTES: 'Clientes',
+  NOTAS_CREDITO: 'Notas de Crédito',
   ANTIGUEDAD_CXC: 'Antigüedad CxC',
   ANTIGUEDAD_CXP: 'Antigüedad CxP',
   CUENTAS_PAGAR_PROVEEDOR: 'Facturas por pagar',
+  CUENTAS_FINANCIERAS: 'Bancos y Cuentas Financieras',
+  MOVIMIENTOS_FINANCIEROS: 'Libro de movimientos',
+  CONCILIACION_BANCARIA: 'Conciliación Bancaria',
+  TRANSFERENCIAS_FINANCIERAS: 'Transferencias',
+  METODO_PAGO_CUENTAS: 'Métodos de pago → cuenta',
   REPORTE_606: 'Formato 606 (Compras)',
+  REPORTE_607: 'Formato 607 (Ventas)',
   CONFIGURACION_DGII: 'Configuración fiscal DGII',
   IT1: 'Declaración IT-1',
   DGII_FISCAL: 'Fiscal DGII',
@@ -238,12 +273,15 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   POLITICAS_VERSIONES: 'Políticas del Servicio',
   POLITICAS_ACEPTACIONES: 'Aceptaciones de Políticas',
   MACROBITS_ADMIN: 'Admin MacroBits',
+  EMPRESAS_ADMIN: 'Empresas (alta)',
   SUSCRIPCIONES_COBROS: 'Cobros y Suscripciones',
   PAGO_SUSCRIPCION: 'Pago de Suscripción',
   TICKETS: 'Tickets de Soporte',
   TICKETS_ADMIN: 'Tickets (Admin)',
   CENTRO_PRODUCCION: 'Centro de Producción',
-  ALAHIA_AI: 'Alahia AI'
+  KDS: 'Centro de Producción',
+  ALAHIA_AI: 'Alahia AI',
+  HORARIO_ESTILISTA: 'Horario Empleados'
 };
 export const MENU_GRUPO_OTROS: MenuGrupoConfig = {
   id: 'otros',

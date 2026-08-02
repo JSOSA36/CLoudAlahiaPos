@@ -1,21 +1,17 @@
 :root {
-  /** Primary (Azul) **/
-  --ion-color-primary: #1976D2;
-  --ion-color-primary-rgb: 25,118,210;
+  /** Primary (Azul logo) **/
+  --ion-color-primary: #1454B8;
+  --ion-color-primary-rgb: 20,84,184;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255,255,255;
-  --ion-color-primary-shade: #1669ba;
-  --ion-color-primary-tint: #3384d7;
+  --ion-color-primary-shade: #0B419B;
+  --ion-color-primary-tint: #2d66c0;
 
-  /** Secondary (Rosado) **/
-  --ion-color-secondary: #1976D2;
-  --ion-color-secondary-rgb: 255,102,160;
+  /** Secondary **/
+  --ion-color-secondary: #3B7AD0;
+  --ion-color-secondary-rgb: 59,122,208;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255,255,255;
-  --ion-color-secondary-shade: #1976D2;
-  --ion-color-secondary-tint:  #1976D2;
-
-   
+  --ion-color-secondary-shade: #346bb7;
+  --ion-color-secondary-tint: #4f87d5;
 }
-
-

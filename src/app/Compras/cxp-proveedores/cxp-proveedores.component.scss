@@ -41,8 +41,45 @@
   border: 1px solid var(--cxp-border);
   border-radius: var(--cxp-radius);
   box-shadow: var(--cxp-shadow);
-  padding: 8px;
+  padding: 8px 8px 12px;
   margin-bottom: 14px;
+}
+
+.cxp-fechas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 6px 8px 10px;
+}
+
+.cxp-fecha-field {
+  flex: 1 1 140px;
+  min-width: 130px;
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--cxp-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  ion-input {
+    --background: #f8fafc;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    border: 1px solid var(--cxp-border);
+    border-radius: 10px;
+  }
+}
+
+.cxp-fecha-btn {
+  flex: 0 0 auto;
+  margin: 0;
+  height: 40px;
+  text-transform: none;
 }
 
 .cxp-toolbar ion-searchbar {

@@ -22,6 +22,7 @@ import {
   TIPOS_DOCUMENTO_COMPRA
 } from '../shared/compras-documento.config';
 import {
+  DESTINOS_ITBIS_ANEXO_A,
   FORMAS_PAGO_606,
   TIPOS_BIENES_SERVICIOS_606,
   TIPOS_RETENCION_ISR_606,
@@ -56,6 +57,7 @@ export class FacturaCompraFormComponent implements OnInit {
   readonly tiposBienesServicios606 = TIPOS_BIENES_SERVICIOS_606;
   readonly formasPago606 = FORMAS_PAGO_606;
   readonly tiposRetencionIsr606 = TIPOS_RETENCION_ISR_606;
+  readonly destinosItbisAnexoA = DESTINOS_ITBIS_ANEXO_A;
   estadosDocumento = ESTADOS_DOCUMENTO_COMPRA;
 
   idOrdenCompraHeader = 0;
@@ -93,6 +95,12 @@ export class FacturaCompraFormComponent implements OnInit {
   tipoRetencionIsr: number | null = null;
   montoRetencionRenta = 0;
   fechaPagoFiscal = '';
+  /** Destino ITBIS Anexo A (1–7). Solo con GenerarIt1. */
+  destinoItbis: number | null = 5;
+  clasificacionConfirmada = false;
+  itbisComprasLocales = 0;
+  itbisServicios = 0;
+  itbisImportaciones = 0;
   estado = 'BORRADOR';
   estadoRecepcion = 'NO_APLICA';
   pagado = 0;
@@ -194,6 +202,11 @@ export class FacturaCompraFormComponent implements OnInit {
         this.tipoRetencionIsr = f.tipoRetencionIsr ?? null;
         this.montoRetencionRenta = f.montoRetencionRenta ?? 0;
         this.fechaPagoFiscal = f.fechaPagoFiscal ? f.fechaPagoFiscal.substring(0, 10) : '';
+        this.destinoItbis = f.destinoItbis ?? f.destinoItbisSugerido ?? 5;
+        this.clasificacionConfirmada = !!f.clasificacionConfirmada;
+        this.itbisComprasLocales = f.itbisComprasLocales ?? 0;
+        this.itbisServicios = f.itbisServicios ?? 0;
+        this.itbisImportaciones = f.itbisImportaciones ?? 0;
         this.aplicaRetencion =
           (this.itbisRetenido > 0)
           || (this.montoRetencionRenta > 0)
@@ -590,6 +603,11 @@ export class FacturaCompraFormComponent implements OnInit {
       fechaPagoFiscal: this.aplicaRetencion && this.fechaPagoFiscal
         ? this.fechaPagoFiscal
         : undefined,
+      destinoItbis: this.mostrarClasificacionItbis ? this.destinoItbis : null,
+      clasificacionConfirmada: this.mostrarClasificacionItbis && this.clasificacionConfirmada,
+      itbisComprasLocales: this.mostrarClasificacionItbis ? (this.itbisComprasLocales || 0) : 0,
+      itbisServicios: this.mostrarClasificacionItbis ? (this.itbisServicios || 0) : 0,
+      itbisImportaciones: this.mostrarClasificacionItbis ? (this.itbisImportaciones || 0) : 0,
       detalles: this.detalles.map(d => ({
         idProducto: d.idProducto,
         cantidad: d.cantidad,

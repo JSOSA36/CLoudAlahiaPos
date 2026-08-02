@@ -1,30 +1,519 @@
-.almacen-card,
-.form-card {
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.18);
+:host {
+  --al-primary: var(--ion-color-primary, #1454B8);
+  --al-navy: var(--ion-color-primary-shade, #0B419B);
+  --al-yellow: #fcd34d;
+  --al-bg: #f3f6fb;
+  --al-card: #fff;
+  --al-border: #e2e8f0;
+  --al-text: #0f172a;
+  --al-muted: #64748b;
+}
+
+.al-header ion-toolbar {
+  --background: var(--al-primary);
+  --color: #fff;
+}
+
+.al-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.al-title-wrap small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+.al-content {
+  --background: var(--al-bg);
+}
+
+.al-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 16px 100px;
+}
+
+/* Hero */
+.al-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  background: linear-gradient(135deg, var(--al-primary), var(--al-navy));
+  color: #fff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 28px rgba(20, 84, 184, 0.28);
+  animation: alRise 0.4s ease both;
+}
+
+.al-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(252, 211, 77, 0.2);
+  border: 1px solid rgba(252, 211, 77, 0.35);
+}
+
+.al-hero-icon ion-icon {
+  font-size: 1.7rem;
+  color: var(--al-yellow);
+}
+
+.al-hero-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.al-hero-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+  line-height: 1.35;
+}
+
+.al-kpis {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.al-kpi {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.al-kpi strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--al-yellow);
+}
+
+.al-kpi span {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+/* Toolbar */
+.al-toolbar {
+  background: var(--al-card);
+  border: 1px solid var(--al-border);
+  border-radius: 16px;
+  padding: 8px 8px 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(20, 84, 184, 0.07);
+}
+
+.al-toolbar ion-searchbar {
+  --background: #f8fafc;
+  --border-radius: 10px;
+  --box-shadow: none;
+  padding: 0 4px 4px;
+}
+
+.al-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px 2px;
+}
+
+.al-filter-row strong {
+  display: block;
+  color: var(--al-text);
+  font-size: 0.9rem;
+}
+
+.al-filter-row p {
+  margin: 2px 0 0;
+  color: var(--al-muted);
+  font-size: 0.75rem;
+}
+
+.al-loading,
+.al-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--al-muted);
+}
+
+.al-empty ion-icon {
+  font-size: 2.6rem;
+  color: var(--al-primary);
+  opacity: 0.7;
+}
+
+.al-empty h3 {
+  margin: 10px 0 6px;
+  color: var(--al-text);
+}
+
+.al-empty p {
+  margin: 0 auto 14px;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+/* Cards */
+.al-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--al-card);
+  border: 1px solid var(--al-border);
+  border-left: 4px solid var(--al-primary);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: alRise 0.35s ease both;
+}
+
+.al-card:active {
+  transform: scale(0.99);
+}
+
+.al-card.is-principal {
+  border-left-color: #f59e0b;
+}
+
+.al-card.is-inactive {
+  opacity: 0.72;
+  border-left-color: #94a3b8;
+}
+
+.al-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1454B8, #0B419B);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.al-avatar.principal {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #0f172a;
+}
+
+.al-avatar ion-icon {
+  font-size: 1.4rem;
+}
+
+.al-info {
+  min-width: 0;
+}
+
+.al-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.al-name-row h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--al-text);
+}
+
+.al-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.al-badges ion-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.al-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--al-muted);
+  line-height: 1.35;
+}
+
+.al-meta ion-icon {
+  font-size: 0.95rem;
+  margin-top: 1px;
+  flex-shrink: 0;
+  color: var(--al-primary);
+}
+
+.al-meta.muted {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.al-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.al-actions ion-button {
+  margin: 0;
+  --border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ===== Modal formulario (colores fijos: ion-modal sale del :host) ===== */
+.al-modal-content {
+  --background: #f3f6fb;
+}
+
+.al-form {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 0 28px;
+}
+
+.al-form-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 22px 18px 26px;
+  background: linear-gradient(145deg, #1454B8 0%, #0B419B 70%, #08307a 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.al-form-banner::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, 0.15);
+  pointer-events: none;
+}
+
+.al-form-banner-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #fcd34d;
+  color: #0f172a;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.al-form-banner-icon ion-icon {
+  font-size: 1.75rem;
+}
+
+.al-form-banner-text {
+  z-index: 1;
+  min-width: 0;
+}
+
+.al-form-banner-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.al-form-banner-text p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+}
+
+.al-form-body {
+  margin: -14px 14px 0;
+  padding: 18px 16px 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.al-field {
   margin-bottom: 16px;
 }
 
-ion-item h2 {
+.al-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.al-field label ion-icon {
   font-size: 1rem;
-  font-weight: 600;
+  color: #1454B8;
 }
 
-ion-item p {
-  font-size: 0.85rem;
-  color: var(--ion-color-medium);
+.al-field label span {
+  color: #ef4444;
 }
 
-.badge-principal {
-  color: var(--ion-color-success) !important;
-  font-weight: 600;
+.al-field ion-input,
+.al-field ion-textarea {
+  --background: #f8fafc;
+  --border-color: #cbd5e1;
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --highlight-color-focused: #1454B8;
+  font-size: 0.95rem;
 }
 
-.badge-inactivo {
-  color: var(--ion-color-danger) !important;
-  font-weight: 600;
+.al-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.btn-guardar {
-  margin-top: 20px;
+.al-option.on {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.al-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.al-option.on .al-option-icon {
+  background: #fcd34d;
+  color: #0f172a;
+}
+
+.al-option-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.al-option.on .al-option-icon.success {
+  background: #22c55e;
+  color: #fff;
+}
+
+.al-option-icon ion-icon {
+  font-size: 1.25rem;
+}
+
+.al-option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.al-option-text strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.al-option-text span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.al-form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin: 16px 14px 0;
+}
+
+.al-form-actions ion-button {
+  margin: 0;
+  --border-radius: 14px;
+  font-weight: 700;
+  min-height: 48px;
+}
+
+.al-form-actions ion-button[color='warning'] {
+  color: #0f172a;
+}
+
+@keyframes alRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .al-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .al-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .al-actions ion-button {
+    flex: 1;
+  }
 }

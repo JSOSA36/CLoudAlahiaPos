@@ -1,130 +1,57 @@
-/* =========================================
-🔥 CUENTA FINANCIERA SERVICE
-src/app/servicios/cuenta-financiera.service.ts
-========================================= */
-
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AppConfigService } from './app-config.service';
 import {
-  Injectable
-} from '@angular/core';
-
-import {
-  HttpClient
-} from '@angular/common/http';
-
-import {
-  Observable
-} from 'rxjs';
-
-import {
-  AppConfigService
-} from './app-config.service';
-
-import {
-  CuentaFinanciera
+  CuentaFinanciera,
+  TesoreriaSaldoResumen
 } from '../models/CuentaFinanciera.models';
 
-@Injectable({
-  providedIn:'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CuentaFinancieraService {
-
-  private readonly baseUrl:string;
+  private readonly baseUrl: string;
 
   constructor(
-
-    private http:HttpClient,
-
-    private config:AppConfigService
-  ){
-    this.baseUrl =
-      `${this.config.apiUrl}/CuentaFinanciera`;
+    private http: HttpClient,
+    private config: AppConfigService
+  ) {
+    this.baseUrl = `${this.config.apiUrl}/CuentaFinanciera`;
   }
 
-  /* =====================================
-  🔥 GET EMPRESA
-  ====================================== */
+  getByEmpresa(idEmpresa: number): Observable<CuentaFinanciera[]> {
+    return this.http.get<CuentaFinanciera[]>(`${this.baseUrl}/${idEmpresa}`);
+  }
 
-  getByEmpresa(
-    idEmpresa:number
-  ): Observable<CuentaFinanciera[]>
-  {
-    return this.http.get<CuentaFinanciera[]>(
+  getById(id: number): Observable<CuentaFinanciera> {
+    return this.http.get<CuentaFinanciera>(`${this.baseUrl}/GetById/${id}`);
+  }
 
-      `${this.baseUrl}/${idEmpresa}`
+  getBalance(idCuentaFinanciera: number): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/Balance/${idCuentaFinanciera}`);
+  }
+
+  getResumenSaldos(idEmpresa: number): Observable<TesoreriaSaldoResumen[]> {
+    return this.http.get<TesoreriaSaldoResumen[]>(
+      `${this.baseUrl}/ResumenSaldos/${idEmpresa}`
     );
   }
 
-  /* =====================================
-  🔥 GET BY ID
-  ====================================== */
-
-  getById(
-    id:number
-  ): Observable<CuentaFinanciera>
-  {
-    return this.http.get<CuentaFinanciera>(
-
-      `${this.baseUrl}/GetById/${id}`
+  sincronizarSaldos(idEmpresa: number): Observable<{ cuentasActualizadas: number }> {
+    return this.http.post<{ cuentasActualizadas: number }>(
+      `${this.baseUrl}/SincronizarSaldos/${idEmpresa}`,
+      {}
     );
   }
 
-  /* =====================================
-  🔥 GET BALANCE
-  ====================================== */
-
-  getBalance(
-    idCuentaFinanciera:number
-  ): Observable<number>
-  {
-    return this.http.get<number>(
-
-      `${this.baseUrl}/Balance/${idCuentaFinanciera}`
-    );
+  create(model: CuentaFinanciera): Observable<any> {
+    return this.http.post(this.baseUrl, model);
   }
 
-  /* =====================================
-  🔥 CREATE
-  ====================================== */
-
-  create(
-    model:CuentaFinanciera
-  ): Observable<any>
-  {
-    return this.http.post(
-
-      this.baseUrl,
-
-      model
-    );
+  update(model: CuentaFinanciera): Observable<any> {
+    return this.http.put(`${this.baseUrl}/${model.idCuentaFinanciera}`, model);
   }
 
-  /* =====================================
-  🔥 UPDATE
-  ====================================== */
-
-  update(
-    model:CuentaFinanciera
-  ): Observable<any>
-  {
-    return this.http.put(
-
-      `${this.baseUrl}/${model.idCuentaFinanciera}`,
-
-      model
-    );
-  }
-
-  /* =====================================
-  🔥 DELETE
-  ====================================== */
-
-  delete(
-    id:number
-  ): Observable<any>
-  {
-    return this.http.delete(
-
-      `${this.baseUrl}/${id}`
-    );
+  delete(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 }

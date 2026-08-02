@@ -5,10 +5,10 @@
   </ng-container>
   <div
     class="pago-banner"
-    *ngIf="alertaPagoBanner"
-    [class.pago-banner--critico]="alertaPagoBanner.tipo === 'critico'"
-    [class.pago-banner--warn]="alertaPagoBanner.tipo !== 'critico'">
-    <span>{{ alertaPagoBanner.mensaje }}</span>
+    *ngIf="false"
+    [class.pago-banner--critico]="alertaPagoBanner?.tipo === 'critico'"
+    [class.pago-banner--warn]="alertaPagoBanner?.tipo !== 'critico'">
+    <span>{{ alertaPagoBanner?.mensaje }}</span>
     <div class="pago-banner-actions">
       <button type="button" class="pago-banner-pay" (click)="abrirPagoSuscripcion()">Pagar ahora</button>
       <button type="button" class="pago-banner-close" (click)="cerrarAlertaPago()" aria-label="Cerrar">×</button>
@@ -21,7 +21,7 @@
       <ion-header class="menu-header">
         <div class="menu-top">
           <div class="menu-logo">
-            <img src="/assets/Logo.png" />
+            <img src="/assets/alahia-logo.png" alt="Alahia" />
           </div>
           <div class="menu-titles">
             <h2 class="app-title">AlahiaPos</h2>

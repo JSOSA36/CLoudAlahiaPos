@@ -66,22 +66,28 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
     this.destroyCharts();
   }
 
+  private emptyPl(): DashboardGerencialPlDto {
+    return {
+      ventasBrutas: 0,
+      costoVenta: 0,
+      utilidadBruta: 0,
+      gastosOperativos: 0,
+      comisiones: 0,
+      perdidasInventario: 0,
+      otrosIngresos: 0,
+      otrosEgresos: 0,
+      utilidadOperativa: 0,
+      margenBrutoPct: 0,
+      margenOperativoPct: 0,
+    };
+  }
+
   get pl(): DashboardGerencialPlDto {
-    return (
-      this.data?.pl ?? {
-        ventasBrutas: 0,
-        costoVenta: 0,
-        utilidadBruta: 0,
-        gastosOperativos: 0,
-        comisiones: 0,
-        perdidasInventario: 0,
-        otrosIngresos: 0,
-        otrosEgresos: 0,
-        utilidadOperativa: 0,
-        margenBrutoPct: 0,
-        margenOperativoPct: 0,
-      }
-    );
+    return this.data?.pl ?? this.emptyPl();
+  }
+
+  get plHoy(): DashboardGerencialPlDto {
+    return this.data?.plHoy ?? this.emptyPl();
   }
 
   get ind(): DashboardGerencialIndicadoresDto {
@@ -184,7 +190,12 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
 
     this.dashboardService.getMesActual(idEmpresa).subscribe({
       next: (res) => {
-        this.data = res;
+        // Compat: APIs viejas sin plHoy → objeto vacío (no romper pantalla)
+        this.data = {
+          ...res,
+          plHoy: res?.plHoy ?? this.emptyPl(),
+          periodoHoyLabel: res?.periodoHoyLabel || 'Hoy',
+        };
         this.refreshCards();
         this.loading = false;
         setTimeout(() => this.renderCharts(), 80);

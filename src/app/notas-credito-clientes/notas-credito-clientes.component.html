@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Notas de Crédito</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="nuevaNota()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nueva
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="page-header">
+    <h2>Notas de Crédito</h2>
+    <p>Creación comercial desde cliente o factura. Independiente de devoluciones y anulación.</p>
+  </div>
+
+  <ion-card>
+    <ion-card-content>
+      <div class="filtros">
+        <ion-item lines="none">
+          <ion-label position="stacked">Desde</ion-label>
+          <ion-input type="date" [(ngModel)]="desde"></ion-input>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-label position="stacked">Hasta</ion-label>
+          <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+        </ion-item>
+      </div>
+
+      <ion-button expand="block" (click)="cargar()" [disabled]="cargando">
+        Consultar
+      </ion-button>
+
+      <ion-button expand="block" color="warning" fill="outline" (click)="nuevaNota()">
+        Crear Nota de Crédito
+      </ion-button>
+
+      <ion-searchbar
+        [(ngModel)]="busqueda"
+        (ionInput)="filtrar()"
+        placeholder="Buscar NC, cliente, factura o concepto"
+        debounce="200">
+      </ion-searchbar>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="empty" *ngIf="!cargando && notasFiltradas.length === 0">
+    No hay notas de crédito para mostrar.
+  </div>
+
+  <ion-spinner *ngIf="cargando" class="loader"></ion-spinner>
+
+  <ion-card *ngFor="let item of notasFiltradas">
+    <ion-card-header>
+      <ion-card-title>{{ item.numeroDocumento }}</ion-card-title>
+      <ion-card-subtitle>{{ item.nombreCliente }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p *ngIf="item.observacion"><strong>Concepto:</strong> {{ item.observacion }}</p>
+      <p *ngIf="item.ncf"><strong>e-NCF:</strong> {{ item.ncf }}</p>
+      <p *ngIf="item.numeroFactura"><strong>Factura:</strong> {{ item.numeroFactura }}</p>
+      <p><strong>Total:</strong> RD$ {{ item.total | number:'1.2-2' }}</p>
+      <p *ngIf="item.estadoDgii"><strong>DGII:</strong> {{ item.estadoDgii }}</p>
+
+      <div class="acciones">
+        <ion-button size="small" fill="outline" (click)="verPreview(item)">Ver</ion-button>
+        <ion-button size="small" fill="outline" (click)="imprimirPos(item)">Imprimir</ion-button>
+        <ion-button
+          *ngIf="item.emisionPendiente"
+          size="small"
+          color="warning"
+          [disabled]="reintentandoId === item.idNotaCredito"
+          (click)="reintentarEmision(item)">
+          Reintentar e-CF
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

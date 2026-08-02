@@ -25,6 +25,8 @@
       <p class="status-text" *ngIf="gatewayStatus === 'online'">Conexión activa con el proveedor de facturación electrónica</p>
       <p class="status-text" *ngIf="gatewayStatus === 'offline'">Sin conexión al proveedor</p>
       <p class="status-text" *ngIf="gatewayStatus === 'checking'">Verificando...</p>
+      <p class="status-text" *ngIf="proveedorLabel"><strong>{{ proveedorLabel }}</strong></p>
+      <p class="status-text" *ngIf="endpoint"><code>{{ endpoint }}</code></p>
       <span class="last-check" *ngIf="lastCheck">Último chequeo: {{ lastCheck | date:'HH:mm:ss' }}</span>
     </div>
 

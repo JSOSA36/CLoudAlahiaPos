@@ -34,6 +34,27 @@ ion-content {
   margin-top: 0.5rem;
 }
 
+.ecuacion.cuadra {
+  border-color: #15803d;
+}
+
+.ecuacion.cuadra p:last-child {
+  color: #15803d;
+}
+
+.ecuacion.descuadre p:last-child {
+  color: #b91c1c;
+}
+
+.linea.resultado {
+  font-weight: 700;
+  color: #0B419B;
+  background: #eff6ff;
+  padding: 0.35rem 0.25rem;
+  border-radius: 4px;
+  border-bottom: none;
+}
+
 .diferencia {
   color: #b91c1c;
 }

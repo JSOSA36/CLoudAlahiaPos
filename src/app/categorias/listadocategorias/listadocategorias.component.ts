@@ -1,72 +1,69 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router'; // CLI imports 
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { categorias } from 'src/app/models/categorias';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
 import { ModalController } from '@ionic/angular';
-import { productos } from 'src/app/models/productos';
-import { ProductosService } from 'src/app/servicios/productos.service';
-import { Camera, CameraResultType } from '@capacitor/camera';
-import { AlertController } from '@ionic/angular';
 import { CategoriaAddComponent } from '../categoria-add/categoria-add.component';
-import { categoriadto } from 'src/app/models/categoriadto';
 
 @Component({
   selector: 'app-listadocategorias',
   templateUrl: './listadocategorias.component.html',
   styleUrls: ['./listadocategorias.component.scss'],
 })
-export class ListadocategoriasComponent  implements OnInit {
+export class ListadocategoriasComponent implements OnInit {
+  ListadoCategoria: categorias[] = [];
 
- public segment:string="";
-  isSupported = false;
-  PorductoCategory:boolean=false
-  Result=false;
-  ListadoCategoria:categorias[]=[];
-  _IdCate:number=0;
-  constructor(private ruta:Router,public parametro:ParametrosService,
-     private _CategoriaServices:CategoriasService,public modal:ModalController
-    )
-   { 
+  /** Categorías cuya imagen falló al cargar → mostrar ícono genérico */
+  private imagenFallida = new Set<number>();
 
+  constructor(
+    public parametro: ParametrosService,
+    private _CategoriaServices: CategoriasService,
+    public modal: ModalController
+  ) {
     this.GetListadoCategorias();
-  
-    
   }
-ngOnInit(): void {
-  
-}
-GetListadoCategorias()
-{
-  this._CategoriaServices.GetListadoCategorias(this.parametro.GetIdEmpresa()).subscribe(c=>{
-    this.ListadoCategoria=c;
-  });
-}
-DeleteCategoria(IdCategoria:number)
-{
-  const index = this.ListadoCategoria.findIndex(cat => cat.idCategoria === IdCategoria);
 
-  // Si se encuentra, eliminarla
-  
-    this.ListadoCategoria.splice(index, 1);
+  ngOnInit(): void {}
 
-    this._CategoriaServices.DeleteIten(IdCategoria).subscribe(c=>{});
-   
-}
-async openModal(Cat:any) {
+  tieneImagen(categoria: categorias): boolean {
+    const id = categoria?.idCategoria ?? 0;
+    const path = (categoria?.imagenPath || '').trim();
+    return !!path && !this.imagenFallida.has(id);
+  }
 
-  this.parametro._Cat=Cat;
-    this.parametro.Buscar="Buscar Clientes"
+  onImgError(categoria: categorias): void {
+    const id = categoria?.idCategoria ?? 0;
+    if (id) {
+      this.imagenFallida.add(id);
+    }
+    // Forzar refresco de la fila
+    categoria.imagenPath = '';
+  }
+
+  GetListadoCategorias() {
+    this.imagenFallida.clear();
+    this._CategoriaServices.GetListadoCategorias(this.parametro.GetIdEmpresa()).subscribe(c => {
+      this.ListadoCategoria = c || [];
+    });
+  }
+
+  DeleteCategoria(IdCategoria: number) {
+    const index = this.ListadoCategoria.findIndex(cat => cat.idCategoria === IdCategoria);
+    if (index >= 0) {
+      this.ListadoCategoria.splice(index, 1);
+    }
+    this._CategoriaServices.DeleteIten(IdCategoria).subscribe({ error: () => this.GetListadoCategorias() });
+  }
+
+  async openModal(Cat: categorias | null) {
+    this.parametro._Cat = Cat as any;
     const modal = await this.modal.create({
       component: CategoriaAddComponent,
-      cssClass: '',
     });
     modal.onDidDismiss().then(() => {
-      // Aquí recargamos la lista de categorías
       this.GetListadoCategorias();
     });
-
     await modal.present();
   }
 }
-   

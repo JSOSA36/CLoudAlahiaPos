@@ -1,0 +1,75 @@
+<div class="pub-page">
+  <div *ngIf="cargando" class="state">Cargando cotización…</div>
+  <div *ngIf="!cargando && error" class="state error">{{ error }}</div>
+
+  <article *ngIf="vista" class="quote">
+    <header class="quote-head">
+      <div class="empresa">
+        <img
+          *ngIf="vista.logoEmpresa && vista.logoEmpresa.trim()"
+          [src]="vista.logoEmpresa"
+          alt="Logo"
+          class="logo" />
+        <h1>{{ vista.nombreEmpresa }}</h1>
+        <p *ngIf="vista.direccionEmpresa">{{ vista.direccionEmpresa }}</p>
+        <p *ngIf="vista.telefonoEmpresa">Tel: {{ vista.telefonoEmpresa }}</p>
+        <p *ngIf="vista.rncEmpresa">RNC: {{ vista.rncEmpresa }}</p>
+      </div>
+      <div class="meta">
+        <h2>COTIZACIÓN</h2>
+        <p><strong>No.:</strong> {{ vista.numeroDocumento }}</p>
+        <p><strong>Fecha:</strong> {{ vista.fecha | date:'dd/MM/yyyy' }}</p>
+        <p>
+          <strong>Válida hasta:</strong>
+          {{ vista.fechaValidez | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+    </header>
+
+    <section class="cliente">
+      <h3>Cliente</h3>
+      <p>{{ vista.clienteNombre }}</p>
+      <p *ngIf="vista.nota"><strong>Nota:</strong> {{ vista.nota }}</p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cant.</th>
+          <th>Descripción</th>
+          <th>Precio</th>
+          <th>Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of vista.lineas">
+          <td>{{ l.cantidad | number:'1.0-2' }}</td>
+          <td>{{ l.descripcion }}</td>
+          <td>{{ l.precioUnitario | number:'1.2-2' }}</td>
+          <td>{{ l.subTotal | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totales">
+      <div><span>Subtotal</span><strong>{{ vista.subTotal | number:'1.2-2' }}</strong></div>
+      <div *ngIf="vista.totalDescuento > 0.009">
+        <span>Descuento</span>
+        <strong>-{{ vista.totalDescuento | number:'1.2-2' }}</strong>
+      </div>
+      <div *ngIf="vista.totalItbis > 0.009">
+        <span>ITBIS</span>
+        <strong>{{ vista.totalItbis | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total">
+        <span>Total {{ vista.moneda || 'DOP' }}</span>
+        <strong>{{ vista.total | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <footer>
+      <p>Esta cotización es informativa y no constituye una factura fiscal.</p>
+      <p>Los precios pueden variar según disponibilidad. Válida por 15 días.</p>
+    </footer>
+  </article>
+</div>

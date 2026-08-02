@@ -1,7 +1,7 @@
-/* Colores del menú: azul #2F80ED / #174A70 · amarillo #F2C94C */
+/* Colores del logo: azul #1454B8 / #0B419B · amarillo #FBB901 */
 
 .conduces-header ion-toolbar {
-  --background: var(--ion-color-primary, #2F80ED);
+  --background: var(--ion-color-primary, #1454B8);
   --color: #ffffff;
   --border-width: 0;
   --min-height: 52px;
@@ -24,7 +24,7 @@
   --cond-border: #dbe7f5;
   --cond-surface: #ffffff;
 
-  padding: 20px 18px 40px;
+  padding: 20px 18px 100px;
   max-width: 1400px;
   margin: auto;
   min-height: 100vh;

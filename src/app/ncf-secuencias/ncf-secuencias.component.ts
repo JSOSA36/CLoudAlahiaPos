@@ -60,7 +60,7 @@ onTipoChange(event: any) {
   const texto = select.options[select.selectedIndex].text; // 👉 nombre
 
   this.secuencia.serie = codigo;
-  this.secuencia.tipoNCF = texto;
+  this.secuencia.tipoNCF = (texto || '').trim();
 }
   // 🔹 Guardar (crear o actualizar)
   save(): void {

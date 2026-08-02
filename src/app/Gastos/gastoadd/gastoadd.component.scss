@@ -1,37 +1,179 @@
-/* Fondo suave con gradiente */
-.form-background {
-  --background: linear-gradient(135deg, #64b5f6, #42a5f5, #1e88e5);
-
+/* Colores logo: #1454B8 / #0B419B · amarillo #fcd34d */
+.ga-content {
+  --background: #f3f6fb;
 }
 
-/* Card estilo glass */
-.form-card {
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  padding: 10px;
-  margin: 15px;
+.ga-form {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 0 24px;
 }
 
-/* Título */
-ion-card-title {
-  font-weight: bold;
-  font-size: 20px;
-  color: var(--ion-color-primary);
+.ga-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 22px;
+  background: linear-gradient(145deg, #1454B8 0%, #0B419B 70%, #08307a 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Inputs */
-ion-item {
-  margin-bottom: 12px;
-  border-radius: 10px;
+.ga-banner::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  top: -36px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, 0.16);
+  pointer-events: none;
 }
 
-/* Botón guardar */
-.save-btn {
-  margin-top: 20px;
-  font-size: 16px;
-  font-weight: bold;
-  --background: linear-gradient(135deg, #2196f3, #1976d2, #0d47a1);
-  --background-hover: linear-gradient(135deg, #2196f3, #1976d2, #0d47a1);
-  //box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+.ga-banner-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #fcd34d;
+  color: #0f172a;
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.ga-banner-icon ion-icon {
+  font-size: 1.4rem;
+}
+
+.ga-banner-text {
+  z-index: 1;
+  min-width: 0;
+}
+
+.ga-banner-text h2 {
+  margin: 0 0 2px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.ga-banner-text p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.3;
+}
+
+.ga-body {
+  margin: -12px 14px 0;
+  padding: 14px 14px 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.ga-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ga-field {
+  margin-bottom: 10px;
+}
+
+.ga-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.ga-field label ion-icon {
+  font-size: 1rem;
+  color: #1454B8;
+}
+
+.ga-field label span {
+  color: #ef4444;
+}
+
+.ga-field ion-input,
+.ga-field ion-select,
+.ga-field ion-textarea {
+  --background: #f8fafc;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --highlight-color-focused: #1454B8;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  min-height: 42px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.ga-ncf-hint {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 14px;
+  padding: 12px;
+  background: #eef4ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+}
+
+.ga-ncf-hint ion-icon {
+  font-size: 1.35rem;
+  color: #1454B8;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ga-ncf-hint strong {
+  display: block;
+  font-size: 0.86rem;
+  color: #0B419B;
+  margin-bottom: 2px;
+}
+
+.ga-ncf-hint p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.35;
+}
+
+.ga-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin: 12px 14px 0;
+}
+
+.ga-actions ion-button {
+  margin: 0;
+  --border-radius: 14px;
+  font-weight: 700;
+  min-height: 48px;
+}
+
+.ga-actions ion-button[color='warning'] {
+  color: #0f172a;
+}
+
+@media (max-width: 420px) {
+  .ga-grid {
+    grid-template-columns: 1fr;
+  }
 }

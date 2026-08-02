@@ -1,6 +1,6 @@
 <ion-header class="no-print">
   <ion-toolbar color="primary">
-    <ion-title>Vista Previa — Factura Electrónica</ion-title>
+    <ion-title>{{ titulo }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="imprimir()">
         <ion-icon name="print-outline" slot="start"></ion-icon>
@@ -21,10 +21,16 @@
     <div class="estado-badge" [ngClass]="{
       'aceptado': esAceptado,
       'rechazado': esRechazado,
-      'pendiente': !esAceptado && !esRechazado
+      'pendiente': esPendiente
     }">
       <ion-icon [name]="esAceptado ? 'checkmark-circle' : esRechazado ? 'close-circle' : 'time'"></ion-icon>
-      <span>{{ ecfData?.estadoDgii || 'Procesando...' }}</span>
+      <span>{{ estadoLabel }}</span>
+    </div>
+    <div class="estado-hint no-print" *ngIf="esPendiente && trackIdValido">
+      <p>DGII recibió el comprobante y aún lo está procesando.</p>
+      <ion-button size="small" fill="outline" (click)="actualizarEstado()" [disabled]="consultando">
+        {{ consultando ? 'Consultando…' : 'Actualizar estado' }}
+      </ion-button>
     </div>
 
     <!-- Encabezado empresa -->
@@ -37,9 +43,21 @@
 
     <!-- Datos e-CF -->
     <div class="ecf-info">
+      <div class="ecf-row" *ngIf="factura?.numeroDocumento">
+        <span class="ecf-label">No. Doc:</span>
+        <span class="ecf-value">{{ factura.numeroDocumento }}</span>
+      </div>
       <div class="ecf-row">
         <span class="ecf-label">e-NCF:</span>
-        <span class="ecf-value encf">{{ ecfData?.encf }}</span>
+        <span class="ecf-value encf">{{ ecfData?.encf || '—' }}</span>
+      </div>
+      <div class="ecf-row" *ngIf="factura?.ncfModificado">
+        <span class="ecf-label">NCF Mod.:</span>
+        <span class="ecf-value">{{ factura.ncfModificado }}</span>
+      </div>
+      <div class="ecf-row" *ngIf="factura?.numeroFacturaOrigen">
+        <span class="ecf-label">Factura:</span>
+        <span class="ecf-value">{{ factura.numeroFacturaOrigen }}</span>
       </div>
       <div class="ecf-row" *ngIf="ecfData?.trackId && ecfData.trackId !== '00000000-0000-0000-0000-000000000000'">
         <span class="ecf-label">TrackId:</span>
@@ -56,18 +74,18 @@
     </div>
 
     <!-- Tipo documento -->
-    <div class="tipo-documento">
-      {{ factura?.tipoDocumentoFiscal }}
+    <div class="tipo-documento" *ngIf="factura?.tipoDocumentoFiscal">
+      {{ factura.tipoDocumentoFiscal }}
     </div>
 
-    <!-- Datos comprador -->
-    <div class="cliente-info" *ngIf="factura?.rnc">
-      <p class="comprador-nombre">{{ factura.cliente }}</p>
-      <p>RNC: {{ factura.rnc }}</p>
+    <!-- Datos comprador / receptor -->
+    <div class="cliente-info" *ngIf="factura?.cliente || factura?.rnc">
+      <p class="comprador-nombre">{{ factura.cliente || 'Receptor' }}</p>
+      <p *ngIf="factura?.rnc">RNC: {{ factura.rnc }}</p>
     </div>
 
     <!-- Detalle de items -->
-    <table class="items-table">
+    <table class="items-table" *ngIf="factura?.items?.length">
       <thead>
         <tr>
           <th>Descripción</th>
@@ -77,7 +95,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let item of factura?.items">
+        <tr *ngFor="let item of factura.items">
           <td>{{ item.nombre }}</td>
           <td class="text-right">{{ item.cantidad }}</td>
           <td class="text-right">{{ item.precio | number:'1.2-2' }}</td>
@@ -87,30 +105,35 @@
     </table>
 
     <!-- Totales -->
-    <div class="totales">
+    <div class="totales" *ngIf="factura?.total != null">
       <div class="total-row" *ngIf="factura?.totalItbis">
         <span>ITBIS:</span>
         <span>{{ factura.totalItbis | number:'1.2-2' }}</span>
       </div>
       <div class="total-row total-general">
         <span>TOTAL:</span>
-        <span>{{ factura?.total | number:'1.2-2' }}</span>
+        <span>{{ factura.total | number:'1.2-2' }}</span>
       </div>
     </div>
 
     <!-- QR Code -->
     <div class="qr-section" *ngIf="ecfData?.urlQR">
-      <img [src]="ecfData.urlQR" alt="Código QR e-CF" class="qr-image">
+      <qrcode
+        [qrdata]="ecfData.urlQR"
+        [width]="180"
+        [errorCorrectionLevel]="'M'"
+        [margin]="1">
+      </qrcode>
       <p class="qr-caption">Escanea para verificar en DGII</p>
     </div>
 
     <!-- Mensajes DGII -->
-    <div class="mensajes-dgii" *ngIf="ecfData?.mensajesDgii?.length > 0">
-      <h4>Mensajes DGII</h4>
-      <p *ngFor="let msg of ecfData.mensajesDgii" class="msg-item">{{ msg }}</p>
+    <div class="mensajes-dgii" *ngIf="mensajesDgii.length > 0">
+      <h4>{{ esRechazado ? 'Motivo DGII' : 'Mensajes DGII' }}</h4>
+      <p *ngFor="let msg of mensajesDgii" class="msg-item">{{ msg }}</p>
     </div>
 
-    <!-- Pie de página -->
+    <!-- Pie -->
     <div class="footer-info">
       <p>Documento generado electrónicamente</p>
       <p *ngIf="ecfData?.encf">e-NCF: {{ ecfData.encf }}</p>

@@ -1,43 +1,87 @@
-<ion-header>
+<ion-header class="pf-header">
   <ion-toolbar color="primary">
-    <ion-title>{{ isEdit ? 'Editar proveedor' : 'Nuevo proveedor' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
+    <ion-title>{{ isEdit ? 'Editar proveedor' : 'Nuevo proveedor' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-item>
-    <ion-label position="stacked">Nombre comercial *</ion-label>
-    <ion-input [(ngModel)]="proveedor.nombreComercial"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label position="stacked">RNC</ion-label>
-    <ion-input [(ngModel)]="proveedor.rnc"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label position="stacked">Teléfono</ion-label>
-    <ion-input [(ngModel)]="proveedor.telefono"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label position="stacked">Email</ion-label>
-    <ion-input type="email" [(ngModel)]="proveedor.email"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label position="stacked">Dirección</ion-label>
-    <ion-textarea [(ngModel)]="proveedor.direccion"></ion-textarea>
-  </ion-item>
-  <ion-item>
-    <ion-label position="stacked">Nota</ion-label>
-    <ion-textarea [(ngModel)]="proveedor.nota"></ion-textarea>
-  </ion-item>
-  <ion-item *ngIf="isEdit">
-    <ion-label>Activo</ion-label>
-    <ion-toggle [(ngModel)]="proveedor.isActivo"></ion-toggle>
-  </ion-item>
+<ion-content class="pf-content">
+  <div class="pf-page">
+    <div class="pf-hero">
+      <div class="pf-avatar">{{ iniciales }}</div>
+      <div>
+        <h2>{{ isEdit ? 'Actualizar suplidor' : 'Registrar suplidor' }}</h2>
+        <p>Datos para compras, CxP y documentos fiscales.</p>
+      </div>
+    </div>
 
-  <ion-button expand="block" color="primary" class="ion-margin-top" (click)="guardar()">
-    Guardar
-  </ion-button>
+    <section class="pf-card">
+      <h3>Identificación</h3>
+
+      <div class="pf-field">
+        <label>Nombre comercial <span>*</span></label>
+        <ion-input
+          [(ngModel)]="proveedor.nombreComercial"
+          placeholder="Ej. Laurasara SRL">
+        </ion-input>
+      </div>
+
+      <div class="pf-grid">
+        <div class="pf-field">
+          <label>RNC</label>
+          <ion-input [(ngModel)]="proveedor.rnc" placeholder="000000000"></ion-input>
+        </div>
+        <div class="pf-field">
+          <label>Teléfono</label>
+          <ion-input [(ngModel)]="proveedor.telefono" placeholder="809-000-0000"></ion-input>
+        </div>
+      </div>
+
+      <div class="pf-field">
+        <label>Email</label>
+        <ion-input type="email" [(ngModel)]="proveedor.email" placeholder="correo@empresa.com"></ion-input>
+      </div>
+    </section>
+
+    <section class="pf-card">
+      <h3>Contacto y notas</h3>
+
+      <div class="pf-field">
+        <label>Dirección</label>
+        <ion-textarea
+          [(ngModel)]="proveedor.direccion"
+          autoGrow="true"
+          rows="2"
+          placeholder="Calle, sector, ciudad">
+        </ion-textarea>
+      </div>
+
+      <div class="pf-field">
+        <label>Nota</label>
+        <ion-textarea
+          [(ngModel)]="proveedor.nota"
+          autoGrow="true"
+          rows="2"
+          placeholder="Observaciones internas">
+        </ion-textarea>
+      </div>
+
+      <div class="pf-toggle" *ngIf="isEdit">
+        <div>
+          <strong>Activo</strong>
+          <p>Si lo desactivas no aparecerá en altas de compra.</p>
+        </div>
+        <ion-toggle [(ngModel)]="proveedor.isActivo"></ion-toggle>
+      </div>
+    </section>
+
+    <ion-button expand="block" class="pf-save" (click)="guardar()">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      {{ isEdit ? 'Guardar cambios' : 'Crear proveedor' }}
+    </ion-button>
+  </div>
 </ion-content>

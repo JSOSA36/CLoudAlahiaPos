@@ -13,6 +13,7 @@ import { PoliticasAdminComponent } from './politicas/politicas-admin.component';
 import { PoliticasAceptacionesComponent } from './politicas/politicas-aceptaciones.component';
 import { ServicioSuspendidoComponent } from './suscripciones/servicio-suspendido.component';
 import { CobrosAdminComponent } from './suscripciones/cobros-admin.component';
+import { EmpresasAdminComponent } from './Empresa/empresas-admin/empresas-admin.component';
 import { PagoSuscripcionComponent } from './suscripciones/pago-suscripcion.component';
 import { TicketsComponent } from './tickets/tickets.component';
 import { TicketsAdminComponent } from './tickets/tickets-admin.component';
@@ -66,6 +67,17 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'conciliacionbancaria',
+    loadChildren: () => import('./Components/conciliacion-bancaria/conciliacion-bancaria.module').then(m => m.ConciliacionBancariaModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    // Extracto queda como capacidad interna del Centro de Conciliación (entrada contextual).
+    path: 'extractobancario',
+    redirectTo: 'conciliacionbancaria',
+    pathMatch: 'full'
+  },
+  {
   path:'metodopagocuentas',
 
   component:
@@ -91,6 +103,11 @@ const routes: Routes = [
   {
     path: 'reporte607',
     loadChildren: () => import('./Components/reporte607/reporte607.module').then(m => m.Reporte607Module),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'reporte-it1',
+    loadChildren: () => import('./Components/reporte-it1/reporte-it1.module').then(m => m.ReporteIt1Module),
     canActivate: [AuthGuard]
   },
   {
@@ -233,6 +250,16 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'saldosafavor',
+    loadChildren: () => import('./saldos-a-favor/saldos-a-favor.module').then(m => m.SaldosAFavorModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'notascredito',
+    loadChildren: () => import('./notas-credito-clientes/notas-credito-clientes.module').then(m => m.NotasCreditoClientesModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'listadomesa',
     loadChildren: () => import('./listado_mesas/listado-mesa.module').then(c => c.ListadoMesaModule),
     canActivate: [AuthGuard]
@@ -296,6 +323,19 @@ const routes: Routes = [
   {
     path: 'login',
     loadChildren: () => import('./login/login/login.module').then(m => m.LoginModule)
+  },
+  {
+    // Cotizador público (web): sin AuthGuard. Solo consume la API.
+    path: 'cotizador',
+    loadChildren: () => import('./cotizador/cotizador.module').then(m => m.CotizadorModule)
+  },
+  {
+    // Cotización POS pública: clientes de Alahia la envían a sus clientes (WhatsApp/link).
+    path: 'cotizacion',
+    loadChildren: () =>
+      import('./cotizacion-cliente/cotizacion-cliente.module').then(
+        (m) => m.CotizacionClienteModule
+      ),
   },
   {
   path: 'usuarios',
@@ -506,6 +546,11 @@ const routes: Routes = [
   {
     path: 'cobros-admin',
     component: CobrosAdminComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'empresas-admin',
+    component: EmpresasAdminComponent,
     canActivate: [AuthGuard]
   },
   {

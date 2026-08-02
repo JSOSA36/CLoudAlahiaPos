@@ -9,6 +9,7 @@ import {
 } from 'src/app/servicios/notas-credito.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { NotaCreditoPreviewComponent } from 'src/app/nota-credito-preview/nota-credito-preview.component';
+import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
 
 interface LineaDevolucion {
   detalle: facturadetalles;
@@ -38,7 +39,8 @@ export class DevolucionFacturaComponent implements OnInit {
     private modalCtrl: ModalController,
     private notasCreditoService: NotasCreditoService,
     private parametros: ParametrosService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private ecfPreview: EcfPreviewLauncherService
   ) {}
 
   ngOnInit(): void {
@@ -289,10 +291,11 @@ export class DevolucionFacturaComponent implements OnInit {
 
           this.procesando = false;
 
+          const colorToast = res?.emisionPendiente ? 'warning' : 'success';
           await this.mostrarToast(
             res?.mensaje
               || 'Nota de crédito generada.',
-            'success'
+            colorToast
           );
 
           try {
@@ -303,14 +306,21 @@ export class DevolucionFacturaComponent implements OnInit {
               )
             );
 
-            const preview = await this.modalCtrl.create({
-              component: NotaCreditoPreviewComponent,
-              cssClass: 'modal-fullscreen',
-              componentProps: { ticket }
+            const abrioEcf = await this.ecfPreview.openFromNotaCredito({
+              ticket,
+              resultado: res
             });
 
-            await preview.present();
-            await preview.onDidDismiss();
+            if (!abrioEcf) {
+              const preview = await this.modalCtrl.create({
+                component: NotaCreditoPreviewComponent,
+                cssClass: 'modal-fullscreen',
+                componentProps: { ticket }
+              });
+
+              await preview.present();
+              await preview.onDidDismiss();
+            }
 
           } catch {
 

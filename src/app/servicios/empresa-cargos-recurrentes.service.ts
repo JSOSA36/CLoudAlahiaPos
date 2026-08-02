@@ -33,9 +33,13 @@ export interface SuscripcionCalculoFactura {
   idEmpresa: number;
   idPlan?: number;
   nombrePlan?: string;
-  montoPlanCatalogo?: number;
-  precioPlanEspecialUsd?: number | null;
-  usaPrecioPlanEspecial?: boolean;
+  montoServicio?: number;
+  cargoAdicional?: number;
+  limiteFacturacion?: number;
+  cargoReconexionDop?: number;
+  reconexionPendiente?: boolean;
+  montoReconexion?: number;
+  montoReconexionDop?: number;
   montoPlan: number;
   montoCargos: number;
   total: number;
@@ -44,6 +48,12 @@ export interface SuscripcionCalculoFactura {
   montoCargosDop?: number;
   totalDop?: number;
   lineas: SuscripcionLineaFactura[];
+  /** @deprecated */
+  montoPlanCatalogo?: number;
+  /** @deprecated */
+  precioPlanEspecialUsd?: number | null;
+  /** @deprecated */
+  usaPrecioPlanEspecial?: boolean;
 }
 
 export interface CrearCargoDto {

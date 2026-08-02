@@ -1,0 +1,141 @@
+<div class="cotizador-page">
+  <header class="hero">
+    <div class="brand">Alahia ERP</div>
+    <h1>Cotizador inteligente</h1>
+    <p>
+      Construya su solución y obtenga una estimación inmediata.
+      Sin registro obligatorio. Los valores son orientativos (antes de impuestos).
+    </p>
+  </header>
+
+  <div *ngIf="error" class="alert danger">{{ error }}</div>
+  <div *ngIf="mensajeAccion" class="alert info">{{ mensajeAccion }}</div>
+
+  <section class="grid" *ngIf="catalogo">
+    <div class="panel">
+      <h2>1. Tipo de negocio</h2>
+      <div class="chips">
+        <button
+          type="button"
+          class="chip"
+          *ngFor="let t of catalogo.tiposNegocio"
+          [class.active]="tipoNegocioCodigo === t.codigo"
+          (click)="seleccionarTipo(t.codigo)">
+          {{ t.nombre }}
+        </button>
+      </div>
+
+      <h2>2. Módulos</h2>
+      <div class="categoria" *ngFor="let cat of categorias">
+        <h3>{{ cat }}</h3>
+        <label class="modulo" *ngFor="let m of modulosDe(cat)">
+          <input
+            type="checkbox"
+            [checked]="estaSeleccionado(m.codigo)"
+            (change)="toggleModulo(m.codigo)" />
+          <span class="modulo-body">
+            <strong>{{ m.nombre }}</strong>
+            <small>{{ m.descripcionComercial }}</small>
+            <em>{{ m.nivel }}</em>
+          </span>
+        </label>
+      </div>
+
+      <h2>3. Operación</h2>
+      <div class="ops">
+        <label>
+          Usuarios
+          <input type="number" min="1" [(ngModel)]="usuarios" (ngModelChange)="onCambioOperacion()" />
+        </label>
+        <label>
+          Sucursales
+          <input type="number" min="1" [(ngModel)]="sucursales" (ngModelChange)="onCambioOperacion()" />
+        </label>
+        <label class="check">
+          <input
+            type="checkbox"
+            [(ngModel)]="usaFacturacionElectronica"
+            (ngModelChange)="onCambioOperacion()" />
+          Facturación electrónica (e-CF)
+        </label>
+        <label *ngIf="usaFacturacionElectronica">
+          Documentos electrónicos / mes
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="documentosElectronicosMensuales"
+            (ngModelChange)="onCambioOperacion()" />
+        </label>
+      </div>
+    </div>
+
+    <aside class="panel propuesta" *ngIf="propuesta">
+      <div class="precio">
+        <span>Estimación mensual</span>
+        <strong>{{ propuesta.precioMensualUSD | number:'1.2-2' }} {{ propuesta.moneda }}</strong>
+        <small>Antes de impuestos · piso {{ propuesta.pisoMensualUSD }} USD</small>
+      </div>
+
+      <p class="resumen">{{ propuesta.resumen }}</p>
+
+      <h3>Módulos incluidos</h3>
+      <ul>
+        <li *ngFor="let c of propuesta.modulosIncluidos">{{ nombreModulo(c) }}</li>
+      </ul>
+
+      <h3>Recomendaciones</h3>
+      <div *ngIf="!propuesta.recomendaciones.length" class="muted">Sin recomendaciones adicionales.</div>
+      <div class="rec" *ngFor="let r of propuesta.recomendaciones">
+        <div>
+          <strong>{{ r.nombre }}</strong>
+          <small>{{ r.mensaje }}</small>
+        </div>
+        <button type="button" (click)="aceptarRecomendacion(r.codigo)">Agregar</button>
+      </div>
+
+      <h3>Asesoría</h3>
+      <ul class="explicaciones">
+        <li *ngFor="let e of propuesta.explicaciones">{{ e }}</li>
+      </ul>
+
+      <h3>Desglose</h3>
+      <table>
+        <tr *ngFor="let l of propuesta.desglose">
+          <td>{{ l.concepto }}</td>
+          <td>{{ l.montoUSD | number:'1.2-2' }}</td>
+        </tr>
+        <tr class="total">
+          <td>Total mensual estimado</td>
+          <td>{{ propuesta.precioMensualUSD | number:'1.2-2' }}</td>
+        </tr>
+      </table>
+
+      <div class="acciones">
+        <button type="button" class="primary" (click)="guardar()">Guardar propuesta</button>
+        <div class="lead" *ngIf="folio">
+          <input placeholder="Nombre" [(ngModel)]="lead.nombre" />
+          <input placeholder="Correo" [(ngModel)]="lead.correo" />
+          <input placeholder="Teléfono / WhatsApp" [(ngModel)]="lead.telefono" />
+          <textarea placeholder="Mensaje (opcional)" [(ngModel)]="lead.mensaje"></textarea>
+
+          <div class="share-box" *ngIf="linkCompartir">
+            <label>Link público</label>
+            <div class="share-row">
+              <input type="text" [value]="linkCompartir" readonly />
+              <button type="button" (click)="copiarLink()">Copiar</button>
+            </div>
+          </div>
+
+          <div class="lead-actions">
+            <button type="button" class="wa" (click)="compartirWhatsApp()">Compartir por WhatsApp</button>
+            <button type="button" (click)="enviarCorreo()">Enviar por correo</button>
+            <button type="button" (click)="solicitar('DEMO')">Solicitar demo</button>
+            <button type="button" (click)="solicitar('ASESOR')">Contactar asesor</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <div *ngIf="cargando" class="loading">Calculando…</div>
+</div>

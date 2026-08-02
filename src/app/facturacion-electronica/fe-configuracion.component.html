@@ -35,22 +35,190 @@
           </span>
           <ion-spinner name="dots" *ngIf="verificando"></ion-spinner>
         </div>
-        <ion-button size="small" fill="outline" (click)="verificarConexion()" [disabled]="verificando" class="ion-margin-top">
+        <div class="info-row" *ngIf="endpointEfectivo">
+          <span>Endpoint:</span>
+          <code class="endpoint-code">{{ endpointEfectivo }}</code>
+        </div>
+        <ion-button size="small" color="primary" (click)="verificarConexion()" [disabled]="verificando" class="ion-margin-top btn-verificar">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
           Verificar conexión
         </ion-button>
-        <p class="hint">El Gateway conecta con el proveedor de facturación electrónica configurado (BaseUrl / API Key en appsettings). El ERP no depende de un vendor concreto.</p>
+        <p class="hint">
+          Verifica el endpoint del <strong>proveedor elegido para esta empresa</strong>
+          (Alahia.eCF.Api o URL externa). No es el ambiente DGII.
+        </p>
       </div>
     </div>
 
-    <div class="config-card">
+    <div class="config-card config-card--wide">
       <div class="card-header">
-        <ion-icon name="settings-outline"></ion-icon>
-        <h3>Ambiente</h3>
+        <ion-icon name="git-branch-outline"></ion-icon>
+        <h3>Proveedor fiscal</h3>
       </div>
       <div class="card-body">
-        <div class="ambiente-badge pruebas">SANDBOX (Pruebas)</div>
-        <p class="hint">El ambiente se configura por secuencia e-CF. Cuando todas las secuencias activas sean de producción, el sistema operará en modo producción.</p>
+        <ion-spinner name="dots" *ngIf="cargandoProveedor"></ion-spinner>
+
+        <div class="ambiente-options" *ngIf="!cargandoProveedor">
+          <button type="button"
+                  class="ambiente-option"
+                  *ngFor="let op of opcionesProveedor"
+                  [class.selected]="proveedorSeleccionado === op.code"
+                  (click)="seleccionarProveedor(op.code)">
+            <div class="ambiente-option-top">
+              <span class="ambiente-radio" [class.on]="proveedorSeleccionado === op.code"></span>
+              <strong>{{ op.label }}</strong>
+            </div>
+            <p>{{ op.hint }}</p>
+          </button>
+        </div>
+
+        <div class="proveedor-form" *ngIf="!cargandoProveedor && !esDgiiDirecto">
+          <label>
+            Nombre del proveedor
+            <input type="text" [(ngModel)]="proveedorNombre" placeholder="Ej. Pedro" />
+          </label>
+          <label>
+            URL base (api/Receipt)
+            <input type="url" [(ngModel)]="proveedorBaseUrl" placeholder="https://proveedor.ejemplo.com" />
+          </label>
+          <label>
+            Usuario (opcional, Basic Auth)
+            <input type="text" [(ngModel)]="proveedorUsuario" autocomplete="off" />
+          </label>
+          <label>
+            Contraseña {{ passwordConfigurado ? '(dejá vacío para conservar)' : '' }}
+            <input type="password" [(ngModel)]="proveedorPassword" autocomplete="new-password" />
+          </label>
+          <label>
+            API Key {{ apiKeyConfigurado ? '(dejá vacío para conservar)' : '' }}
+            <input type="password" [(ngModel)]="proveedorApiKey" autocomplete="new-password" />
+          </label>
+        </div>
+
+        <p class="hint" *ngIf="!cargandoProveedor && esDgiiDirecto">
+          En modo DGII directo, Alahia.eCF.Api usa el certificado de esta empresa y el ambiente DGII
+          configurado abajo. El endpoint del microservicio está en <code>FiscalGateway</code> del servidor.
+        </p>
+
+        <ion-button
+          class="ion-margin-top"
+          color="primary"
+          (click)="guardarProveedor()"
+          [disabled]="guardandoProveedor || cargandoProveedor">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          {{ guardandoProveedor ? 'Guardando…' : 'Guardar proveedor' }}
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="config-card config-card--wide" *ngIf="esDgiiDirecto">
+      <div class="card-header">
+        <ion-icon name="key-outline"></ion-icon>
+        <h3>Certificado digital</h3>
+      </div>
+      <div class="card-body">
+        <ion-spinner name="dots" *ngIf="cargandoCertificado"></ion-spinner>
+
+        <div class="cert-status" *ngIf="!cargandoCertificado && certConfigurado">
+          <div class="ambiente-badge" [class.produccion]="!certVencido" [class.pruebas]="certVencido">
+            {{ certVencido ? 'Vencido' : 'Activo' }}
+          </div>
+          <div class="info-row"><span>Archivo:</span><strong>{{ certNombre }}</strong></div>
+          <div class="info-row" *ngIf="certFechaExp">
+            <span>Expira:</span><strong>{{ certFechaExp | date:'dd/MM/yyyy' }}</strong>
+          </div>
+        </div>
+
+        <p class="hint" *ngIf="!cargandoCertificado && !certConfigurado">
+          Obligatorio para emitir e-CF con DGII directo. Suba el archivo <code>.p12</code> / <code>.pfx</code>
+          y la contraseña del certificado.
+        </p>
+
+        <div class="proveedor-form" *ngIf="!cargandoCertificado">
+          <label>
+            Archivo certificado (.p12 / .pfx)
+            <input type="file" accept=".p12,.pfx" (change)="onCertFileChange($event)" />
+          </label>
+          <label>
+            Contraseña del certificado
+            <input type="password" [(ngModel)]="certPassword" autocomplete="new-password" />
+          </label>
+        </div>
+
+        <ion-button
+          class="ion-margin-top"
+          color="primary"
+          (click)="guardarCertificado()"
+          [disabled]="guardandoCertificado || cargandoCertificado || !certArchivo">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          {{ guardandoCertificado ? 'Guardando…' : (certConfigurado ? 'Reemplazar certificado' : 'Guardar certificado') }}
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="config-card config-card--wide" *ngIf="esDgiiDirecto">
+      <div class="card-header">
+        <ion-icon name="globe-outline"></ion-icon>
+        <h3>Ambiente DGII</h3>
+      </div>
+      <div class="card-body">
+        <div class="ambiente-actual-row" *ngIf="!cargandoAmbiente">
+          <span>Ambiente activo:</span>
+          <div class="ambiente-badge" [ngClass]="opcionActual.badgeClass">
+            {{ opcionActual.label }}
+          </div>
+        </div>
+        <ion-spinner name="dots" *ngIf="cargandoAmbiente"></ion-spinner>
+
+        <div class="ambiente-options" *ngIf="!cargandoAmbiente">
+          <button type="button"
+                  class="ambiente-option"
+                  *ngFor="let op of opciones"
+                  [class.selected]="ambienteSeleccionado === op.code"
+                  (click)="seleccionar(op.code)">
+            <div class="ambiente-option-top">
+              <span class="ambiente-radio" [class.on]="ambienteSeleccionado === op.code"></span>
+              <strong>{{ op.label }}</strong>
+              <span class="ambiente-code">{{ op.code }}</span>
+            </div>
+            <p>{{ op.hint }}</p>
+          </button>
+        </div>
+
+        <div class="urls-panel" *ngIf="!cargandoAmbiente && opcionSeleccionada">
+          <div class="urls-title">URLs DGII ({{ opcionSeleccionada.label }})</div>
+          <div class="url-row"><span>Auth</span><code>{{ urlAuth }}</code></div>
+          <div class="url-row"><span>Recepción</span><code>{{ urlRecepcion }}</code></div>
+          <div class="url-row"><span>Consulta</span><code>{{ urlConsulta }}</code></div>
+          <div class="url-row"><span>RFCE</span><code>{{ urlRfce }}</code></div>
+        </div>
+
+        <ion-button
+          class="ion-margin-top"
+          (click)="guardarAmbiente()"
+          [disabled]="!hayCambioAmbiente || guardando || cargandoAmbiente"
+          [color]="ambienteSeleccionado === 'ecf' ? 'warning' : 'primary'">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          {{ guardando ? 'Guardando…' : 'Guardar ambiente' }}
+        </ion-button>
+
+        <p class="hint">
+          Solo aplica en <strong>DGII directo</strong>. Cada emisión usará testecf / certecf / ecf.
+          Cambiar a Producción requiere confirmación.
+        </p>
+      </div>
+    </div>
+
+    <div class="config-card config-card--wide" *ngIf="!esDgiiDirecto">
+      <div class="card-header">
+        <ion-icon name="globe-outline"></ion-icon>
+        <h3>Ambiente DGII</h3>
+      </div>
+      <div class="card-body">
+        <p class="hint" style="margin-top:0">
+          En modo <strong>proveedor externo</strong> el ambiente DGII lo define el proveedor
+          (Pedro u otro). El selector Pruebas/Certificación/Producción de Alahia no aplica.
+        </p>
       </div>
     </div>
 

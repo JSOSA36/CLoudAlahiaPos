@@ -1,0 +1,95 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="modalCtrl.dismiss()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Categorías de gastos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cg-content">
+  <div class="cg-page">
+    <section class="cg-banner">
+      <div class="cg-banner-icon">
+        <ion-icon name="pricetags"></ion-icon>
+      </div>
+      <div>
+        <h2>Catálogo por empresa</h2>
+        <p>Agrega, edita o desactiva categorías para clasificar egresos.</p>
+      </div>
+    </section>
+
+    <section class="cg-form-card">
+      <h3>{{ editando ? 'Editar categoría' : 'Nueva categoría' }}</h3>
+      <div class="cg-field">
+        <label>Nombre <span>*</span></label>
+        <ion-input [(ngModel)]="formNombre" placeholder="Ej. Combustible"></ion-input>
+      </div>
+      <div class="cg-field">
+        <label>Descripción</label>
+        <ion-input [(ngModel)]="formDescripcion" placeholder="Opcional"></ion-input>
+      </div>
+      <div class="cg-field">
+        <label>Cuenta contable (gasto)</label>
+        <ion-select
+          [(ngModel)]="formIdCuentaContable"
+          interface="popover"
+          placeholder="Usar mapeo general GASTO_OPERATIVO">
+          <ion-select-option [value]="null">Mapeo general (GASTO_OPERATIVO)</ion-select-option>
+          <ion-select-option *ngFor="let c of cuentasGasto" [value]="c.idCuentaContable">
+            {{ c.codigo }} — {{ c.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+      <div class="cg-switch" *ngIf="editando">
+        <div>
+          <strong>Activa</strong>
+          <p>Si la desactivas no aparecerá al registrar gastos</p>
+        </div>
+        <ion-toggle [(ngModel)]="formActivo" color="success"></ion-toggle>
+      </div>
+      <div class="cg-form-actions">
+        <ion-button *ngIf="editando" fill="outline" color="medium" (click)="cancelarForm()">
+          Cancelar
+        </ion-button>
+        <ion-button color="warning" (click)="guardar()">
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          {{ editando ? 'Actualizar' : 'Agregar' }}
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="cg-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <article
+      class="cg-card"
+      *ngFor="let c of categorias"
+      [class.off]="!c.activo">
+      <div class="cg-info">
+        <h4>{{ c.nombre }}</h4>
+        <p *ngIf="c.descripcion">{{ c.descripcion }}</p>
+        <p class="cg-cuenta">{{ nombreCuenta(c.idCuentaContable) }}</p>
+        <ion-badge [color]="c.activo ? 'success' : 'medium'">
+          {{ c.activo ? 'Activa' : 'Inactiva' }}
+        </ion-badge>
+      </div>
+      <div class="cg-actions">
+        <ion-button size="small" fill="solid" color="primary" (click)="editar(c)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button
+          *ngIf="c.activo"
+          size="small"
+          fill="outline"
+          color="danger"
+          (click)="desactivar(c)">
+          <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </article>
+  </div>
+</ion-content>

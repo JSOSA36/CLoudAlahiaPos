@@ -10,6 +10,7 @@ import {
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { NotaCreditoPreviewComponent } from 'src/app/nota-credito-preview/nota-credito-preview.component';
 import { PrintService } from 'src/app/servicios/print.services';
+import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
 
 @Component({
   selector: 'app-listado-notas-credito',
@@ -29,6 +30,7 @@ export class ListadoNotasCreditoComponent implements OnInit {
   notas: NotaCreditoListado[] = [];
   notasFiltradas: NotaCreditoListado[] = [];
   cargando = false;
+  reintentandoId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,7 +38,8 @@ export class ListadoNotasCreditoComponent implements OnInit {
     private parametros: ParametrosService,
     private modalCtrl: ModalController,
     private printService: PrintService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private ecfPreview: EcfPreviewLauncherService
   ) {}
 
   ngOnInit(): void {
@@ -103,7 +106,24 @@ export class ListadoNotasCreditoComponent implements OnInit {
         )
       );
 
-      await this.abrirPreview(ticket);
+      const abrioEcf = await this.ecfPreview.openFromNotaCredito({
+        ticket,
+        resultado: {
+          idNotaCredito: item.idNotaCredito,
+          numeroDocumento: item.numeroDocumento,
+          ncf: item.ncf || ticket.ncf || '',
+          total: item.total,
+          mensaje: '',
+          trackId: item.trackId || ticket.trackId,
+          estadoDgii: item.estadoDgii || ticket.estadoDgii,
+          emisionPendiente: item.emisionPendiente,
+          mensajeEmision: ticket.mensajeEmision
+        }
+      });
+
+      if (!abrioEcf) {
+        await this.abrirPreview(ticket);
+      }
     } catch {
       await this.toast('No se pudo cargar la vista previa', 'danger');
     }
@@ -121,6 +141,32 @@ export class ListadoNotasCreditoComponent implements OnInit {
       await this.toast('Ticket enviado a la impresora', 'success');
     } catch {
       await this.toast('No se pudo imprimir', 'danger');
+    }
+  }
+
+  async reintentarEmision(item: NotaCreditoListado) {
+    this.reintentandoId = item.idNotaCredito;
+    try {
+      const res = await firstValueFrom(
+        this.notasCreditoService.reintentarEmision(
+          item.idNotaCredito,
+          this.parametros.GetIdEmpresa(),
+          this.parametros.IdUsuario
+        )
+      );
+
+      await this.toast(
+        res?.mensaje || 'Reintento de emisión completado',
+        res?.emisionPendiente ? 'warning' : 'success'
+      );
+      await this.cargar();
+    } catch (err: any) {
+      await this.toast(
+        err?.error || 'No se pudo reintentar la emisión',
+        'danger'
+      );
+    } finally {
+      this.reintentandoId = null;
     }
   }
 

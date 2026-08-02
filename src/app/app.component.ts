@@ -17,7 +17,8 @@ import {
   MODULOS_EXCLUIDOS_MENU,
   CONTABILIDAD_MODULO_PADRE,
   CONTABILIDAD_SUBMODULOS_TITULOS,
-  MODULO_TITULOS_MENU
+  MODULO_TITULOS_MENU,
+  esModuloPermisoSinMenu
 } from './config/menu-grupos.config';
 import { MenuGrupoView, MenuItemView, MenuSalirView } from './models/menu.models';
 
@@ -29,6 +30,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   ALAHIA_AI: '/alahia-ai',
   ORDENES: '/Ordenes',
   REPORTE_607: '/reporte607',
+  IT1: '/reporte-it1',
   REPORTE_VENTA: '/reporteventa',
   REPORTE_SERVICIOS: '/reporteservicios',
   REPORTE_COMISIONES: '/comisiones',
@@ -38,6 +40,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   CATEGORIAS: '/Listadocategorias',
   PRODUCTOS: '/listproducto',
   CLIENTES: '/clientemodal',
+  NOTAS_CREDITO: '/notascredito',
   CUMPLEANEROS: '/clientehappy',
 
   GASTOS: '/listadogastos',
@@ -53,6 +56,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   HISTORICO_FACTURAS: '/historicofact',
   LISTADO_DEVOLUCIONES: '/listadodevoluciones',
   NOTAS_CREDITO_APLICADAS: '/notascreditoaplicadas',
+  SALDOS_A_FAVOR: '/saldosafavor',
   CUENTAS_COBRAR: '/cuentaxcobrar',
   ANTIGUEDAD_CXC: '/cuentaxcobrar/antiguedad',
   DESCUENTOS: '/Descuento',
@@ -61,6 +65,8 @@ export const MODULO_RUTAS: Record<string, string> = {
   MOVIMIENTO_CAJA: '/movimientocaja',
   CUENTAS_FINANCIERAS: '/cuentafinanciera',
   MOVIMIENTO_FINANCIERO: '/movimientosfinancieros',
+  CONCILIACION_BANCARIA: '/conciliacionbancaria',
+  EXTRACTO_BANCARIO: '/conciliacionbancaria',
   METODO_PAGO_CUENTAS: '/metodopagocuentas',
   TRANSFERENCIAS_FINANCIERAS: '/transferenciasfinancieras',
   POS: '/pos',
@@ -105,11 +111,14 @@ export const MODULO_RUTAS: Record<string, string> = {
   POLITICAS_VERSIONES: '/politicas-admin',
   POLITICAS_ACEPTACIONES: '/politicas-aceptaciones',
   MACROBITS_ADMIN: '/politicas-admin',
+  EMPRESAS_ADMIN: '/empresas-admin',
   SUSCRIPCIONES_COBROS: '/cobros-admin',
   PAGO_SUSCRIPCION: '/pago-suscripcion',
   TICKETS: '/tickets',
   TICKETS_ADMIN: '/tickets-admin',
-  CENTRO_PRODUCCION: '/centro-produccion'
+  CENTRO_PRODUCCION: '/centro-produccion',
+  /** Alias histórico (Kitchen Display → Centro de Producción). */
+  KDS: '/centro-produccion'
 };
 
 // ===============================
@@ -121,6 +130,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   NCF_SECUENCIAS: 'barcode',
   REPORTE_607: 'file-invoice',
   REPORTE_606: 'file-invoice',
+  IT1: 'file-invoice-dollar',
   REPORTE_VENTA: 'file-invoice-dollar',
   REPORTE_SERVICIOS: 'chart-line',
   REPORTE_COMISIONES: 'money-bill-wave',
@@ -131,8 +141,10 @@ export const MODULO_ICONOS: Record<string, string> = {
   CUENTAS_FINANCIERAS: 'wallet',
   TRANSFERENCIAS_FINANCIERAS: 'exchange-alt',
   MOVIMIENTO_FINANCIERO: 'chart-line',
+  CONCILIACION_BANCARIA: 'balance-scale',
   METODO_PAGO_CUENTAS: 'credit-card',
   CLIENTES: 'users',
+  NOTAS_CREDITO: 'file-invoice',
   CUMPLEANEROS: 'gift',
   PARAMETROS: 'gift',
   LISTADO_CAJA: 'wallet',
@@ -144,6 +156,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   HISTORICO_FACTURAS: 'file-invoice',
   LISTADO_DEVOLUCIONES: 'undo',
   NOTAS_CREDITO_APLICADAS: 'file-invoice-dollar',
+  SALDOS_A_FAVOR: 'piggy-bank',
   CITAS: 'calendar-alt',
   HORARIO_ESTILISTA: 'clock',
   LISTADO_PAGOS: 'list',
@@ -195,11 +208,13 @@ export const MODULO_ICONOS: Record<string, string> = {
   POLITICAS_VERSIONES: 'file-contract',
   POLITICAS_ACEPTACIONES: 'clipboard-check',
   MACROBITS_ADMIN: 'shield-alt',
+  EMPRESAS_ADMIN: 'building',
   SUSCRIPCIONES_COBROS: 'file-invoice-dollar',
   PAGO_SUSCRIPCION: 'credit-card',
   TICKETS: 'headset',
   TICKETS_ADMIN: 'life-ring',
   CENTRO_PRODUCCION: 'industry',
+  KDS: 'industry',
   ALAHIA_AI: 'robot'
 };
 
@@ -277,10 +292,8 @@ getPlanColor(plan: string): string {
   // 🔄 INIT
   // ===============================
   ngOnInit() {
-    this._Parametro.restoreAlertaPago();
-    this._Parametro.alertaPago$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(a => this.alertaPagoBanner = a);
+    this._Parametro.setAlertaPago(null);
+    this.alertaPagoBanner = null;
 
   this.citasService.nuevaCita$
   .pipe(takeUntil(this.destroy$))
@@ -420,7 +433,10 @@ private isPublicRoute(): boolean {
   const publicRoutes = [
     '/catalogo',
     '/cita',
-    '/citainicio'
+    '/citainicio',
+    '/login',
+    '/cotizador',
+    '/cotizacion'
   ];
 
   return publicRoutes.some(r => this.router.url.includes(r));
@@ -551,9 +567,17 @@ private startIdleWatcher() {
       return;
     }
 
+    const codigosNormalizados = modulos
+      .map((m: any) => {
+        let c = String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase();
+        if (c === 'KDS') c = 'CENTRO_PRODUCCION';
+        return c;
+      })
+      .filter((c: string) => !!c);
+
     this._Parametro.setModulosActivos(
-      modulos.map((m: any) => m.moduloId).filter((id: any) => id != null),
-      modulos.map((m: any) => m.codigo).filter((c: string) => !!c),
+      modulos.map((m: any) => m.moduloId ?? m.ModuloId).filter((id: any) => id != null),
+      codigosNormalizados,
       false // evita bucle: cargarMenu ← menuRefresh ← setModulosActivos
     );
 
@@ -561,8 +585,10 @@ private startIdleWatcher() {
     let tieneContabilidadHub = false;
 
     modulos.forEach((m: any) => {
-      const codigo = m.codigo;
+      let codigo = String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase();
       if (!codigo) return;
+      // Alias histórico Kitchen Display
+      if (codigo === 'KDS') codigo = 'CENTRO_PRODUCCION';
 
       if (codigo === CONTABILIDAD_MODULO_PADRE) {
         tieneContabilidadHub = true;
@@ -570,6 +596,8 @@ private startIdleWatcher() {
       }
 
       if (MODULOS_EXCLUIDOS_MENU.includes(codigo)) return;
+      // Permisos (p. ej. Producción — Gestionar): no son pantallas de menú.
+      if (esModuloPermisoSinMenu(codigo)) return;
 
       const ruta = MODULO_RUTAS[codigo];
       if (!ruta) return;
@@ -585,13 +613,20 @@ private startIdleWatcher() {
         return;
       }
 
+      const nombre = m?.nombre ?? m?.Nombre ?? '';
       modulosUsuario.set(codigo, {
         codigo,
-        title: MODULO_TITULOS_MENU[codigo] || m.nombre || codigo
+        title: MODULO_TITULOS_MENU[codigo] || nombre || codigo
       });
     });
 
-
+    // IT-1: visible con flag fiscal aunque no exista fila en Empresa_Modulos
+    if (this._Parametro.isGenerarIt1() && !modulosUsuario.has('IT1')) {
+      modulosUsuario.set('IT1', {
+        codigo: 'IT1',
+        title: MODULO_TITULOS_MENU['IT1'] || 'Declaración IT-1'
+      });
+    }
 
     const codigosAsignados = new Set<string>();
     const grupos: MenuGrupoView[] = [];

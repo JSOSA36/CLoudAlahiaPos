@@ -1,120 +1,123 @@
-<<ion-header>
+<ion-header>
   <ion-toolbar color="primary">
-
-    <!-- BOTÓN ATRÁS 🔥 -->
     <ion-buttons slot="start">
       <ion-button (click)="cerrar()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-
-    <ion-title class="ion-text-center">
-      💵 Registrar Ingreso
-    </ion-title>
-
+    <ion-title>Registrar ingreso</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content color="light" class="ion-padding">
+<ion-content class="ia-content">
+  <div class="ia-form">
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title style="color: var(--ion-color-primary); font-weight: 700;">
-        Información del Ingreso
-      </ion-card-title>
-    </ion-card-header>
+    <section class="ia-banner">
+      <div class="ia-banner-icon">
+        <ion-icon name="trending-up-outline"></ion-icon>
+      </div>
+      <div class="ia-banner-text">
+        <h2>Nuevo ingreso</h2>
+        <p>Registra el monto, categoría y forma de cobro.</p>
+      </div>
+    </section>
 
-    <ion-card-content>
+    <section class="ia-body">
+      <div class="ia-field">
+        <label>
+          <ion-icon name="create-outline"></ion-icon>
+          Descripción <span>*</span>
+        </label>
+        <ion-input
+          [(ngModel)]="ingreso.descripcion"
+          placeholder="Ej: Pago de arrendamiento">
+        </ion-input>
+      </div>
 
-      <!-- Descripción -->
-      <ion-item>
-        <ion-label position="floating">Descripción</ion-label>
-        <ion-input [(ngModel)]="ingreso.descripcion" placeholder="Ej: Pago de arrendamiento"></ion-input>
-      </ion-item>
+      <div class="ia-grid">
+        <div class="ia-field">
+          <label>
+            <ion-icon name="pricetag-outline"></ion-icon>
+            Categoría
+          </label>
+          <ion-select
+            [(ngModel)]="ingreso.categoria"
+            interface="popover"
+            placeholder="Seleccione">
+            <ion-select-option *ngFor="let c of categorias" [value]="c">
+              {{ c }}
+            </ion-select-option>
+          </ion-select>
+        </div>
 
-      <!-- Categoría -->
-      <ion-item>
-        <ion-label position="stacked">Categoría</ion-label>
-        <ion-select [(ngModel)]="ingreso.categoria" interface="popover">
-          <ion-select-option *ngFor="let c of categorias" [value]="c">{{ c }}</ion-select-option>
+        <div class="ia-field">
+          <label>
+            <ion-icon name="cash-outline"></ion-icon>
+            Monto (RD$) <span>*</span>
+          </label>
+          <ion-input
+            type="number"
+            min="0"
+            [(ngModel)]="ingreso.monto"
+            placeholder="0.00">
+          </ion-input>
+        </div>
+      </div>
+
+      <div class="ia-field">
+        <label>
+          <ion-icon name="card-outline"></ion-icon>
+          Forma de pago
+        </label>
+        <ion-select
+          [(ngModel)]="ingreso.formaPago"
+          interface="popover"
+          placeholder="Seleccione">
+          <ion-select-option
+            *ngFor="let metodo of metodosPago"
+            [value]="metodo.metodoPago">
+            {{ metodo.metodoPago }}
+          </ion-select-option>
         </ion-select>
-      </ion-item>
+      </div>
 
-      <!-- Monto -->
-      <ion-item>
-        <ion-label position="floating">Monto (RD$)</ion-label>
-        <ion-input type="number" [(ngModel)]="ingreso.monto" min="0"></ion-input>
-      </ion-item>
+      <div class="ia-field">
+        <label>
+          <ion-icon name="receipt-outline"></ion-icon>
+          Referencia / comprobante
+        </label>
+        <ion-input
+          [(ngModel)]="ingreso.referencia"
+          placeholder="Referencia interna (opcional)">
+        </ion-input>
+      </div>
 
-      <!-- Forma de Pago -->
-      <!-- Forma de Pago -->
-<ion-item>
+      <div class="ia-field">
+        <label>
+          <ion-icon name="document-text-outline"></ion-icon>
+          Nota (opcional)
+        </label>
+        <ion-textarea
+          autoGrow="true"
+          rows="3"
+          [(ngModel)]="ingreso.nota"
+          placeholder="Detalle adicional">
+        </ion-textarea>
+      </div>
+    </section>
 
-  <ion-label position="stacked">
-
-    Forma de Pago
-
-  </ion-label>
-
-  <ion-select
-
-    [(ngModel)]="
-      ingreso.formaPago
-    "
-
-    interface="popover">
-
-    <ion-select-option
-
-      *ngFor="
-        let metodo of
-        metodosPago
-      "
-
-      [value]="
-        metodo.metodoPago
-      ">
-
-      {{ metodo.metodoPago }}
-
-    </ion-select-option>
-
-  </ion-select>
-
-</ion-item>
-
-      <!-- Referencia -->
-      <ion-item>
-        <ion-label position="floating">Referencia / Comprobante</ion-label>
-        <ion-input [(ngModel)]="ingreso.referencia"></ion-input>
-      </ion-item>
-
-      <!-- Nota -->
-      <ion-item>
-        <ion-label position="floating">Nota (opcional)</ion-label>
-        <ion-textarea [(ngModel)]="ingreso.nota" auto-grow="true"></ion-textarea>
-      </ion-item>
-
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Botón Guardar -->
-  <ion-button expand="block" color="success" shape="round" (click)="guardarIngreso()" [disabled]="cargando">
-    <ion-icon slot="start" name="save-outline"></ion-icon>
-    {{ cargando ? 'Guardando...' : 'Registrar Ingreso' }}
-  </ion-button>
-
+    <div class="ia-actions">
+      <ion-button expand="block" fill="outline" color="medium" (click)="cerrar()">
+        Cancelar
+      </ion-button>
+      <ion-button
+        expand="block"
+        color="warning"
+        (click)="guardarIngreso()"
+        [disabled]="cargando">
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        {{ cargando ? 'Guardando…' : 'Guardar' }}
+      </ion-button>
+    </div>
+  </div>
 </ion-content>
-
-<style>
-ion-card {
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-}
-
-ion-button {
-  margin-top: 20px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-</style>

@@ -691,3 +691,34 @@ border:none;
   --background: #111827;
   color: #fff;
 }
+
+.nc-pago-box {
+  margin: 8px 0 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+}
+
+.nc-hint {
+  margin: 4px 0 8px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+
+  &.error {
+    color: #fca5a5;
+  }
+}
+
+.nc-saldo-info {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  line-height: 1.45;
+}
+
+.nc-restante {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}

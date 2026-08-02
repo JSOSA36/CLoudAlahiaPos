@@ -1,0 +1,312 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Extracto Bancario</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="irConciliacion()">
+        <ion-icon slot="start" name="git-compare-outline"></ion-icon>
+        Ir a conciliación
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- CARGA DE ARCHIVO -->
+  <div class="panel upload-card">
+    <div class="upload-head">
+      <div class="upload-icon">
+        <ion-icon name="cloud-upload-outline"></ion-icon>
+      </div>
+      <div>
+        <h3>Importar estado de cuenta</h3>
+        <p class="guia">
+          Suba el extracto emitido por su banco en formato
+          <strong>CSV, XLSX, XLS o PDF</strong>. El sistema detectará el período,
+          los totales y conciliará automáticamente las líneas que coincidan con sus movimientos.
+        </p>
+      </div>
+    </div>
+
+    <div class="upload-form">
+      <ion-item lines="none">
+        <ion-label position="stacked">Cuenta financiera</ion-label>
+        <ion-select interface="popover" placeholder="Seleccione la cuenta" [(ngModel)]="idCuenta">
+          <ion-select-option *ngFor="let c of cuentas" [value]="c.idCuentaFinanciera">{{ c.nombre }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <label class="dropzone" [class.con-archivo]="archivoSeleccionado">
+        <input type="file" accept=".csv,.xlsx,.xls,.pdf" hidden (change)="onArchivoSeleccionado($event)" />
+        <ng-container *ngIf="!archivoSeleccionado; else archivoElegido">
+          <ion-icon name="document-attach-outline"></ion-icon>
+          <span class="dz-titulo">Haga clic para seleccionar el archivo</span>
+          <span class="dz-sub">.csv · .xlsx · .xls · .pdf</span>
+        </ng-container>
+        <ng-template #archivoElegido>
+          <ion-icon name="document-text-outline" color="primary"></ion-icon>
+          <span class="dz-titulo nombre-archivo">{{ archivoSeleccionado?.name }}</span>
+          <span class="dz-sub">Listo para importar</span>
+        </ng-template>
+      </label>
+
+      <div class="upload-acciones">
+        <ion-button expand="block" (click)="importarArchivo()" [disabled]="cargando || !idCuenta || !archivoSeleccionado">
+          <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+          Importar extracto
+        </ion-button>
+        <ion-button *ngIf="archivoSeleccionado" fill="clear" color="medium" size="small" (click)="quitarArchivo()">
+          Quitar archivo
+        </ion-button>
+      </div>
+
+      <button type="button" class="toggle-csv" (click)="mostrarPegarCsv = !mostrarPegarCsv">
+        <ion-icon [name]="mostrarPegarCsv ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        {{ mostrarPegarCsv ? 'Ocultar' : 'O pegar contenido CSV manualmente' }}
+      </button>
+
+      <div class="pegar-csv" *ngIf="mostrarPegarCsv">
+        <ion-item lines="none" class="full">
+          <ion-label position="stacked">Contenido CSV</ion-label>
+          <ion-textarea rows="6" [(ngModel)]="contenidoCsv" placeholder="fecha,descripcion,debito,credito..."></ion-textarea>
+        </ion-item>
+        <ion-button fill="outline" (click)="importarTexto()" [disabled]="cargando || !idCuenta">
+          Importar texto CSV
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-box" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Procesando extracto...</p>
+  </div>
+
+  <!-- METADATOS DEL EXTRACTO -->
+  <div class="panel" *ngIf="importActual && !cargando">
+    <div class="meta-head">
+      <h3>
+        <ion-icon name="business-outline"></ion-icon>
+        {{ importActual.banco || 'Extracto' }} · {{ importActual.nombreArchivo }}
+      </h3>
+      <div class="meta-head-derecha">
+        <ion-badge [color]="importActual.estado === 'CERRADO' ? 'success' : 'primary'">
+          {{ importActual.estado }}
+        </ion-badge>
+        <ion-button *ngIf="resumen?.puedeCerrar && importActual.estado !== 'CERRADO'"
+                    size="small" color="success" (click)="cerrarExtracto()">
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          Cerrar extracto
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span>Cuenta banco</span>
+        <strong>{{ cuentaEnmascarada(importActual.numeroCuentaBanco) }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Cuenta en sistema</span>
+        <strong>{{ getNombreCuenta(importActual.idCuentaFinanciera) || '—' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Moneda</span>
+        <strong>{{ importActual.moneda || 'DOP' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Período</span>
+        <strong *ngIf="importActual.periodoDesde; else sinPeriodo">
+          {{ importActual.periodoDesde | date:'dd/MM/yyyy' }} – {{ importActual.periodoHasta | date:'dd/MM/yyyy' }}
+        </strong>
+        <ng-template #sinPeriodo><strong>—</strong></ng-template>
+      </div>
+      <div class="meta-item">
+        <span>Saldo apertura</span>
+        <strong class="money">{{ (importActual.saldoInicial ?? 0) | currency:'DOP':'code':'1.2-2' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Saldo cierre</span>
+        <strong class="money">{{ (importActual.saldoFinal ?? 0) | currency:'DOP':'code':'1.2-2' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Total débitos</span>
+        <strong class="money debito">{{ (importActual.totalDebitos ?? 0) | currency:'DOP':'code':'1.2-2' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Total créditos</span>
+        <strong class="money credito">{{ (importActual.totalCreditos ?? 0) | currency:'DOP':'code':'1.2-2' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs DE CONCILIACIÓN -->
+  <div class="kpi-grid" *ngIf="resumen && !cargando">
+    <div class="kpi kpi-ok">
+      <ion-icon name="checkmark-done-outline"></ion-icon>
+      <div>
+        <span>Conciliadas auto</span>
+        <strong>{{ resumen.cantidadConciliada }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-info">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <div>
+        <span>Sugeridas</span>
+        <strong>{{ totalSugeridas }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-warn">
+      <ion-icon name="time-outline"></ion-icon>
+      <div>
+        <span>Pendientes</span>
+        <strong>{{ resumen.cantidadPendiente }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-gasto">
+      <ion-icon name="arrow-down-circle-outline"></ion-icon>
+      <div>
+        <span>Gastos creados</span>
+        <strong>{{ resumen.gastos }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-ingreso">
+      <ion-icon name="arrow-up-circle-outline"></ion-icon>
+      <div>
+        <span>Ingresos creados</span>
+        <strong>{{ resumen.ingresos }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-neutro">
+      <ion-icon name="build-outline"></ion-icon>
+      <div>
+        <span>Ajustes</span>
+        <strong>{{ resumen.ajustes }}</strong>
+      </div>
+    </div>
+    <div class="kpi kpi-neutro">
+      <ion-icon name="eye-off-outline"></ion-icon>
+      <div>
+        <span>Ignoradas</span>
+        <strong>{{ resumen.ignorados }}</strong>
+      </div>
+    </div>
+    <div class="kpi" [class.kpi-ok]="resumen.puedeCerrar" [class.kpi-danger]="!resumen.puedeCerrar">
+      <ion-icon [name]="resumen.puedeCerrar ? 'shield-checkmark-outline' : 'alert-circle-outline'"></ion-icon>
+      <div>
+        <span>Diferencia final</span>
+        <strong class="money">{{ resumen.diferencia | currency:'DOP':'code':'1.2-2' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE LÍNEAS -->
+  <div class="panel" *ngIf="lineas.length && !cargando">
+    <div class="tabla-head">
+      <h3>Líneas del extracto ({{ lineasFiltradas.length }} de {{ lineas.length }})</h3>
+      <div class="tabla-head-acciones">
+        <ion-segment [(ngModel)]="filtro" mode="md" class="filtro-segment">
+          <ion-segment-button value="TODAS">Todas</ion-segment-button>
+          <ion-segment-button value="PENDIENTES">Pendientes</ion-segment-button>
+          <ion-segment-button value="RESUELTAS">Resueltas</ion-segment-button>
+        </ion-segment>
+        <ion-button size="small" fill="clear" (click)="refrescarDatos()">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Actualizar
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="tabla-lineas">
+        <div class="row head">
+          <span>Fecha</span>
+          <span>Referencia</span>
+          <span>Descripción</span>
+          <span class="num">Débito</span>
+          <span class="num">Crédito</span>
+          <span class="num">Saldo</span>
+          <span>Estado</span>
+          <span>Movimiento sugerido</span>
+          <span class="num">Conf.</span>
+          <span>Acciones</span>
+        </div>
+
+        <div class="row" *ngFor="let linea of lineasFiltradas" [class.fila-auto]="esAutoConciliada(linea)">
+          <span class="fecha">{{ linea.fechaMovimiento | date:'dd/MM/yyyy' }}</span>
+          <span class="ref" [title]="linea.referencia">{{ linea.referencia || '—' }}</span>
+          <span class="descripcion">
+            <span class="desc-texto" [title]="linea.descripcion">{{ linea.descripcion || 'Sin descripción' }}</span>
+            <span class="reco-chip" *ngIf="esPendiente(linea)">
+              <ion-icon name="bulb-outline"></ion-icon>
+              {{ recomendacion(linea).etiqueta }}
+            </span>
+          </span>
+          <span class="num money debito">{{ linea.debito ? (linea.debito | currency:'DOP':'code':'1.2-2') : '—' }}</span>
+          <span class="num money credito">{{ linea.credito ? (linea.credito | currency:'DOP':'code':'1.2-2') : '—' }}</span>
+          <span class="num money">{{ linea.balance != null ? (linea.balance | currency:'DOP':'code':'1.2-2') : '—' }}</span>
+          <span>
+            <span class="estado-pill" [attr.data-estado]="claseEstado(linea)">
+              <ion-icon *ngIf="esAutoConciliada(linea)" name="flash-outline"></ion-icon>
+              {{ etiquetaEstado(linea) }}
+            </span>
+          </span>
+          <span class="sugerido-cell">
+            <ng-container *ngIf="linea.movimientoSugerido as mov; else sinSugerido">
+              <span class="sug-texto" [title]="mov.motivo">
+                #{{ mov.idMovimientoFinanciero }} · {{ mov.tipoMovimiento }} · {{ mov.monto | currency:'DOP':'code':'1.2-2' }}
+              </span>
+            </ng-container>
+            <ng-template #sinSugerido>—</ng-template>
+          </span>
+          <span class="num conf">
+            <ng-container *ngIf="confianzaPct(linea) as pct; else sinConf">{{ pct }}%</ng-container>
+            <ng-template #sinConf>—</ng-template>
+          </span>
+          <span class="acciones-cell">
+            <!-- Pendiente: acción recomendada + menú de resolución -->
+            <ng-container *ngIf="esPendiente(linea)">
+              <ion-button size="small" color="warning" (click)="aplicarRecomendada(linea)" [title]="'Aplicar: ' + recomendacion(linea).etiqueta">
+                <ion-icon slot="icon-only" name="flash-outline"></ion-icon>
+              </ion-button>
+              <ion-button size="small" fill="outline" color="primary" (click)="abrirAcciones(linea)">
+                <ion-icon slot="start" name="options-outline"></ion-icon>
+                Resolver
+              </ion-button>
+            </ng-container>
+
+            <!-- Sugerida: confirmar / elegir otro -->
+            <ng-container *ngIf="esSugerida(linea)">
+              <ion-button size="small" color="success" (click)="confirmarMatch(linea)" title="Confirmar match sugerido">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+              </ion-button>
+              <ion-button size="small" fill="outline" color="primary" (click)="asociarExistente(linea)" title="Elegir otro movimiento">
+                <ion-icon slot="icon-only" name="swap-horizontal-outline"></ion-icon>
+              </ion-button>
+              <ion-button size="small" fill="outline" color="medium" (click)="descartarLinea(linea)" title="Descartar sugerencia">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </ng-container>
+
+            <!-- Auto conciliada: revisar -->
+            <ion-button *ngIf="esAutoConciliada(linea)" size="small" fill="clear" color="medium" (click)="revisarAuto(linea)" title="Revisar conciliación automática">
+              <ion-icon slot="start" name="eye-outline"></ion-icon>
+              Revisar
+            </ion-button>
+
+            <span *ngIf="!esPendiente(linea) && !esSugerida(linea) && !esAutoConciliada(linea)" class="sin-accion">—</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-box" *ngIf="importActual && !lineas.length && !cargando">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <p>No hay líneas en este extracto.</p>
+  </div>
+
+</ion-content>

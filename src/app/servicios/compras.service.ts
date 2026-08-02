@@ -28,13 +28,31 @@ export class ComprasService {
     this.baseUrl = `${this.config.apiUrl}/Compras`;
   }
 
-  listar(idEmpresa: number, estado?: string): Observable<FacturaCompra[]> {
-    const q = estado ? `?estado=${encodeURIComponent(estado)}` : '';
+  listar(
+    idEmpresa: number,
+    estado?: string,
+    desde?: string,
+    hasta?: string
+  ): Observable<FacturaCompra[]> {
+    const params: string[] = [];
+    if (estado) params.push(`estado=${encodeURIComponent(estado)}`);
+    if (desde) params.push(`desde=${encodeURIComponent(desde)}`);
+    if (hasta) params.push(`hasta=${encodeURIComponent(hasta)}`);
+    const q = params.length ? `?${params.join('&')}` : '';
     return this.http.get<FacturaCompra[]>(`${this.baseUrl}/${idEmpresa}${q}`);
   }
 
-  pendientes(idEmpresa: number, idProveedor?: number): Observable<FacturaCompra[]> {
-    const q = idProveedor ? `?idProveedor=${idProveedor}` : '';
+  pendientes(
+    idEmpresa: number,
+    idProveedor?: number,
+    desde?: string,
+    hasta?: string
+  ): Observable<FacturaCompra[]> {
+    const params: string[] = [];
+    if (idProveedor) params.push(`idProveedor=${idProveedor}`);
+    if (desde) params.push(`desde=${encodeURIComponent(desde)}`);
+    if (hasta) params.push(`hasta=${encodeURIComponent(hasta)}`);
+    const q = params.length ? `?${params.join('&')}` : '';
     return this.http.get<FacturaCompra[]>(`${this.baseUrl}/Pendientes/${idEmpresa}${q}`);
   }
 
@@ -82,8 +100,17 @@ export class ComprasService {
     return this.http.put(`${this.baseUrl}/${id}/Anular/${idEmpresa}`, {}, this.httpOptions);
   }
 
-  listarOrdenes(idEmpresa: number, estado?: string): Observable<FacturaCompra[]> {
-    const q = estado ? `?estado=${encodeURIComponent(estado)}` : '';
+  listarOrdenes(
+    idEmpresa: number,
+    estado?: string,
+    desde?: string,
+    hasta?: string
+  ): Observable<FacturaCompra[]> {
+    const params: string[] = [];
+    if (estado) params.push(`estado=${encodeURIComponent(estado)}`);
+    if (desde) params.push(`desde=${encodeURIComponent(desde)}`);
+    if (hasta) params.push(`hasta=${encodeURIComponent(hasta)}`);
+    const q = params.length ? `?${params.join('&')}` : '';
     return this.http.get<FacturaCompra[]>(`${this.baseUrl}/Ordenes/${idEmpresa}${q}`);
   }
 

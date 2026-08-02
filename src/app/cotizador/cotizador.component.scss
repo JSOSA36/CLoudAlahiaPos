@@ -1,0 +1,284 @@
+.cotizador-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: #1f2937;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0f766e;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.hero h1 {
+  margin: 0.35rem 0;
+  font-size: 1.8rem;
+}
+
+.hero p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.panel h2,
+.panel h3 {
+  margin: 1rem 0 0.6rem;
+  font-size: 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+.chip.active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #fff;
+}
+
+.categoria {
+  margin-bottom: 0.8rem;
+}
+
+.modulo {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+}
+
+.modulo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.modulo-body small {
+  color: #6b7280;
+}
+
+.modulo-body em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: #0f766e;
+}
+
+.ops {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.ops label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.ops input[type='number'],
+.lead input,
+.lead textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+.ops .check {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.propuesta .precio {
+  background: linear-gradient(135deg, #0f766e, #115e59);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.propuesta .precio strong {
+  display: block;
+  font-size: 1.8rem;
+}
+
+.propuesta .precio small {
+  opacity: 0.9;
+}
+
+.resumen {
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+.rec {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.45rem;
+}
+
+.rec small {
+  display: block;
+  color: #6b7280;
+}
+
+.rec button,
+.acciones button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  background: #ecfdf5;
+  color: #065f46;
+  cursor: pointer;
+}
+
+.acciones .primary {
+  background: #0f766e;
+  color: #fff;
+  width: 100%;
+  margin-bottom: 0.7rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+td {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+td:last-child {
+  text-align: right;
+}
+
+.total td {
+  font-weight: 700;
+  border-bottom: 0;
+  padding-top: 0.6rem;
+}
+
+.lead {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.lead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.lead-actions .wa {
+  background: #128c7e;
+  border-color: #128c7e;
+  color: #fff;
+}
+
+.share-box {
+  margin: 0.35rem 0 0.15rem;
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+
+  input {
+    font-size: 0.78rem;
+  }
+}
+
+.alert {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.alert.danger {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.alert.info {
+  background: #ecfeff;
+  color: #155e75;
+}
+
+.muted {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.loading {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  background: #111827;
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.explicaciones {
+  padding-left: 1.1rem;
+  color: #374151;
+}

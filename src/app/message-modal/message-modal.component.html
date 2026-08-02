@@ -67,34 +67,35 @@
         </div>
       </section>
 
-      <section class="mm-section mm-section--banks">
+      <section class="mm-section mm-section--banks" *ngIf="cuentasCobro.length">
         <div class="mm-section-head">
           <span class="mm-step">1</span>
           <div>
             <h3 class="mm-section-title">Transferir a</h3>
-            <p class="mm-section-hint">Cuentas MacroBits para el pago</p>
+            <p class="mm-section-hint">Cuentas para el pago de suscripción</p>
           </div>
         </div>
         <div class="mm-banks">
-          <article class="mm-bank mm-bank--qik">
+          <article class="mm-bank" *ngFor="let c of cuentasCobro">
             <header>
-              <strong>Banco Qik</strong>
-              <span class="mm-bank-tag">Rápido</span>
+              <strong>{{ c.banco }}</strong>
             </header>
+            <p class="mm-bank-label">Titular</p>
+            <p class="mm-bank-nombre"><b>{{ c.titular }}</b></p>
+            <p class="mm-bank-label">Cédula</p>
+            <p class="mm-bank-copy-row">
+              <b>{{ c.cedula }}</b>
+              <button type="button" class="mm-copy" (click)="copiarTexto(c.cedula, 'Cédula')" aria-label="Copiar cédula">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </p>
             <p class="mm-bank-label">Nº de cuenta</p>
-            <p class="mm-bank-cuenta">123-456789-0</p>
-            <p class="mm-bank-nombre">A nombre de <b>MacroBits</b></p>
-            <small>Transferencias usualmente inmediatas</small>
-          </article>
-          <article class="mm-bank mm-bank--bhd">
-            <header>
-              <strong>Banco BHD</strong>
-              <span class="mm-bank-tag">Interbancario</span>
-            </header>
-            <p class="mm-bank-label">Nº de cuenta</p>
-            <p class="mm-bank-cuenta">987-654321-0</p>
-            <p class="mm-bank-nombre">A nombre de <b>MacroBits</b></p>
-            <small>Puede tomar más tiempo en reflejarse</small>
+            <p class="mm-bank-copy-row">
+              <span class="mm-bank-cuenta">{{ c.numeroCuenta }}</span>
+              <button type="button" class="mm-copy" (click)="copiarTexto(c.numeroCuenta, 'Nº cuenta')" aria-label="Copiar cuenta">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </p>
           </article>
         </div>
       </section>

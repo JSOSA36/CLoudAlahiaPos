@@ -19,6 +19,8 @@ export class FacturasCompraComponent implements OnInit {
   facturas: FacturaCompra[] = [];
   filtro = '';
   filtroEstado: FiltroEstado = 'TODAS';
+  desde = '';
+  hasta = '';
   cargando = false;
   procesandoPago = false;
 
@@ -42,6 +44,7 @@ export class FacturasCompraComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.resetRangoMesActual();
     this.cargar();
   }
 
@@ -49,9 +52,29 @@ export class FacturasCompraComponent implements OnInit {
     this.cargar();
   }
 
+  private resetRangoMesActual(): void {
+    const hoy = new Date();
+    const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    this.desde = primero.toISOString().substring(0, 10);
+    this.hasta = hoy.toISOString().substring(0, 10);
+  }
+
   cargar(event?: any) {
+    if (this.desde && this.hasta && this.hasta < this.desde) {
+      this.toast('La fecha hasta no puede ser menor que desde');
+      event?.target?.complete?.();
+      return;
+    }
+
     this.cargando = !event;
-    this.comprasService.listar(this.parametro.GetIdEmpresa()).subscribe({
+    this.comprasService
+      .listar(
+        this.parametro.GetIdEmpresa(),
+        undefined,
+        this.desde || undefined,
+        this.hasta || undefined
+      )
+      .subscribe({
       next: (data) => {
         this.facturas = data || [];
         this.cargando = false;

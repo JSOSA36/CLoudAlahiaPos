@@ -78,8 +78,10 @@
       </section>
 
       <p class="r606-hint">
-        Incluye FACTC confirmadas/pagadas del rango (no borradores ni anuladas).
-        Complete Tipo bienes/servicios, NCF y forma pago DGII en cada factura para envío limpio.
+        Incluye FACTC confirmadas/pagadas y gastos con NCF/e-NCF del rango
+        (no borradores, anulados ni gastos duplicados desde compras).
+        Complete tipo bienes, NCF y forma de pago DGII para envío limpio.
+        Los gastos se mapean con tipo 02 e ITBIS 0 hasta tener desglose fiscal.
       </p>
 
       <div class="r606-table-wrap" *ngIf="r.lineas?.length; else vacio">
@@ -87,6 +89,7 @@
           <thead>
             <tr>
               <th>Fecha</th>
+              <th>Origen</th>
               <th>Doc</th>
               <th>Proveedor</th>
               <th>RNC</th>
@@ -102,8 +105,10 @@
           <tbody>
             <tr
               *ngFor="let l of r.lineas"
-              [class.row-alert]="!l.esValidaParaEnvio">
+              [class.row-alert]="!l.esValidaParaEnvio"
+              [class.row-gasto]="l.origenDocumento === 'Gasto'">
               <td>{{ l.fechaComprobante | date:'dd/MM/yyyy' }}</td>
+              <td>{{ l.origenDocumento === 'Gasto' ? 'Gasto' : 'Compra' }}</td>
               <td>{{ l.numeroDocumento || ('#' + l.idOrdenCompraHeader) }}</td>
               <td>{{ l.proveedorNombre || '—' }}</td>
               <td>{{ l.rncCedula || '—' }}</td>
@@ -126,7 +131,7 @@
 
       <ng-template #vacio>
         <div class="r606-empty">
-          No hay facturas de compra en este rango.
+          No hay compras ni gastos con NCF en este rango.
         </div>
       </ng-template>
     </ng-container>

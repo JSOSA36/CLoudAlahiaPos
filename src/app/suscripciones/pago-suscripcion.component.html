@@ -39,7 +39,7 @@
         aquí podrá reportar el voucher.
       </p>
       <p class="ps-ok-meta" *ngIf="calculo?.nombrePlan">
-        Plan {{ calculo?.nombrePlan }} · USD {{ total | number:'1.2-2' }}
+        {{ calculo?.nombrePlan }} · Total USD {{ total | number:'1.2-2' }}
         (RD$ {{ totalDop | number:'1.2-2' }}) / ciclo
       </p>
       <button type="button" class="ps-btn-secondary" (click)="tab = 'historial'">
@@ -50,12 +50,12 @@
     <!-- Con deuda / periodo de pago -->
     <ng-container *ngIf="tienePagoVigente">
       <div class="ps-amount">
-        <span>Total del ciclo</span>
+        <span>Total a cobrar</span>
         <strong>
           <em>USD</em> {{ total | number:'1.2-2' }}
         </strong>
         <p class="ps-dop">Equivalente RD$ {{ totalDop | number:'1.2-2' }} · tasa 1 USD = {{ tasa }} RD$</p>
-        <p *ngIf="calculo?.nombrePlan">Plan {{ calculo?.nombrePlan }}</p>
+        <p *ngIf="calculo?.nombrePlan">{{ calculo?.nombrePlan }}</p>
       </div>
 
       <ul class="ps-lines" *ngIf="lineas.length">
@@ -73,32 +73,35 @@
         Espere la aprobación de MacroBits antes de enviar otro.
       </div>
 
-      <div class="ps-banks" *ngIf="puedeReportar">
+      <div class="ps-banks" *ngIf="puedeReportar && cuentasCobro.length">
         <div class="ps-block-head">
           <span class="ps-step">1</span>
           <div>
             <h2>Transferir a</h2>
-            <p class="ps-hint">Cuentas MacroBits para el pago</p>
+            <p class="ps-hint">Cuentas para el pago de suscripción</p>
           </div>
         </div>
         <div class="ps-bank-grid">
-          <article class="ps-bank ps-bank--qik">
+          <article class="ps-bank" *ngFor="let c of cuentasCobro">
             <header>
-              <strong>Banco Qik</strong>
-              <span>Rápido</span>
+              <strong>{{ c.banco }}</strong>
             </header>
+            <p class="ps-bank-label">Titular</p>
+            <p><b>{{ c.titular }}</b></p>
+            <p class="ps-bank-label">Cédula</p>
+            <p class="ps-bank-copy-row">
+              <b>{{ c.cedula }}</b>
+              <button type="button" class="ps-copy" (click)="copiarTexto(c.cedula, 'Cédula')" aria-label="Copiar cédula">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </p>
             <p class="ps-bank-label">Nº de cuenta</p>
-            <p class="ps-bank-cuenta">123-456789-0</p>
-            <p>A nombre de <b>MacroBits</b></p>
-          </article>
-          <article class="ps-bank ps-bank--bhd">
-            <header>
-              <strong>Banco BHD</strong>
-              <span>Interbancario</span>
-            </header>
-            <p class="ps-bank-label">Nº de cuenta</p>
-            <p class="ps-bank-cuenta">987-654321-0</p>
-            <p>A nombre de <b>MacroBits</b></p>
+            <p class="ps-bank-copy-row">
+              <span class="ps-bank-cuenta">{{ c.numeroCuenta }}</span>
+              <button type="button" class="ps-copy" (click)="copiarTexto(c.numeroCuenta, 'Nº cuenta')" aria-label="Copiar cuenta">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </p>
           </article>
         </div>
       </div>

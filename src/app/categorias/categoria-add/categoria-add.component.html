@@ -6,7 +6,9 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title class="ion-text-center" style="font-size: 20px;">Agregar Categoría</ion-title>
+    <ion-title class="ion-text-center" style="font-size: 20px;">
+      {{ esEdicion ? 'Editar Categoría' : 'Agregar Categoría' }}
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -63,9 +65,14 @@
 
 </ion-item>
     <!-- Botón Guardar -->
-    <ion-button expand="block" color="success" (click)="guardarCategoria()" style="margin-top: 20px; font-size: 16px;">
+    <ion-button
+      expand="block"
+      color="success"
+      (click)="guardarCategoria()"
+      [disabled]="guardando"
+      style="margin-top: 20px; font-size: 16px;">
       <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-      Guardar Categoría
+      {{ guardando ? 'Guardando…' : 'Guardar Categoría' }}
     </ion-button>
 
   </ion-card>

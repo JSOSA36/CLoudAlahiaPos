@@ -44,6 +44,17 @@ export const TIPOS_RETENCION_ISR_606: CatalogoDgiiItem[] = [
   { codigo: 9, etiqueta: '09 - Retenciones subsector ganadería carne bovina' },
 ];
 
+/** Destino del ITBIS pagado — Anexo A casillas 45–53 (IT-1 2020). */
+export const DESTINOS_ITBIS_ANEXO_A: CatalogoDgiiItem[] = [
+  { codigo: 1, etiqueta: '01 - No deducible: productores de bienes/servicios exentos' },
+  { codigo: 2, etiqueta: '02 - No deducible: incluir en activos (categoría I)' },
+  { codigo: 3, etiqueta: '03 - Otros ITBIS no deducibles' },
+  { codigo: 4, etiqueta: '04 - Deducible: producción/venta bienes exportados' },
+  { codigo: 5, etiqueta: '05 - Deducible: producción/venta bienes gravados' },
+  { codigo: 6, etiqueta: '06 - Deducible: prestación de servicios gravados' },
+  { codigo: 7, etiqueta: '07 - Sujeto a proporcionalidad (Art. 349)' },
+];
+
 /**
  * Nombres operativos que en AlahiaPOS significan cuenta bancaria /
  * transferencia / depósito (aunque digan solo "POPULAR", "BHD", etc.).

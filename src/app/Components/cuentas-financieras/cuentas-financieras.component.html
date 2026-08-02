@@ -5,10 +5,22 @@
       <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
     <ion-title>
-      🏦 Cuentas Financieras
+      Bancos y Cuentas Financieras
     </ion-title>
 
     <ion-buttons slot="end">
+
+      <ion-button fill="clear" (click)="SincronizarSaldos()" title="Sincronizar saldos">
+        <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button fill="clear" routerLink="/movimientosfinancieros" title="Movimientos">
+        <ion-icon slot="icon-only" name="list-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button fill="clear" routerLink="/conciliacionbancaria" title="Conciliación">
+        <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
+      </ion-button>
 
       <ion-button
         fill="clear"

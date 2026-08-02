@@ -23,6 +23,14 @@ import {
   MovimientoFinanciero
 } from '../models/MovimientoFinanciero.models';
 
+import {
+  AnularMovimientoPayload,
+  EstadoCuenta,
+  MovimientoFinancieroFiltro,
+  MovimientoFinancieroListado,
+  RegistrarAjustePayload
+} from '../models/Tesoreria.models';
+
 @Injectable({
   providedIn:'root'
 })
@@ -134,6 +142,41 @@ export class MovimientoFinancieroService {
 
       payload
     );
+  }
+
+  consultar(
+    filtro: MovimientoFinancieroFiltro
+  ): Observable<MovimientoFinancieroListado[]> {
+    const payload = {
+      ...filtro,
+      documentoReferencia: filtro.documentoReferencia ?? filtro.search
+    };
+    delete (payload as any).search;
+    return this.http.post<MovimientoFinancieroListado[]>(
+      `${this.baseUrl}/Consultar`,
+      payload
+    );
+  }
+
+  estadoCuenta(
+    idCuentaFinanciera: number,
+    desde?: string,
+    hasta?: string
+  ): Observable<EstadoCuenta> {
+    let url = `${this.baseUrl}/EstadoCuenta/${idCuentaFinanciera}`;
+    const params: string[] = [];
+    if (desde) params.push(`desde=${desde}`);
+    if (hasta) params.push(`hasta=${hasta}`);
+    if (params.length) url += `?${params.join('&')}`;
+    return this.http.get<EstadoCuenta>(url);
+  }
+
+  ajuste(payload: RegistrarAjustePayload): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/Ajuste`, payload);
+  }
+
+  anular(payload: AnularMovimientoPayload): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/Anular`, payload);
   }
 
   /* =====================================

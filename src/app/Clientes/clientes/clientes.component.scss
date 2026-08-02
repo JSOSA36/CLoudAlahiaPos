@@ -1,150 +1,255 @@
-/* =========================
-   CARDS MOBILE
-========================= */
-
-.cliente-card{
-  margin:8px;
-  padding:6px;
+:host {
+  --cl-primary: var(--ion-color-primary, #1454B8);
+  --cl-navy: #0B419B;
+  --cl-yellow: #fcd34d;
+  --cl-bg: #f3f6fb;
+  --cl-card: #fff;
+  --cl-border: #e2e8f0;
+  --cl-text: #0f172a;
+  --cl-muted: #64748b;
 }
 
-.cliente-avatar{
-  width:55px;
-  height:55px;
+.cl-header ion-toolbar {
+  --background: var(--cl-primary);
+  --color: #fff;
 }
 
-.cliente-info{
-  font-size:17px;
-  font-weight:700;
+.cl-search-toolbar {
+  --background: #fff;
+  --border-width: 0;
 }
 
-.cliente-telefono{
-  font-size:15px;
-  font-weight:600;
-  color:#2c3e50;
+.cl-search-toolbar ion-searchbar {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  --box-shadow: none;
 }
 
-.cliente-email{
-  font-size:14px;
-  color:#555;
+.cl-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
 }
 
-.cliente-direccion{
-  font-size:14px;
-  color:#666;
+.cl-title-wrap small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 400;
 }
 
-.cliente-fecha{
-  font-size:13px;
-  color:#888;
+.cl-content {
+  --background: var(--cl-bg);
 }
 
-
-/* =========================
-   MOBILE POR DEFECTO
-========================= */
-
-.desktop-view{
-  display:none;
+.cl-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 16px 100px;
 }
 
-.mobile-view{
-  display:block;
+.cl-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--cl-muted);
 }
 
+.cl-empty ion-icon {
+  font-size: 2.6rem;
+  color: var(--cl-primary);
+  opacity: 0.75;
+}
 
-/* =========================
-   TABLET / PC
-========================= */
+.cl-empty h3 {
+  margin: 10px 0 6px;
+  color: var(--cl-text);
+}
 
-@media (min-width:992px){
+.cl-empty p {
+  margin: 0 auto 14px;
+  max-width: 340px;
+  line-height: 1.4;
+}
 
-  .desktop-view{
-    display:block;
+.cl-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--cl-card);
+  border: 1px solid var(--cl-border);
+  border-left: 4px solid var(--cl-primary);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+  animation: clRise 0.35s ease both;
+}
+
+.cl-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--cl-primary), var(--cl-navy));
+  border: 2px solid var(--cl-yellow);
+  flex-shrink: 0;
+}
+
+.cl-avatar.sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+}
+
+.cl-info {
+  min-width: 0;
+}
+
+.cl-name-row h2 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--cl-text);
+  word-break: break-word;
+}
+
+.cl-meta {
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cl-muted);
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+
+.cl-meta ion-icon {
+  color: var(--cl-primary);
+  flex-shrink: 0;
+}
+
+.cl-meta.muted {
+  opacity: 0.85;
+}
+
+.cl-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cl-actions.row {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.cl-actions ion-button {
+  margin: 0;
+  --border-radius: 10px;
+  font-weight: 700;
+  height: 34px;
+}
+
+.desktop-view {
+  display: none;
+}
+
+.mobile-view {
+  display: block;
+}
+
+@media (min-width: 992px) {
+  .desktop-view {
+    display: block;
   }
 
-  .mobile-view{
-    display:none;
+  .mobile-view {
+    display: none;
+  }
+}
+
+.cl-table {
+  background: var(--cl-card);
+  border: 1px solid var(--cl-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(20, 84, 184, 0.06);
+}
+
+.cl-table-head,
+.cl-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.3fr 0.9fr 0.9fr 0.9fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.cl-table-head {
+  background: linear-gradient(135deg, #fde68a, #fcd34d);
+  color: #1f2937;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.cl-table-row {
+  border-top: 1px solid #f1f5f9;
+  min-height: 64px;
+}
+
+.cl-table-row:hover {
+  background: #f8fbff;
+}
+
+.cl-table-client {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cl-table-client strong {
+  display: block;
+  color: var(--cl-text);
+}
+
+.cl-table-client small {
+  display: block;
+  color: var(--cl-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+@keyframes clRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .cl-card {
+    grid-template-columns: auto 1fr;
   }
 
+  .cl-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
-
-/* =========================
-   TABLA CLIENTES
-========================= */
-
-.tabla-clientes{
-  width:100%;
-  padding:10px;
-}
-
-
-/* HEADER */
-
-.header-row{
-  background:#f7c948;
-  color:#1f2937;
-  font-weight:700;
-
-  border-bottom:2px solid #f7c948;
-
-  position:sticky;
-  top:0;
-  z-index:10;
-}
-
-
-/* FILAS */
-
-.data-row{
-  min-height:72px;
-  align-items:center;
-
-  border-bottom:1px solid #fde68a;
-  border-right:3px solid #f7c948;
-  border-left:3px solid #f7c948;
-
-  padding:6px 10px;
-
-  transition:background .2s ease;
-}
-
-
-.data-row:hover{
-  background:#fffbeb;
-}
-
-
-/* =========================
-   COLUMNAS
-========================= */
-
-.col-nombre{
-  font-weight:700;
-  font-size:16px;
-}
-
-.col-telefono{
-  font-weight:600;
-}
-
-.col-email{
-  color:#555;
-}
-
-.col-direccion{
-  color:#666;
-}
-
-.col-fecha{
-  font-size:13px;
-  color:#888;
-}
-
-.col-rnc{
-  font-weight:600;
-}
-.selected-row {
-  background: rgba(25, 118, 210, 0.1);
-  border-left: 4px solid #1976d2;
+:host ::ng-deep ion-fab.fab-above-ai {
+  bottom: 88px;
+  right: 16px;
 }

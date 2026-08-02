@@ -78,8 +78,108 @@ export class FacturacionElectronicaService {
     );
   }
 
-  healthCheck(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/health`);
+  healthCheck(idEmpresa?: number): Observable<any> {
+    const params: any = {};
+    if (idEmpresa) params.idEmpresa = idEmpresa;
+    return this.http.get<any>(`${this.baseUrl}/health`, { params });
+  }
+
+  getProveedor(idEmpresa: number): Observable<{
+    proveedor: string;
+    etiqueta: string;
+    nombre?: string;
+    baseUrl?: string;
+    usuario?: string;
+    apiKeyConfigurado: boolean;
+    passwordConfigurado: boolean;
+    endpointEfectivo?: string;
+    contrato?: string;
+    ambienteDgiiAplicable: boolean;
+  }> {
+    return this.http.get<any>(`${this.baseUrl}/proveedor/${idEmpresa}`);
+  }
+
+  putProveedor(idEmpresa: number, body: {
+    proveedor: string;
+    nombre?: string;
+    baseUrl?: string;
+    apiKey?: string;
+    usuario?: string;
+    password?: string;
+    clearApiKey?: boolean;
+    clearPassword?: boolean;
+  }): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/proveedor/${idEmpresa}`, body);
+  }
+
+  getCertificado(idEmpresa: number): Observable<{
+    configurado: boolean;
+    mensaje?: string;
+    idCertificado?: number;
+    nombreArchivo?: string;
+    fechaExpiracion?: string;
+    fechaCreacion?: string;
+    ambiente?: string;
+    vencido?: boolean;
+    usable?: boolean;
+    subject?: string;
+    thumbprint?: string;
+  }> {
+    return this.http.get<any>(`${this.baseUrl}/certificado/${idEmpresa}`);
+  }
+
+  uploadCertificado(idEmpresa: number, archivo: File, password: string, ambiente?: string): Observable<any> {
+    const form = new FormData();
+    form.append('archivo', archivo, archivo.name);
+    form.append('password', password);
+    if (ambiente) form.append('ambiente', ambiente);
+    return this.http.post<any>(`${this.baseUrl}/certificado/${idEmpresa}`, form);
+  }
+
+  getAmbiente(idEmpresa: number): Observable<{
+    ambiente: string;
+    etiqueta: string;
+    etiquetaSecuencia: string;
+    urls: {
+      auth: string;
+      recepcion: string;
+      consulta: string;
+      rfce: string;
+      hostEcf?: string;
+      hostFc?: string;
+      ambientePath?: string;
+    };
+  }> {
+    return this.http.get<any>(`${this.baseUrl}/ambiente/${idEmpresa}`);
+  }
+
+  putAmbiente(idEmpresa: number, ambiente: string): Observable<{
+    ambiente: string;
+    etiqueta: string;
+    etiquetaSecuencia: string;
+    secuenciasActualizadas: number;
+    urls: {
+      auth: string;
+      recepcion: string;
+      consulta: string;
+      rfce: string;
+    };
+  }> {
+    return this.http.put<any>(`${this.baseUrl}/ambiente/${idEmpresa}`, { ambiente });
+  }
+
+  /** Consulta estado DGII por TrackId y persiste el resultado en el ECF. */
+  consultarEstado(trackId: string): Observable<{
+    trackId: string;
+    estado: string;
+    encf?: string;
+    mensajes?: string[];
+    securityCode?: string;
+    urlQR?: string;
+    esAceptado?: boolean;
+    esRechazado?: boolean;
+  }> {
+    return this.http.get<any>(`${this.baseUrl}/gateway/consultar/${encodeURIComponent(trackId)}`);
   }
 
   getHistorial(

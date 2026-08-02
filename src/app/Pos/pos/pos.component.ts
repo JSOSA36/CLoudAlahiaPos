@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { PrinterComponent } from 'src/app/printer/printer.component';
-import { EcfPreviewComponent } from 'src/app/ecf-preview/ecf-preview.component';
+import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
 import { EmisionEcfRequest, EmisionEcfResultadoCompleto } from 'src/app/models/facturacion-electronica.models';
 import { IonModal, ModalController,AlertController,IonSearchbar, ToastController } from '@ionic/angular';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
@@ -72,6 +72,10 @@ descuentoValor = 0;
 
 montoDescuento = 0;
 montoDescuentoPromo = 0;
+/** Panel desplegable de descuento en el footer del carrito */
+descuentoPanelAbierto = false;
+/** Config del header del carrito (cliente, pago, comprobante) colapsable */
+headerCarritoExpandido = false;
 tasaITBIS: number = 0.18;
 aplicarITBIS: boolean = true;
   public ListadoEmpleados: Empleado[] = [];
@@ -160,6 +164,7 @@ tipoEcfDgii: number | null = null;
       private _CajaApertura:
   CajaAperturaService,
   private feService: FacturacionElectronicaService,
+  private ecfPreview: EcfPreviewLauncherService,
   ) {
 
     
@@ -635,32 +640,15 @@ async openModalCobro(imprimirCotizacion = false) {
           const numeroDocumento =
             resp?.numeroDocumento ?? '';
 
-          if (
-            this.tipoDocumento === 'Cotizacion' &&
-            idOrden &&
-            imprimirCotizacion
-          ) {
-            this._printService.openCotizacionCarta(
+          if (this.tipoDocumento === 'Cotizacion' && idOrden) {
+            // Al guardar siempre abrir el recibo (igual que desde el listado).
+            await this._printService.openCotizacionCarta(
               this.armarCotizacionParaImprimir(
                 header,
                 idOrden,
                 numeroDocumento
               )
             );
-          } else if (
-            this.tipoDocumento === 'Cotizacion' &&
-            idOrden
-          ) {
-            (
-              await this.toastCtrl.create({
-                message: numeroDocumento
-                  ? `Cotización ${numeroDocumento} guardada correctamente`
-                  : `Cotización #${idOrden} guardada correctamente`,
-                duration: 2000,
-                color: 'success',
-                position: 'top'
-              })
-            ).present();
           } else if (this.imprimirOrden && idOrden) {
             void this.imprimirTicketDocumento(
               idOrden,
@@ -814,7 +802,14 @@ async openModalCobro(imprimirCotizacion = false) {
 
       Itbis: this.montoItbis,
 
-      TotalFactura: this.total
+      TotalFactura: this.total,
+
+      IdCliente: this.clienteSeleccionado?.id || this.clienteSeleccionado?.idCliente || null,
+
+      NombreCliente: this.clienteSeleccionado?.nombreComercial
+        || this.clienteSeleccionado?.nombre
+        || this.nombreFiscal
+        || null
 
     }
 
@@ -1019,6 +1014,7 @@ private resetPOS() {
   this.montoDescuento = 0;
   this.montoDescuentoPromo = 0;
   this.descuentoTipo = 'MONTO';
+  this.descuentoPanelAbierto = false;
 
   // Parámetros temporales
   this.parametro.IdFacturaHeader = 0;
@@ -1190,8 +1186,14 @@ private armarFacturaDTO(dataModal: any) {
       idEmpresa: this.parametro.IdEmpresa,
       idUsuario: this.parametro.IdUsuario,
 
-      idCliente: this.clienteSeleccionado?.id || null,
-      iDCliente: this.clienteSeleccionado?.id || null,
+      idCliente: this.clienteSeleccionado?.id
+        || this.clienteSeleccionado?.idCliente
+        || dataModal.idCliente
+        || null,
+      iDCliente: this.clienteSeleccionado?.id
+        || this.clienteSeleccionado?.idCliente
+        || dataModal.idCliente
+        || null,
       tipoFactura,
       plazo,
       fechaBencimiento,
@@ -1227,7 +1229,10 @@ private armarFacturaDTO(dataModal: any) {
 
     pagos: (dataModal.pagos || []).map((p: any) => ({
       metodo: p.metodo,
-      monto: p.monto
+      monto: p.monto,
+      idSaldoAFavor: p.idSaldoAFavor ?? null,
+      idNotaCredito: p.idNotaCredito ?? null,
+      ncfNotaCredito: p.ncfNotaCredito ?? null
     }))
   };
 }
@@ -1344,13 +1349,7 @@ private async procesarEcfYPreview(idFactura: number) {
       return;
     }
 
-    const tipoLabel = this.tipoEcfDgii === 31 ? 'Factura de Crédito Fiscal Electrónica'
-      : this.tipoEcfDgii === 32 ? 'Factura de Consumo Electrónica'
-      : this.tipoEcfDgii === 33 ? 'Nota de Débito Electrónica'
-      : this.tipoEcfDgii === 34 ? 'Nota de Crédito Electrónica'
-      : this.tipoEcfDgii === 44 ? 'Regímenes Especiales Electrónica'
-      : this.tipoEcfDgii === 45 ? 'Gubernamental Electrónica'
-      : `e-CF Tipo ${this.tipoEcfDgii}`;
+    const tipoLabel = this.ecfPreview.labelTipoEcf(this.tipoEcfDgii);
 
     const facturaPreview = {
       empresa: resultado.razonSocialEmisor,
@@ -1368,16 +1367,12 @@ private async procesarEcfYPreview(idFactura: number) {
       total: this.total,
     };
 
-    const previewModal = await this.modal.create({
-      component: EcfPreviewComponent,
-      cssClass: 'modal-factura-full',
-      componentProps: {
-        factura: facturaPreview,
-        ecfData: resultado
-      }
+    await this.ecfPreview.openFromEmision({
+      resultado,
+      factura: facturaPreview,
+      tipo: 'factura',
+      tipoEcfDgii: this.tipoEcfDgii
     });
-
-    await previewModal.present();
 
   } catch (err: any) {
     console.error('Error emisión e-CF', err);
@@ -1803,17 +1798,12 @@ addToCart(
 ) {
 
   // =====================================
-  // 🔥 VALIDAR EXISTENCIA
+  // 🔥 VALIDAR EXISTENCIA (solo productos con stock)
   // =====================================
 
- // =====================================
-// 🔥 VALIDAR EXISTENCIA
-// =====================================
-
 if (
-    prod.controlarStock &&
-    !prod.esServicio &&
-    prod.cantidad <= 0
+    this.debeControlarExistencia(prod) &&
+    (prod.cantidad ?? 0) <= 0
 ) {
 
   this.alertCtrl.create({
@@ -1904,8 +1894,11 @@ if (
 
   if (item) {
 
-    // VALIDAR EXISTENCIA
-    if (item.cantidad >= prod.cantidad) {
+    // VALIDAR EXISTENCIA (nunca para servicios)
+    if (
+      this.debeControlarExistencia(prod) &&
+      item.cantidad >= (prod.cantidad ?? 0)
+    ) {
 
       this.alertCtrl.create({
         header: 'Existencia insuficiente',
@@ -2013,9 +2006,8 @@ if (
   // =====================================
 
   if (
-      producto.controlarStock &&
-      !producto.esServicio &&
-      item.cantidad >= producto.cantidad
+      this.debeControlarExistencia(producto) &&
+      item.cantidad >= (producto.cantidad ?? 0)
   ) {
 
     const alert = await this.alertCtrl.create({
@@ -2228,8 +2220,46 @@ if (
     }
   }
 
+  toggleDescuentoPanel() {
+    this.descuentoPanelAbierto = !this.descuentoPanelAbierto;
+  }
+
+  toggleHeaderCarrito() {
+    this.headerCarritoExpandido = !this.headerCarritoExpandido;
+  }
+
+  get resumenClienteCarrito(): string {
+    return this.clienteSeleccionado?.nombre || 'Al portador';
+  }
+
+  get resumenPagoCarrito(): string {
+    if (this.tipoDocumento !== 'Factura') return this.tipoDocumento;
+    return this.tipoPago === 'CREDITO' ? 'Crédito' : 'Contado';
+  }
+
+  get resumenComprobanteCarrito(): string {
+    if (this.tipoDocumento !== 'Factura') return '';
+    if (this.facturacionElectronica) {
+      const tc = this.tiposComprobante?.find(
+        (t: any) => t.value === this.tipoEcfDgii
+      );
+      return tc?.label || 'Sin comprobante';
+    }
+    return this.tipoComprobante || 'FACT';
+  }
+
+  /** Servicios y productos sin control de stock no validan existencia. */
+  private debeControlarExistencia(prod: any): boolean {
+    if (!prod) return false;
+    const esServicio = !!(prod.esServicio ?? prod.EsServicio);
+    if (esServicio) return false;
+    const controlar = prod.controlarStock ?? prod.ControlarStock;
+    return !!controlar;
+  }
+
   cerrarCart() {
     this.isCartOpen = false;
+    this.descuentoPanelAbierto = false;
     this.setBodyScrollLocked(false);
   }
 

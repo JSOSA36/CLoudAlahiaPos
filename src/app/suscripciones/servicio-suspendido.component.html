@@ -1,64 +1,119 @@
-<div class="page">
-  <div class="card">
-    <div [class]="badgeClass">{{ pagoEnValidacion ? 'PAGO EN VALIDACIÓN' : (estadoServicio || 'SUSPENDIDA') }}</div>
-    <h1>{{ titulo }}</h1>
-    <p class="empresa" *ngIf="nombreEmpresa">{{ nombreEmpresa }}</p>
-    <p class="msg">{{ mensaje }}</p>
+<div class="ss-page">
+  <div class="ss-card" [class.ss-card--wait]="pagoEnValidacion">
 
-    <p class="hint" *ngIf="pagoEnValidacion">
-      Ya recibimos su comprobante. MacroBits lo está revisando.
-      No es necesario reportar el pago nuevamente.
-    </p>
-    <p class="hint" *ngIf="!pagoEnValidacion">
-      Su servicio se encuentra suspendido por falta de pago.
-      Puede reportar el pago para que MacroBits lo valide.
-    </p>
+    <header class="ss-head">
+      <div class="ss-icon" [class.ss-icon--wait]="pagoEnValidacion" aria-hidden="true">
+        <ion-icon [name]="pagoEnValidacion ? 'time-outline' : 'lock-closed-outline'"></ion-icon>
+      </div>
+      <span class="ss-badge" [class.ss-badge--wait]="pagoEnValidacion">
+        {{ pagoEnValidacion ? 'PAGO EN VALIDACIÓN' : (estadoServicio || 'SUSPENDIDA') }}
+      </span>
+      <h1>{{ titulo }}</h1>
+      <p class="ss-empresa" *ngIf="nombreEmpresa">{{ nombreEmpresa }}</p>
+      <p class="ss-lead">{{ mensajeMostrado }}</p>
+    </header>
 
-    <div class="total-box" *ngIf="precioPlan && !pagoEnValidacion">
-      <span>Total del ciclo</span>
-      <strong>USD {{ precioPlan | number:'1.2-2' }}</strong>
-      <p class="dop-eq">Equivalente RD$ {{ totalDop | number:'1.2-2' }} · 1 USD = {{ tasa }} RD$</p>
-      <ul *ngIf="desglose?.length">
-        <li *ngFor="let l of desglose">
+    <!-- Total a pagar -->
+    <section class="ss-total" *ngIf="precioPlan && !pagoEnValidacion">
+      <span class="ss-total-label">Total a pagar</span>
+      <div class="ss-total-amounts">
+        <div class="ss-amount ss-amount--usd">
+          <em>USD</em>
+          <strong>{{ precioPlan | number:'1.2-2' }}</strong>
+        </div>
+        <div class="ss-amount-divider" aria-hidden="true"></div>
+        <div class="ss-amount ss-amount--dop">
+          <em>RD$</em>
+          <strong>{{ totalDop | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <p class="ss-total-hint">Tasa 1 USD = {{ tasa }} RD$</p>
+
+      <ul class="ss-lines" *ngIf="desglose?.length">
+        <li *ngFor="let l of desglose" [class.ss-line--reconex]="esReconexion(l)">
           <span>{{ l.nombre }}</span>
-          <em>
+          <b>
             USD {{ l.monto | number:'1.2-2' }}
             <small>RD$ {{ (l.montoDop ?? l.monto * tasa) | number:'1.2-2' }}</small>
-          </em>
+          </b>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <div class="wait-box" *ngIf="pagoEnValidacion">
-      <strong>Estado:</strong> pendiente de aprobación<br>
-      En cuanto se valide, podrá ingresar al sistema con normalidad.
-    </div>
+    <!-- Cuentas para transferir -->
+    <section class="ss-banks" *ngIf="cuentasCobro.length && !pagoEnValidacion">
+      <div class="ss-pay-head">
+        <span class="ss-step">1</span>
+        <div>
+          <h2>Transferir a</h2>
+          <p>Use una de estas cuentas y luego adjunte el voucher.</p>
+        </div>
+      </div>
+      <div class="ss-bank-grid">
+        <article class="ss-bank" *ngFor="let c of cuentasCobro">
+          <header>
+            <strong>{{ c.banco }}</strong>
+          </header>
+          <p class="ss-bank-row"><span>Titular</span><b>{{ c.titular }}</b></p>
+          <p class="ss-bank-row">
+            <span>Cédula</span>
+            <span class="ss-bank-value">
+              <b>{{ c.cedula }}</b>
+              <button type="button" class="ss-copy" (click)="copiarTexto(c.cedula, 'Cédula')" aria-label="Copiar cédula">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </span>
+          </p>
+          <p class="ss-bank-row">
+            <span>Nº cuenta</span>
+            <span class="ss-bank-value">
+              <b class="ss-bank-cuenta">{{ c.numeroCuenta }}</b>
+              <button type="button" class="ss-copy" (click)="copiarTexto(c.numeroCuenta, 'Nº cuenta')" aria-label="Copiar cuenta">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </span>
+          </p>
+        </article>
+      </div>
+    </section>
 
-    <button
-      type="button"
-      class="btn-primary"
-      *ngIf="puedeReportarPago && !mostrarFormulario && !pagoEnValidacion"
-      (click)="abrirReportar()">
-      Reportar Pago
-    </button>
+    <!-- Esperando validación -->
+    <section class="ss-wait" *ngIf="pagoEnValidacion">
+      <h2>Comprobante recibido</h2>
+      <p>
+        MacroBits está revisando su voucher. Cuando se apruebe,
+        el servicio quedará activo automáticamente.
+      </p>
+    </section>
 
-    <div class="form" *ngIf="mostrarFormulario && puedeReportarPago">
-      <h2>Reportar pago</h2>
-      <p class="form-hint">Solo adjunta el voucher. Banco y referencia se ven en el volante.</p>
+    <!-- Solo pago: adjuntar voucher -->
+    <section class="ss-pay" *ngIf="puedeReportarPago && !pagoEnValidacion">
+      <div class="ss-pay-head">
+        <span class="ss-step">{{ cuentasCobro.length ? 2 : 1 }}</span>
+        <div>
+          <h2>Adjuntar voucher</h2>
+          <p>Solo la imagen o PDF del comprobante. Banco y referencia se ven en el volante.</p>
+        </div>
+      </div>
 
-      <label>Voucher / comprobante</label>
-      <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
-      <p class="file-name" *ngIf="archivo">{{ archivo.name }}</p>
+      <label class="ss-file" [class.ss-file--ok]="!!archivo">
+        <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
+        <ion-icon [name]="archivo ? 'checkmark-circle' : 'cloud-upload-outline'"></ion-icon>
+        <span *ngIf="!archivo">Seleccionar imagen o PDF</span>
+        <span *ngIf="archivo">{{ archivo.name }}</span>
+      </label>
 
-      <button type="button" class="btn-primary" [disabled]="enviando || !archivo" (click)="enviarPago()">
-        {{ enviando ? 'Enviando...' : 'Enviar voucher' }}
+      <button
+        type="button"
+        class="ss-btn ss-btn--primary"
+        [disabled]="enviando || !archivo"
+        (click)="enviarPago()">
+        {{ enviando ? 'Enviando…' : 'Enviar voucher' }}
       </button>
-    </div>
+    </section>
 
-    <button type="button" class="btn-ghost" (click)="abrirTicketSoporte()">
-      Crear ticket de soporte
+    <button type="button" class="ss-btn ss-btn--ghost" (click)="cerrarSesion()">
+      Cerrar sesión
     </button>
-
-    <button type="button" class="btn-ghost" (click)="cerrarSesion()">Cerrar sesión</button>
   </div>
 </div>

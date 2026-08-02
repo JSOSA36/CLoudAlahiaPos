@@ -67,6 +67,11 @@
           </td>
           <td class="mono small">{{ item.trackId || '—' }}</td>
           <td>
+            <ion-button size="small" fill="outline" color="primary"
+                        (click)="verDetalle(item)">
+              <ion-icon name="eye-outline" slot="start"></ion-icon>
+              Ver
+            </ion-button>
             <ion-button *ngIf="esReprocesable(item)" size="small" color="warning"
                         (click)="confirmarReprocesar(item)" [disabled]="reprocesando[item.idEcf]">
               <ion-spinner name="dots" *ngIf="reprocesando[item.idEcf]" slot="start"></ion-spinner>

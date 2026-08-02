@@ -984,16 +984,17 @@ td {
     vertical-align: middle;
 }
 /* ===================================== */
-/* 🔥 BOTON AGREGAR */
+/* 🔥 BOTON AGREGAR (arriba del FAB AI) */
 /* ===================================== */
 
 .fab-add-producto {
-
   position: fixed;
-
-  right: 20px;
-
-  bottom: 20px;
-
+  right: 16px;
+  bottom: 88px; /* deja espacio al botón AI (56px + margen) */
   z-index: 9999;
+}
+
+.fab-add-producto ion-fab-button {
+  --background: linear-gradient(135deg, #1454B8, #0B419B);
+  --box-shadow: 0 10px 22px rgba(20, 84, 184, 0.35);
 }

@@ -16,12 +16,30 @@ export interface CrearNotaCreditoRequest {
   lineas: CrearNotaCreditoLinea[];
 }
 
+export interface CrearNotaCreditoComercialRequest {
+  idEmpresa: number;
+  idUsuario: number;
+  /** Opcional: en e-CF el receptor viene de la factura (RNC/nombre), no del catálogo. */
+  idCliente?: number | null;
+  idFacturaHeader?: number | null;
+  concepto: string;
+  monto: number;
+  montoItbis?: number | null;
+}
+
 export interface NotaCreditoResultado {
   idNotaCredito: number;
   numeroDocumento: string;
   ncf: string;
   total: number;
   mensaje: string;
+  trackId?: string;
+  estadoDgii?: string;
+  emisionPendiente?: boolean;
+  mensajeEmision?: string;
+  saldoDisponible?: number;
+  idSaldoAFavor?: number;
+  montoAplicadoCxc?: number;
 }
 
 export interface TicketNotaCreditoDetalle {
@@ -47,6 +65,16 @@ export interface TicketNotaCredito {
   telefonoEmpresa?: string;
   direccionEmpresa?: string;
   observacion?: string;
+  trackId?: string;
+  estadoDgii?: string;
+  tipoDocumentoOrigen?: string;
+  saldoDisponible?: number;
+  emisionPendiente?: boolean;
+  mensajeEmision?: string;
+  fechaEmisionEcf?: string | Date;
+  securityCode?: string;
+  urlQR?: string;
+  rncEmisor?: string;
   detalles: TicketNotaCreditoDetalle[];
   esPreview?: boolean;
 }
@@ -68,6 +96,27 @@ export interface NotaCreditoListado {
   cantidadProductos: number;
   productosDevueltos: string;
   tieneComprobante: boolean;
+  trackId?: string;
+  estadoDgii?: string;
+  tipoDocumentoOrigen?: string;
+  saldoDisponible?: number;
+  estado?: string;
+  emisionPendiente?: boolean;
+  fechaEmisionEcf?: string;
+}
+
+export interface ClienteSaldoAFavorListado {
+  idSaldoAFavor: number;
+  idCliente: number;
+  nombreCliente: string;
+  idNotaCredito: number;
+  ncfNotaCredito?: string;
+  numeroDocumentoNotaCredito?: string;
+  montoOriginal: number;
+  saldoDisponible: number;
+  estado: string;
+  fecha: string;
+  observacion?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -95,6 +144,28 @@ export class NotasCreditoService {
     return this.httpClient.post<NotaCreditoResultado>(
       `${this.baseUrl}/Crear`,
       payload,
+      this.httpOptions
+    );
+  }
+
+  crearNotaCreditoComercial(
+    payload: CrearNotaCreditoComercialRequest
+  ): Observable<NotaCreditoResultado> {
+    return this.httpClient.post<NotaCreditoResultado>(
+      `${this.baseUrl}/CrearComercial`,
+      payload,
+      this.httpOptions
+    );
+  }
+
+  reintentarEmision(
+    idNotaCredito: number,
+    idEmpresa: number,
+    idUsuario: number
+  ): Observable<NotaCreditoResultado> {
+    return this.httpClient.post<NotaCreditoResultado>(
+      `${this.baseUrl}/ReintentarEmision/${idNotaCredito}?idEmpresa=${idEmpresa}&idUsuario=${idUsuario}`,
+      {},
       this.httpOptions
     );
   }
@@ -135,6 +206,29 @@ export class NotasCreditoService {
 
     return this.httpClient.get<NotaCreditoListado[]>(
       `${this.baseUrl}/listado/${idEmpresa}${suffix}`
+    );
+  }
+
+  listarSaldosAFavor(
+    idEmpresa: number,
+    idCliente?: number
+  ): Observable<ClienteSaldoAFavorListado[]> {
+    const qs = idCliente && idCliente > 0
+      ? `?idCliente=${idCliente}`
+      : '';
+    return this.httpClient.get<ClienteSaldoAFavorListado[]>(
+      `${this.baseUrl}/saldos-a-favor/${idEmpresa}${qs}`
+    );
+  }
+
+  obtenerSaldoPorNumero(
+    idEmpresa: number,
+    idCliente: number,
+    numero: string
+  ): Observable<ClienteSaldoAFavorListado> {
+    const qs = `?idCliente=${idCliente}&numero=${encodeURIComponent(numero)}`;
+    return this.httpClient.get<ClienteSaldoAFavorListado>(
+      `${this.baseUrl}/saldos-a-favor/${idEmpresa}/por-numero${qs}`
     );
   }
 }

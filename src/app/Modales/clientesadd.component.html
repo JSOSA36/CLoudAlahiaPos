@@ -1,61 +1,93 @@
-<ion-header>
+<ion-header class="ca-header">
   <ion-toolbar color="primary">
-    <!-- Botón cerrar modal -->
     <ion-buttons slot="start">
       <ion-button (click)="cerrar()">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-
-    <!-- Título centrado -->
-    <ion-title class="ion-text-center">
-      {{ isEdit ? 'Editar Cliente' : 'Nuevo Cliente' }}
-    </ion-title>
+    <ion-title>{{ isEdit ? 'Editar Cliente' : 'Nuevo Cliente' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ca-content">
+  <div class="ca-page">
+    <div class="ca-hero">
+      <div class="ca-avatar">{{ iniciales }}</div>
+      <div>
+        <h2>{{ isEdit ? 'Actualizar cliente' : 'Registrar cliente' }}</h2>
+        <p>Datos para ventas, crédito y contacto.</p>
+      </div>
+    </div>
 
-  <ion-list lines="full">
+    <section class="ca-card">
+      <h3>Identificación</h3>
 
-    <ion-item>
-      <ion-label position="floating">Nombre Comercial</ion-label>
-      <ion-input [(ngModel)]="cliente.nombreComercial"></ion-input>
-    </ion-item>
+      <div class="ca-field">
+        <label>Nombre comercial <span>*</span></label>
+        <ion-input
+          [(ngModel)]="cliente.nombreComercial"
+          placeholder="Nombre o razón social">
+        </ion-input>
+      </div>
 
-    <ion-item>
-      <ion-label position="floating">Teléfono</ion-label>
-      <ion-input type="tel" [(ngModel)]="cliente.telefono"></ion-input>
-    </ion-item>
+      <div class="ca-grid">
+        <div class="ca-field">
+          <label>Cédula / RNC</label>
+          <ion-input [(ngModel)]="cliente.cedulaRNC" placeholder="000-0000000-0"></ion-input>
+        </div>
+        <div class="ca-field">
+          <label>Fecha de nacimiento</label>
+          <ion-input type="date" [(ngModel)]="cliente.fechaNacimiento"></ion-input>
+        </div>
+      </div>
+    </section>
 
-    <ion-item>
-      <ion-label position="floating">Celular</ion-label>
-      <ion-input type="tel" [(ngModel)]="cliente.celular"></ion-input>
-    </ion-item>
+    <section class="ca-card">
+      <h3>Contacto</h3>
 
-    <ion-item>
-      <ion-label position="floating">Correo</ion-label>
-      <ion-input type="email" [(ngModel)]="cliente.email"></ion-input>
-    </ion-item>
+      <div class="ca-grid">
+        <div class="ca-field">
+          <label>Teléfono</label>
+          <ion-input type="tel" [(ngModel)]="cliente.telefono" placeholder="809-000-0000"></ion-input>
+        </div>
+        <div class="ca-field">
+          <label>Celular</label>
+          <ion-input type="tel" [(ngModel)]="cliente.celular" placeholder="829-000-0000"></ion-input>
+        </div>
+      </div>
 
-    <ion-item>
-      <ion-label position="floating">Dirección</ion-label>
-      <ion-textarea auto-grow="true" [(ngModel)]="cliente.direccion"></ion-textarea>
-    </ion-item>
+      <div class="ca-field">
+        <label>Correo</label>
+        <ion-input type="email" [(ngModel)]="cliente.email" placeholder="correo@cliente.com"></ion-input>
+      </div>
 
-    <ion-item>
-      <ion-label position="floating">Fecha de Nacimiento</ion-label>
-      <ion-input type="date" [(ngModel)]="cliente.fechaNacimiento"></ion-input>
-    </ion-item>
+      <div class="ca-field">
+        <label>Dirección</label>
+        <ion-textarea
+          [(ngModel)]="cliente.direccion"
+          autoGrow="true"
+          rows="2"
+          placeholder="Calle, sector, ciudad">
+        </ion-textarea>
+      </div>
+    </section>
 
-  </ion-list>
+    <section class="ca-card">
+      <h3>Notas</h3>
+      <div class="ca-field">
+        <label>Nota interna</label>
+        <ion-textarea
+          [(ngModel)]="cliente.nota"
+          autoGrow="true"
+          rows="2"
+          placeholder="Observaciones del cliente">
+        </ion-textarea>
+      </div>
+    </section>
 
-  <!-- ÚNICO BOTÓN -->
-  <div class="ion-text-center ion-margin-top">
-    <ion-button expand="block" color="primary" (click)="guardar()">
-      <ion-icon slot="start" name="save-outline"></ion-icon>
-      {{ isEdit ? 'Actualizar' : 'Registrar' }}
+    <ion-button expand="block" class="ca-save" [disabled]="guardando" (click)="guardar()">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      {{ guardando ? 'Guardando…' : (isEdit ? 'Guardar cambios' : 'Crear cliente') }}
     </ion-button>
   </div>
-
 </ion-content>

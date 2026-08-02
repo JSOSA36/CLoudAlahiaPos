@@ -67,21 +67,25 @@
 
       <div class="seccion">
         <h3>{{ balance.capital.titulo }}</h3>
-        <div *ngFor="let l of balance.capital.lineas" class="linea">
+        <div *ngFor="let l of balance.capital.lineas" class="linea" [class.resultado]="l.codigoCuenta === 'RE'">
           <span>{{ l.codigoCuenta }} — {{ l.nombreCuenta }}</span>
           <span>{{ l.saldo | currency:'DOP' }}</span>
         </div>
         <div class="subtotal">
-          <span>Total Capital</span>
+          <span>Total Patrimonio</span>
           <span>{{ balance.totalCapital | currency:'DOP' }}</span>
         </div>
       </div>
 
-      <div class="ecuacion">
+      <div class="ecuacion" [class.cuadra]="balance.cuadra" [class.descuadre]="!balance.cuadra">
         <p><strong>Activo:</strong> {{ balance.totalActivos | currency:'DOP' }}</p>
-        <p><strong>Pasivo + Capital:</strong> {{ balance.totalPasivoCapital | currency:'DOP' }}</p>
-        <p [class.diferencia]="balance.diferencia !== 0">
-          <strong>Diferencia:</strong> {{ balance.diferencia | currency:'DOP' }}
+        <p><strong>Pasivo + Patrimonio:</strong> {{ balance.totalPasivoCapital | currency:'DOP' }}</p>
+        <p *ngIf="balance.resultadoEjercicio !== 0">
+          <strong>Resultado del Ejercicio:</strong> {{ balance.resultadoEjercicio | currency:'DOP' }}
+        </p>
+        <p>
+          <strong>{{ balance.cuadra ? '✓ Cuadra' : 'Diferencia' }}:</strong>
+          {{ balance.diferencia | currency:'DOP' }}
         </p>
       </div>
     </ion-card-content>

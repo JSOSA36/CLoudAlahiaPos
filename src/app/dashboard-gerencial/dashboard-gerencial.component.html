@@ -31,28 +31,60 @@
 
     <ng-container *ngIf="!loading && data">
 
-      <!-- HERO: UTILIDAD OPERATIVA -->
-      <section
-        class="dg-hero"
-        [class.positiva]="pl.utilidadOperativa >= 0"
-        [class.negativa]="pl.utilidadOperativa < 0"
-      >
-        <div class="dg-hero-meta">
-          <p class="dg-eyebrow">Mes en curso · {{ data.periodoLabel | titlecase }}</p>
-          <h1>Utilidad operativa</h1>
-          <p class="dg-subtitle">Resultado económico real de la empresa este mes</p>
-        </div>
-        <div class="dg-hero-amount">
-          <span class="currency">RD$</span>
-          <strong>{{ pl.utilidadOperativa | number:'1.0-0':'es-DO' }}</strong>
-        </div>
-        <div class="dg-margen-row">
-          <div class="dg-margen-pill" *ngFor="let m of margenCards">
-            <span>{{ m.label }}</span>
-            <strong>{{ m.value | number:'1.1-1':'es-DO' }}%</strong>
-            <small>{{ m.hint }}</small>
+      <!-- HERO: HOY + MES (el día va primero: lo que el dueño necesita al entrar) -->
+      <section class="dg-hero-duo">
+        <article
+          class="dg-hero dg-hero-hoy"
+          [class.positiva]="plHoy.utilidadOperativa >= 0"
+          [class.negativa]="plHoy.utilidadOperativa < 0"
+        >
+          <div class="dg-hero-meta">
+            <p class="dg-eyebrow">Hoy · {{ (data.periodoHoyLabel || 'Hoy') | titlecase }}</p>
+            <h1>Utilidad del día</h1>
+            <p class="dg-subtitle">Ingresos y resultado operativo de hoy</p>
           </div>
-        </div>
+          <div class="dg-hero-amount">
+            <span class="currency">RD$</span>
+            <strong>{{ plHoy.utilidadOperativa | number:'1.0-0':'es-DO' }}</strong>
+          </div>
+          <div class="dg-hoy-strip">
+            <div class="dg-hoy-metric">
+              <span>Ventas hoy</span>
+              <strong>RD$ {{ plHoy.ventasBrutas | number:'1.0-0':'es-DO' }}</strong>
+            </div>
+            <div class="dg-hoy-metric">
+              <span>Gastos hoy</span>
+              <strong>RD$ {{ plHoy.gastosOperativos | number:'1.0-0':'es-DO' }}</strong>
+            </div>
+            <div class="dg-hoy-metric">
+              <span>Margen op.</span>
+              <strong>{{ plHoy.margenOperativoPct | number:'1.1-1':'es-DO' }}%</strong>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="dg-hero dg-hero-mes"
+          [class.positiva]="pl.utilidadOperativa >= 0"
+          [class.negativa]="pl.utilidadOperativa < 0"
+        >
+          <div class="dg-hero-meta">
+            <p class="dg-eyebrow">Mes en curso · {{ data.periodoLabel | titlecase }}</p>
+            <h1>Utilidad operativa</h1>
+            <p class="dg-subtitle">Resultado económico real de la empresa este mes</p>
+          </div>
+          <div class="dg-hero-amount">
+            <span class="currency">RD$</span>
+            <strong>{{ pl.utilidadOperativa | number:'1.0-0':'es-DO' }}</strong>
+          </div>
+          <div class="dg-margen-row">
+            <div class="dg-margen-pill" *ngFor="let m of margenCards">
+              <span>{{ m.label }}</span>
+              <strong>{{ m.value | number:'1.1-1':'es-DO' }}%</strong>
+              <small>{{ m.hint }}</small>
+            </div>
+          </div>
+        </article>
       </section>
 
       <!-- RESUMEN INTELIGENTE (Alahia AI) -->

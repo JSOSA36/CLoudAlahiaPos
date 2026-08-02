@@ -1,52 +1,448 @@
-.emitir-toolbar {
-  --background: var(--ion-color-primary, #2F80ED);
-  --color: #ffffff;
-}
-
-.emitir-content {
-  --background: #f7faff;
-}
-
-.hint {
-  margin: 4px 12px 0;
-  font-size: 12px;
-  color: #607d8b;
-}
-
-.loading-box {
+/* Emitir conduce — colores fijos (modal) */
+:host {
   display: flex;
-  justify-content: center;
-  padding: 40px;
+  flex-direction: column;
+  height: 100%;
 }
 
-.meta-card {
-  margin: 12px;
+.ec-content {
+  --background: #f3f6fb;
+}
+
+.ec-page {
+  padding: 0 0 24px;
+}
+
+.ec-page-lineas {
+  padding-bottom: 8px;
+}
+
+/* Banner */
+.ec-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 28px;
+  background: linear-gradient(145deg, #1454B8 0%, #0B419B 72%, #08307a 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.ec-banner.compact {
+  padding: 16px;
+}
+
+.ec-banner::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  top: -36px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, 0.16);
+  pointer-events: none;
+}
+
+.ec-banner-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #fcd34d;
+  color: #0f172a;
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.ec-banner-icon ion-icon {
+  font-size: 1.6rem;
+}
+
+.ec-banner-text {
+  z-index: 1;
+  min-width: 0;
+}
+
+.ec-banner-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.ec-banner-text p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.35;
+}
+
+/* Search */
+.ec-search {
+  margin: -14px 14px 12px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.ec-search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ec-search-row ion-input {
+  flex: 1;
+  --background: #f8fafc;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
+  min-height: 44px;
 }
 
-.paso-lineas ion-item.sel {
-  --background: #eef6ff;
-  border-left: 3px solid #F2C94C;
+.ec-search-row ion-button {
+  margin: 0;
+  --border-radius: 12px;
+  height: 44px;
+  width: 48px;
+  color: #0f172a;
 }
 
-.qty-input {
-  max-width: 90px;
-  text-align: right;
+.ec-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 2px 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.ec-hint ion-icon {
+  font-size: 1rem;
+  color: #1454B8;
+}
+
+.ec-loading,
+.ec-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: #64748b;
+}
+
+.ec-empty ion-icon {
+  font-size: 2.4rem;
+  color: #1454B8;
+  opacity: 0.7;
+}
+
+.ec-empty h3 {
+  margin: 10px 0 4px;
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.ec-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+/* Factura cards */
+.ec-factura {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 14px 10px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #1454B8;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  animation: ecRise 0.3s ease both;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ec-factura:active {
+  transform: scale(0.99);
+}
+
+.ec-factura-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1454B8, #0B419B);
+  color: #fcd34d;
+}
+
+.ec-factura-avatar ion-icon {
+  font-size: 1.3rem;
+}
+
+.ec-factura-info {
+  min-width: 0;
+}
+
+.ec-factura-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ec-factura-top h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ec-pend {
+  font-size: 0.68rem;
   font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  padding: 3px 8px;
+  border-radius: 999px;
 }
 
-.footer-bar {
+.ec-factura-info p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.ec-factura-info p ion-icon {
+  font-size: 0.9rem;
+  color: #1454B8;
+  flex-shrink: 0;
+}
+
+.ec-chevron {
+  font-size: 1.2rem;
+  color: #94a3b8;
+}
+
+/* Form entrega */
+.ec-form-card {
+  margin: -10px 14px 14px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+  position: relative;
+  z-index: 2;
+}
+
+.ec-form-card h3 {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0B419B;
+}
+
+.ec-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ec-field-full {
+  grid-column: 1 / -1;
+}
+
+.ec-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.ec-field ion-input,
+.ec-field ion-select,
+.ec-field ion-textarea {
+  --background: #f8fafc;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  min-height: 40px;
+  font-size: 0.9rem;
+}
+
+.ec-lineas-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 0 12px;
+  padding: 0 18px 8px;
 }
 
-.btn-guardar {
-  --background: var(--ion-color-primary, #1976d2);
-  --background-hover: var(--ion-color-primary-shade, #1565c0);
-  --border-radius: 10px;
+.ec-lineas-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ec-lineas-head span {
+  font-size: 0.75rem;
   font-weight: 700;
-  text-transform: none;
+  color: #1454B8;
+  background: #eef4ff;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* Líneas */
+.ec-linea {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin: 0 14px 8px;
+  padding: 12px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ec-linea.on {
+  border-color: #1454B8;
+  background: #f0f7ff;
+  box-shadow: 0 0 0 3px rgba(20, 84, 184, 0.1);
+}
+
+.ec-linea-info {
+  min-width: 0;
+}
+
+.ec-linea-info h4 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ec-linea-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ec-linea-meta span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.ec-linea-meta span.pend {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.ec-qty {
+  text-align: center;
+}
+
+.ec-qty label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.ec-qty ion-input {
+  max-width: 72px;
+  --background: #fff;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 800;
+  min-height: 36px;
+}
+
+.ec-linea.on .ec-qty ion-input {
+  border-color: #1454B8;
+  --background: #fff;
+}
+
+/* Footer */
+.ec-footer {
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.ec-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ec-footer-total span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.ec-footer-total strong {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.ec-footer-inner ion-button {
+  margin: 0;
+  --border-radius: 12px;
+  font-weight: 800;
+  min-height: 44px;
+  color: #0f172a;
+}
+
+@keyframes ecRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .ec-grid {
+    grid-template-columns: 1fr;
+  }
 }

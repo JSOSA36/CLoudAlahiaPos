@@ -117,18 +117,20 @@
       <ion-divider class="ion-margin-vertical"></ion-divider>
 
       <!-- ============================
-           MÓDULOS
+           MÓDULOS DE MENÚ
       ============================= -->
       <ion-text color="medium">
-        <h6>Módulos permitidos</h6>
+        <h6>Pantallas del menú</h6>
+        <p class="ion-padding-start ion-padding-end" style="font-size: 0.85rem; margin-top: 0;">
+          Estos módulos aparecen en el menú lateral (si tienen pantalla).
+        </p>
       </ion-text>
 
-      <ion-list *ngIf="modulos.length; else sinModulos">
+      <ion-list *ngIf="modulosMenu.length; else sinModulos">
 
         <ion-item
-          *ngFor="let modulo of modulos; trackBy: trackByModulo">
+          *ngFor="let modulo of modulosMenu; trackBy: trackByModulo">
 
-          <!-- ✔️ CHECKBOX CORRECTO (IONIC WAY) -->
         <ion-checkbox
   slot="start"
   [checked]="modulo.seleccionado"
@@ -139,6 +141,32 @@
 
         </ion-item>
 
+      </ion-list>
+
+      <!-- ============================
+           PERMISOS (NO MENÚ)
+      ============================= -->
+      <ion-text color="medium" *ngIf="modulosPermiso.length" class="ion-margin-top">
+        <h6>Permisos (no aparecen en el menú)</h6>
+        <p class="ion-padding-start ion-padding-end" style="font-size: 0.85rem; margin-top: 0;">
+          Controlan acciones dentro de otra pantalla. Ejemplo: Producción — Gestionar
+          habilita cambiar estados en el <strong>Centro de Producción</strong> (antes KDS),
+          pero no crea un ítem aparte en el menú.
+        </p>
+      </ion-text>
+
+      <ion-list *ngIf="modulosPermiso.length">
+        <ion-item *ngFor="let modulo of modulosPermiso; trackBy: trackByModulo">
+          <ion-checkbox
+            slot="start"
+            [checked]="modulo.seleccionado"
+            (ionChange)="onModuloChange($event, modulo)">
+          </ion-checkbox>
+          <ion-label>
+            <h3>{{ modulo.nombre }}</h3>
+            <p>Permiso · no es pantalla de menú</p>
+          </ion-label>
+        </ion-item>
       </ion-list>
 
       <ng-template #sinModulos>

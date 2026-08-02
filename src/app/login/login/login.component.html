@@ -3,12 +3,11 @@
   <form>
     <!-- LOGO -->
     <div class="logo-container">
-      <ion-avatar class="logo-avatar">
-        <ion-img
-          [src]="logoUrl"
-          (ionError)="onLogoError()">
-        </ion-img>
-      </ion-avatar>
+      <img
+        class="logo-oficial"
+        [src]="logoUrl"
+        alt="Alahia"
+        (error)="onLogoError()" />
     </div>
 
     <!-- CARD GLASSMORPHISM -->
@@ -16,7 +15,7 @@
      <ion-card-header color="warning"  class="header-demo">
 
   <h2 class="titulo-demo">
-    Bievendio a AlahiaPOS<br>
+    Bienvenido a AlahiaERP<br>
    
   </h2>
   <h4 class="subtitulo-demo">
@@ -49,21 +48,10 @@ Empieza gratis en minutos.
         <ion-button 
           expand="block" 
           shape="round" 
-          
-          color="dark"
+          color="warning"
           (click)="login()">
 
-          <P style="color: gold;">Iniciar Sesión</P>
-        </ion-button>
-
-        <ion-button 
-          expand="block" 
-          shape="round" 
-          
-          color="warning"
-          (click)="irARegistro()">
-
-          <P style="color: black;">Ver planes y precios</P>
+          <P style="color: black;">Iniciar Sesión</P>
         </ion-button>
 
         <p class="ticket-login-link" (click)="abrirTicketSoporte()">

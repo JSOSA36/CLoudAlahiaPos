@@ -1,0 +1,169 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Declaración IT-1 — Liquidación ITBIS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rit1-content">
+  <div class="rit1-page">
+
+    <section class="rit1-filtros">
+      <div class="rit1-field">
+        <label>Periodo (mes)</label>
+        <ion-input type="month" [(ngModel)]="periodoMes"></ion-input>
+      </div>
+      <div class="rit1-actions">
+        <ion-button (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button
+          color="warning"
+          fill="solid"
+          [disabled]="!data?.contenidoCsv"
+          (click)="exportarCsv()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Exportar Excel (CSV)
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rit1-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Calculando Anexo A e IT-1…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando && data">
+      <section class="rit1-resumen">
+        <div class="rit1-kpi">
+          <span>Periodo</span>
+          <strong>{{ data.periodo }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Ops. periodo</span>
+          <strong>{{ data.totalOperacionesPeriodo | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>ITBIS cobrado</span>
+          <strong>{{ data.totalItbisCobrado | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>ITBIS deducible</span>
+          <strong>{{ data.totalItbisDeducible | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.warn]="data.impuestoAPagar > 0">
+          <span>Impuesto a pagar</span>
+          <strong>{{ data.impuestoAPagar | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.ok]="data.saldoAFavor > 0">
+          <span>Saldo a favor</span>
+          <strong>{{ data.saldoAFavor | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.alert]="data.cantidadAlertas > 0">
+          <span>Alertas</span>
+          <strong>{{ data.cantidadAlertas }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Total general</span>
+          <strong>{{ data.totalGeneralAPagar | number:'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <div class="rit1-alertas" *ngIf="data.alertasGlobales?.length">
+        <div class="rit1-alerta" *ngFor="let a of data.alertasGlobales">{{ a }}</div>
+      </div>
+
+      <p class="rit1-hint">
+        Vista previa de apoyo (IT-1 2020). Envíe 606/607 a la DGII antes de declarar en Oficina Virtual.
+        RNC {{ data.rncEmpresa || '—' }} · {{ data.razonSocial || data.nombreComercial || '—' }}
+      </p>
+
+      <!-- Anexo A -->
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionAnexoAbierta = !seccionAnexoAbierta">
+          <strong>Anexo A</strong>
+          <span>{{ seccionAnexoAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionAnexoAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Cant.</th>
+                <th class="num">Monto</th>
+                <th class="num" *ngIf="casillasConColumna(data.anexoA)">Local</th>
+                <th class="num" *ngIf="casillasConColumna(data.anexoA)">Servicios</th>
+                <th class="num" *ngIf="casillasConColumna(data.anexoA)">Import.</th>
+                <th>Origen</th>
+                <th>Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.anexoA" [class.tot]="c.esCalculada && (c.formulaAplicada || '').includes('+')">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.cantidad != null ? c.cantidad : '—' }}</td>
+                <td class="num">{{ c.monto | number:'1.2-2' }}</td>
+                <td class="num" *ngIf="casillasConColumna(data.anexoA)">
+                  {{ c.montoLocal != null ? (c.montoLocal | number:'1.2-2') : '—' }}
+                </td>
+                <td class="num" *ngIf="casillasConColumna(data.anexoA)">
+                  {{ c.montoServicios != null ? (c.montoServicios | number:'1.2-2') : '—' }}
+                </td>
+                <td class="num" *ngIf="casillasConColumna(data.anexoA)">
+                  {{ c.montoImportaciones != null ? (c.montoImportaciones | number:'1.2-2') : '—' }}
+                </td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+                <td>
+                  <span class="rit1-chip" *ngFor="let al of c.alertas">{{ al }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- IT-1 -->
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionIt1Abierta = !seccionIt1Abierta">
+          <strong>Formulario IT-1</strong>
+          <span>{{ seccionIt1Abierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionIt1Abierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Monto</th>
+                <th>Origen</th>
+                <th>Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.it1">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.monto | number:'1.2-2' }}</td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+                <td>
+                  <span class="rit1-chip" *ngFor="let al of c.alertas">{{ al }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>

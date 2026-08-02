@@ -1,238 +1,182 @@
-<ion-header>
+<ion-header class="pa-header">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-button (click)="CloseModal()">
         <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title class="ion-text-center" style="font-size: 20px;">
+    <ion-title>
       {{ producto ? 'Editar Producto' : 'Agregar Producto' }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content  class="producto-content">
-  
-<ion-card class="producto-card-form">
-  <ion-card-header>
-    <div class="imagen-preview" (click)="abrirSelectorImagen()">
+<ion-content class="pa-content">
+  <div class="pa-page">
 
-  <ion-avatar>
-    <img [src]="imagenPreview || 'assets/img/product-placeholder.png'" />
-  </ion-avatar>
+    <section class="pa-hero">
+      <div class="pa-image" (click)="abrirSelectorImagen()">
+        <img [src]="imagenPreview || 'assets/Producto.png'" alt="Producto" />
+        <span class="pa-image-hint">
+          <ion-icon name="camera-outline"></ion-icon>
+          Cambiar imagen
+        </span>
+      </div>
+      <div class="pa-hero-text">
+        <h2>{{ producto ? 'Actualizar artículo' : 'Registrar artículo' }}</h2>
+        <p>Define precios, categoría y comportamiento en compras.</p>
+      </div>
+    </section>
 
-</div>
+    <input
+      #fileInput
+      type="file"
+      accept="image/*"
+      hidden
+      (change)="onFileSelected($event)">
 
-<input
-  #fileInput
-  type="file"
-  accept="image/*"
-  hidden
-  (change)="onFileSelected($event)">
-  </ion-card-header>
+    <section class="pa-card">
+      <h3>Datos básicos</h3>
+      <div class="pa-grid">
+        <div class="pa-field pa-field-full">
+          <label>Nombre <span>*</span></label>
+          <ion-input [(ngModel)]="form.nombre" placeholder="Nombre del producto o servicio"></ion-input>
+        </div>
 
-<ion-grid>
+        <div class="pa-field">
+          <label>Código de barra</label>
+          <ion-input [(ngModel)]="form.codigoBarra" placeholder="EAN / interno"></ion-input>
+        </div>
 
-<ion-row>
+        <div class="pa-field">
+          <label>Categoría</label>
+          <ion-select [(ngModel)]="form.idCategoria" interface="popover" placeholder="Seleccione">
+            <ion-select-option *ngFor="let cat of categorias" [value]="cat.idCategoria">
+              {{ cat.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </div>
 
-<!-- Nombre -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Nombre</ion-label>
-    <ion-input [(ngModel)]="form.nombre"></ion-input>
-  </ion-item>
-</ion-col>
+        <div class="pa-field">
+          <label>Naturaleza</label>
+          <ion-select
+            [(ngModel)]="form.esServicio"
+            (ionChange)="onNaturalezaChange()"
+            interface="popover">
+            <ion-select-option [value]="false">Producto</ion-select-option>
+            <ion-select-option [value]="true">Servicio</ion-select-option>
+          </ion-select>
+        </div>
 
-<!-- Precio -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Precio de venta</ion-label>
-    <ion-input type="number" [(ngModel)]="form.precioVenta"></ion-input>
-  </ion-item>
-</ion-col>
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Codigo Barra</ion-label>
-    <ion-input [(ngModel)]="form.codigoBarra"></ion-input>
-  </ion-item>
-</ion-col>
+        <div class="pa-field">
+          <label>Área</label>
+          <ion-select [(ngModel)]="form.idArea" interface="popover" placeholder="Seleccione">
+            <ion-select-option *ngFor="let area of areas" [value]="area.idArea">
+              {{ area.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+    </section>
 
-<!-- Precio -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Precio / costo incluye ITBIS</ion-label>
-    <ion-toggle slot="end" [(ngModel)]="form.Itbis"></ion-toggle>
-  </ion-item>
-</ion-col>
+    <section class="pa-card">
+      <h3>Precios</h3>
+      <div class="pa-grid">
+        <div class="pa-field">
+          <label>Precio de venta</label>
+          <ion-input type="number" [(ngModel)]="form.precioVenta" placeholder="0.00"></ion-input>
+        </div>
+        <div class="pa-field">
+          <label>Costo</label>
+          <ion-input type="number" [(ngModel)]="form.costo" placeholder="0.00"></ion-input>
+        </div>
+      </div>
 
-<!-- Costo -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Costo</ion-label>
-    <ion-input type="number" [(ngModel)]="form.costo"></ion-input>
-  </ion-item>
-  
-</ion-col>
-<!-- 🔥 COMPRA / VENTA -->
-<!-- 🔥 COMPRA / VENTA -->
-<!-- Naturaleza comercial (POS, Citas, Odontología) -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Naturaleza del artículo</ion-label>
-    <ion-select
-      [(ngModel)]="form.esServicio"
-      (ionChange)="onNaturalezaChange()">
-      <ion-select-option [value]="false">Producto</ion-select-option>
-      <ion-select-option [value]="true">Servicio</ion-select-option>
-    </ion-select>
-  </ion-item>
-</ion-col>
+      <div class="pa-toggle">
+        <div>
+          <strong>Precio / costo incluye ITBIS</strong>
+          <p>Marca si el monto ya trae impuesto incluido.</p>
+        </div>
+        <ion-toggle [(ngModel)]="form.Itbis"></ion-toggle>
+      </div>
+    </section>
 
-<!-- Comportamiento ERP (solo compras / contabilidad) -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Comportamiento ERP (compras)</ion-label>
-    <ion-select [(ngModel)]="form.tipoComportamiento">
-      <ion-select-option
-        *ngFor="let t of tiposComportamiento"
-        [value]="t.value">
-        {{ t.label }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
-  <p class="tipo-hint">{{ descripcionTipoComportamiento }}</p>
-</ion-col>
+    <section class="pa-card">
+      <h3>Operación y ERP</h3>
+      <div class="pa-grid">
+        <div class="pa-field" *ngIf="!form.esServicio">
+          <label>Tipo de operación</label>
+          <ion-select [(ngModel)]="form.tipoOperacion" interface="popover">
+            <ion-select-option value="VENTA">Venta</ion-select-option>
+            <ion-select-option value="COMPRA">Compra</ion-select-option>
+            <ion-select-option value="AMBAS">Compra y Venta</ion-select-option>
+          </ion-select>
+        </div>
 
-<!-- ===================================== -->
-<!-- 🔥 TIPO OPERACION -->
-<!-- ===================================== -->
+        <div class="pa-field pa-field-full">
+          <label>Comportamiento ERP (compras)</label>
+          <ion-select [(ngModel)]="form.tipoComportamiento" interface="popover">
+            <ion-select-option
+              *ngFor="let t of tiposComportamiento"
+              [value]="t.value">
+              {{ t.label }}
+            </ion-select-option>
+          </ion-select>
+          <small class="pa-hint" *ngIf="descripcionTipoComportamiento">
+            {{ descripcionTipoComportamiento }}
+          </small>
+        </div>
+      </div>
+    </section>
 
-<ion-col
-  size="12"
-  size-md="6"
-  *ngIf="!form.esServicio">
+    <section class="pa-card">
+      <h3>Disponibilidad</h3>
 
-  <ion-item>
+      <div class="pa-toggle">
+        <div>
+          <strong>Activo</strong>
+          <p>Visible para ventas y catálogo.</p>
+        </div>
+        <ion-toggle [(ngModel)]="form.isActivo"></ion-toggle>
+      </div>
 
-    <ion-label position="stacked">
+      <div class="pa-toggle">
+        <div>
+          <strong>Disponible en citas</strong>
+          <p>Aparece al agendar servicios.</p>
+        </div>
+        <ion-toggle [(ngModel)]="form.disponibleEnCitas"></ion-toggle>
+      </div>
 
-      Tipo de Operación
+      <div class="pa-toggle" *ngIf="!form.esServicio">
+        <div>
+          <strong>Controlar stock (ventas)</strong>
+          <p>Descuenta existencia al facturar.</p>
+        </div>
+        <ion-toggle [(ngModel)]="form.controlarStock"></ion-toggle>
+      </div>
 
-    </ion-label>
+      <div class="pa-field" style="margin-top: 10px;">
+        <label>Duración (minutos)</label>
+        <ion-input type="number" [(ngModel)]="form.duracionServicio" placeholder="0"></ion-input>
+      </div>
+    </section>
 
-    <ion-select
-      [(ngModel)]="form.tipoOperacion">
+    <div class="pa-actions">
+      <ion-button
+        *ngIf="form.idproducto > 0"
+        expand="block"
+        fill="outline"
+        color="primary"
+        (click)="abrirHistorialCompras()">
+        <ion-icon name="analytics-outline" slot="start"></ion-icon>
+        Historial de compras
+      </ion-button>
 
-      <!-- VENTA -->
-      <ion-select-option value="VENTA">
-
-        💰 Venta
-
-      </ion-select-option>
-
-      <!-- COMPRA -->
-      <ion-select-option value="COMPRA">
-
-        🛒 Compra
-
-      </ion-select-option>
-
-      <!-- AMBAS -->
-      <ion-select-option value="AMBAS">
-
-        🔄 Compra y Venta
-
-      </ion-select-option>
-
-    </ion-select>
-
-  </ion-item>
-
-</ion-col>
-
-<!-- Categoría -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Categoría</ion-label>
-    <ion-select [(ngModel)]="form.idCategoria">
-      <ion-select-option *ngFor="let cat of categorias" [value]="cat.idCategoria">
-        {{ cat.nombre }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
-</ion-col>
-
-<!-- Duración -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Duración (minutos)</ion-label>
-    <ion-input type="number" [(ngModel)]="form.duracionServicio"></ion-input>
-  </ion-item>
-</ion-col>
-
-<!-- Disponible en citas -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Disponible en Citas</ion-label>
-    <ion-toggle slot="end" [(ngModel)]="form.disponibleEnCitas"></ion-toggle>
-  </ion-item>
-</ion-col>
-
-<!-- Activo -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Activo</ion-label>
-    <ion-toggle slot="end" [(ngModel)]="form.isActivo"></ion-toggle>
-  </ion-item>
-</ion-col>
-<!-- Controlar stock (ventas / inventario operativo) -->
-<ion-col size="12" size-md="6" *ngIf="!form.esServicio">
-  <ion-item>
-    <ion-label position="stacked">Controlar Stock (ventas)</ion-label>
-    <ion-toggle slot="end" [(ngModel)]="form.controlarStock"></ion-toggle>
-  </ion-item>
-</ion-col>
-
-<!-- Área -->
-<ion-col size="12" size-md="6">
-  <ion-item>
-    <ion-label position="stacked">Área</ion-label>
-    <ion-select [(ngModel)]="form.idArea">
-      <ion-select-option *ngFor="let area of areas" [value]="area.idArea">
-        {{ area.nombre }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
-</ion-col>
-
-</ion-row>
-
-</ion-grid>
-<div class="guardar-area">
-
-  <ion-button
-    *ngIf="form.idproducto > 0"
-    shape="round"
-    expand="block"
-    fill="outline"
-    color="primary"
-    class="btn-historial-compras"
-    (click)="abrirHistorialCompras()">
-    <ion-icon name="analytics-outline" slot="start"></ion-icon>
-    Historial de Compras
-  </ion-button>
-
-  <ion-button shape="round"
-    expand="block"
-    size="large"
-    color="warning"
-    (click)="guardarProducto()">
-
-    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-    Guardar Producto
-
-  </ion-button>
-
-</div>
-</ion-card>
+      <ion-button expand="block" class="pa-save" (click)="guardarProducto()">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Guardar producto
+      </ion-button>
+    </div>
+  </div>
 </ion-content>

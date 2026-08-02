@@ -6,6 +6,7 @@ import { PerfilUpdate } from '../models/PerfilUpdate.models';
 import { Perfil } from '../models/Perfil .models';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { AlertController } from '@ionic/angular';
+import { esModuloPermisoSinMenu } from '../config/menu-grupos.config';
 
 @Component({
   selector: 'app-perfiles',
@@ -20,8 +21,10 @@ export class PerfilesComponent implements OnInit {
   perfiles: Perfil[] = [];
   modulos: Array<{
     idModulo: number;
+    codigo: string;
     nombre: string;
     seleccionado: boolean;
+    esPermiso: boolean;
   }> = [];
 
   // ============================
@@ -47,6 +50,14 @@ export class PerfilesComponent implements OnInit {
     private alertCtrl: AlertController
   ) {}
 
+  get modulosMenu(): typeof this.modulos {
+    return this.modulos.filter(m => !m.esPermiso);
+  }
+
+  get modulosPermiso(): typeof this.modulos {
+    return this.modulos.filter(m => m.esPermiso);
+  }
+
   // =====================================================
   // 🚀 INIT
   // =====================================================
@@ -70,11 +81,16 @@ export class PerfilesComponent implements OnInit {
   cargarModulos() {
     this.modulosService.getModulos()
       .subscribe(resp => {
-        this.modulos = (resp || []).map((m: any) => ({
-          idModulo: m.idModulo ?? m.id,
-          nombre: m.nombre,
-          seleccionado: false
-        }));
+        this.modulos = (resp || []).map((m: any) => {
+          const codigo = String(m.codigo ?? m.Codigo ?? '').trim().toUpperCase();
+          return {
+            idModulo: m.idModulo ?? m.id ?? m.Id,
+            codigo,
+            nombre: m.nombre ?? m.Nombre ?? codigo,
+            seleccionado: false,
+            esPermiso: esModuloPermisoSinMenu(codigo)
+          };
+        });
       });
   }
 
@@ -182,6 +198,9 @@ export class PerfilesComponent implements OnInit {
     this.cargando = false;
     this.cerrarModal();
     this.cargarPerfiles();
+    void this.alertSimple(
+      'Perfil guardado. Si cambiaste módulos del usuario con el que estás logueado, cierra sesión y vuelve a entrar para actualizar el menú.'
+    );
   }
 
   private errorGuardado() {

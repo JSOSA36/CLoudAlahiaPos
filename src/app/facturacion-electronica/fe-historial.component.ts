@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
 
 export interface EcfHistorialItem {
   idEcf: number;
@@ -50,7 +51,8 @@ export class FeHistorialComponent implements OnInit {
     private feService: FacturacionElectronicaService,
     private parametro: ParametrosService,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private ecfPreview: EcfPreviewLauncherService
   ) {}
 
   ngOnInit() {
@@ -86,6 +88,10 @@ export class FeHistorialComponent implements OnInit {
     this.filtroTipo = null;
     this.filtroEstado = '';
     this.buscar();
+  }
+
+  async verDetalle(item: EcfHistorialItem) {
+    await this.ecfPreview.openFromHistorial(item);
   }
 
   esReprocesable(item: EcfHistorialItem): boolean {

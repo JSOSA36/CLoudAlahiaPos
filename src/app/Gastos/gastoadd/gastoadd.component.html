@@ -1,112 +1,141 @@
-<ion-content class="ion-padding form-background">
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="modalCtrl.dismiss()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      {{ isEdit ? 'Editar gasto' : 'Registrar gasto' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
 
-  <ion-card class="form-card">
-    <!-- Cabecera del modal -->
-    <ion-card-header>
-      <ion-card-title class="ion-text-center">
-        {{ isEdit ? 'Editar Gasto' : 'Registrar Gasto' }}
-      </ion-card-title>
-    </ion-card-header>
+<ion-content class="ga-content">
+  <div class="ga-form">
 
-    <ion-card-content>
-      <!-- Tipo de gasto -->
-      <ion-item lines="full">
-        <ion-icon name="pricetag-outline" slot="start" color="primary"></ion-icon>
-        <ion-label position="stacked">Tipo de Gasto</ion-label>
+    <section class="ga-banner">
+      <div class="ga-banner-icon">
+        <ion-icon name="wallet"></ion-icon>
+      </div>
+      <div class="ga-banner-text">
+        <h2>{{ isEdit ? 'Actualizar egreso' : 'Nuevo egreso' }}</h2>
+        <p>Clasifica el gasto por categoría y tipo de comprobante.</p>
+      </div>
+    </section>
+
+    <section class="ga-body">
+      <div class="ga-field">
+        <label>
+          <ion-icon name="pricetag-outline"></ion-icon>
+          Categoría <span>*</span>
+        </label>
         <ion-select
-          name="tipoGasto"
-          [(ngModel)]="gasto.tipoGasto"
+          [(ngModel)]="gasto.idCategoriaGasto"
+          (ionChange)="onCategoriaChange()"
           interface="popover"
-          placeholder="Seleccione tipo">
-          <ion-select-option value="Servicios">Servicios</ion-select-option>
-          <ion-select-option value="Insumos">Insumos</ion-select-option>
-          <ion-select-option value="Publicidad">Publicidad</ion-select-option>
-          <ion-select-option value="Mantenimiento">Mantenimiento</ion-select-option>
-          <ion-select-option value="Otros">Otros</ion-select-option>
+          placeholder="Seleccione categoría">
+          <ion-select-option
+            *ngFor="let c of categorias"
+            [value]="c.idCategoriaGasto">
+            {{ c.nombre }}
+          </ion-select-option>
         </ion-select>
-      </ion-item>
+      </div>
 
-      <!-- Monto -->
-      <ion-item lines="full">
-        <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
-        <ion-label position="floating">Monto</ion-label>
+      <div class="ga-grid">
+        <div class="ga-field">
+          <label>
+            <ion-icon name="cash-outline"></ion-icon>
+            Monto <span>*</span>
+          </label>
+          <ion-input
+            type="number"
+            min="0"
+            [(ngModel)]="gasto.monto"
+            placeholder="0.00">
+          </ion-input>
+        </div>
+
+        <div class="ga-field">
+          <label>
+            <ion-icon name="card-outline"></ion-icon>
+            Método de pago
+          </label>
+          <ion-select
+            [(ngModel)]="gasto.formaPago"
+            interface="popover"
+            placeholder="Seleccione">
+            <ion-select-option
+              *ngFor="let metodo of metodosPago"
+              [value]="metodo.metodoPago">
+              {{ metodo.metodoPago }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+
+      <div class="ga-field">
+        <label>
+          <ion-icon name="receipt-outline"></ion-icon>
+          Tipo de comprobante
+        </label>
+        <ion-select
+          [(ngModel)]="gasto.tipoComprobante"
+          interface="popover">
+          <ion-select-option *ngFor="let t of tiposComprobante" [value]="t">
+            {{ t }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <div class="ga-ncf-hint" *ngIf="esGastosMenores">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <div>
+          <strong>Comprobante electrónico (E43)</strong>
+          <p *ngIf="!gasto.numeroComprobante">
+            Requiere secuencia <b>E43</b> en FE → Secuencias e-CF. Al guardar se asigna el e-NCF y el gasto entra al Formato 606.
+            Sin secuencia se guarda sin número y no aparece en el 606.
+          </p>
+          <p *ngIf="gasto.numeroComprobante">
+            e-NCF asignado: <b>{{ gasto.numeroComprobante }}</b>
+          </p>
+        </div>
+      </div>
+
+      <div class="ga-field">
+        <label>
+          <ion-icon name="document-outline"></ion-icon>
+          Referencia
+        </label>
         <ion-input
-          name="monto"
-          type="number"
-          min="0"
-          [(ngModel)]="gasto.monto">
+          [(ngModel)]="gasto.referencia"
+          placeholder="Referencia interna (opcional)">
         </ion-input>
-      </ion-item>
+      </div>
 
-      <!-- Origen -->
-      <ion-item lines="full">
-  <ion-icon
-    name="wallet-outline"
-    slot="start"
-    color="tertiary">
-  </ion-icon>
-
-  <ion-label position="stacked">
-    Método de Pago
-  </ion-label>
-
-  <ion-select
-    name="formaPago"
-    [(ngModel)]="gasto.formaPago"
-    interface="popover"
-    placeholder="Seleccione método">
-
-    <ion-select-option
-      *ngFor="let metodo of metodosPago"
-      [value]="metodo.metodoPago">
-
-      {{ metodo.metodoPago }}
-
-    </ion-select-option>
-
-  </ion-select>
-
-</ion-item>
-<ion-item lines="full">
-
-  <ion-icon
-    name="document-outline"
-    slot="start"
-    color="medium">
-  </ion-icon>
-
-  <ion-label position="floating">
-    Referencia
-  </ion-label>
-
-  <ion-input
-    name="referencia"
-    [(ngModel)]="gasto.referencia">
-  </ion-input>
-
-</ion-item>
-      <!-- Detalle -->
-      <ion-item lines="full">
-        <ion-icon name="document-text-outline" slot="start" color="warning"></ion-icon>
-        <ion-label position="stacked">Detalle</ion-label>
+      <div class="ga-field">
+        <label>
+          <ion-icon name="document-text-outline"></ion-icon>
+          Detalle
+        </label>
         <ion-textarea
-          name="detalle"
           autoGrow="true"
-          [(ngModel)]="gasto.detalle">
+          rows="3"
+          [(ngModel)]="gasto.detalle"
+          placeholder="Descripción del gasto">
         </ion-textarea>
-      </ion-item>
+      </div>
+    </section>
 
-      <!-- Botón Guardar / Actualizar -->
-      <ion-button expand="block" shape="round" class="save-btn" (click)="guardar()">
+    <div class="ga-actions">
+      <ion-button expand="block" fill="outline" color="medium" (click)="modalCtrl.dismiss()">
+        Cancelar
+      </ion-button>
+      <ion-button expand="block" color="warning" (click)="guardar()">
         <ion-icon [name]="isEdit ? 'create-outline' : 'save-outline'" slot="start"></ion-icon>
         {{ isEdit ? 'Actualizar' : 'Guardar' }}
       </ion-button>
-
-      <!-- Botón cerrar -->
-      <ion-button expand="block" fill="clear" color="danger" (click)="modalCtrl.dismiss()">
-        <ion-icon name="close-outline" slot="start"></ion-icon>
-        Cancelar
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+    </div>
+  </div>
 </ion-content>

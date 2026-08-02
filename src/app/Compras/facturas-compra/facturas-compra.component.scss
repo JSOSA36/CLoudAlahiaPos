@@ -1,12 +1,12 @@
 :host {
-  --fc-primary: var(--ion-color-primary, #1976d2);
+  --fc-primary: var(--ion-color-primary, #1454B8);
   --fc-bg: #f3f6fb;
   --fc-card: #ffffff;
   --fc-border: #e2e8f0;
   --fc-text: #1e293b;
   --fc-muted: #64748b;
   --fc-radius: 14px;
-  --fc-shadow: 0 4px 18px rgba(25, 118, 210, 0.08);
+  --fc-shadow: 0 4px 18px rgba(20, 84, 184, 0.08);
 }
 
 .fc-list-header ion-toolbar {
@@ -18,6 +18,7 @@
   display: flex;
   flex-direction: column;
   line-height: 1.15;
+  padding-inline-start: 4px;
 }
 
 .fc-title-wrap small {
@@ -32,8 +33,8 @@
 
 .fc-list-page {
   width: 100%;
-  max-width: none;
-  margin: 0;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 14px 16px 96px;
   box-sizing: border-box;
 }
@@ -49,11 +50,11 @@
 
 .fc-grid {
   padding: 0;
-  margin: 0 -4px;
+  margin: 0;
 }
 
 .fc-grid ion-col {
-  padding: 6px;
+  padding: 0 0 12px;
   display: flex;
 }
 
@@ -62,6 +63,39 @@
   --border-radius: 10px;
   --box-shadow: none;
   padding: 0 4px 4px;
+}
+
+.fc-fechas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 6px 8px 10px;
+}
+
+.fc-fecha-field {
+  flex: 1 1 140px;
+  min-width: 130px;
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--fc-muted);
+    margin-bottom: 4px;
+  }
+
+  ion-input {
+    --background: #f8fafc;
+    --padding-start: 10px;
+    border: 1px solid var(--fc-border);
+    border-radius: 10px;
+  }
+}
+
+.fc-fecha-btn {
+  flex: 0 0 auto;
+  margin: 0;
+  height: 40px;
 }
 
 .fc-chips {
@@ -112,10 +146,10 @@
 }
 
 .fc-summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
 }
 
 @media (min-width: 768px) {
@@ -123,14 +157,44 @@
     padding: 16px 20px 96px;
   }
 
+  .fc-grid ion-col {
+    padding: 0 8px 16px 0;
+  }
+
+  .fc-grid ion-col:nth-child(2n) {
+    padding-right: 0;
+  }
+
   .fc-card:hover {
-    box-shadow: 0 8px 28px rgba(25, 118, 210, 0.12);
+    box-shadow: 0 8px 28px rgba(20, 84, 184, 0.12);
+  }
+}
+
+@media (min-width: 992px) {
+  .fc-grid ion-col {
+    padding: 0 10px 16px 0;
+  }
+
+  .fc-grid ion-col:nth-child(2n) {
+    padding-right: 10px;
+  }
+
+  .fc-grid ion-col:nth-child(3n) {
+    padding-right: 0;
   }
 }
 
 @media (min-width: 1200px) {
   .fc-list-page {
     padding: 18px 24px 100px;
+  }
+
+  .fc-grid ion-col:nth-child(3n) {
+    padding-right: 10px;
+  }
+
+  .fc-grid ion-col:nth-child(4n) {
+    padding-right: 0;
   }
 }
 
@@ -139,7 +203,6 @@
   border: 1px solid var(--fc-border);
   border-radius: 12px;
   padding: 10px 14px;
-  min-width: 140px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -182,10 +245,8 @@
 }
 
 .fc-empty p {
-  margin: 0 0 16px;
+  margin: 0 auto 16px;
   max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
   line-height: 1.45;
 }
 
@@ -194,16 +255,18 @@
   border: 1px solid var(--fc-border);
   border-radius: var(--fc-radius);
   box-shadow: var(--fc-shadow);
-  padding: 14px 14px 12px;
+  padding: 14px;
   margin: 0;
   width: 100%;
   height: 100%;
-  min-height: 210px;
+  min-height: 0;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  border-left: 4px solid #94a3b8;
+  border-left: 4px solid #1454B8;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .fc-card:active {
@@ -211,7 +274,7 @@
 }
 
 .fc-card.is-borrador {
-  border-left-color: #f2c94c;
+  border-left-color: #fcd34d;
 }
 
 .fc-card.is-pendiente {
@@ -231,17 +294,20 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .fc-card-id {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .fc-card-id strong {
   font-size: 1.02rem;
   color: var(--fc-text);
+  word-break: break-word;
 }
 
 .fc-date {
@@ -306,24 +372,32 @@
   gap: 10px;
   margin-bottom: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .fc-proveedor {
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .fc-proveedor ion-icon {
   color: var(--fc-primary);
   font-size: 1.25rem;
   margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.fc-proveedor > div {
+  min-width: 0;
 }
 
 .fc-proveedor strong {
   display: block;
   color: var(--fc-text);
   font-size: 0.95rem;
+  word-break: break-word;
 }
 
 .fc-proveedor small {
@@ -331,6 +405,7 @@
   color: var(--fc-muted);
   margin-top: 2px;
   font-size: 0.78rem;
+  word-break: break-word;
 }
 
 .fc-meta {
@@ -359,18 +434,26 @@
 }
 
 .fc-card-foot {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: end;
   border-top: 1px solid var(--fc-border);
   padding-top: 10px;
+  margin-top: auto;
+  min-width: 0;
+}
+
+.fc-card-money-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .fc-money {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .fc-money .label {
@@ -383,6 +466,7 @@
 .fc-money strong {
   font-size: 0.95rem;
   color: var(--fc-text);
+  word-break: break-word;
 }
 
 .fc-money.warn strong {
@@ -395,27 +479,34 @@
 
 .fc-card-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .fc-card-actions ion-button {
   --border-radius: 10px;
   margin: 0;
-  height: 32px;
+  height: 34px;
   font-weight: 700;
+  flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .fc-action-hint {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   color: var(--fc-primary);
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0;
+  padding: 6px 8px;
   border: 0;
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
 }

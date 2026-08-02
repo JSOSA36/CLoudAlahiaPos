@@ -109,6 +109,7 @@ CargarMetodosPago(): void {
       message: 'Guardando ingreso...',
       spinner: 'crescent'
     });
+    this.cargando = true;
     await loading.present();
 
     // ✅ Armar objeto completo
@@ -132,20 +133,21 @@ CargarMetodosPago(): void {
 
     this.ingresoSrv.insertIngreso(ingresoCompleto).subscribe({
       next: async () => {
+        this.cargando = false;
         await loading.dismiss();
         (await this.toastCtrl.create({
-          message: '✅ Ingreso registrado correctamente',
+          message: 'Ingreso registrado correctamente',
           color: 'success',
           duration: 1500,
           position: 'bottom'
         })).present();
 
-        // 🔁 Reiniciar el formulario
-        this.inicializarIngreso();
+        this.modalCtrl.dismiss({ recargar: true });
       },
       error: async (err) => {
+        this.cargando = false;
         await loading.dismiss();
-        console.error('❌ Error al registrar el ingreso:', err);
+        console.error('Error al registrar el ingreso:', err);
         const detalle = err?.error?.message || err?.message || 'Error desconocido';
         (await this.toastCtrl.create({
           message: `Error al registrar el ingreso: ${detalle}`,

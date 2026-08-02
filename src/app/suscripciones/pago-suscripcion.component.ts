@@ -11,6 +11,7 @@ import {
   SuscripcionCalculoFactura,
   SuscripcionLineaFactura
 } from '../servicios/empresa-cargos-recurrentes.service';
+import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
 
 @Component({
   selector: 'app-pago-suscripcion',
@@ -26,11 +27,13 @@ export class PagoSuscripcionComponent implements OnInit {
   archivo: File | null = null;
   estadoServicio = '';
   pagadoServicio = false;
+  cuentasCobro: SuscripcionCuentaCobro[] = [];
 
   constructor(
     private pagoSvc: PagoEmpresaService,
     private cargosSvc: EmpresaCargosRecurrentesService,
     private empresaSvc: EmpresaService,
+    private cobrosSvc: SuscripcionCobrosService,
     private parametros: ParametrosService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
@@ -89,15 +92,17 @@ export class PagoSuscripcionComponent implements OnInit {
 
     this.loading = true;
     try {
-      const [estado, calculo, pagos] = await Promise.all([
+      const [estado, calculo, pagos, cuentas] = await Promise.all([
         firstValueFrom(this.empresaSvc.puedeOperar(this.idEmpresa)),
         firstValueFrom(this.cargosSvc.calculo(this.idEmpresa)),
-        firstValueFrom(this.pagoSvc.obtenerPagosEmpresa(this.idEmpresa))
+        firstValueFrom(this.pagoSvc.obtenerPagosEmpresa(this.idEmpresa)),
+        firstValueFrom(this.cobrosSvc.cuentasCobro(true)).catch(() => [] as SuscripcionCuentaCobro[])
       ]);
       this.estadoServicio = (estado?.estadoServicio || '').toUpperCase();
       this.pagadoServicio = !!estado?.pagadoServicio;
       this.calculo = calculo;
       this.pagos = pagos || [];
+      this.cuentasCobro = cuentas || [];
     } catch {
       await this.toast('No se pudo cargar la información de suscripción', 'danger');
     } finally {
@@ -166,6 +171,17 @@ export class PagoSuscripcionComponent implements OnInit {
       case 'RECHAZADO': return 'bad';
       case 'PENDIENTE': return 'warn';
       default: return '';
+    }
+  }
+
+  async copiarTexto(valor: string, etiqueta: string) {
+    const texto = (valor || '').trim();
+    if (!texto) return;
+    try {
+      await navigator.clipboard.writeText(texto);
+      await this.toast(`${etiqueta} copiada`, 'success');
+    } catch {
+      await this.toast('No se pudo copiar', 'warning');
     }
   }
 

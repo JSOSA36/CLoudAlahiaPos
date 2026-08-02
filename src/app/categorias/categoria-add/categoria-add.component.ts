@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
-import { AlertController, ModalController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-categoria-add',
@@ -11,19 +10,17 @@ import { AlertController, ModalController } from '@ionic/angular';
 })
 export class CategoriaAddComponent implements OnInit {
 
-  nombre: string = '';
-
-  _estado: boolean = false;
-
-  tipoOperacion: string = 'AMBAS';
-
+  nombre = '';
+  _estado = true;
+  tipoOperacion = 'AMBAS';
   imagenFile: File | null = null;
-
   imagenPreview: string | ArrayBuffer | null = null;
+  guardando = false;
+  esEdicion = false;
 
   constructor(
-    private router: Router,
-    private alertCtrl: AlertController,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController,
     private _categoryservices: CategoriasService,
     private modalCtrl: ModalController,
     private _Para: ParametrosService
@@ -33,113 +30,110 @@ export class CategoriaAddComponent implements OnInit {
     this.CargarCategorias();
   }
 
-  // Cuando se selecciona un archivo
   onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const file = event.target.files[0];
-
-    if (file) {
-
-      this.imagenFile = file;
-
-      // Preview de la imagen
-      const reader = new FileReader();
-
-      reader.onload = () => (this.imagenPreview = reader.result);
-
-      reader.readAsDataURL(file);
-    }
+    this.imagenFile = file;
+    const reader = new FileReader();
+    reader.onload = () => (this.imagenPreview = reader.result);
+    reader.readAsDataURL(file);
   }
 
-  // Toggle estado
   onToggleChange(event: any) {
-
-    this._estado = event.detail.checked;
-
-    console.log('Estado de la categoría:', this._estado);
+    this._estado = !!event.detail.checked;
   }
 
   CargarCategorias() {
-
     if (this._Para._Cat != null) {
-
-      this.nombre = this._Para._Cat.nombre;
-
-      this._estado = this._Para._Cat.isActiva;
-
-      this.imagenPreview = this._Para._Cat.imagenPath;
-
-      this.tipoOperacion = this._Para._Cat.tipoOperacion;
+      this.esEdicion = true;
+      this.nombre = this._Para._Cat.nombre || '';
+      this._estado = !!this._Para._Cat.isActiva;
+      this.imagenPreview = this._Para._Cat.imagenPath || null;
+      this.tipoOperacion = this._Para._Cat.tipoOperacion || 'AMBAS';
+    } else {
+      this.esEdicion = false;
+      this.nombre = '';
+      this._estado = true;
+      this.imagenPreview = null;
+      this.tipoOperacion = 'AMBAS';
     }
   }
 
   closeModal() {
-
-    this.modalCtrl.dismiss();
+    this.modalCtrl.dismiss({ saved: false });
   }
 
-  // Guardar categoría
   async guardarCategoria() {
+    const nombre = (this.nombre || '').trim();
+    if (!nombre) {
+      await this.toast('Ingrese el nombre de la categoría', 'warning');
+      return;
+    }
+
+    if (this.guardando) return;
+    this.guardando = true;
+
+    const loading = await this.loadingCtrl.create({
+      message: this.esEdicion ? 'Actualizando…' : 'Guardando…',
+    });
+    await loading.present();
 
     const formData = new FormData();
-
-    // ✅ siempre incluir IdEmpresa
     const idEmpresa = this._Para.GetIdEmpresa();
-
     formData.append('idEmpresa', idEmpresa.toString());
-
     formData.append('tipoOperacion', this.tipoOperacion);
+    formData.append('nombre', nombre);
+    formData.append('isActiva', this._estado ? 'true' : 'false');
 
-    if (this._Para._Cat != null) {
+    const request$ = this.esEdicion
+      ? this.prepararEdicion(formData)
+      : this.prepararCreacion(formData);
 
-      // 🔹 Editar categoría
-      formData.append('idCategoria', this._Para._Cat.idCategoria.toString());
-
-      formData.append('nombre', this.nombre);
-
-      formData.append('isActiva', this._estado ? 'true' : 'false');
-
-      if (this.imagenFile) {
-
-        formData.append('imagen', this.imagenFile, this.imagenFile.name);
-
-      } else {
-
-        formData.append('imagen', new Blob(), '');
+    request$.subscribe({
+      next: async () => {
+        await loading.dismiss();
+        this.guardando = false;
+        const msg = this.esEdicion
+          ? 'Categoría actualizada correctamente'
+          : 'Categoría creada correctamente';
+        await this.toast(msg, 'success');
+        this._Para._Cat = null as any;
+        await this.modalCtrl.dismiss({ saved: true });
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        this.guardando = false;
+        const msg = err?.error?.message || err?.message || 'No se pudo guardar la categoría';
+        await this.toast(msg, 'danger');
       }
-
-      this._categoryservices.EditarCategoria(formData).subscribe(() => {
-
-        this.enviaralert('Categoría actualizada correctamente');
-      });
-
-    } else {
-
-      // 🔹 Crear categoría
-      formData.append('nombre', this.nombre);
-
-      formData.append('isActiva', this._estado ? 'true' : 'false');
-
-      if (this.imagenFile) {
-
-        formData.append('imagen', this.imagenFile, this.imagenFile.name);
-      }
-
-      this._categoryservices.EnviarItem(formData).subscribe(() => {
-
-        this.enviaralert('Categoría agregada correctamente');
-      });
-    }
+    });
   }
 
-  async enviaralert(ms: string) {
+  private prepararEdicion(formData: FormData) {
+    formData.append('idCategoria', this._Para._Cat.idCategoria.toString());
+    if (this.imagenFile) {
+      formData.append('imagen', this.imagenFile, this.imagenFile.name);
+    } else {
+      formData.append('imagen', new Blob(), '');
+    }
+    return this._categoryservices.EditarCategoria(formData);
+  }
 
-    const alert = await this.alertCtrl.create({
-      header: 'Información',
-      message: ms,
-      buttons: ['Aceptar'],
+  private prepararCreacion(formData: FormData) {
+    if (this.imagenFile) {
+      formData.append('imagen', this.imagenFile, this.imagenFile.name);
+    }
+    return this._categoryservices.EnviarItem(formData);
+  }
+
+  private async toast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const t = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      color,
+      position: 'top',
     });
-
-    await alert.present();
+    await t.present();
   }
 }

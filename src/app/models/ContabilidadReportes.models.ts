@@ -7,6 +7,8 @@ export interface BalanceComprobacionLinea {
   totalDebito: number;
   totalCredito: number;
   saldoFinal: number;
+  saldoDeudor?: number;
+  saldoAcreedor?: number;
 }
 
 export interface BalanceComprobacionResumen {
@@ -15,6 +17,9 @@ export interface BalanceComprobacionResumen {
   lineas: BalanceComprobacionLinea[];
   totalDebitos: number;
   totalCreditos: number;
+  totalSaldoDeudor?: number;
+  totalSaldoAcreedor?: number;
+  cuadra?: boolean;
 }
 
 export interface EstadoResultadosLinea {
@@ -60,7 +65,9 @@ export interface BalanceGeneral {
   totalPasivos: number;
   totalCapital: number;
   totalPasivoCapital: number;
+  resultadoEjercicio: number;
   diferencia: number;
+  cuadra: boolean;
 }
 
 export interface PeriodoContable {

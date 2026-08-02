@@ -1,33 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-fe-estado-dgii',
-  templateUrl: './fe-estado-dgii.component.html',
-  styleUrls: ['./fe-estado-dgii.component.scss'],
+  template: '',
 })
 export class FeEstadoDgiiComponent implements OnInit {
-
-  gatewayStatus: 'checking' | 'online' | 'offline' = 'checking';
-  lastCheck: Date | null = null;
-
-  constructor(private feService: FacturacionElectronicaService) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
-    this.check();
-  }
-
-  check() {
-    this.gatewayStatus = 'checking';
-    this.feService.healthCheck().subscribe({
-      next: (res: any) => {
-        this.gatewayStatus = res?.conectado ? 'online' : 'offline';
-        this.lastCheck = new Date();
-      },
-      error: () => {
-        this.gatewayStatus = 'offline';
-        this.lastCheck = new Date();
-      }
-    });
+    // Health del gateway vive en Configuración FE (por empresa / proveedor).
+    this.router.navigateByUrl('/fe-configuracion');
   }
 }

@@ -1,0 +1,203 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Empresas (alta)</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ea-content">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">MacroBits · Configuración</p>
+        <h1>Empresas</h1>
+        <p class="sub">Alta de clientes con módulos, demo por días y paso a cobro cuando termine la prueba.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-yellow" (click)="abrirAlta()">Nueva empresa</button>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="!mostrarForm">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Listado</p>
+          <h2>Clientes registrados</h2>
+        </div>
+        <input
+          class="filtro"
+          type="search"
+          placeholder="Buscar por nombre, RNC o correo…"
+          [(ngModel)]="filtro" />
+      </div>
+
+      <div class="state" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando…</span>
+      </div>
+
+      <div class="table-wrap" *ngIf="!loading">
+        <table class="ea-table">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Contacto</th>
+              <th>Estado</th>
+              <th>Módulos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of listaFiltrada">
+              <td>
+                <strong>{{ e.nombreComercial }}</strong>
+                <small *ngIf="e.rnc">RNC {{ e.rnc }}</small>
+              </td>
+              <td>
+                <span>{{ e.correElectronico || '—' }}</span>
+                <small *ngIf="e.telefono">{{ e.telefono }}</small>
+              </td>
+              <td>
+                <span class="badge" [class.demo]="e.esDemoVigente" [class.paid]="!e.esDemoVigente">
+                  {{ e.esDemoVigente ? 'Demo' : 'Cobro' }}
+                </span>
+                <small *ngIf="e.esDemoVigente">Hasta {{ e.fechaTerminacion | date:'dd/MM/yyyy' }}</small>
+                <small *ngIf="!e.esDemoVigente">USD {{ e.montoServicio | number:'1.2-2' }}</small>
+              </td>
+              <td>{{ e.cantidadModulos }}</td>
+              <td class="actions">
+                <button type="button" class="btn btn-ghost" (click)="abrirEditar(e)">Editar</button>
+              </td>
+            </tr>
+            <tr *ngIf="!listaFiltrada.length">
+              <td colspan="5" class="empty">No hay empresas para mostrar.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FORM ALTA / EDICIÓN -->
+    <section class="panel form-panel" *ngIf="mostrarForm">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ editandoId ? 'Edición' : 'Alta' }}</p>
+          <h2>{{ editandoId ? 'Editar empresa' : 'Nueva empresa' }}</h2>
+        </div>
+        <button type="button" class="btn btn-ghost" (click)="cerrarForm()">Volver</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Nombre comercial *</span>
+          <input [(ngModel)]="form.nombreComercial" [readonly]="!!editandoId" />
+        </label>
+        <label>
+          <span>RNC</span>
+          <input [(ngModel)]="form.rnc" [readonly]="!!editandoId" />
+        </label>
+        <label class="full">
+          <span>Dirección *</span>
+          <input [(ngModel)]="form.direccion" [readonly]="!!editandoId" />
+        </label>
+        <label>
+          <span>Teléfono</span>
+          <input [(ngModel)]="form.telefono" [readonly]="!!editandoId" />
+        </label>
+        <label>
+          <span>Correo *</span>
+          <input type="email" [(ngModel)]="form.correElectronico" [readonly]="!!editandoId" />
+        </label>
+        <label *ngIf="!editandoId">
+          <span>Contraseña admin *</span>
+          <input type="password" [(ngModel)]="form.adminPassword" autocomplete="new-password" />
+        </label>
+        <label>
+          <span>Límite usuarios</span>
+          <input type="number" min="1" [(ngModel)]="form.limiteUsuario" [readonly]="!!editandoId" />
+        </label>
+      </div>
+
+      <!-- Demo (alta) -->
+      <div class="demo-box" *ngIf="!editandoId">
+        <label class="switch-row">
+          <input type="checkbox" [(ngModel)]="form.esDemo" />
+          <span>Modo demo (prueba por días)</span>
+        </label>
+        <div class="demo-fields" *ngIf="form.esDemo">
+          <label>
+            <span>Días de prueba</span>
+            <input type="number" min="1" max="365" [(ngModel)]="form.diasDemo" />
+          </label>
+        </div>
+        <div class="demo-fields" *ngIf="!form.esDemo">
+          <label>
+            <span>Monto servicio (USD) *</span>
+            <input type="number" min="0.01" step="0.01" [(ngModel)]="form.montoServicio" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Demo (edición) -->
+      <div class="demo-box" *ngIf="editandoId">
+        <p class="panel-eyebrow">Demo / cobro</p>
+        <label class="switch-row">
+          <input type="checkbox" [(ngModel)]="demoEsDemo" />
+          <span>Empresa en demo</span>
+        </label>
+        <div class="demo-fields" *ngIf="demoEsDemo">
+          <label>
+            <span>Extender / activar por (días)</span>
+            <input type="number" min="1" max="365" [(ngModel)]="demoDias" />
+          </label>
+        </div>
+        <div class="demo-fields" *ngIf="!demoEsDemo">
+          <label>
+            <span>Monto servicio (USD) *</span>
+            <input type="number" min="0.01" step="0.01" [(ngModel)]="demoMonto" />
+          </label>
+          <p class="hint">Al desactivar el demo la empresa sigue operando con esta tarifa.</p>
+        </div>
+      </div>
+
+      <div class="modulos-box">
+        <div class="modulos-head">
+          <div>
+            <p class="panel-eyebrow">Módulos</p>
+            <h3>Licencia a activar</h3>
+          </div>
+          <div class="modulos-actions">
+            <button type="button" class="btn btn-ghost" (click)="seleccionarTodos()">Todos</button>
+            <button type="button" class="btn btn-ghost" (click)="limpiarSeleccion()">Ninguno</button>
+          </div>
+        </div>
+        <div class="modulos-grid">
+          <label class="mod-item" *ngFor="let m of modulosAsignables">
+            <input
+              type="checkbox"
+              [checked]="isChecked(m.codigo)"
+              (change)="toggleModulo(m.codigo)" />
+            <span>
+              <strong>{{ m.nombre }}</strong>
+              <small>{{ m.codigo }}</small>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" (click)="cerrarForm()" [disabled]="guardando">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (editandoId ? 'Guardar cambios' : 'Crear empresa') }}
+        </button>
+      </div>
+    </section>
+  </div>
+</ion-content>

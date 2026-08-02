@@ -25,6 +25,33 @@
 
   <div class="cxp-page">
     <div class="cxp-toolbar">
+      <div class="cxp-fechas">
+        <div class="cxp-fecha-field">
+          <label>Desde</label>
+          <ion-input type="date" [(ngModel)]="desde"></ion-input>
+        </div>
+        <div class="cxp-fecha-field">
+          <label>Hasta</label>
+          <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+        </div>
+        <ion-button
+          class="cxp-fecha-btn"
+          color="primary"
+          (click)="consultar()"
+          [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button
+          class="cxp-fecha-btn"
+          fill="outline"
+          color="medium"
+          (click)="limpiarFechas()"
+          [disabled]="cargando || (!desde && !hasta)">
+          Limpiar
+        </ion-button>
+      </div>
+
       <ion-searchbar
         [(ngModel)]="filtro"
         placeholder="Buscar por factura, proveedor o NCF..."
@@ -55,7 +82,12 @@
         <h3 *ngIf="!facturas.length">No hay facturas pendientes</h3>
         <h3 *ngIf="facturas.length">Sin resultados</h3>
         <p *ngIf="!facturas.length">Todas las compras a crédito están al día.</p>
-        <p *ngIf="facturas.length">Prueba otra búsqueda.</p>
+        <p *ngIf="facturas.length && (desde || hasta || filtro.trim())">
+          Prueba otro rango de fechas o búsqueda.
+        </p>
+        <p *ngIf="facturas.length && !desde && !hasta && !filtro.trim()">
+          Prueba otra búsqueda.
+        </p>
       </div>
 
       <ion-grid class="cxp-grid" *ngIf="filtradas.length">

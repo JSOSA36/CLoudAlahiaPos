@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: "http://localhost:5000/api",   // 👉 tu backend local
+  apiUrl: "http://localhost:5039/api",   // 👉 tu backend local
   firebaseConfig: {
     apiKey: "AIzaSyBkRy5-S-usXZuOMtUk9NZoGPnb2WR2JL0",
     authDomain: "alahiabeautyapp-734f4.firebaseapp.com",

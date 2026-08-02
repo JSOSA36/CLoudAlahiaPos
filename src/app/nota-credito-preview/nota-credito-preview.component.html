@@ -41,6 +41,18 @@
         NCF NC  : {{ ticket.ncf }}
       </p>
 
+      <p *ngIf="ticket.estadoDgii">
+        Estado  : {{ ticket.estadoDgii }}
+      </p>
+
+      <p *ngIf="ticket.trackId">
+        TrackId : {{ ticket.trackId }}
+      </p>
+
+      <p *ngIf="ticket.emisionPendiente" class="center preview-tag">
+        EMISION E-CF PENDIENTE
+      </p>
+
       <p *ngIf="ticket.ncfModificado">
         NCF Mod.: {{ ticket.ncfModificado }}
       </p>
@@ -120,6 +132,18 @@
 <ion-footer class="no-print">
   <ion-toolbar color="primary">
     <ion-buttons slot="end">
+      <ion-button
+        *ngIf="ticket?.emisionPendiente && ticket?.idNotaCredito"
+        color="tertiary"
+        [disabled]="reintentando"
+        (click)="reintentarEmision()">
+        <ion-icon
+          name="refresh-outline"
+          slot="start">
+        </ion-icon>
+        {{ reintentando ? 'Reintentando...' : 'Reintentar e-CF' }}
+      </ion-button>
+
       <ion-button
         color="warning"
         (click)="imprimirPantalla()">

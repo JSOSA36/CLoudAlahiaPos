@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Saldos a favor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="page-header">
+    <h2>Saldos a favor de clientes</h2>
+    <p>Generados por notas de crédito. En el POS puede aplicarse el saldo con el e-NCF o número de la NC (total o parcial, y mixto con efectivo/tarjeta/transferencia).</p>
+  </div>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-button expand="block" (click)="cargar()" [disabled]="cargando">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Actualizar
+      </ion-button>
+
+      <ion-searchbar
+        [(ngModel)]="busqueda"
+        (ionInput)="filtrar()"
+        placeholder="Buscar cliente, NC o estado"
+        debounce="200">
+      </ion-searchbar>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="empty" *ngIf="!cargando && saldosFiltrados.length === 0">
+    No hay saldos a favor registrados.
+  </div>
+
+  <ion-spinner *ngIf="cargando" class="loader"></ion-spinner>
+
+  <ion-card *ngFor="let item of saldosFiltrados">
+    <ion-card-header>
+      <div class="top">
+        <div>
+          <ion-card-title>{{ item.nombreCliente || 'Cliente' }}</ion-card-title>
+          <ion-card-subtitle>NC #{{ item.idNotaCredito }} · {{ item.estado }}</ion-card-subtitle>
+        </div>
+        <strong class="monto">
+          RD$ {{ item.saldoDisponible | number:'1.2-2' }}
+        </strong>
+      </div>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="grid">
+        <div>
+          <span>Original</span>
+          <strong>RD$ {{ item.montoOriginal | number:'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Fecha</span>
+          <strong>{{ item.fecha | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+        <div *ngIf="item.ncfNotaCredito">
+          <span>e-CF NC</span>
+          <strong>{{ item.ncfNotaCredito }}</strong>
+        </div>
+      </div>
+      <p *ngIf="item.observacion">{{ item.observacion }}</p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

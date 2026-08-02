@@ -3,6 +3,10 @@ export interface DashboardGerencialDto {
   periodoDesde: string;
   periodoHasta: string;
   periodoLabel: string;
+  /** Etiqueta del día actual, ej. "domingo, 2 de agosto de 2026" */
+  periodoHoyLabel?: string;
+  /** P&L del día (misma fórmula que el mes) */
+  plHoy?: DashboardGerencialPlDto;
   pl: DashboardGerencialPlDto;
   indicadores: DashboardGerencialIndicadoresDto;
   charts: DashboardGerencialChartsDto;

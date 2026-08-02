@@ -1,12 +1,17 @@
+import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { RouteReuseStrategy } from '@angular/router';
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { TransferenciasFinancierasComponent } from './transferencias-financieras.component';
 
-
+const routes: Routes = [
+  { path: '', component: TransferenciasFinancierasComponent }
+];
 
 @NgModule({
   declarations: [],
-  imports: [
-    CommonModule
-  ]
+  imports: [IonicModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }]
 })
-export class TransferenciasFinancierasModule { }
+export class TransferenciasFinancierasModule {}

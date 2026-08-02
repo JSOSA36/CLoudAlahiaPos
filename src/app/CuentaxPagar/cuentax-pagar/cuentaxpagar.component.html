@@ -18,11 +18,70 @@
 
     <ion-card-content>
 
+      <!-- Nota de crédito / saldo a favor -->
+      <ion-item lines="none">
+        <ion-checkbox
+          slot="start"
+          [(ngModel)]="_UsarNotaCredito"
+          (ionChange)="onToggleNotaCredito()">
+        </ion-checkbox>
+        <ion-label>Aplicar nota de crédito</ion-label>
+      </ion-item>
+
+      <div *ngIf="_UsarNotaCredito" class="nc-pago-box">
+        <p class="nc-hint" *ngIf="NombreCliente || IdCliente">
+          Cliente: <strong>{{ NombreCliente || ('#' + IdCliente) }}</strong>
+        </p>
+        <p class="nc-hint error" *ngIf="!IdCliente && !_ClienteSeleccionado">
+          Seleccione el cliente en el POS antes de buscar la NC.
+        </p>
+
+        <ion-item>
+          <ion-label position="stacked">e-NCF o número de NC</ion-label>
+          <ion-input
+            [(ngModel)]="ncfBusqueda"
+            placeholder="Ej: E340000000001"
+            (keyup.enter)="buscarNotaCredito()">
+          </ion-input>
+        </ion-item>
+
+        <ion-button
+          expand="block"
+          size="small"
+          fill="outline"
+          (click)="buscarNotaCredito()"
+          [disabled]="buscandoNc">
+          {{ buscandoNc ? 'Buscando…' : 'Buscar saldo' }}
+        </ion-button>
+
+        <p class="nc-hint error" *ngIf="errorNc">{{ errorNc }}</p>
+
+        <div *ngIf="saldoNc" class="nc-saldo-info">
+          <div>Disponible: <strong>RD$ {{ saldoNc.saldoDisponible | number:'1.2-2' }}</strong></div>
+          <div *ngIf="saldoNc.ncfNotaCredito">e-NCF: {{ saldoNc.ncfNotaCredito }}</div>
+          <div *ngIf="saldoNc.numeroDocumentoNotaCredito">Doc: {{ saldoNc.numeroDocumentoNotaCredito }}</div>
+
+          <ion-item>
+            <ion-label position="stacked">Monto a aplicar</ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="montoNc"
+              (ionInput)="onMontoNcChange()">
+            </ion-input>
+          </ion-item>
+
+          <div class="nc-restante">
+            Restante a cobrar:
+            <strong>RD$ {{ restanteTrasNc | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+
       <!-- =====================================
       🔥 TOGGLE MIXTO
       ====================================== -->
 
-      <ion-item lines="none">
+      <ion-item lines="none" *ngIf="restanteTrasNc > 0">
 
         <ion-checkbox
 
@@ -34,7 +93,7 @@
 
         <ion-label>
 
-          Pago Mixto
+          Pago Mixto <span *ngIf="_UsarNotaCredito">(del restante)</span>
 
         </ion-label>
 
@@ -44,7 +103,7 @@
       🔥 PAGO NORMAL
       ====================================== -->
 
-      <div *ngIf="!_PagoMixto">
+      <div *ngIf="!_PagoMixto && restanteTrasNc > 0">
 
         <ion-item>
 
@@ -118,7 +177,7 @@
       ====================================== -->
 
       <div
-        *ngIf="_PagoMixto"
+        *ngIf="_PagoMixto && restanteTrasNc > 0"
 
         class="multi-pago">
 

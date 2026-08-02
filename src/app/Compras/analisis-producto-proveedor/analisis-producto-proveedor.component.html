@@ -20,164 +20,308 @@
 
 <ion-content class="ap-content">
   <div class="ap-page">
+
+    <!-- FILTROS -->
     <section class="ap-filters" *ngIf="!esModal">
-      <div class="ap-field ap-field-producto">
-        <label>Producto</label>
-        <ion-input
-          [(ngModel)]="filtroProducto"
-          placeholder="Buscar producto…"
-          (ionInput)="idProducto = undefined">
-        </ion-input>
-        <div class="ap-suggest" *ngIf="!idProducto && filtroProducto">
-          <button
-            type="button"
-            *ngFor="let p of productosFiltrados"
-            (click)="seleccionarProducto(p)">
-            {{ p.nombre }}
-          </button>
+      <div class="ap-filters-head">
+        <div>
+          <h2>Comparar precios de compra</h2>
+          <p>Desde facturas de compra confirmadas · sin catálogo Producto-Proveedor</p>
         </div>
       </div>
-      <div class="ap-field">
-        <label>Proveedor</label>
-        <ion-select [(ngModel)]="idProveedor" interface="popover" placeholder="Todos">
-          <ion-select-option [value]="undefined">Todos</ion-select-option>
-          <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
-            {{ p.nombreComercial }}
-          </ion-select-option>
-        </ion-select>
+
+      <div class="ap-filters-grid">
+        <div class="ap-field ap-field-producto">
+          <label>Producto</label>
+          <ion-input
+            [(ngModel)]="filtroProducto"
+            placeholder="Buscar producto…"
+            (ionInput)="onProductoTyping()">
+          </ion-input>
+          <div class="ap-chip" *ngIf="idProducto">
+            <span>{{ filtroProducto || ('#' + idProducto) }}</span>
+            <button type="button" (click)="limpiarProducto()" aria-label="Quitar producto">×</button>
+          </div>
+          <div class="ap-suggest" *ngIf="!idProducto && filtroProducto">
+            <button
+              type="button"
+              *ngFor="let p of productosFiltrados"
+              (click)="seleccionarProducto(p)">
+              {{ p.nombre }}
+            </button>
+            <div class="ap-suggest-empty" *ngIf="!productosFiltrados.length">
+              Sin coincidencias
+            </div>
+          </div>
+        </div>
+
+        <div class="ap-field">
+          <label>Proveedor</label>
+          <ion-select [(ngModel)]="idProveedor" interface="popover" placeholder="Todos">
+            <ion-select-option [value]="undefined">Todos</ion-select-option>
+            <ion-select-option *ngFor="let p of proveedores" [value]="p.idProveedor">
+              {{ p.nombreComercial }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="ap-field">
+          <label>Almacén</label>
+          <ion-select [(ngModel)]="idAlmacen" interface="popover" placeholder="Todos">
+            <ion-select-option [value]="undefined">Todos</ion-select-option>
+            <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
+              {{ a.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="ap-field">
+          <label>Desde</label>
+          <ion-input type="date" [(ngModel)]="desde"></ion-input>
+        </div>
+
+        <div class="ap-field">
+          <label>Hasta</label>
+          <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+        </div>
+
+        <ion-button class="ap-btn-analizar" (click)="consultar()" [disabled]="cargando">
+          <ion-icon name="analytics-outline" slot="start"></ion-icon>
+          {{ cargando ? 'Analizando…' : 'Analizar' }}
+        </ion-button>
       </div>
-      <div class="ap-field">
-        <label>Almacén</label>
-        <ion-select [(ngModel)]="idAlmacen" interface="popover" placeholder="Todos">
-          <ion-select-option [value]="undefined">Todos</ion-select-option>
-          <ion-select-option *ngFor="let a of almacenes" [value]="a.idAlmacen">
-            {{ a.nombre }}
-          </ion-select-option>
-        </ion-select>
-      </div>
-      <div class="ap-field">
-        <label>Desde</label>
-        <ion-input type="date" [(ngModel)]="desde"></ion-input>
-      </div>
-      <div class="ap-field">
-        <label>Hasta</label>
-        <ion-input type="date" [(ngModel)]="hasta"></ion-input>
-      </div>
-      <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
-        Analizar
-      </ion-button>
     </section>
 
+    <!-- LOADING -->
     <div class="ap-loading" *ngIf="cargando">
       <ion-spinner name="crescent"></ion-spinner>
+      <p>Consultando historial de compras…</p>
     </div>
 
+    <!-- EMPTY INICIAL -->
+    <section class="ap-hero" *ngIf="!data && !cargando && !esModal">
+      <div class="ap-hero-glow"></div>
+      <div class="ap-hero-icon">
+        <ion-icon name="storefront-outline"></ion-icon>
+      </div>
+      <h1>¿Quién te vende más barato?</h1>
+      <p>
+        Elige un producto y analiza el último precio, promedio, mejor oferta
+        y frecuencia por proveedor.
+      </p>
+      <ul>
+        <li><ion-icon name="pricetag-outline"></ion-icon> Mejor precio histórico</li>
+        <li><ion-icon name="trending-down-outline"></ion-icon> Evolución de costos</li>
+        <li><ion-icon name="people-outline"></ion-icon> Ranking de proveedores</li>
+      </ul>
+    </section>
+
+    <!-- RESULTADOS -->
     <ng-container *ngIf="data && !cargando">
       <header class="ap-head">
-        <h1>{{ data.productoNombre || 'Producto' }}</h1>
-        <p>Análisis desde Facturas de Compra confirmadas (sin catálogo Producto-Proveedor)</p>
+        <div>
+          <p class="ap-eyebrow">Análisis de compras</p>
+          <h1>{{ data.productoNombre || 'Producto' }}</h1>
+          <p class="ap-period">
+            {{ data.desde | date:'dd/MM/yyyy' }} — {{ data.hasta | date:'dd/MM/yyyy' }}
+          </p>
+        </div>
+        <div class="ap-head-badge" *ngIf="tieneCompras">
+          <span>{{ data.indicadores.vecesComprado }} compra(s)</span>
+          <strong *ngIf="data.indicadores.proveedorMasBarato">
+            Mejor: {{ data.indicadores.proveedorMasBarato }}
+          </strong>
+        </div>
       </header>
 
-      <div class="ap-kpis">
-        <div>
-          <span>Último precio</span>
-          <strong>{{ data.indicadores.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
-          <small>{{ data.indicadores.ultimoProveedor }} · {{ data.indicadores.ultimaFecha | date:'dd/MM/yyyy' }}</small>
-        </div>
-        <div>
-          <span>Promedio</span>
-          <strong>{{ data.indicadores.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
-        </div>
-        <div>
-          <span>Mejor precio</span>
-          <strong>{{ data.indicadores.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
-          <small>{{ data.indicadores.proveedorMasBarato }}</small>
-        </div>
-        <div>
-          <span>Veces / más frecuente</span>
-          <strong>{{ data.indicadores.vecesComprado }}</strong>
-          <small>{{ data.indicadores.proveedorMasFrecuente }}</small>
-        </div>
+      <!-- SIN COMPRAS -->
+      <div class="ap-empty" *ngIf="!tieneCompras">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h3>Sin compras en el período</h3>
+        <p>
+          No hay facturas de compra confirmadas para este producto
+          con los filtros seleccionados. Prueba ampliar las fechas o quitar proveedor/almacén.
+        </p>
       </div>
 
-      <h2>Resumen por proveedor</h2>
-      <div class="ap-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Proveedor</th>
-              <th class="num">Último</th>
-              <th class="num">Promedio</th>
-              <th class="num">Mejor</th>
-              <th class="num">Veces</th>
-              <th class="num">Cantidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of data.resumenProveedores">
-              <td>{{ r.proveedorNombre }}</td>
-              <td class="num">{{ r.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-              <td class="num">{{ r.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-              <td class="num">{{ r.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-              <td class="num">{{ r.vecesComprado }}</td>
-              <td class="num">{{ r.cantidadTotal }}</td>
-            </tr>
-            <tr *ngIf="!data.resumenProveedores.length">
-              <td colspan="6">Sin compras en el período</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <ng-container *ngIf="tieneCompras">
+        <div class="ap-kpis">
+          <article class="ap-kpi ap-kpi--ultimo">
+            <div class="ap-kpi-top">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>Último precio</span>
+            </div>
+            <strong>{{ data.indicadores.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            <small>{{ data.indicadores.ultimoProveedor || '—' }} · {{ data.indicadores.ultimaFecha | date:'dd/MM/yyyy' }}</small>
+          </article>
 
-      <h2>Evolución de precio</h2>
-      <div class="ap-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Proveedor</th>
-              <th>Documento</th>
-              <th class="num">Precio unitario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let e of data.evolucionPrecio">
-              <td>{{ e.fecha | date:'dd/MM/yyyy' }}</td>
-              <td>{{ e.proveedorNombre }}</td>
-              <td>{{ e.numeroDocumento }}</td>
-              <td class="num">{{ e.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <article class="ap-kpi ap-kpi--promedio">
+            <div class="ap-kpi-top">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+              <span>Promedio</span>
+            </div>
+            <strong>{{ data.indicadores.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            <small>{{ data.indicadores.cantidadTotal | number:'1.0-2' }} uds. compradas</small>
+          </article>
 
-      <h2>Historial de compras</h2>
-      <div class="ap-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Proveedor</th>
-              <th>Documento</th>
-              <th class="num">Cantidad</th>
-              <th class="num">Precio unitario</th>
-              <th class="num">ITBIS</th>
-              <th class="num">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let h of data.historial">
-              <td>{{ h.fecha | date:'dd/MM/yyyy' }}</td>
-              <td>{{ h.proveedorNombre }}</td>
-              <td>{{ h.numeroDocumento }}</td>
-              <td class="num">{{ h.cantidad }}</td>
-              <td class="num">{{ h.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-              <td class="num">{{ h.itbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-              <td class="num">{{ h.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <article class="ap-kpi ap-kpi--mejor">
+            <div class="ap-kpi-top">
+              <ion-icon name="trophy-outline"></ion-icon>
+              <span>Mejor precio</span>
+            </div>
+            <strong>{{ data.indicadores.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            <small>{{ data.indicadores.proveedorMasBarato || '—' }}</small>
+          </article>
+
+          <article class="ap-kpi ap-kpi--frecuente">
+            <div class="ap-kpi-top">
+              <ion-icon name="repeat-outline"></ion-icon>
+              <span>Más frecuente</span>
+            </div>
+            <strong>{{ data.indicadores.vecesComprado }}</strong>
+            <small>{{ data.indicadores.proveedorMasFrecuente || '—' }}</small>
+          </article>
+        </div>
+
+        <div class="ap-insight" *ngIf="ahorroVsPeor != null">
+          <ion-icon name="bulb-outline"></ion-icon>
+          <div>
+            <strong>Oportunidad de ahorro</strong>
+            <p>
+              Entre el peor y el mejor precio hay
+              <em>{{ ahorroVsPeor | currency:'DOP':'symbol-narrow':'1.2-2' }}</em>
+              por unidad. Preferir a
+              <b>{{ data.indicadores.proveedorMasBarato }}</b>
+              reduce el costo de recompra.
+            </p>
+          </div>
+        </div>
+
+        <section class="ap-section">
+          <div class="ap-section-head">
+            <h2>Resumen por proveedor</h2>
+            <span>{{ data.resumenProveedores.length }} proveedor(es)</span>
+          </div>
+          <div class="ap-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Proveedor</th>
+                  <th class="num">Último</th>
+                  <th class="num">Promedio</th>
+                  <th class="num">Mejor</th>
+                  <th class="num">Veces</th>
+                  <th class="num">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let r of data.resumenProveedores; let i = index"
+                  [class.ap-row-best]="i === 0">
+                  <td>
+                    <div class="ap-prov">
+                      <span class="ap-rank" *ngIf="i === 0">★</span>
+                      {{ r.proveedorNombre }}
+                    </div>
+                  </td>
+                  <td class="num">{{ r.ultimoPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="num">{{ r.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="num ap-best-price">{{ r.mejorPrecio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="num">{{ r.vecesComprado }}</td>
+                  <td class="num">{{ r.cantidadTotal | number:'1.0-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="ap-section" *ngIf="data.evolucionPrecio?.length">
+          <div class="ap-section-head">
+            <h2>Evolución de precio</h2>
+            <span>{{ data.evolucionPrecio.length }} punto(s)</span>
+          </div>
+
+          <div class="ap-spark-card" *ngIf="sparkPoints.length > 1">
+            <svg viewBox="0 0 320 90" preserveAspectRatio="none" class="ap-spark">
+              <defs>
+                <linearGradient id="apSparkFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1454B8" stop-opacity="0.28"/>
+                  <stop offset="100%" stop-color="#1454B8" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path [attr.d]="sparkArea" fill="url(#apSparkFill)"></path>
+              <polyline [attr.points]="sparkLine" fill="none" stroke="#1454B8" stroke-width="2.5"></polyline>
+              <circle
+                *ngFor="let p of sparkPoints"
+                [attr.cx]="p.x"
+                [attr.cy]="p.y"
+                r="3.2"
+                fill="#FBB901"
+                stroke="#0B419B"
+                stroke-width="1">
+              </circle>
+            </svg>
+            <div class="ap-spark-legend">
+              <span>Más bajo: {{ sparkMin | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+              <span>Más alto: {{ sparkMax | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <div class="ap-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Proveedor</th>
+                  <th>Documento</th>
+                  <th class="num">Precio unitario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of data.evolucionPrecio">
+                  <td>{{ e.fecha | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ e.proveedorNombre }}</td>
+                  <td>{{ e.numeroDocumento }}</td>
+                  <td class="num">{{ e.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="ap-section">
+          <div class="ap-section-head">
+            <h2>Historial de compras</h2>
+            <span>{{ data.historial.length }} línea(s)</span>
+          </div>
+          <div class="ap-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Proveedor</th>
+                  <th>Documento</th>
+                  <th class="num">Cantidad</th>
+                  <th class="num">Precio unitario</th>
+                  <th class="num">ITBIS</th>
+                  <th class="num">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let h of data.historial">
+                  <td>{{ h.fecha | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ h.proveedorNombre }}</td>
+                  <td>{{ h.numeroDocumento }}</td>
+                  <td class="num">{{ h.cantidad | number:'1.0-2' }}</td>
+                  <td class="num">{{ h.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="num">{{ h.itbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="num">{{ h.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </ng-container>
     </ng-container>
   </div>
 </ion-content>

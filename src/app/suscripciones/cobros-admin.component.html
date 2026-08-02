@@ -15,7 +15,7 @@
       <h1>Cobros y Suscripciones</h1>
       <p class="sub">
         Ciclo fijo día 30 → 3 · suspensión automática desde el día 4.
-        Gestiona cargos, precios especiales y validación de pagos.
+        Cada cliente tiene su propia tarifa (MontoServicio + CargoAdicional).
       </p>
     </div>
     <div class="hero-actions">
@@ -53,17 +53,85 @@
     </article>
   </section>
 
+  <!-- Cuentas bancarias de cobro -->
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="panel-eyebrow">Cobro</p>
+        <h2>Cuentas para recibir pagos</h2>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="nuevaCuenta()">+ Cuenta</button>
+    </div>
+    <p class="hint">
+      Estas cuentas las ve el cliente al reportar el voucher (Banco, Nº cuenta, Titular, Cédula).
+    </p>
+
+    <div class="tabla cargos" *ngIf="cuentasCobro.length">
+      <div class="row-c head">
+        <span>Banco</span>
+        <span>Titular / Cédula</span>
+        <span>Cuenta</span>
+        <span>Estado</span>
+        <span>Acciones</span>
+      </div>
+      <div class="row-c" *ngFor="let c of cuentasCobro">
+        <span><span class="pill">{{ c.banco }}</span></span>
+        <span class="nombre-cell">
+          {{ c.titular }}
+          <small>{{ c.cedula }}</small>
+        </span>
+        <span>
+          <strong>{{ c.numeroCuenta }}</strong>
+          <small class="dop-mini" *ngIf="c.cuentaEstandar">{{ c.cuentaEstandar }}</small>
+        </span>
+        <span>
+          <span class="status" [class.status--ok]="c.activo" [class.status--muted]="!c.activo">
+            {{ c.activo ? 'Activa' : 'Inactiva' }}
+          </span>
+        </span>
+        <span class="acciones">
+          <button type="button" class="action" (click)="editarCuenta(c)">Editar</button>
+          <button type="button" class="action action--bad" (click)="eliminarCuenta(c)">Eliminar</button>
+        </span>
+      </div>
+    </div>
+
+    <div class="alta" *ngIf="mostrarFormCuenta">
+      <label>Banco
+        <input type="text" [(ngModel)]="cuentaForm.banco" placeholder="Ej. Banco BHD" />
+      </label>
+      <label>Nº cuenta
+        <input type="text" [(ngModel)]="cuentaForm.numeroCuenta" placeholder="Ej. 32754360014" />
+      </label>
+      <label>Titular
+        <input type="text" [(ngModel)]="cuentaForm.titular" placeholder="Ej. ANA DE OLEO" />
+      </label>
+      <label>Cédula
+        <input type="text" [(ngModel)]="cuentaForm.cedula" placeholder="Ej. 00119101053" />
+      </label>
+      <label>Correo
+        <input type="text" [(ngModel)]="cuentaForm.correo" placeholder="Opcional" />
+      </label>
+      <label>Cuenta estándar
+        <input type="text" [(ngModel)]="cuentaForm.cuentaEstandar" placeholder="IBAN / DO06…" />
+      </label>
+      <button type="button" class="btn btn-primary alta-save" (click)="guardarCuentaCobro()">Guardar cuenta</button>
+      <button type="button" class="btn btn-ghost" (click)="mostrarFormCuenta = false">Cancelar</button>
+    </div>
+  </section>
+
   <!-- Asignar cargos -->
   <section class="panel panel--picker">
     <div class="panel-head">
       <div>
         <p class="panel-eyebrow">Clientes</p>
-        <h2>Asignar cargos a un cliente</h2>
+        <h2>Configurar tarifa del cliente</h2>
       </div>
     </div>
     <p class="hint">
-      Elige el cliente y agrega recargos (certificación, módulos, etc.).
-      Sumarán al total de <strong>Pago de Suscripción</strong>.
+      Define <strong>MontoServicio</strong>, <strong>CargoAdicional</strong> y
+      <strong>LimiteFacturacion</strong> (0 = sin límite). El nombre del plan es
+      automático: <em>Plan + nombre de la empresa</em>.
     </p>
     <div class="picker-row">
       <label>Cliente</label>
@@ -90,29 +158,33 @@
         </h2>
       </div>
       <button type="button" class="btn btn-primary" (click)="mostrarAltaCargo = !mostrarAltaCargo">
-        {{ mostrarAltaCargo ? 'Ocultar formulario' : '+ Agregar cargo' }}
+        {{ mostrarAltaCargo ? 'Ocultar formulario' : '+ Cargo legado (opcional)' }}
       </button>
     </div>
 
     <div class="calculo" *ngIf="calculo">
       <div>
-        <span>Plan</span>
+        <span>Monto servicio</span>
         <strong>USD {{ calculo.montoPlan | number:'1.2-2' }}</strong>
         <em>RD$ {{ (calculo.montoPlanDop ?? calculo.montoPlan * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
       </div>
       <div>
-        <span>Cargos</span>
+        <span>Cargo adicional</span>
         <strong>USD {{ calculo.montoCargos | number:'1.2-2' }}</strong>
         <em>RD$ {{ (calculo.montoCargosDop ?? calculo.montoCargos * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
       </div>
       <div class="total">
-        <span>Total del ciclo</span>
+        <span>Total a cobrar</span>
         <strong>USD {{ calculo.total | number:'1.2-2' }}</strong>
         <em>RD$ {{ (calculo.totalDop ?? calculo.total * (calculo.tasaUsdDop || 60)) | number:'1.2-2' }}</em>
       </div>
     </div>
     <p class="tasa-nota" *ngIf="calculo">
-      Cobro en USD · equivalente DOP a tasa fija 1 USD = {{ calculo.tasaUsdDop || 60 }} RD$
+      {{ calculo.nombrePlan }} · límite facturas/mes:
+      {{ (calculo.limiteFacturacion || 0) === 0 ? 'Sin límite' : calculo.limiteFacturacion }}
+      · reconexión RD$ {{ (calculo.cargoReconexionDop || 0) | number:'1.0-0' }}
+      <span *ngIf="calculo.reconexionPendiente"> (pendiente en este ciclo)</span>
+      · tasa 1 USD = {{ calculo.tasaUsdDop || 60 }} RD$
     </p>
     <ul class="desglose" *ngIf="calculo?.lineas?.length">
       <li *ngFor="let l of calculo!.lineas">
@@ -125,32 +197,68 @@
     </ul>
 
     <div class="precio-especial">
-      <h3>Precio especial del plan</h3>
-      <p>
-        Catálogo {{ calculo?.nombrePlan || 'plan' }}:
-        <strong>USD {{ precioPlanCatalogo | number:'1.2-2' }}</strong>
-        <span *ngIf="calculo?.usaPrecioPlanEspecial" class="badge-esp">
-          · cobrando especial USD {{ calculo?.montoPlan | number:'1.2-2' }}
-        </span>
-      </p>
-      <div class="precio-especial-row">
-        <label>Cobrar USD</label>
-        <input
-          type="number"
-          [(ngModel)]="precioPlanEspecialInput"
-          placeholder="Ej. 70"
-          min="0"
-          step="0.01" />
-        <button type="button" class="btn btn-primary" (click)="guardarPrecioPlanEspecial()">Aplicar</button>
+      <div class="precio-especial-head">
+        <h3>Tarifa del cliente</h3>
+        <p class="precio-especial-plan">
+          {{ calculo?.nombrePlan || ('Plan ' + empresaCargosNombre) }}
+        </p>
+      </div>
+
+      <div class="tarifa-grid">
+        <label class="tarifa-field">
+          <span>Monto servicio (USD)</span>
+          <input
+            type="number"
+            [(ngModel)]="montoServicioInput"
+            placeholder="Ej. 110"
+            min="0"
+            step="0.01" />
+        </label>
+
+        <label class="tarifa-field">
+          <span>Cargo adicional (USD)</span>
+          <input
+            type="number"
+            [(ngModel)]="cargoAdicionalInput"
+            placeholder="Ej. 0"
+            min="0"
+            step="0.01" />
+        </label>
+
+        <label class="tarifa-field">
+          <span>Límite facturas / mes</span>
+          <input
+            type="number"
+            [(ngModel)]="limiteFacturacionInput"
+            placeholder="0 = sin límite"
+            min="0"
+            step="1" />
+        </label>
+
+        <label class="tarifa-field">
+          <span>Cargo reconexión (RD$)</span>
+          <input
+            type="number"
+            [(ngModel)]="cargoReconexionDopInput"
+            placeholder="Ej. 500"
+            min="0"
+            step="1" />
+        </label>
+      </div>
+
+      <div class="tarifa-actions">
+        <p class="hint">
+          0 en límite = sin tope. Reconexión (RD$) se suma solo si el servicio fue suspendido.
+          Total = Monto servicio + Cargo adicional (+ reconexión si aplica).
+        </p>
         <button
           type="button"
-          class="btn btn-ghost"
-          *ngIf="calculo?.usaPrecioPlanEspecial"
-          (click)="quitarPrecioPlanEspecial()">
-          Quitar especial
+          class="btn btn-primary"
+          [disabled]="guardandoTarifa"
+          (click)="guardarTarifaEmpresa()">
+          {{ guardandoTarifa ? 'Guardando…' : 'Guardar tarifa' }}
         </button>
       </div>
-      <p class="hint">Solo este cliente. No cambia el precio global del plan.</p>
     </div>
 
     <div class="alta" *ngIf="mostrarAltaCargo">

@@ -1,4 +1,8 @@
 <div class="ai-fab-root" *ngIf="visible">
+  <button type="button" class="ai-fab-btn" (click)="toggle()" aria-label="Abrir Alahia AI">
+    AI
+  </button>
+
   <div class="ai-fab-panel" *ngIf="open">
     <div class="ai-fab-panel__head">
       <strong>Alahia AI</strong>
@@ -32,8 +36,4 @@
       <button type="button" (click)="send()" [disabled]="loading">➤</button>
     </div>
   </div>
-
-  <button type="button" class="ai-fab-btn" (click)="toggle()" aria-label="Abrir Alahia AI">
-    AI
-  </button>
 </div>

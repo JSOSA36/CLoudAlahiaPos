@@ -25,37 +25,37 @@
    ========================================================= */
 
 :root {
-  /* ======== COLORES BASE ======== */
+  /* ======== COLORES BASE (muestreados del logo oficial) ======== */
 
-  --ion-color-primary: #2F80ED;
-  --ion-color-primary-rgb: 47,128,237;
+  --ion-color-primary: #1454B8;
+  --ion-color-primary-rgb: 20,84,184;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255,255,255;
-  --ion-color-primary-shade: #296fd1;
-  --ion-color-primary-tint: #448ded;
+  --ion-color-primary-shade: #0B419B;
+  --ion-color-primary-tint: #2d66c0;
 
-  --ion-color-secondary: #4E97C9;
-  --ion-color-secondary-rgb: 78,151,201;
+  --ion-color-secondary: #3B7AD0;
+  --ion-color-secondary-rgb: 59,122,208;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255,255,255;
-  --ion-color-secondary-shade: #4586b1;
-  --ion-color-secondary-tint: #609fd1;
+  --ion-color-secondary-shade: #346bb7;
+  --ion-color-secondary-tint: #4f87d5;
 
-  --ion-color-tertiary: #174A70;
-  --ion-color-tertiary-rgb: 23,74,112;
+  --ion-color-tertiary: #0B419B;
+  --ion-color-tertiary-rgb: 11,65,155;
   --ion-color-tertiary-contrast: #ffffff;
   --ion-color-tertiary-contrast-rgb: 255,255,255;
-  --ion-color-tertiary-shade: #143f62;
-  --ion-color-tertiary-tint: #2e5c81;
+  --ion-color-tertiary-shade: #093988;
+  --ion-color-tertiary-tint: #2354a5;
 
-  /* ======== AMARILLO (PIN) ======== */
+  /* ======== AMARILLO (logo) ======== */
 
-  --ion-color-warning: #F2C94C;
-  --ion-color-warning-rgb: 242,201,76;
+  --ion-color-warning: #FBB901;
+  --ion-color-warning-rgb: 251,185,1;
   --ion-color-warning-contrast: #000000;
   --ion-color-warning-contrast-rgb: 0,0,0;
-  --ion-color-warning-shade: #d5b144;
-  --ion-color-warning-tint: #f3cf5e;
+  --ion-color-warning-shade: #dda300;
+  --ion-color-warning-tint: #fbc01a;
 
   /* ======== BACKGROUND APP ======== */
 
@@ -408,11 +408,11 @@ ion-modal ion-content {
   }
 }
 .btn-orden-pos {
-  background: linear-gradient(135deg,#4E97C9,#2F80ED) !important;
+  background: linear-gradient(135deg,#3B7AD0,#1454B8) !important;
   color: #fff !important;
 }
 .btn-factura-pos {
-  background: linear-gradient(135deg,#F2C94C,#e6b800) !important;
+  background: linear-gradient(135deg,#FBB901,#F8B100) !important;
   color: #000 !important;
 }
 .btn-cancel-pos {
@@ -503,6 +503,94 @@ ion-modal ion-content {
   --height: 50%;
   --border-radius: 16px;
 }
+
+/* Modal Registrar / Editar gasto — más alto para evitar scroll */
+ion-modal.modal-gasto {
+  --width: min(560px, 94vw);
+  --height: min(92vh, 820px);
+  --max-width: 560px;
+  --max-height: 92vh;
+  --border-radius: 16px;
+}
+
+ion-modal.modal-gasto::part(content) {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+ion-modal.modal-gasto ion-content {
+  --overflow: auto;
+}
+
+/* Modal Nuevo / Editar proveedor — más alto para ver el formulario con menos scroll */
+ion-modal.proveedor-form-modal {
+  --width: min(560px, 94vw);
+  --height: min(94vh, 900px);
+  --max-width: 560px;
+  --max-height: 94vh;
+  --border-radius: 16px;
+}
+
+ion-modal.proveedor-form-modal::part(content) {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+ion-modal.proveedor-form-modal ion-content {
+  --overflow: auto;
+}
+
+/* Modal Ajuste financiero (entrada / salida) */
+ion-modal.modal-ajuste-fin {
+  --width: min(520px, 94vw);
+  --height: min(88vh, 680px);
+  --max-width: 520px;
+  --border-radius: 18px;
+  --box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+}
+
+ion-modal.modal-ajuste-fin::part(content) {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+ion-modal.modal-ajuste-fin ion-content {
+  --overflow: auto;
+}
+
+/* Modal Transferencia financiera */
+ion-modal.modal-transferencia-fin {
+  --width: min(640px, 95vw);
+  --height: min(92vh, 820px);
+  --max-width: 640px;
+  --border-radius: 18px;
+  --box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+}
+
+ion-modal.modal-transferencia-fin::part(content) {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+ion-alert.alert-ajuste-fin {
+  --backdrop-opacity: 0.45;
+}
+
+ion-alert.alert-ajuste-fin .alert-wrapper {
+  border-radius: 18px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+ion-alert.alert-ajuste-fin .alert-head {
+  padding-top: 1.25rem;
+}
+
+ion-alert.alert-ajuste-fin .alert-title {
+  font-weight: 800;
+  color: #0f172a;
+}
+
 ion-modal.modal-pago-pro::part(content) {
   background: #111827;
 }
@@ -615,4 +703,202 @@ ion-modal.modal-documento-clinico app-documento-clinico-form {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+}
+
+/* FAB de agregar: esquina inferior (AI ya no está abajo) */
+ion-fab.fab-above-ai,
+ion-fab.fab-add-producto {
+  bottom: 16px !important;
+  right: 16px !important;
+  margin: 0 !important;
+}
+
+/* Modal Almacenes — estilos globales (ion-modal proyecta fuera del :host) */
+ion-modal.al-modal {
+  --border-radius: 16px;
+}
+
+ion-modal.al-modal .al-modal-content {
+  --background: #f3f6fb;
+}
+
+ion-modal.al-modal .al-form-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 18px 26px;
+  background: linear-gradient(145deg, #1454B8 0%, #0B419B 70%, #08307a 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+ion-modal.al-modal .al-form-banner::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, 0.15);
+  pointer-events: none;
+}
+
+ion-modal.al-modal .al-form-banner-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #fcd34d;
+  color: #0f172a;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+ion-modal.al-modal .al-form-banner-icon ion-icon {
+  font-size: 1.75rem;
+}
+
+ion-modal.al-modal .al-form-banner-text {
+  z-index: 1;
+  min-width: 0;
+}
+
+ion-modal.al-modal .al-form-banner-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+ion-modal.al-modal .al-form-banner-text p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+}
+
+ion-modal.al-modal .al-form-body {
+  margin: -14px 14px 0;
+  padding: 18px 16px 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+ion-modal.al-modal .al-field {
+  margin-bottom: 16px;
+}
+
+ion-modal.al-modal .al-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+ion-modal.al-modal .al-field label ion-icon {
+  font-size: 1rem;
+  color: #1454B8;
+}
+
+ion-modal.al-modal .al-field label span {
+  color: #ef4444;
+}
+
+ion-modal.al-modal .al-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+}
+
+ion-modal.al-modal .al-option.on {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+ion-modal.al-modal .al-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #e2e8f0;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+ion-modal.al-modal .al-option.on .al-option-icon {
+  background: #fcd34d;
+  color: #0f172a;
+}
+
+ion-modal.al-modal .al-option-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+ion-modal.al-modal .al-option.on .al-option-icon.success {
+  background: #22c55e;
+  color: #fff;
+}
+
+ion-modal.al-modal .al-option-icon ion-icon {
+  font-size: 1.25rem;
+}
+
+ion-modal.al-modal .al-option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+ion-modal.al-modal .al-option-text strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+ion-modal.al-modal .al-option-text span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+ion-modal.al-modal .al-form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin: 16px 14px 0;
+}
+
+ion-modal.al-modal .al-form-actions ion-button {
+  margin: 0;
+  --border-radius: 14px;
+  font-weight: 700;
+  min-height: 48px;
+}
+
+ion-modal.al-modal .al-form-actions ion-button[color='warning'] {
+  color: #0f172a;
 }

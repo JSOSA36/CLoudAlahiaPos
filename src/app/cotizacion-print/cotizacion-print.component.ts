@@ -6,9 +6,12 @@ import {
   ViewChild
 } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { EmpresaDto } from '../models/empresadto.models';
+import { FacturaHeaderService } from '../servicios/factura-header.service';
+import { ParametrosService } from '../servicios/parametros.service';
 @Component({
   selector: 'app-cotizacion-print',
   templateUrl: './cotizacion-print.component.html',
@@ -25,10 +28,13 @@ export class CotizacionPrintComponent implements OnInit {
 
   fechaValidez = new Date();
   exportandoPdf = false;
+  compartiendo = false;
 
   constructor(
     private modalCtrl: ModalController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private facturaHeader: FacturaHeaderService,
+    private parametros: ParametrosService
   ) {}
   ngOnInit(): void {
     const base =
@@ -46,6 +52,12 @@ export class CotizacionPrintComponent implements OnInit {
       this.nombreEmpresa ||
       'Mi Empresa'
     );
+  }
+
+  /** Solo si la empresa tiene logo propio (ruta/URL real). */
+  get mostrarLogo(): boolean {
+    const url = (this.empresa?.logoUrl || this.empresa?.logo || '').trim();
+    return !!url && !/assets\/logo\.png/i.test(url);
   }
 
   get numeroDocumento(): string {
@@ -168,8 +180,78 @@ export class CotizacionPrintComponent implements OnInit {
     await this.generarYDescargarPdf();
   }
 
+  async copiarLink(): Promise<void> {
+    try {
+      this.compartiendo = true;
+      const link = await this.obtenerLinkPublico();
+      if (!link) return;
+
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+        await this.mostrarToast(
+          'Link copiado. Péguelo al cliente en WhatsApp o correo.',
+          'success'
+        );
+      } else {
+        await this.mostrarToast(link, 'warning');
+      }
+    } catch (err) {
+      console.error(err);
+      await this.mostrarToast(
+        'No se pudo generar el link de la cotización',
+        'danger'
+      );
+    } finally {
+      this.compartiendo = false;
+    }
+  }
+
   cerrar(): void {
     this.modalCtrl.dismiss();
+  }
+
+  private async obtenerLinkPublico(): Promise<string | null> {
+    const idFactura = Number(
+      this.cotizacion?.idFacturaHeader ||
+        this.cotizacion?.IdFacturaHeader ||
+        0
+    );
+    const idEmpresa = Number(
+      this.cotizacion?.idEmpresa ||
+        this.cotizacion?.IdEmpresa ||
+        this.parametros.IdEmpresa ||
+        0
+    );
+
+    if (idFactura <= 0) {
+      await this.mostrarToast(
+        'Guarde la cotización antes de compartir el link.',
+        'warning'
+      );
+      return null;
+    }
+
+    if (idEmpresa <= 0) {
+      await this.mostrarToast(
+        'No se pudo identificar la empresa para compartir.',
+        'danger'
+      );
+      return null;
+    }
+
+    const res = await firstValueFrom(
+      this.facturaHeader.crearLinkCotizacionPublica(idFactura, idEmpresa)
+    );
+
+    if (!res?.token) {
+      await this.mostrarToast(
+        'No se pudo generar el link de la cotización.',
+        'danger'
+      );
+      return null;
+    }
+
+    return this.facturaHeader.buildLinkCotizacionPublica(res);
   }
 
   private async generarYDescargarPdf(): Promise<void> {

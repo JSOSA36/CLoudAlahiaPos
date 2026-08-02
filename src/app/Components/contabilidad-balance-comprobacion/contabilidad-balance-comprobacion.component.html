@@ -58,28 +58,35 @@
       <ion-grid *ngIf="resumen.lineas.length > 0">
         <ion-row class="header-row">
           <ion-col size="2"><strong>Código</strong></ion-col>
-          <ion-col size="3"><strong>Cuenta</strong></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>Saldo Ini.</strong></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>Débitos</strong></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>Créditos</strong></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>Saldo Fin.</strong></ion-col>
+          <ion-col size="2.5"><strong>Cuenta</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Saldo Ini.</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Débitos</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Créditos</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Deudor</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>Acreedor</strong></ion-col>
         </ion-row>
         <ion-row *ngFor="let l of resumen.lineas" class="data-row">
           <ion-col size="2">{{ l.codigoCuenta }}</ion-col>
-          <ion-col size="3">{{ l.nombreCuenta }}</ion-col>
-          <ion-col size="1.75" class="ion-text-end">{{ l.saldoInicial | currency:'DOP' }}</ion-col>
-          <ion-col size="1.75" class="ion-text-end">{{ l.totalDebito | currency:'DOP' }}</ion-col>
-          <ion-col size="1.75" class="ion-text-end">{{ l.totalCredito | currency:'DOP' }}</ion-col>
-          <ion-col size="1.75" class="ion-text-end">{{ l.saldoFinal | currency:'DOP' }}</ion-col>
+          <ion-col size="2.5">{{ l.nombreCuenta }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ l.saldoInicial | currency:'DOP' }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ l.totalDebito | currency:'DOP' }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ l.totalCredito | currency:'DOP' }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ (l.saldoDeudor || 0) | currency:'DOP' }}</ion-col>
+          <ion-col size="1.5" class="ion-text-end">{{ (l.saldoAcreedor || 0) | currency:'DOP' }}</ion-col>
         </ion-row>
         <ion-row class="total-row">
-          <ion-col size="5" class="ion-text-end"><strong>Totales del período</strong></ion-col>
-          <ion-col size="1.75"></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>{{ resumen.totalDebitos | currency:'DOP' }}</strong></ion-col>
-          <ion-col size="1.75" class="ion-text-end"><strong>{{ resumen.totalCreditos | currency:'DOP' }}</strong></ion-col>
-          <ion-col size="1.75"></ion-col>
+          <ion-col size="4.5" class="ion-text-end"><strong>Totales</strong></ion-col>
+          <ion-col size="1.5"></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>{{ resumen.totalDebitos | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>{{ resumen.totalCreditos | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>{{ (resumen.totalSaldoDeudor || 0) | currency:'DOP' }}</strong></ion-col>
+          <ion-col size="1.5" class="ion-text-end"><strong>{{ (resumen.totalSaldoAcreedor || 0) | currency:'DOP' }}</strong></ion-col>
         </ion-row>
       </ion-grid>
+
+      <p class="ion-text-center" [style.color]="resumen.cuadra ? '#15803d' : '#b91c1c'">
+        <strong>{{ resumen.cuadra ? '✓ Balance de comprobación cuadrado' : '⚠ Revisar descuadre en comprobación' }}</strong>
+      </p>
 
       <p *ngIf="resumen.lineas.length === 0" class="ion-text-center">
         Sin movimientos en el período seleccionado.

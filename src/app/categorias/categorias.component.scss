@@ -74,6 +74,18 @@ ion-card:hover {
   display: block;
 }
 
+.cat-fallback {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1454B8, #0B419B);
+  color: #fff;
+}
+
+.cat-fallback ion-icon {
+  font-size: 3rem;
+  color: #fcd34d;
+}
+
 /* ============================================================
    🔹 BUSCADOR
 ============================================================ */

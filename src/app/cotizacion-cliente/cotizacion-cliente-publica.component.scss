@@ -1,0 +1,154 @@
+.pub-page {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(20, 90, 70, 0.08), transparent 50%),
+    linear-gradient(180deg, #f3f6f4 0%, #e8eee9 100%);
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  color: #1a1a1a;
+  box-sizing: border-box;
+}
+
+.state {
+  max-width: 640px;
+  margin: 48px auto;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.state.error {
+  color: #b42318;
+}
+
+.quote {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  background: #fff;
+  border: 1px solid #d5ddd7;
+  box-shadow: 0 10px 28px rgba(16, 40, 28, 0.08);
+}
+
+.quote-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.logo {
+  max-height: 64px;
+  max-width: 160px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.empresa h1 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+}
+
+.empresa p,
+.meta p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.meta {
+  text-align: right;
+}
+
+.meta h2 {
+  margin: 0 0 8px;
+  letter-spacing: 0.06em;
+  font-size: 1.1rem;
+}
+
+.cliente {
+  margin-bottom: 18px;
+}
+
+.cliente h3 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #555;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #e2e8e4;
+  text-align: left;
+}
+
+th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: #555;
+}
+
+td:first-child,
+th:first-child {
+  width: 64px;
+}
+
+td:nth-child(3),
+td:nth-child(4),
+th:nth-child(3),
+th:nth-child(4) {
+  text-align: right;
+}
+
+.totales {
+  margin-left: auto;
+  max-width: 260px;
+}
+
+.totales > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0;
+  font-size: 0.95rem;
+}
+
+.totales .total {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 2px solid #1a1a1a;
+  font-size: 1.05rem;
+}
+
+footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8e4;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+footer p {
+  margin: 4px 0;
+}
+
+@media (max-width: 640px) {
+  .quote-head {
+    flex-direction: column;
+  }
+
+  .meta {
+    text-align: left;
+  }
+}

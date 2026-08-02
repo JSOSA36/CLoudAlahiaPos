@@ -1,297 +1,289 @@
-/* 🔹 COLORES DE MARCA */
-:root{
-  --alahi-yellow:#facc15;
-  --alahi-yellow-soft:#fef9c3;
+:host {
+  --li-primary: #1454B8;
+  --li-navy: #0B419B;
+  --li-yellow: #fcd34d;
+  --li-bg: #f3f6fb;
+  --li-card: #fff;
+  --li-border: #e2e8f0;
+  --li-text: #0f172a;
+  --li-muted: #64748b;
 }
 
-/* SPINNER */
-.centered-spinner{
-  display:block;
-  margin:40px auto;
+.li-header ion-toolbar {
+  --background: var(--li-primary);
+  --color: #fff;
 }
 
-
-/* 💠 CARD PRINCIPAL DE FILTROS */
-
-.filtro-card{
-  margin:12px;
-  border-radius:16px;
-  overflow:hidden;
-
-  background:#fff;
-
-  border:2px solid var(--alahi-yellow);
-
-  box-shadow:0 4px 14px rgba(0,0,0,0.12);
+.li-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
 }
 
-
-/* 🔹 HEADER DEL FILTRO */
-
-.filtro-header{
-  background:var(--alahi-yellow);
-  
-
-  color:#fff;
-
-  padding:6px 0;
-
-  text-align:center;
-
-  font-weight:600;
+.li-title-wrap small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 400;
 }
 
-
-.filtro-header ion-card-title{
-  color:#fff;
-
-  font-weight:700;
-
-  font-size:1.05em;
-
-  letter-spacing:0.3px;
+.li-content {
+  --background: var(--li-bg);
 }
 
-
-/* 🔹 CONTENIDO FILTROS */
-
-.filtro-content{
-  background:#fff;
-
-  padding:10px 8px 14px 8px;
+.li-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 16px 100px;
 }
 
-
-/* ITEMS FILTRO */
-
-.filtro-content ion-item{
-  --background:#fff;
-
-  --padding-start:12px;
-
-  --inner-padding-end:8px;
-
-  --min-height:44px;
-
-  border-bottom:1px solid #e6e6e6;
+.li-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  background: linear-gradient(135deg, var(--li-primary), var(--li-navy));
+  color: #fff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 28px rgba(20, 84, 184, 0.28);
 }
 
-.filtro-content ion-item:last-child{
-  border-bottom:none;
+.li-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(252, 211, 77, 0.22);
+  border: 1px solid rgba(252, 211, 77, 0.4);
 }
 
-
-.filtro-content ion-label{
-  color:#333;
-
-  font-weight:600;
-
-  font-size:0.95em;
+.li-hero-icon ion-icon {
+  font-size: 1.7rem;
+  color: var(--li-yellow);
 }
 
-
-/* BOTONES DE FECHA */
-
-ion-datetime-button::part(native){
-
-  background:#f3f4f6;
-
-  border-radius:8px;
-
-  padding:6px 10px;
-
-  color:#111;
-
-  font-weight:500;
-
-  font-size:0.9em;
-
-  box-shadow:inset 0 0 2px rgba(0,0,0,0.1);
+.li-hero-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
-
-/* BOTONES GENERALES */
-
-ion-button{
-  margin-top:10px;
-
-  --border-radius:10px;
-
-  font-weight:600;
-
-  letter-spacing:0.3px;
+.li-hero-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+  line-height: 1.35;
 }
 
-
-/* 💳 TARJETAS DE INGRESO */
-
-.factura-card{
-
-  margin:12px;
-
-  border-radius:16px;
-
-  background:#fff;
-
-  border:2px solid var(--ion-color-primary); /* azul */
-
-  
-
-  box-shadow:0 4px 14px rgba(0,0,0,0.12);
-
-  transition:all 0.25s ease-in-out;
+.li-kpi {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
 }
 
-/* HOVER */
-
-.factura-card:hover{
-
-  transform:scale(1.02);
-
-  background:var(--alahi-yellow-soft);
-
-  box-shadow:0 6px 18px rgba(0,0,0,0.18);
+.li-kpi strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--li-yellow);
 }
 
-
-/* ANIMACIÓN */
-
-.animated-card{
-  animation:fadeInUp 0.4s ease;
+.li-kpi span {
+  font-size: 0.72rem;
+  opacity: 0.85;
 }
 
-@keyframes fadeInUp{
+.li-toolbar {
+  background: var(--li-card);
+  border: 1px solid var(--li-border);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(20, 84, 184, 0.07);
+}
 
-  from{
-    opacity:0;
-    transform:translateY(15px);
+.li-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.li-date-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--li-muted);
+}
+
+.li-date-field ion-datetime-button {
+  --background: #f8fafc;
+  --color: var(--li-text);
+  width: 100%;
+}
+
+.li-btn-buscar {
+  margin: 0;
+  --border-radius: 12px;
+  height: 40px;
+  width: 44px;
+  color: #0f172a;
+}
+
+.li-toolbar ion-searchbar {
+  --background: #f8fafc;
+  --border-radius: 10px;
+  --box-shadow: none;
+  padding: 0;
+}
+
+.li-loading,
+.li-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--li-muted);
+}
+
+.li-empty ion-icon {
+  font-size: 2.6rem;
+  color: var(--li-primary);
+  opacity: 0.7;
+}
+
+.li-empty h3 {
+  margin: 10px 0 6px;
+  color: var(--li-text);
+}
+
+.li-empty p {
+  margin: 0 auto 14px;
+  max-width: 300px;
+}
+
+.li-empty ion-button {
+  color: #0f172a;
+}
+
+.li-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.li-card {
+  background: var(--li-card);
+  border: 1px solid var(--li-border);
+  border-left: 4px solid #16a34a;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+  animation: liRise 0.3s ease both;
+}
+
+.li-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.li-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--li-navy);
+  background: #eef4ff;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.li-tipo ion-icon {
+  font-size: 0.9rem;
+  color: var(--li-primary);
+}
+
+.li-monto {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--li-text);
+  white-space: nowrap;
+}
+
+.li-meta p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: var(--li-muted);
+  line-height: 1.35;
+}
+
+.li-meta p ion-icon {
+  font-size: 0.95rem;
+  color: var(--li-primary);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.li-detalle {
+  color: var(--li-text) !important;
+}
+
+.li-footer {
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.li-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid var(--li-border);
+}
+
+.li-footer-inner span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--li-muted);
+}
+
+.li-footer-inner strong {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--li-primary);
+}
+
+@keyframes liRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .li-dates {
+    grid-template-columns: 1fr 1fr;
   }
 
-  to{
-    opacity:1;
-    transform:translateY(0);
+  .li-btn-buscar {
+    grid-column: 1 / -1;
+    width: 100%;
   }
-
-}
-
-
-/* TITULO INGRESO */
-
-.factura-title{
-
-  font-size:1.15em;
-
-  font-weight:700;
-
-  color:var(--ion-color-primary);
-}
-
-
-/* CLIENTE */
-
-.cliente-line{
-
-  margin:4px 0;
-
-  font-size:0.95em;
-
-  color:#333;
-
-  display:flex;
-
-  align-items:center;
-
-  gap:4px;
-}
-
-
-.cliente-nombre{
-
-  font-weight:600;
-
-  color:#222;
-}
-
-
-/* LINEAS DE MONTOS */
-
-.total-line,
-.pendiente-line,
-.pagado-line{
-
-  font-size:1.05em;
-
-  margin:4px 0;
-
-  display:flex;
-
-  justify-content:space-between;
-}
-
-
-/* MONTO TOTAL */
-
-.total-amount{
-
-  color:var(--alahi-yellow);
-
-  font-weight:800;
-
-  font-size:1.15em;
-}
-
-
-/* REFERENCIA */
-
-.pagado-amount{
-
-  color:#0a9f6b;
-
-  font-weight:700;
-
-  font-size:1.05em;
-}
-
-
-/* BADGES */
-
-ion-badge{
-
-  --background:var(--alahi-yellow);
-
-  color:#111;
-
-  font-weight:600;
-
-  font-size:0.8em;
-}
-
-
-/* FOOTER TOTAL */
-
-ion-footer{
-
-  font-size:1.1em;
-
-  font-weight:700;
-
-  color:#fff;
-}
-
-
-/* ACCORDION */
-
-ion-accordion-group{
-
-  border-radius:12px;
-
-  overflow:hidden;
-}
-
-
-/* GRID CARDS */
-
-ion-row{
-
-  padding:10px;
 }

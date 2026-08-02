@@ -43,8 +43,26 @@ export interface SuscripcionEmpresaCobro {
   pagadoServicio: boolean;
   idPlan?: number;
   nombrePlan?: string;
+  montoServicio?: number;
+  cargoAdicional?: number;
+  limiteFacturacion?: number;
+  totalCiclo?: number;
+  /** @deprecated */
   precioPlanCatalogo?: number;
+  /** @deprecated */
   precioPlanEspecialUsd?: number | null;
+}
+
+export interface SuscripcionCuentaCobro {
+  id: number;
+  banco: string;
+  numeroCuenta: string;
+  titular: string;
+  cedula: string;
+  correo?: string;
+  cuentaEstandar?: string;
+  activo: boolean;
+  orden: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -94,5 +112,43 @@ export class SuscripcionCobrosService {
       precioPlanEspecialUsd,
       idUsuario
     });
+  }
+
+  /** Tarifa dinámica por empresa (sin catálogo de planes). */
+  tarifaEmpresa(
+    idEmpresa: number,
+    montoServicio: number,
+    cargoAdicional: number,
+    limiteFacturacion: number,
+    idUsuario?: number,
+    cargoReconexionDop?: number
+  ): Observable<any> {
+    return this.http.put(`${this.baseUrl}/tarifa-empresa`, {
+      idEmpresa,
+      montoServicio,
+      cargoAdicional,
+      limiteFacturacion,
+      cargoReconexionDop,
+      idUsuario
+    });
+  }
+
+  cuentasCobro(soloActivas = true): Observable<SuscripcionCuentaCobro[]> {
+    return this.http.get<SuscripcionCuentaCobro[]>(`${this.baseUrl}/cuentas-cobro`, {
+      params: { soloActivas: String(soloActivas) }
+    });
+  }
+
+  guardarCuentaCobro(dto: Partial<SuscripcionCuentaCobro> & {
+    banco: string;
+    numeroCuenta: string;
+    titular: string;
+    cedula: string;
+  }): Observable<SuscripcionCuentaCobro> {
+    return this.http.post<SuscripcionCuentaCobro>(`${this.baseUrl}/cuentas-cobro`, dto);
+  }
+
+  eliminarCuentaCobro(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/cuentas-cobro/${id}`);
   }
 }

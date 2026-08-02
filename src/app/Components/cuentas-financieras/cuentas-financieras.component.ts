@@ -325,6 +325,38 @@ implements OnInit {
   }
 
   /* =====================================
+  🔥 SINCRONIZAR SALDOS
+  ====================================== */
+
+  SincronizarSaldos(): void {
+    this.cargando = true;
+    this.cuentaService
+      .sincronizarSaldos(this.parametros.GetIdEmpresa())
+      .subscribe({
+        next: async (resp) => {
+          this.cargando = false;
+          const alert = await this.alertCtrl.create({
+            header: 'Saldos',
+            message: `Cuentas actualizadas: ${resp?.cuentasActualizadas ?? 0}`,
+            buttons: ['OK']
+          });
+          await alert.present();
+          this.CargarCuentas();
+        },
+        error: async (err) => {
+          console.error(err);
+          this.cargando = false;
+          const alert = await this.alertCtrl.create({
+            header: 'Error',
+            message: err?.error?.message || 'No se pudieron sincronizar los saldos',
+            buttons: ['OK']
+          });
+          await alert.present();
+        }
+      });
+  }
+
+  /* =====================================
   🔥 COLOR TIPO
   ====================================== */
 

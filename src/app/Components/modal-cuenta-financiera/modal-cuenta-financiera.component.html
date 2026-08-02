@@ -1,114 +1,90 @@
 <ion-header>
-
   <ion-toolbar color="primary">
-
     <ion-title>
-      {{
-        isEdit
-          ? '✏️ Editar Cuenta'
-          : '🏦 Nueva Cuenta'
-      }}
+      {{ isEdit ? 'Editar cuenta' : 'Nueva cuenta' }}
     </ion-title>
-
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="cerrar()">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-
   </ion-toolbar>
-
 </ion-header>
 
 <div class="modal-body">
-
   <div class="form-layout">
-
-    <!-- HEADER VISUAL -->
     <div class="top-card">
-
-      <div
-        class="icon-preview"
-        [style.background]="model.color">
+      <div class="icon-preview" [style.background]="model.color">
         <ion-icon [name]="model.icono"></ion-icon>
       </div>
-
       <div class="top-info">
-        <h2>{{ model.nombre || 'Nueva Cuenta' }}</h2>
-        <span>{{ model.tipoCuenta }}</span>
+        <h2>{{ model.nombre || 'Nueva cuenta' }}</h2>
+        <span>{{ model.tipoCuenta }} · {{ model.moneda || 'DOP' }}</span>
+        <small *ngIf="model.numeroCuenta">{{ numeroEnmascarado() }}</small>
       </div>
-
     </div>
 
-    <!-- NOMBRE -->
     <ion-item lines="none">
-      <ion-label position="stacked">Nombre Cuenta</ion-label>
-      <ion-input
-        fill="outline"
-        placeholder="Ej: Caja Chica"
-        [(ngModel)]="model.nombre">
-      </ion-input>
+      <ion-label position="stacked">Nombre</ion-label>
+      <ion-input fill="outline" [(ngModel)]="model.nombre" placeholder="Ej: Popular Operaciones"></ion-input>
     </ion-item>
 
-    <!-- TIPO -->
     <ion-item lines="none">
-      <ion-label position="stacked">Tipo Cuenta</ion-label>
-      <ion-select
-        interface="popover"
-        fill="outline"
-        [(ngModel)]="model.tipoCuenta">
-        <ion-select-option
-          *ngFor="let item of tiposCuenta"
-          [value]="item.nombre">
+      <ion-label position="stacked">Código</ion-label>
+      <ion-input fill="outline" [(ngModel)]="model.codigo" placeholder="Opcional"></ion-input>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label position="stacked">Tipo</ion-label>
+      <ion-select interface="popover" fill="outline" [(ngModel)]="model.tipoCuenta">
+        <ion-select-option *ngFor="let item of tiposCuenta" [value]="item.nombre">
           {{ item.nombre }}
         </ion-select-option>
       </ion-select>
     </ion-item>
 
-    <!-- BANCO -->
-    <ion-item
-      lines="none"
-      *ngIf="model.tipoCuenta === 'BANCO'">
-      <ion-label position="stacked">Banco</ion-label>
-      <ion-input
-        fill="outline"
-        placeholder="Ej: Popular"
-        [(ngModel)]="model.banco">
-      </ion-input>
+    <ion-item lines="none" *ngIf="model.tipoCuenta === 'BANCO' || model.tipoCuenta === 'TARJETA'">
+      <ion-label position="stacked">Banco / Emisor</ion-label>
+      <ion-input fill="outline" [(ngModel)]="model.banco" placeholder="Ej: Popular"></ion-input>
     </ion-item>
 
-    <!-- NUMERO CUENTA -->
-    <ion-item
-      lines="none"
-      *ngIf="model.tipoCuenta === 'BANCO'">
-      <ion-label position="stacked">Número Cuenta</ion-label>
-      <ion-input
-        fill="outline"
-        placeholder="000-000000-0"
-        [(ngModel)]="model.numeroCuenta">
-      </ion-input>
+    <ion-item lines="none" *ngIf="model.tipoCuenta === 'BANCO' || model.tipoCuenta === 'TARJETA'">
+      <ion-label position="stacked">Número de cuenta</ion-label>
+      <ion-input fill="outline" [(ngModel)]="model.numeroCuenta" placeholder="000-000000-0"></ion-input>
     </ion-item>
 
-    <!-- BALANCE -->
     <ion-item lines="none">
-      <ion-label position="stacked">Balance Inicial</ion-label>
-      <ion-input
-        type="number"
-        fill="outline"
-        [(ngModel)]="model.balanceInicial">
-      </ion-input>
+      <ion-label position="stacked">Moneda</ion-label>
+      <ion-select interface="popover" fill="outline" [(ngModel)]="model.moneda">
+        <ion-select-option *ngFor="let m of monedas" [value]="m">{{ m }}</ion-select-option>
+      </ion-select>
     </ion-item>
 
-    <!-- COLOR -->
+    <ion-item lines="none">
+      <ion-label position="stacked">Balance inicial</ion-label>
+      <ion-input type="number" fill="outline" [(ngModel)]="model.balanceInicial"></ion-input>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label position="stacked">Fecha saldo inicial</ion-label>
+      <ion-input type="date" fill="outline" [(ngModel)]="model.fechaSaldoInicial"></ion-input>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label position="stacked">Cuenta contable</ion-label>
+      <ion-select interface="popover" fill="outline" [(ngModel)]="model.idCuentaContable" [interfaceOptions]="{cssClass:'select-wide'}">
+        <ion-select-option [value]="null">— Sin asignar —</ion-select-option>
+        <ion-select-option *ngFor="let c of cuentasContables" [value]="c.idCuentaContable">
+          {{ c.codigo }} — {{ c.nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
     <ion-item lines="none">
       <ion-label position="stacked">Color</ion-label>
-      <ion-input
-        type="color"
-        [(ngModel)]="model.color">
-      </ion-input>
+      <ion-input type="color" [(ngModel)]="model.color"></ion-input>
     </ion-item>
 
-    <!-- ICONOS -->
     <div class="iconos-box">
       <h3>Ícono</h3>
       <div class="iconos-grid">
@@ -122,33 +98,39 @@
       </div>
     </div>
 
-    <!-- ESTADO -->
+    <ion-item lines="none">
+      <ion-label>Cuenta principal</ion-label>
+      <ion-toggle [(ngModel)]="model.esPrincipal"></ion-toggle>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label>Permite saldo negativo</ion-label>
+      <ion-toggle [(ngModel)]="model.permiteSaldoNegativo"></ion-toggle>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label>Permite movimientos manuales</ion-label>
+      <ion-toggle [(ngModel)]="model.permiteMovimientosManuales"></ion-toggle>
+    </ion-item>
+
     <ion-item lines="none">
       <ion-label>Cuenta activa</ion-label>
       <ion-toggle [(ngModel)]="model.activa"></ion-toggle>
     </ion-item>
 
+    <ion-item lines="none">
+      <ion-label position="stacked">Descripción</ion-label>
+      <ion-textarea fill="outline" rows="2" [(ngModel)]="model.descripcion"></ion-textarea>
+    </ion-item>
   </div>
-
 </div>
 
 <div class="acciones-bar">
-  <ion-button
-    expand="block"
-    fill="outline"
-    color="medium"
-    (click)="cerrar()">
+  <ion-button expand="block" fill="outline" color="medium" (click)="cerrar()">
     Cancelar
   </ion-button>
-
-  <ion-button
-    expand="block"
-    color="primary"
-    [disabled]="guardando"
-    (click)="guardar()">
+  <ion-button expand="block" color="primary" [disabled]="guardando" (click)="guardar()">
     <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
-    <span *ngIf="!guardando">
-      {{ isEdit ? 'Actualizar Cuenta' : 'Guardar Cuenta' }}
-    </span>
+    <span *ngIf="!guardando">{{ isEdit ? 'Actualizar' : 'Guardar' }}</span>
   </ion-button>
 </div>

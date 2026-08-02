@@ -16,6 +16,8 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
 export class CxpProveedoresComponent implements OnInit {
   facturas: FacturaCompra[] = [];
   filtro = '';
+  desde = '';
+  hasta = '';
   cargando = false;
   procesando = false;
 
@@ -30,6 +32,7 @@ export class CxpProveedoresComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.resetRangoMesActual();
     this.cargar();
   }
 
@@ -37,18 +40,52 @@ export class CxpProveedoresComponent implements OnInit {
     this.cargar();
   }
 
+  private resetRangoMesActual(): void {
+    const hoy = new Date();
+    const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    this.desde = primero.toISOString().substring(0, 10);
+    this.hasta = hoy.toISOString().substring(0, 10);
+  }
+
+  consultar(): void {
+    if (this.desde && this.hasta && this.hasta < this.desde) {
+      this.toast('La fecha hasta no puede ser menor que desde');
+      return;
+    }
+    this.cargar();
+  }
+
+  limpiarFechas(): void {
+    this.desde = '';
+    this.hasta = '';
+    this.cargar();
+  }
+
   cargar(event?: any) {
+    if (this.desde && this.hasta && this.hasta < this.desde) {
+      this.toast('La fecha hasta no puede ser menor que desde');
+      event?.target?.complete?.();
+      return;
+    }
+
     this.cargando = !event;
-    this.comprasService.pendientes(this.parametro.GetIdEmpresa()).subscribe({
+    this.comprasService
+      .pendientes(
+        this.parametro.GetIdEmpresa(),
+        undefined,
+        this.desde || undefined,
+        this.hasta || undefined
+      )
+      .subscribe({
       next: (data) => {
         this.facturas = data || [];
         this.cargando = false;
         event?.target?.complete?.();
       },
-      error: () => {
+      error: (err) => {
         this.cargando = false;
         event?.target?.complete?.();
-        this.toast('Error cargando CxP');
+        this.toast(err?.error?.message || 'Error cargando CxP');
       }
     });
   }

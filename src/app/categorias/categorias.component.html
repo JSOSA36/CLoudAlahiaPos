@@ -54,7 +54,7 @@
 
               <ng-template #imgBeautyOrDefault>
                 <img
-                  [src]="iten.esProductoBelleza ? './assets/Producto.png' : './assets/servicios.png'"
+                  [src]="'assets/Producto.png'"
                   class="img-prod contain-img">
               </ng-template>
 
@@ -114,11 +114,14 @@
 
           <ion-card-content class="ion-no-padding">
             <div class="img-wrapper">
-              <img *ngIf="!iten.imagenPath"
-                   src="./assets/servicios.png" class="img-cat contain-img">
+              <div *ngIf="!iten.imagenPath" class="img-cat cat-fallback">
+                <ion-icon name="grid-outline"></ion-icon>
+              </div>
 
               <img *ngIf="iten.imagenPath"
-                   [src]="iten.imagenPath" class="img-cat real-img">
+                   [src]="iten.imagenPath"
+                   class="img-cat real-img"
+                   (error)="iten.imagenPath = ''">
             </div>
           </ion-card-content>
 
@@ -166,7 +169,7 @@
 
             <ng-template #imgBeautyOrDefault2>
               <img
-                [src]="iten.esProductoBelleza ? './assets/Producto.png' : './assets/servicios.png'"
+                [src]="'assets/Producto.png'"
                 class="img-prod contain-img">
             </ng-template>
           </div>

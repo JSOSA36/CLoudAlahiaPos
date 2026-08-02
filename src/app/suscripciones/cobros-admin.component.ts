@@ -6,7 +6,8 @@ import {
   SuscripcionCiclo,
   SuscripcionEvento,
   SuscripcionResumen,
-  SuscripcionEmpresaCobro
+  SuscripcionEmpresaCobro,
+  SuscripcionCuentaCobro
 } from '../servicios/suscripcion-cobros.service';
 import {
   EmpresaCargosRecurrentesService,
@@ -38,7 +39,24 @@ export class CobrosAdminComponent implements OnInit {
   empresaCargosNombre = '';
   cargos: EmpresaCargoRecurrente[] = [];
   calculo: SuscripcionCalculoFactura | null = null;
-  precioPlanEspecialInput: number | null = null;
+  montoServicioInput = 0;
+  cargoAdicionalInput = 0;
+  limiteFacturacionInput = 0;
+  cargoReconexionDopInput = 500;
+  guardandoTarifa = false;
+  cuentasCobro: SuscripcionCuentaCobro[] = [];
+  mostrarFormCuenta = false;
+  cuentaForm = {
+    id: null as number | null,
+    banco: '',
+    numeroCuenta: '',
+    titular: '',
+    cedula: '',
+    correo: '',
+    cuentaEstandar: '',
+    activo: true,
+    orden: 1
+  };
   modulosCatalogo: any[] = [];
   mostrarAltaCargo = false;
   nuevoCargo = {
@@ -63,10 +81,100 @@ export class CobrosAdminComponent implements OnInit {
   ngOnInit() {
     this.cargar();
     this.cargarEmpresasCliente();
+    this.cargarCuentasCobro();
     this.modulosSvc.getAll().subscribe({
       next: (m) => this.modulosCatalogo = (m as any[]) || [],
       error: () => {}
     });
+  }
+
+  cargarCuentasCobro() {
+    this.cobros.cuentasCobro(false).subscribe({
+      next: (list) => this.cuentasCobro = list || [],
+      error: async () => this.toast('No se pudieron cargar las cuentas de cobro', 'danger')
+    });
+  }
+
+  editarCuenta(c: SuscripcionCuentaCobro) {
+    this.cuentaForm = {
+      id: c.id,
+      banco: c.banco,
+      numeroCuenta: c.numeroCuenta,
+      titular: c.titular,
+      cedula: c.cedula,
+      correo: c.correo || '',
+      cuentaEstandar: c.cuentaEstandar || '',
+      activo: c.activo,
+      orden: c.orden
+    };
+    this.mostrarFormCuenta = true;
+  }
+
+  nuevaCuenta() {
+    this.cuentaForm = {
+      id: null,
+      banco: '',
+      numeroCuenta: '',
+      titular: '',
+      cedula: '',
+      correo: '',
+      cuentaEstandar: '',
+      activo: true,
+      orden: (this.cuentasCobro.length || 0) + 1
+    };
+    this.mostrarFormCuenta = true;
+  }
+
+  async guardarCuentaCobro() {
+    if (!this.cuentaForm.banco.trim()
+      || !this.cuentaForm.numeroCuenta.trim()
+      || !this.cuentaForm.titular.trim()
+      || !this.cuentaForm.cedula.trim()) {
+      await this.toast('Banco, cuenta, titular y cédula son obligatorios', 'warning');
+      return;
+    }
+    try {
+      await firstValueFrom(this.cobros.guardarCuentaCobro({
+        id: this.cuentaForm.id || undefined,
+        banco: this.cuentaForm.banco.trim(),
+        numeroCuenta: this.cuentaForm.numeroCuenta.trim(),
+        titular: this.cuentaForm.titular.trim(),
+        cedula: this.cuentaForm.cedula.trim(),
+        correo: this.cuentaForm.correo.trim() || undefined,
+        cuentaEstandar: this.cuentaForm.cuentaEstandar.trim() || undefined,
+        activo: this.cuentaForm.activo,
+        orden: this.cuentaForm.orden
+      }));
+      await this.toast('Cuenta de cobro guardada', 'success');
+      this.mostrarFormCuenta = false;
+      this.cargarCuentasCobro();
+    } catch (e: any) {
+      await this.toast(e?.error?.message || 'No se pudo guardar la cuenta', 'danger');
+    }
+  }
+
+  async eliminarCuenta(c: SuscripcionCuentaCobro) {
+    const alert = await this.alertCtrl.create({
+      header: 'Eliminar cuenta',
+      message: `¿Eliminar ${c.banco} · ${c.numeroCuenta}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await firstValueFrom(this.cobros.eliminarCuentaCobro(c.id));
+              await this.toast('Cuenta eliminada', 'success');
+              this.cargarCuentasCobro();
+            } catch (e: any) {
+              await this.toast(e?.error?.message || 'No se pudo eliminar', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   cargarEmpresasCliente() {
@@ -191,58 +299,67 @@ export class CobrosAdminComponent implements OnInit {
     this.cargosSvc.calculo(this.empresaCargosId).subscribe({
       next: (c) => {
         this.calculo = c;
-        this.precioPlanEspecialInput = c?.usaPrecioPlanEspecial
-          ? Number(c.precioPlanEspecialUsd)
-          : null;
+        this.montoServicioInput = Number(c?.montoServicio ?? c?.montoPlan ?? 0);
+        this.cargoAdicionalInput = Number(c?.cargoAdicional ?? 0);
+        this.limiteFacturacionInput = Number(c?.limiteFacturacion ?? 0);
+        this.cargoReconexionDopInput = Number(c?.cargoReconexionDop ?? 500);
       },
       error: () => { this.calculo = null; }
     });
   }
 
-  get precioPlanCatalogo(): number {
-    return this.calculo?.montoPlanCatalogo
-      ?? this.empresasCliente.find(e => e.idEmpresa === this.empresaCargosId)?.precioPlanCatalogo
-      ?? 0;
-  }
-
-  async guardarPrecioPlanEspecial() {
+  async guardarTarifaEmpresa() {
     if (!this.empresaCargosId) return;
-    const raw = this.precioPlanEspecialInput;
-    if (raw == null || Number.isNaN(Number(raw))) {
-      await this.toast('Indique el precio especial en USD', 'warning');
+    const monto = Number(this.montoServicioInput);
+    const cargo = Number(this.cargoAdicionalInput);
+    const limite = Number(this.limiteFacturacionInput);
+    const reconexDop = Number(this.cargoReconexionDopInput);
+    if (Number.isNaN(monto) || monto < 0 || Number.isNaN(cargo) || cargo < 0) {
+      await this.toast('Indique montos válidos (USD ≥ 0)', 'warning');
       return;
     }
-    const monto = Number(raw);
-    if (monto < 0) {
-      await this.toast('El precio no puede ser negativo', 'warning');
+    if (Number.isNaN(limite) || limite < 0) {
+      await this.toast('El límite de facturas debe ser 0 o mayor', 'warning');
       return;
     }
+    if (Number.isNaN(reconexDop) || reconexDop < 0) {
+      await this.toast('El cargo de reconexión (RD$) debe ser 0 o mayor', 'warning');
+      return;
+    }
+
+    this.guardandoTarifa = true;
     try {
-      await firstValueFrom(this.cobros.precioPlanEspecial(
+      const calc = await firstValueFrom(this.cobros.tarifaEmpresa(
         this.empresaCargosId,
         monto,
-        this.parametros.IdUsuario || undefined
+        cargo,
+        limite,
+        this.parametros.IdUsuario || undefined,
+        reconexDop
       ));
-      await this.toast(`Precio especial aplicado: USD ${monto.toFixed(2)}`, 'success');
-      this.cargarCargos();
-    } catch (e: any) {
-      await this.toast(e?.error?.message || 'No se pudo guardar el precio especial', 'danger');
-    }
-  }
 
-  async quitarPrecioPlanEspecial() {
-    if (!this.empresaCargosId) return;
-    try {
-      await firstValueFrom(this.cobros.precioPlanEspecial(
-        this.empresaCargosId,
-        null,
-        this.parametros.IdUsuario || undefined
-      ));
-      this.precioPlanEspecialInput = null;
-      await this.toast('Vuelve al precio de catálogo del plan', 'success');
+      // Aplicar respuesta al instante (sin esperar otro GET)
+      this.calculo = calc;
+      this.montoServicioInput = Number(calc?.montoServicio ?? calc?.montoPlan ?? monto);
+      this.cargoAdicionalInput = Number(calc?.cargoAdicional ?? cargo);
+      this.limiteFacturacionInput = Number(calc?.limiteFacturacion ?? limite);
+      this.cargoReconexionDopInput = Number(calc?.cargoReconexionDop ?? reconexDop);
+
+      await this.toast(
+        `Tarifa guardada: USD ${this.montoServicioInput.toFixed(2)} + ${this.cargoAdicionalInput.toFixed(2)}`,
+        'success'
+      );
+      this.cargarEmpresasCliente();
       this.cargarCargos();
     } catch (e: any) {
-      await this.toast(e?.error?.message || 'No se pudo quitar el precio especial', 'danger');
+      const msg = e?.error?.message
+        || e?.message
+        || (e?.status === 404
+          ? 'Endpoint no encontrado: reinicia la API con el build nuevo'
+          : 'No se pudo guardar la tarifa');
+      await this.toast(msg, 'danger');
+    } finally {
+      this.guardandoTarifa = false;
     }
   }
 

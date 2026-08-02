@@ -59,7 +59,7 @@
             <!-- ===================================== -->
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3">
 
               <ion-item>
@@ -92,7 +92,7 @@
             </ion-col>
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3"
               *ngIf="esTransferencia">
 
@@ -129,7 +129,7 @@
             <!-- ===================================== -->
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3">
 
               <ion-item>
@@ -176,7 +176,7 @@
             <!-- ===================================== -->
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3"
               *ngIf="!esTransferencia">
 
@@ -245,7 +245,7 @@
             <!-- ===================================== -->
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3">
 
               <ion-item>
@@ -270,7 +270,7 @@
             <!-- ===================================== -->
 
             <ion-col
-              size="12"
+              size="6"
               size-md="3">
 
               <ion-item>
@@ -798,108 +798,42 @@
 
     </ion-card>
 
-    <!-- ===================================== -->
-    <!-- 🔥 FOOTER -->
-    <!-- ===================================== -->
-
-    <ion-card class="footer-card">
-
-      <ion-card-content>
-
-        <div class="footer-resumen">
-
-          <!-- PRODUCTOS -->
-          <div>
-
-            <h3>
-
-              Productos
-
-            </h3>
-
-            <p>
-
-              {{ totalProductos }}
-
-            </p>
-
-          </div>
-
-          <!-- TOTAL -->
-          <div>
-
-            <h3>
-
-              Total General
-
-            </h3>
-
-            <p>
-
-              {{ totalGeneral | currency }}
-
-            </p>
-
-          </div>
-
-        </div>
-
-        <!-- ===================================== -->
-        <!-- 🔥 GUARDAR -->
-        <!-- ===================================== -->
-
-        <div class="botones-guardar">
-
-          <ion-button
-
-            expand="block"
-
-            color="primary"
-
-            [disabled]="loading"
-
-            (click)="guardarMovimiento(false)">
-
-            <ion-spinner
-
-              *ngIf="loading"
-
-              slot="start">
-
-            </ion-spinner>
-
-            Guardar Movimiento
-
-          </ion-button>
-
-          <ion-button
-
-            expand="block"
-
-            color="success"
-
-            fill="outline"
-
-            [disabled]="loading"
-
-            (click)="guardarMovimiento(true)">
-
-            <ion-icon
-              name="print-outline"
-              slot="start">
-
-            </ion-icon>
-
-            Guardar e imprimir
-
-          </ion-button>
-
-        </div>
-
-      </ion-card-content>
-
-    </ion-card>
-
   </div>
 
 </ion-content>
+
+<ion-footer class="mi-footer">
+  <div class="mi-footer-inner">
+    <div class="footer-resumen">
+      <div>
+        <h3>Productos</h3>
+        <p>{{ totalProductos }}</p>
+      </div>
+      <div>
+        <h3>Total General</h3>
+        <p>{{ totalGeneral | currency }}</p>
+      </div>
+    </div>
+
+    <div class="botones-guardar">
+      <ion-button
+        expand="block"
+        color="primary"
+        [disabled]="loading"
+        (click)="guardarMovimiento(false)">
+        <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+        Guardar
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        color="success"
+        fill="outline"
+        [disabled]="loading"
+        (click)="guardarMovimiento(true)">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        Imprimir
+      </ion-button>
+    </div>
+  </div>
+</ion-footer>

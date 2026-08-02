@@ -14,24 +14,49 @@ export class ProveedorFormComponent implements OnInit {
 
   constructor(
     private modalCtrl: ModalController,
+    private toastCtrl: ToastController,
     private parametro: ParametrosService
   ) {}
 
   ngOnInit(): void {
-    if (!this.isEdit) {
-      this.proveedor.idEmpresa = this.parametro.GetIdEmpresa();
-      this.proveedor.isActivo = true;
+    if (!this.proveedor) {
+      this.proveedor = new Proveedor();
     }
+    this.proveedor.idEmpresa = this.proveedor.idEmpresa || this.parametro.GetIdEmpresa();
+    if (!this.isEdit) {
+      this.proveedor.isActivo = true;
+      this.proveedor.idProveedor = 0;
+    }
+  }
+
+  get iniciales(): string {
+    const parts = (this.proveedor?.nombreComercial || '?').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
   cerrar() {
-    this.modalCtrl.dismiss();
+    this.modalCtrl.dismiss({ saved: false });
   }
 
-  guardar() {
+  async guardar() {
     if (!this.proveedor.nombreComercial?.trim()) {
+      const t = await this.toastCtrl.create({
+        message: 'El nombre comercial es obligatorio',
+        duration: 2200,
+        color: 'warning',
+        position: 'top'
+      });
+      await t.present();
       return;
     }
-    this.modalCtrl.dismiss({ proveedor: this.proveedor });
+
+    this.proveedor.nombreComercial = this.proveedor.nombreComercial.trim();
+    this.proveedor.idEmpresa = this.parametro.GetIdEmpresa();
+    this.modalCtrl.dismiss({
+      proveedor: { ...this.proveedor },
+      isEdit: this.isEdit && this.proveedor.idProveedor > 0
+    });
   }
 }

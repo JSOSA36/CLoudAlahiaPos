@@ -7,7 +7,11 @@
         <p>Solo no leídas · Alahia ERP</p>
       </div>
       <div class="panel-actions">
-        <button type="button" class="link" (click)="marcarTodas()">Marcar todas leídas</button>
+        <button
+          type="button"
+          class="link"
+          *ngIf="(items$ | async)?.length"
+          (click)="marcarTodas()">Marcar todas leídas</button>
         <button type="button" class="close" (click)="cerrar()" aria-label="Cerrar">×</button>
       </div>
     </header>

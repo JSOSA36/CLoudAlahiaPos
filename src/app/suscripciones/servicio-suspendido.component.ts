@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { PagoEmpresaService } from '../servicios/PagoEmpresaService';
 import { ParametrosService } from '../servicios/parametros.service';
 import { AuthService } from '../servicios/auth.service';
@@ -10,7 +10,8 @@ import {
   SuscripcionCalculoFactura,
   SuscripcionLineaFactura
 } from '../servicios/empresa-cargos-recurrentes.service';
-import { TicketDesdeLoginComponent } from '../tickets/ticket-desde-login.component';
+import { EmpresaService } from '../servicios/empresa.services';
+import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
 
 @Component({
   selector: 'app-servicio-suspendido',
@@ -18,11 +19,10 @@ import { TicketDesdeLoginComponent } from '../tickets/ticket-desde-login.compone
   styleUrls: ['./servicio-suspendido.component.scss']
 })
 export class ServicioSuspendidoComponent implements OnInit {
-  mensaje = 'Su servicio se encuentra suspendido por falta de pago.';
+  private mensajeRaw = 'Su servicio está suspendido por falta de pago. Adjunte su voucher para reactivarlo.';
   estadoServicio = '';
   precioPlan = 0;
   nombreEmpresa = '';
-  mostrarFormulario = false;
   enviando = false;
   desglose: SuscripcionLineaFactura[] = [];
   montoPlan = 0;
@@ -31,6 +31,7 @@ export class ServicioSuspendidoComponent implements OnInit {
   totalDop = 0;
   puedeReportarPago = true;
   pagoEnValidacion = false;
+  cuentasCobro: SuscripcionCuentaCobro[] = [];
 
   form = {
     fechaPago: '',
@@ -44,15 +45,16 @@ export class ServicioSuspendidoComponent implements OnInit {
     private parametros: ParametrosService,
     private auth: AuthService,
     private cargosSvc: EmpresaCargosRecurrentesService,
+    private empresaSvc: EmpresaService,
+    private cobrosSvc: SuscripcionCobrosService,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController,
-    private modalCtrl: ModalController
+    private toastCtrl: ToastController
   ) {
     const nav = this.router.getCurrentNavigation();
     const state = nav?.extras?.state as any;
     if (state) {
-      this.mensaje = state.mensaje || this.mensaje;
+      this.mensajeRaw = state.mensaje || this.mensajeRaw;
       this.estadoServicio = state.estadoServicio || '';
       this.precioPlan = Number(state.precioPlan || 0);
       this.nombreEmpresa = state.nombreEmpresa || '';
@@ -65,15 +67,38 @@ export class ServicioSuspendidoComponent implements OnInit {
       if (this.pagoEnValidacion) {
         this.puedeReportarPago = false;
       }
+      this.totalDop = this.calcularTotalDop();
     }
+  }
+
+  private calcularTotalDop(): number {
+    if (this.desglose?.length) {
+      const sum = this.desglose.reduce((acc, l) => {
+        const dop = Number(l.montoDop);
+        if (!Number.isNaN(dop) && dop > 0) return acc + dop;
+        return acc + (Number(l.monto) || 0) * this.tasa;
+      }, 0);
+      if (sum > 0) return sum;
+    }
+    return (this.precioPlan || 0) * this.tasa;
   }
 
   get titulo(): string {
     return this.pagoEnValidacion ? 'Pago en validación' : 'Servicio suspendido';
   }
 
-  get badgeClass(): string {
-    return this.pagoEnValidacion ? 'badge-pending' : 'badge';
+  /** Limpia textos que piden “iniciar sesión” (el usuario ya está aquí). */
+  get mensajeMostrado(): string {
+    if (this.pagoEnValidacion) {
+      return 'Ya recibimos su comprobante. MacroBits lo está revisando.';
+    }
+    let m = (this.mensajeRaw || '').trim();
+    m = m.replace(/\s*Inicie sesión e indique Reportar pago para subir su voucher\.?/gi, '');
+    m = m.replace(/\s*Inicie sesión\.?/gi, '');
+    if (!m) {
+      m = 'Su servicio está suspendido por falta de pago. Adjunte su voucher para reactivarlo.';
+    }
+    return m;
   }
 
   ngOnInit() {
@@ -82,9 +107,69 @@ export class ServicioSuspendidoComponent implements OnInit {
     if (!this.nombreEmpresa) {
       this.nombreEmpresa = this.parametros.NombreEmpresa || '';
     }
-    if (!this.pagoEnValidacion) {
-      this.cargarCalculo();
+    this.cargarCuentasCobro();
+    void this.sincronizarEstadoDesdeApi();
+  }
+
+  private cargarCuentasCobro() {
+    this.cobrosSvc.cuentasCobro(true).subscribe({
+      next: (list) => this.cuentasCobro = list || [],
+      error: () => this.cuentasCobro = []
+    });
+  }
+
+  esReconexion(l: SuscripcionLineaFactura): boolean {
+    return (l?.tipoLinea || '').toUpperCase() === 'RECONEXION'
+      || /reconex/i.test(l?.nombre || '');
+  }
+
+  async copiarTexto(valor: string, etiqueta: string) {
+    const texto = (valor || '').trim();
+    if (!texto) return;
+    try {
+      await navigator.clipboard.writeText(texto);
+      await this.toast(`${etiqueta} copiada`, 'success');
+    } catch {
+      await this.toast('No se pudo copiar', 'warning');
     }
+  }
+
+  private sincronizarEstadoDesdeApi(): void {
+    const id = this.parametros.IdEmpresa;
+    if (!id) {
+      if (!this.pagoEnValidacion) this.cargarCalculo();
+      return;
+    }
+
+    this.empresaSvc.puedeOperar(id).subscribe({
+      next: (st) => {
+        const estado = String(st?.estadoServicio || '').toUpperCase();
+        if (estado) this.estadoServicio = estado;
+        if (estado === 'PAGO_REPORTADO') {
+          this.pagoEnValidacion = true;
+          this.puedeReportarPago = false;
+          this.mensajeRaw = 'Su pago está en validación.';
+        }
+      },
+      error: () => {}
+    });
+
+    this.pagoService.obtenerPagosEmpresa(id).subscribe({
+      next: (pagos) => {
+        const pendiente = (pagos || []).some(p =>
+          String(p?.estado || '').toUpperCase() === 'PENDIENTE');
+        if (pendiente) {
+          this.pagoEnValidacion = true;
+          this.puedeReportarPago = false;
+          this.mensajeRaw = 'Ya tiene un comprobante en validación.';
+        } else if (!this.pagoEnValidacion) {
+          this.cargarCalculo();
+        }
+      },
+      error: () => {
+        if (!this.pagoEnValidacion) this.cargarCalculo();
+      }
+    });
   }
 
   private cargarCalculo() {
@@ -98,15 +183,12 @@ export class ServicioSuspendidoComponent implements OnInit {
         this.montoCargos = c.montoCargos;
         this.desglose = c.lineas || [];
         this.tasa = c.tasaUsdDop || 60;
-        this.totalDop = c.totalDop ?? (c.total * this.tasa);
+        this.totalDop = c.totalDop && c.totalDop > 0
+          ? c.totalDop
+          : this.calcularTotalDop();
       },
       error: () => {}
     });
-  }
-
-  abrirReportar() {
-    if (!this.puedeReportarPago || this.pagoEnValidacion) return;
-    this.mostrarFormulario = true;
   }
 
   onFile(ev: any) {
@@ -137,12 +219,11 @@ export class ServicioSuspendidoComponent implements OnInit {
         await loading.dismiss();
         this.pagoEnValidacion = true;
         this.puedeReportarPago = false;
-        this.mostrarFormulario = false;
         this.estadoServicio = 'PAGO_REPORTADO';
-        this.mensaje = 'Su pago está en validación. El acceso se restaurará cuando MacroBits lo apruebe.';
+        this.mensajeRaw = 'Su pago está en validación.';
         const alert = await this.alertCtrl.create({
-          header: 'Pago en validación',
-          message: 'Su comprobante fue enviado. El servicio se reactivará cuando MacroBits apruebe el pago.',
+          header: 'Comprobante enviado',
+          message: 'Su voucher fue recibido. MacroBits lo validará y reactivará el servicio. El acceso se restaura cuando el pago sea aprobado.',
           backdropDismiss: false,
           buttons: [{
             text: 'Entendido',
@@ -157,18 +238,6 @@ export class ServicioSuspendidoComponent implements OnInit {
         await this.toast(err?.error?.message || 'No se pudo enviar el pago', 'danger');
       }
     });
-  }
-
-  async abrirTicketSoporte() {
-    const modal = await this.modalCtrl.create({
-      component: TicketDesdeLoginComponent,
-      componentProps: {
-        userName: this.parametros.UserName || localStorage.getItem('Usuario') || '',
-        password: ''
-      },
-      cssClass: 'modal-politicas-full'
-    });
-    await modal.present();
   }
 
   async cerrarSesion() {

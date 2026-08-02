@@ -1,170 +1,164 @@
-<ion-header>
+<ion-header class="lg-header">
   <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">Listado de Gastos</ion-title>
     <ion-buttons slot="start">
-      <ion-menu-button style="color: white;"></ion-menu-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <ion-title>
+      <div class="lg-title-wrap">
+        <span>Listado de Gastos</span>
+        <small>{{ gastosFiltrados.length }} registro(s)</small>
+      </div>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="lg-content">
+  <div class="lg-page">
 
-  <!-- 📅 FILTRO DE FECHAS -->
-  <ion-card>
-    <ion-card-header color="primary">
-      <ion-card-title class="ion-text-center">
-        <strong>Filtre por Fechas</strong>
-      </ion-card-title>
-    </ion-card-header>
+    <section class="lg-hero">
+      <div class="lg-hero-icon">
+        <ion-icon name="wallet-outline"></ion-icon>
+      </div>
+      <div class="lg-hero-text">
+        <h2>Egresos del negocio</h2>
+        <p>Filtra por fechas y registra cada gasto con su método de pago.</p>
+      </div>
+      <div class="lg-kpi">
+        <strong>{{ totalGastos | currency }}</strong>
+        <span>Total filtrado</span>
+      </div>
+    </section>
 
-    <!-- Fecha inicio -->
-    <ion-item color="primary">
-      <ion-label>Desde</ion-label>
-      <ion-datetime-button datetime="iniciogastos">
-        <span slot="date-target">
-          {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+    <section class="lg-toolbar">
+      <div class="lg-toolbar-actions">
+        <ion-button fill="outline" color="primary" size="small" (click)="abrirCategorias()">
+          <ion-icon slot="start" name="pricetags-outline"></ion-icon>
+          Categorías
+        </ion-button>
+      </div>
 
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime
-          id="iniciogastos"
-          presentation="date"
-          [(ngModel)]="fechaInicio">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
+      <div class="lg-dates">
+        <div class="lg-date-field">
+          <label>Desde</label>
+          <ion-datetime-button datetime="iniciogastos">
+            <span slot="date-target">
+              {{ fechaInicio ? (fechaInicio | date:'dd/MM/yyyy') : 'Seleccionar' }}
+            </span>
+          </ion-datetime-button>
+        </div>
+        <div class="lg-date-field">
+          <label>Hasta</label>
+          <ion-datetime-button datetime="fingastos">
+            <span slot="date-target">
+              {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
+            </span>
+          </ion-datetime-button>
+        </div>
+        <ion-button color="warning" class="lg-btn-buscar" (click)="aplicarFiltroFechas()">
+          <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+        </ion-button>
+      </div>
 
-    <!-- Fecha fin -->
-    <ion-item color="primary">
-      <ion-label>Hasta</ion-label>
-      <ion-datetime-button datetime="fingastos">
-        <span slot="date-target">
-          {{ fechaFin ? (fechaFin | date:'dd/MM/yyyy') : 'Seleccionar' }}
-        </span>
-      </ion-datetime-button>
-    </ion-item>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="iniciogastos"
+            presentation="date"
+            [(ngModel)]="fechaInicio">
+          </ion-datetime>
+        </ng-template>
+      </ion-modal>
 
-    <ion-modal [keepContentsMounted]="true">
-      <ng-template>
-        <ion-datetime
-          id="fingastos"
-          presentation="date"
-          [(ngModel)]="fechaFin">
-        </ion-datetime>
-      </ng-template>
-    </ion-modal>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="fingastos"
+            presentation="date"
+            [(ngModel)]="fechaFin">
+          </ion-datetime>
+        </ng-template>
+      </ion-modal>
 
-    <!-- Botón de búsqueda -->
-    <ion-button
-      (click)="aplicarFiltroFechas()"
-      shape="round"
-      color="warning"
-      expand="block">
+      <ion-searchbar
+        placeholder="Buscar gasto…"
+        [(ngModel)]="filtro"
+        (ionInput)="aplicarFiltroTexto()"
+        debounce="300"
+        show-clear-button="focus">
+      </ion-searchbar>
+    </section>
 
-      <ion-icon style="color: black;" name="search" slot="start"></ion-icon>
-      <p style="color: black;">Buscar</p>
-    </ion-button>
-  </ion-card>
+    <div class="lg-empty" *ngIf="!gastosFiltrados.length">
+      <ion-icon name="wallet-outline"></ion-icon>
+      <h3>Sin gastos en este rango</h3>
+      <p>Ajusta las fechas o registra un nuevo egreso.</p>
+      <ion-button color="warning" (click)="abrirModalNuevoGasto()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Registrar gasto
+      </ion-button>
+    </div>
 
-  <!-- 🔎 FILTRO GLOBAL POR TEXTO -->
-  <ion-searchbar
-    placeholder="Buscar gasto..."
-    [(ngModel)]="filtro"
-    (ionInput)="aplicarFiltroTexto()"
-    debounce="300"
-    show-clear-button="always">
-  </ion-searchbar>
+    <div class="lg-grid" *ngIf="gastosFiltrados.length">
+      <article
+        class="lg-card"
+        *ngFor="let g of gastosFiltrados; trackBy: trackById"
+        [class.anulado]="g.estaAnulado">
+        <div class="lg-card-top">
+          <div class="lg-tipo">
+            <ion-icon name="pricetag"></ion-icon>
+            <span>{{ g.tipoGasto || 'Sin tipo' }}</span>
+          </div>
+          <strong class="lg-monto">{{ g.monto | currency }}</strong>
+        </div>
 
-  <!-- GRID DE GASTOS -->
-  <ion-grid >
-    <ion-row>
+        <div class="lg-meta">
+          <p>
+            <ion-icon name="card-outline"></ion-icon>
+            {{ g.formaPago || g.orien || '—' }}
+          </p>
+          <p *ngIf="g.tipoComprobante">
+            <ion-icon name="receipt-outline"></ion-icon>
+            {{ g.tipoComprobante }}
+            <ng-container *ngIf="g.numeroComprobante"> · {{ g.numeroComprobante }}</ng-container>
+          </p>
+          <p *ngIf="g.referencia">
+            <ion-icon name="document-outline"></ion-icon>
+            {{ g.referencia }}
+          </p>
+          <p>
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ g.fechaInseccion | date:'dd/MM/yyyy' }}
+          </p>
+          <p class="lg-detalle" *ngIf="g.detalle">
+            <ion-icon name="document-text-outline"></ion-icon>
+            {{ g.detalle }}
+          </p>
+        </div>
 
-      <ion-col
-       
+        <div class="lg-actions" *ngIf="!g.estaAnulado && !g.estaCerrada">
+          <ion-button size="small" fill="solid" color="primary" (click)="editarGasto(g)">
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Editar
+          </ion-button>
+          <ion-button size="small" fill="outline" color="danger" (click)="anularGasto(g)">
+            <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <ion-badge *ngIf="g.estaAnulado" color="medium">Anulado</ion-badge>
+      </article>
+    </div>
+  </div>
 
-size="12"
-size-sm="6"
-size-md="4"
-size-lg="2.4"
-       
-        
-        *ngFor="let g of gastosFiltrados; trackBy: trackById">
-
-        <ion-card class="gasto-card">
-          <ion-card-header>
-            <ion-card-title class="ion-text-center">
-              {{ g.tipoGasto || 'Sin tipo' }} - {{ g.monto | currency }}
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-            <p>
-              <ion-icon name="cash-outline"></ion-icon>
-              <strong>Origen:</strong> {{ g.formaPago || g.orien || '—' }}
-            </p>
-
-            <p *ngIf="g.referencia">
-              <ion-icon name="document-outline"></ion-icon>
-              <strong>Referencia:</strong> {{ g.referencia }}
-            </p>
-
-            <p>
-              <ion-icon name="document-text-outline"></ion-icon>
-              <strong>Detalle:</strong> {{ g.detalle || '—' }}
-            </p>
-
-            <p>
-              <ion-icon name="calendar-outline"></ion-icon>
-              <strong>Fecha:</strong> {{ g.fechaInseccion | date:'dd/MM/yyyy' }}
-            </p>
-
-            <div class="acciones">
-              <ion-button
-                size="small"
-                color="primary"
-                (click)="editarGasto(g)"
-                [disabled]="g.estaAnulado || g.estaCerrada">
-                <ion-icon slot="start" name="create-outline"></ion-icon>
-                Editar
-              </ion-button>
-
-              <ion-button
-                size="small"
-                color="danger"
-                (click)="anularGasto(g)"
-                [disabled]="g.estaAnulado || g.estaCerrada">
-                <ion-icon slot="start" name="ban-outline"></ion-icon>
-                Anular
-              </ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
-      </ion-col>
-
-    </ion-row>
-  </ion-grid>
-
-  <!-- Botón flotante -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="secondary" (click)="abrirModalNuevoGasto()">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-above-ai">
+    <ion-fab-button color="warning" (click)="abrirModalNuevoGasto()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
-
 </ion-content>
 
-<!-- 📌 Footer con total -->
-<ion-footer>
-  <ion-toolbar color="light">
-    <ion-title class="ion-text-end">
-      Total:
-      <strong style="color: var(--ion-color-primary); font-size: 1.2rem;">
-        {{ totalGastos | currency }}
-      </strong>
-    </ion-title>
-  </ion-toolbar>
+<ion-footer class="lg-footer">
+  <div class="lg-footer-inner">
+    <span>Total del período</span>
+    <strong>{{ totalGastos | currency }}</strong>
+  </div>
 </ion-footer>
