@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { ParametroConfigService } from '../servicios/parametrosconfig.service';
 import { ParametrosService } from '../servicios/parametros.service';
 import { ProduccionService } from '../servicios/produccion.service';
 import {
@@ -15,6 +16,7 @@ import {
   calcularSemaforoCliente,
   claseSemaforo,
   columnasTablero,
+  etiquetaEstadoFlujo,
   etiquetaSemaforo,
   formatearDuracion,
   metricasTiempoCliente,
@@ -44,6 +46,8 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   filtroTexto = '';
   filtroPrioridad = '';
   mute = false;
+  /** Parámetro NotificacionVehiculo: anuncia por voz al pasar a Lista. */
+  notificacionVehiculo = false;
   ahoraMs = Date.now();
 
   historialAbierto = false;
@@ -61,9 +65,11 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   private tickTimer?: ReturnType<typeof setInterval>;
   private subs: Subscription[] = [];
   private audioCtx?: AudioContext;
+  private anuncioSeq = 0;
 
   constructor(
     private params: ParametrosService,
+    private parametroConfig: ParametroConfigService,
     private produccion: ProduccionService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
@@ -77,6 +83,8 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
       this.params.IdUsuario || localStorage.getItem('IdUsuario') || 0
     );
     this.mute = localStorage.getItem(MUTE_KEY) === '1';
+    this.precargarVoces();
+    this.cargarFlagNotificacionVehiculo();
 
     if (!this.idEmpresa) {
       this.loading = false;
@@ -108,6 +116,8 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.tickTimer) clearInterval(this.tickTimer);
     this.subs.forEach(s => s.unsubscribe());
+    this.anuncioSeq++;
+    try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
     void this.produccion.stopRealtime();
   }
 
@@ -128,6 +138,7 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   }
 
   async refrescar(): Promise<void> {
+    this.cargarFlagNotificacionVehiculo();
     await this.hydrate(false);
     await this.cargarMeta();
   }
@@ -194,7 +205,7 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
     if (next.codigo === 'EN_PREPARACION') return 'Iniciar';
     if (next.codigo === 'LISTA') return 'Marcar lista';
     if (next.codigo === 'ENTREGADA') return 'Entregar';
-    return `Pasar a ${next.nombreVisible}`;
+    return `Pasar a ${etiquetaEstadoFlujo(next.codigo, next.nombreVisible)}`;
   }
 
   etiquetaTipoOrden(raw: string | null | undefined): string {
@@ -220,6 +231,9 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
         idUsuario: this.idUsuario
       }));
       this.produccion.aplicarTrabajoLocal(updated);
+      if (next.codigo === 'LISTA') {
+        this.anunciarVehiculoListo(updated || t);
+      }
       await this.cargarResumen();
     } catch (err) {
       await this.handleAccionError(err);
@@ -358,6 +372,120 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
       this.playNuevoTrabajo();
       void this.cargarResumen();
     }
+  }
+
+  private cargarFlagNotificacionVehiculo(): void {
+    if (!this.idEmpresa) return;
+    this.parametroConfig.getParametrosEmpresa(this.idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find(x =>
+          String(x.clave || '').trim().toLowerCase() === 'notificacionvehiculo'
+        );
+        const valor = String(p?.valor ?? '').trim().toLowerCase();
+        this.notificacionVehiculo = valor === 'true' || valor === '1';
+      },
+      error: () => {
+        this.notificacionVehiculo = false;
+      }
+    });
+  }
+
+  private precargarVoces(): void {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      synth.getVoices();
+      synth.onvoiceschanged = () => synth.getVoices();
+    } catch { /* ignore */ }
+  }
+
+  private anunciarVehiculoListo(t: ProduccionTrabajo): void {
+    if (!this.notificacionVehiculo) return;
+    const nombre = (t?.nombreVisible || '').trim();
+    if (!nombre) return;
+    const texto = `${this.nombreParaVoz(nombre)}. Su vehículo está listo.`;
+    const seq = ++this.anuncioSeq;
+    void this.hablarConRepeticion(texto, seq);
+  }
+
+  private async hablarConRepeticion(texto: string, seq: number): Promise<void> {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      await this.esperarVoces(synth);
+      if (seq !== this.anuncioSeq) return;
+      synth.cancel();
+      const primero = this.crearUtterance(texto);
+      primero.onend = () => {
+        if (seq !== this.anuncioSeq) return;
+        setTimeout(() => {
+          if (seq !== this.anuncioSeq || !this.notificacionVehiculo) return;
+          synth.speak(this.crearUtterance(texto));
+        }, 1000);
+      };
+      synth.speak(primero);
+    } catch { /* ignore */ }
+  }
+
+  private esperarVoces(synth: SpeechSynthesis): Promise<void> {
+    if ((synth.getVoices() || []).length) return Promise.resolve();
+    return new Promise(resolve => {
+      const done = () => resolve();
+      const timer = setTimeout(done, 400);
+      synth.onvoiceschanged = () => {
+        clearTimeout(timer);
+        done();
+      };
+    });
+  }
+
+  private crearUtterance(texto: string): SpeechSynthesisUtterance {
+    const utter = new SpeechSynthesisUtterance(texto);
+    const voz = this.vozLatina(window.speechSynthesis?.getVoices() || []);
+    utter.voice = voz || null;
+    utter.lang = voz?.lang || 'es-MX';
+    utter.rate = 0.92;
+    utter.pitch = 1.05;
+    return utter;
+  }
+
+  private nombreParaVoz(raw: string): string {
+    return raw
+      .trim()
+      .toLowerCase()
+      .replace(/(^|\s)\S/g, c => c.toUpperCase());
+  }
+
+  /** Prefiere acento latino (MX/US/Caribe). Evita español de España. */
+  private vozLatina(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+    const ranked = (voices || [])
+      .map(v => ({ v, score: this.puntajeVozLatina(v) }))
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+    return ranked[0]?.v;
+  }
+
+  private puntajeVozLatina(v: SpeechSynthesisVoice): number {
+    const lang = (v.lang || '').toLowerCase().replace('_', '-');
+    const name = (v.name || '').toLowerCase();
+    const blob = `${lang} ${name}`;
+
+    if (/\ben[-_]|english|inglés/.test(blob) && !/español|spanish/.test(blob)) return 0;
+    if (/españa|spain|helena|pablo|es-es/.test(blob)) return 15;
+
+    let score = 40;
+    if (/es-do|dominican|dominic|ramona|emilio/.test(blob)) score = 100;
+    else if (/sabina|raul/.test(name)) score = 92;
+    else if (/es-mx|méxico|mexico|mexican/.test(blob)) score = 88;
+    else if (/es-us|estados unidos/.test(blob)) score = 82;
+    else if (/es-pr|es-cu|es-co|es-ve|es-pa|latino|latina/.test(blob)) score = 80;
+    else if (/es-ar|es-cl|es-pe|es-gt|es-hn|es-ni|es-sv|es-uy/.test(blob)) score = 72;
+    else if (lang.startsWith('es') || /español|spanish/.test(blob)) score = 45;
+    else return 0;
+
+    if (/natural|neural|online/.test(name)) score += 8;
+    if (/female|mujer|sabina|dalia|catalina|laura|monica|paulina/.test(name)) score += 3;
+    return score;
   }
 
   private playNuevoTrabajo(): void {

@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Configurar Alahia AI</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="irAlChat()">Chat</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ai-cfg">
+  <div class="ai-cfg__wrap" *ngIf="!loading">
+    <p class="ai-cfg__lead">
+      Cada empresa usa su propio proveedor y API key. La clave se guarda cifrada
+      y nunca se vuelve a mostrar.
+    </p>
+
+    <label class="ai-cfg__field">
+      <span>Proveedor</span>
+      <select [(ngModel)]="provider">
+        <option *ngFor="let p of providers" [value]="p.id">{{ p.label }}</option>
+      </select>
+    </label>
+
+    <label class="ai-cfg__field">
+      <span>Modelo</span>
+      <input type="text" [(ngModel)]="model" placeholder="gpt-4o-mini" />
+    </label>
+
+    <label class="ai-cfg__field">
+      <span>Base URL (opcional)</span>
+      <input type="text" [(ngModel)]="baseUrl" placeholder="https://api.openai.com/v1" />
+    </label>
+
+    <label class="ai-cfg__field">
+      <span>API Key {{ hasApiKey ? '(ya hay una guardada — deja vacío para no cambiarla)' : '' }}</span>
+      <input type="password" [(ngModel)]="apiKey" autocomplete="new-password" placeholder="sk-..." />
+    </label>
+
+    <label class="ai-cfg__check">
+      <input type="checkbox" [(ngModel)]="activo" />
+      <span>IA activa para esta empresa</span>
+    </label>
+
+    <label class="ai-cfg__check" *ngIf="hasApiKey">
+      <input type="checkbox" [(ngModel)]="clearApiKey" />
+      <span>Eliminar API key guardada</span>
+    </label>
+
+    <button type="button" class="ai-cfg__save" [disabled]="saving" (click)="guardar()">
+      {{ saving ? 'Guardando…' : 'Guardar configuración' }}
+    </button>
+  </div>
+
+  <div class="ai-cfg__wrap" *ngIf="loading">
+    <p>Cargando…</p>
+  </div>
+</ion-content>

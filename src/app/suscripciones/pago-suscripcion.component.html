@@ -111,12 +111,12 @@
           <span class="ps-step ps-step--sky">2</span>
           <div>
             <h2>Comprobante</h2>
-            <p class="ps-hint">Solo adjunte el voucher. Banco y referencia se ven en el volante.</p>
+            <p class="ps-hint">Foto clara del voucher (JPG/PNG). El sistema lee el monto automáticamente.</p>
           </div>
         </div>
         <label class="ps-file" [class.ps-file--ok]="!!archivo">
-          <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
-          <span *ngIf="!archivo">Adjuntar imagen o PDF</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/*" (change)="onFile($event)" />
+          <span *ngIf="!archivo">Adjuntar foto del voucher</span>
           <span *ngIf="archivo">{{ archivo.name }}</span>
         </label>
         <button

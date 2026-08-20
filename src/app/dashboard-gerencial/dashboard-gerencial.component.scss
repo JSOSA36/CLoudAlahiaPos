@@ -349,7 +349,7 @@
 }
 
 .detail-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 /* ========== CARDS ========== */
@@ -527,6 +527,156 @@
   color: #475569;
 }
 
+/* ========== COMISIONES DESTACADAS ========== */
+.dg-comisiones-destacadas {
+  margin-top: -6px;
+  margin-bottom: 22px;
+}
+
+.dg-comisiones-panel {
+  background:
+    linear-gradient(180deg, #fffdf5 0%, #ffffff 42%),
+    #fff;
+  border: 2px solid var(--dg-yellow);
+  border-radius: 18px;
+  box-shadow:
+    0 12px 28px rgba(20, 84, 184, 0.12),
+    0 0 0 1px rgba(251, 185, 1, 0.25);
+  overflow: hidden;
+}
+
+.dg-comisiones-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 84, 184, 0.08) 0%,
+    rgba(251, 185, 1, 0.18) 100%
+  );
+  border-bottom: 1px solid rgba(251, 185, 1, 0.45);
+}
+
+.dg-comisiones-eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dg-blue);
+}
+
+.dg-comisiones-title h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 900;
+  color: var(--dg-blue-dark);
+  letter-spacing: -0.02em;
+}
+
+.dg-comisiones-sub {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--dg-muted);
+}
+
+.dg-comisiones-total {
+  flex-shrink: 0;
+  min-width: 160px;
+  text-align: right;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--dg-blue) 0%,
+    var(--dg-blue-dark) 100%
+  );
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(20, 84, 184, 0.28);
+
+  span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dg-yellow);
+    margin-bottom: 2px;
+  }
+
+  strong {
+    font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+}
+
+.dg-comisiones-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 12px;
+  gap: 6px;
+}
+
+.dg-comision-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--dg-border);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.dg-comision-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+  border-color: rgba(251, 185, 1, 0.55);
+}
+
+.dg-comision-rank {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: var(--dg-blue-dark);
+  background: var(--dg-yellow-soft);
+  border: 1.5px solid var(--dg-yellow);
+}
+
+.dg-comision-rank[data-rank='1'] {
+  background: var(--dg-yellow);
+  color: #0f172a;
+  border-color: var(--dg-yellow-deep);
+}
+
+.dg-comision-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--dg-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-comision-monto {
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-weight: 900;
+  color: var(--dg-blue);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+
 .flujo-neto strong.positiva { color: var(--dg-blue-dark); }
 .flujo-neto strong.negativa { color: var(--dg-danger); }
 
@@ -567,7 +717,7 @@
   text-align: center;
 }
 
-.er-step[data-tipo='resta'] .er-sign { color: var(--dg-danger); }
+.er-step[data-tipo='resta'] .er-sign { color: #546e7a; }
 .er-step[data-tipo='suma'] .er-sign { color: var(--dg-blue); }
 
 .er-montos {
@@ -716,6 +866,20 @@
 
   .dg-card.kpi {
     min-height: 96px;
+  }
+
+  .dg-comisiones-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dg-comisiones-total {
+    text-align: left;
+    min-width: 0;
+  }
+
+  .dg-comision-name {
+    font-size: 0.98rem;
   }
 
   .chart-card {

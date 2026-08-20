@@ -1,0 +1,17 @@
+<div class="ns-backdrop" (click)="cerrar.emit()">
+  <div class="ns-modal" role="dialog" aria-modal="true" [attr.data-nivel]="nivelNormalizado" (click)="$event.stopPropagation()">
+    <header class="ns-banner">
+      <div class="ns-badge">
+        <ion-icon [name]="icono" aria-hidden="true"></ion-icon>
+      </div>
+      <div class="ns-banner-text">
+        <p>Nivel de soporte</p>
+        <h2>{{ etiqueta }}</h2>
+      </div>
+      <button type="button" class="ns-close" (click)="cerrar.emit()" aria-label="Cerrar">×</button>
+    </header>
+    <ul>
+      <li *ngFor="let item of items">{{ item }}</li>
+    </ul>
+  </div>
+</div>

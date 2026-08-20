@@ -1,0 +1,148 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Expediente laboral</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Expediente laboral</h1>
+        <p class="sub">El empleado se asigna a un departamento y a un cargo. Salario, horario y beneficios salen del cargo; no se editan aquí.</p>
+      </div>
+      <div class="hero-actions" *ngIf="idEmpleados">
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : 'Guardar asignación' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Empleado</p>
+          <h2>Seleccione el colaborador</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Empleado</span>
+          <select [(ngModel)]="idEmpleados" name="idEmpleados" (change)="onEmpleadoChange()">
+            <option [ngValue]="0">Seleccione…</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleados">{{ e.nombre }}</option>
+          </select>
+        </label>
+      </div>
+      <p class="empty" *ngIf="!idEmpleados">Elija un empleado para asignarle departamento y cargo.</p>
+    </section>
+
+    <section class="panel" *ngIf="idEmpleados">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Asignación</p>
+          <h2>Organización y puesto</h2>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-outline" (click)="ir('/rrhh-departamentos')">Departamentos</button>
+          <button type="button" class="btn btn-outline" (click)="ir('/rrhh-cargos')">Cargos</button>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Departamento</span>
+          <select [(ngModel)]="laboral.idDepartamento" name="idDepartamento">
+            <option [ngValue]="null">Seleccione…</option>
+            <option *ngFor="let d of departamentos" [ngValue]="d.idDepartamento">{{ d.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Cargo</span>
+          <select [(ngModel)]="laboral.idCargo" name="idCargo" (change)="onCargoChange()">
+            <option [ngValue]="null">Seleccione…</option>
+            <option *ngFor="let c of cargos" [ngValue]="c.idCargo">{{ c.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Tipo</span>
+          <select [(ngModel)]="laboral.tipoEmpleado" name="tipoEmpleado">
+            <option value="FIJO">Fijo</option>
+            <option value="TEMPORAL">Temporal</option>
+            <option value="POR_HORA">Por hora</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Fecha de ingreso</span>
+          <input type="date" [(ngModel)]="laboral.fechaIngreso" name="fechaIngreso" />
+        </label>
+        <label class="field">
+          <span>Estado laboral</span>
+          <select [(ngModel)]="laboral.estadoLaboral" name="estadoLaboral">
+            <option value="ACTIVO">Activo</option>
+            <option value="INACTIVO">Inactivo</option>
+            <option value="SUSPENDIDO">Suspendido</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Correo para recibo de nómina</span>
+          <input type="email" [(ngModel)]="laboral.correo" name="correoLaboral" placeholder="colaborador@empresa.com" />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="idEmpleados && laboral.paqueteCargo">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Paquete del cargo</p>
+          <h2>{{ laboral.paqueteCargo.nombre }}</h2>
+        </div>
+        <button type="button" class="btn btn-outline" (click)="ir('/rrhh-beneficios')">Beneficios</button>
+      </div>
+      <div class="pkg">
+        <div class="pkg-item">
+          <span>Salario mensual</span>
+          <strong>{{ laboral.paqueteCargo.moneda }} {{ laboral.paqueteCargo.salarioBase | number:'1.2-2' }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Frecuencia</span>
+          <strong>{{ laboral.paqueteCargo.frecuenciaPago }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Horario del cargo</span>
+          <strong>{{ laboral.paqueteCargo.resumenHorario || laboral.paqueteCargo.nombreJornada || 'Sin horario' }}</strong>
+        </div>
+      </div>
+      <div class="table-wrap" *ngIf="laboral.paqueteCargo.dias?.length" style="margin-top: 0.85rem;">
+        <table class="rrhh-table">
+          <thead>
+            <tr><th>Día</th><th>Entrada</th><th>Salida</th><th>Receso</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of laboral.paqueteCargo.dias">
+              <td>{{ ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][d.diaSemana] }}</td>
+              <td>{{ d.esLaborable ? d.horaEntrada : 'Descanso' }}</td>
+              <td>{{ d.esLaborable ? d.horaSalida : '—' }}</td>
+              <td>{{ d.esLaborable && d.recesoInicio ? (d.recesoInicio + '–' + d.recesoFin) : '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="panel-eyebrow" style="margin-top: 1rem;">Beneficios incluidos</p>
+      <div class="pills" *ngIf="laboral.paqueteCargo.beneficios?.length">
+        <span class="pill" *ngFor="let b of laboral.paqueteCargo.beneficios">
+          {{ b.nombre }}
+          <ng-container *ngIf="b.tipoCalculo === 'DESCUENTO_CONSUMO'"> · {{ b.monto }}% consumo</ng-container>
+          <ng-container *ngIf="b.tipoCalculo === 'PORCENTAJE_SALARIO'"> · {{ b.monto }}%</ng-container>
+          <ng-container *ngIf="b.tipoCalculo !== 'PORCENTAJE_SALARIO' && b.tipoCalculo !== 'DESCUENTO_CONSUMO'"> · {{ b.monto | number:'1.2-2' }}</ng-container>
+          <ng-container *ngIf="b.formaDesembolso === 'PAGO_APARTE'"> · día {{ b.diaPagoMes }}</ng-container>
+          <ng-container *ngIf="b.formaDesembolso !== 'PAGO_APARTE' && b.formaDesembolso !== 'NINGUNO'"> · con nómina</ng-container>
+        </span>
+      </div>
+      <p class="muted" *ngIf="!laboral.paqueteCargo.beneficios?.length">Este cargo no tiene beneficios asignados.</p>
+    </section>
+  </div>
+</ion-content>

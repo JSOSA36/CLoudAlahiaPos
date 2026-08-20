@@ -54,14 +54,25 @@ export class UsuarioformComponent implements OnInit {
     });
 
     if (this.usuario) {
-      this.empleadoIdEdicion =
-        this.usuario.idEmpleado ?? this.usuario.empleado?.idEmpleados;
+      this.empleadoIdEdicion = Number(
+        this.usuario.idEmpleado
+          ?? this.usuario.idEmpleados
+          ?? this.usuario.empleado?.idEmpleados
+          ?? this.usuario.empleado?.idEmpleado
+          ?? 0
+      ) || null;
 
-      this.perfilIdEdicion =
-        this.usuario.idPerfil ?? this.usuario.perfil?.idPerfil;
+      this.perfilIdEdicion = Number(
+        this.usuario.idPerfil
+          ?? this.usuario.perfil?.idPerfil
+          ?? this.usuario.perfil?.IdPerfil
+          ?? 0
+      ) || null;
 
       this.form.patchValue({
         correo: this.usuario.correo,
+        idEmpleados: this.empleadoIdEdicion,
+        idPerfil: this.perfilIdEdicion,
         activo: this.usuario.activo ?? this.usuario.estado,
         puedeEliminarOrden: this.usuario.puedeEliminarOrden || false,
         puedeEliminarItemCarrito: this.usuario.puedeEliminarItemCarrito || false,
@@ -89,7 +100,7 @@ compareById = (a: any, b: any) => {
         console.log('Empleados cargados:', res);
         this.empleados = res || [];
         if (this.empleadoIdEdicion) {
-          this.form.patchValue({ idEmpleado: this.empleadoIdEdicion });
+          this.form.patchValue({ idEmpleados: this.empleadoIdEdicion });
         }
       });
   }
@@ -98,9 +109,13 @@ compareById = (a: any, b: any) => {
     this.perfilesSrv
       .getPerfiles(this.parametrosSrv.IdEmpresa)
       .subscribe(res => {
-        this.perfiles = res || [];
+        this.perfiles = (res || []).map((p: any) => ({
+          ...p,
+          idPerfil: Number(p?.idPerfil ?? p?.IdPerfil ?? 0),
+          nombre: p?.nombre ?? p?.Nombre ?? ''
+        }));
         if (this.perfilIdEdicion) {
-          this.form.patchValue({ idPerfil: this.perfilIdEdicion });
+          this.form.patchValue({ idPerfil: Number(this.perfilIdEdicion) });
         }
       });
   }
@@ -109,7 +124,7 @@ compareById = (a: any, b: any) => {
 
   this.form.markAllAsTouched();
 
-  if (this.form.invalid) {
+  if (this.form.invalid || !Number(this.form.value.idPerfil) || !Number(this.form.value.idEmpleados)) {
     this.toast('Complete los campos obligatorios ❌');
     return;
   }
@@ -123,14 +138,17 @@ compareById = (a: any, b: any) => {
 
   await loading.present();
 
+  const idUsuario =
+    this.usuario?.idUsuario ??
+    this.usuario?.idusuario ??
+    null;
+
   const payload: any = {
     IdEmpresa: this.parametrosSrv.IdEmpresa,
-    idusuario:
-      this.usuario?.idUsuario ??
-      this.usuario?.idusuario ??
-      null,
-    idEmpleado: this.form.value.idEmpleados,
-    idPerfil: this.form.value.idPerfil,
+    idusuario: idUsuario,
+    idUsuario,
+    idEmpleado: Number(this.form.value.idEmpleados) || 0,
+    idPerfil: Number(this.form.value.idPerfil) || 0,
     correo: this.form.value.correo,
     userName: this.form.value.correo,
     activo: this.form.value.activo,
@@ -161,7 +179,7 @@ compareById = (a: any, b: any) => {
           : 'Usuario creado correctamente ✅');
 
       this.toast(mensajeServidor);
-
+      this.sincronizarSesionSiEsUsuarioActual(payload);
       this.modalCtrl.dismiss(true);
     },
 
@@ -188,6 +206,35 @@ compareById = (a: any, b: any) => {
 
   cerrar() {
     this.modalCtrl.dismiss(false);
+  }
+
+  /** Si se cambió el perfil del usuario logueado, el menú debe recargarse ya. */
+  private sincronizarSesionSiEsUsuarioActual(payload: any): void {
+    const idUsuario = Number(payload?.idusuario ?? payload?.idUsuario ?? 0);
+    if (!idUsuario || idUsuario !== Number(this.parametrosSrv.IdUsuario)) return;
+
+    const idPerfil = Number(payload?.idPerfil ?? 0);
+    const perfil = this.perfiles.find(
+      (p: any) => Number(p?.idPerfil ?? p?.IdPerfil) === idPerfil
+    );
+    const nombrePerfil = String(perfil?.nombre ?? perfil?.Nombre ?? '');
+
+    this.parametrosSrv.IdPerfil = idPerfil;
+    this.parametrosSrv.Rol = nombrePerfil;
+    localStorage.setItem('IdPerfil', String(idPerfil));
+
+    try {
+      const raw = localStorage.getItem('usuario');
+      const u = raw ? JSON.parse(raw) : {};
+      u.idPerfil = idPerfil;
+      u.IdPerfil = idPerfil;
+      u.nombrePerfil = nombrePerfil;
+      localStorage.setItem('usuario', JSON.stringify(u));
+    } catch {
+      /* ignore */
+    }
+
+    this.parametrosSrv.sessionStarted$.next();
   }
 
   private async toast(msg: string) {

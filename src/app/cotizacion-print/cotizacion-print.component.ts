@@ -1,17 +1,14 @@
 import {
   Component,
-  ElementRef,
   Input,
-  OnInit,
-  ViewChild
+  OnInit
 } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { EmpresaDto } from '../models/empresadto.models';
 import { FacturaHeaderService } from '../servicios/factura-header.service';
 import { ParametrosService } from '../servicios/parametros.service';
+import { descargarCotizacionPdf } from './cotizacion-pdf';
 @Component({
   selector: 'app-cotizacion-print',
   templateUrl: './cotizacion-print.component.html',
@@ -19,12 +16,10 @@ import { ParametrosService } from '../servicios/parametros.service';
 })
 export class CotizacionPrintComponent implements OnInit {
 
-  @ViewChild('cotizacionPage')
-  cotizacionPage?: ElementRef<HTMLElement>;
-
   @Input() cotizacion: any;
   @Input() empresa?: EmpresaDto;
   @Input() nombreEmpresa = '';
+  @Input() autoImprimir = false;
 
   fechaValidez = new Date();
   exportandoPdf = false;
@@ -44,20 +39,43 @@ export class CotizacionPrintComponent implements OnInit {
 
     this.fechaValidez = new Date(base);
     this.fechaValidez.setDate(this.fechaValidez.getDate() + 15);
+
+    if (this.autoImprimir) {
+      setTimeout(() => window.print(), 250);
+    }
   }
 
   get nombreComercial(): string {
     return (
-      this.empresa?.nombreComercial ||
+      this.campoEmpresa('nombreComercial') ||
       this.nombreEmpresa ||
       'Mi Empresa'
     );
   }
 
-  /** Solo si la empresa tiene logo propio (ruta/URL real). */
-  get mostrarLogo(): boolean {
-    const url = (this.empresa?.logoUrl || this.empresa?.logo || '').trim();
-    return !!url && !/assets\/logo\.png/i.test(url);
+  get direccionEmpresa(): string {
+    return this.campoEmpresa('direccion') || this.campoEmpresa('Direccion');
+  }
+
+  get telefonoEmpresa(): string {
+    return this.campoEmpresa('telefono') || this.campoEmpresa('Telefono');
+  }
+
+  get rncEmpresa(): string {
+    return this.campoEmpresa('rnc') || this.campoEmpresa('RNC') || this.campoEmpresa('Rnc');
+  }
+
+  get correoEmpresa(): string {
+    return (
+      this.campoEmpresa('correElectronico') ||
+      this.campoEmpresa('CorreElectronico') ||
+      this.campoEmpresa('email')
+    );
+  }
+
+  private campoEmpresa(campo: string): string {
+    const v = (this.empresa as any)?.[campo];
+    return v != null && String(v).trim() ? String(v).trim() : '';
   }
 
   get numeroDocumento(): string {
@@ -75,6 +93,63 @@ export class CotizacionPrintComponent implements OnInit {
     }
 
     return '—';
+  }
+
+  get clienteNombre(): string {
+    return (
+      this.datoCliente('nombreComercial') ||
+      this.cotizacion?.nombreCuenta ||
+      this.cotizacion?.NombreCuenta ||
+      'Al Portador'
+    );
+  }
+
+  get clienteTelefono(): string {
+    return (
+      this.datoCliente('celular') ||
+      this.datoCliente('Celular') ||
+      this.datoCliente('telefono') ||
+      this.datoCliente('Telefono') ||
+      ''
+    );
+  }
+
+  get clienteRnc(): string {
+    return (
+      this.datoCliente('cedulaRNC') ||
+      this.datoCliente('CedulaRNC') ||
+      this.datoCliente('rnc') ||
+      this.cotizacion?.rnc ||
+      this.cotizacion?.RNC ||
+      ''
+    );
+  }
+
+  get clienteDireccion(): string {
+    return (
+      this.datoCliente('direccion') ||
+      this.datoCliente('Direccion') ||
+      ''
+    );
+  }
+
+  get clienteCorreo(): string {
+    return (
+      this.datoCliente('email') ||
+      this.datoCliente('Email') ||
+      this.datoCliente('correo') ||
+      ''
+    );
+  }
+
+  /** Lee del cliente anidado o del header plano. */
+  private datoCliente(campo: string): string {
+    const c = this.cotizacion?.clientes || this.cotizacion?.Clientes;
+    const v = c?.[campo];
+    if (v != null && String(v).trim()) {
+      return String(v).trim();
+    }
+    return '';
   }
 
   private get detalles(): any[] {
@@ -173,11 +248,11 @@ export class CotizacionPrintComponent implements OnInit {
   }
 
   imprimir(): void {
-    window.print();
+    setTimeout(() => window.print(), 50);
   }
 
   async exportarPdf(): Promise<void> {
-    await this.generarYDescargarPdf();
+    this.emitir('download');
   }
 
   async copiarLink(): Promise<void> {
@@ -254,135 +329,51 @@ export class CotizacionPrintComponent implements OnInit {
     return this.facturaHeader.buildLinkCotizacionPublica(res);
   }
 
-  private async generarYDescargarPdf(): Promise<void> {
+  private emitir(modo: 'download' | 'open'): void {
+    if (!this.cotizacion) {
+      return;
+    }
     try {
       this.exportandoPdf = true;
-
-      const { blob, fileName } =
-        await this.generarPdfBlob();
-
-      this.descargarBlob(blob, fileName);
-
-      await this.mostrarToast(
-        'PDF exportado correctamente',
-        'success'
-      );
-    } catch (err) {
-      console.error('Error exportando PDF:', err);
-      await this.mostrarToast(
-        'No se pudo exportar el PDF',
-        'danger'
-      );
+      descargarCotizacionPdf({
+        empresa: this.nombreComercial,
+        direccion: this.direccionEmpresa,
+        telefono: this.telefonoEmpresa,
+        rnc: this.rncEmpresa,
+        correo: this.correoEmpresa,
+        notaEmpresa: this.empresa?.nota,
+        numero: this.numeroDocumento,
+        fecha: this.cotizacion?.fechaInseccion,
+        hora: this.cotizacion?.hora,
+        validez: this.fechaValidez,
+        cliente: this.clienteNombre,
+        clienteTelefono: this.clienteTelefono,
+        clienteRnc: this.clienteRnc,
+        clienteDireccion: this.clienteDireccion,
+        clienteCorreo: this.clienteCorreo,
+        nota: this.cotizacion?.nota,
+        lineas: this.detalles.map((item: any) => ({
+          descripcion: this.nombreProducto(item),
+          cantidad: Number(item.cantidad ?? item.Cantidad ?? 0),
+          precio: Number(item.precioOferta ?? item.PrecioOferta ?? 0),
+          itbis: Number(item.itbis ?? item.Itbis ?? 0),
+          total: Number(item.subTotal ?? item.SubTotal ?? 0)
+        })),
+        subtotal: this.subtotal,
+        itbis: this.itbis,
+        descuento: this.descuento,
+        mostrarDescuento: this.mostrarDescuento,
+        total: this.total,
+        modo
+      });
+      if (modo === 'download') {
+        this.mostrarToast('PDF exportado correctamente', 'success');
+      }
+    } catch {
+      this.mostrarToast('No se pudo exportar el PDF', 'danger');
     } finally {
       this.exportandoPdf = false;
     }
-  }
-
-  private async generarPdfBlob(): Promise<{
-    blob: Blob;
-    fileName: string;
-  }> {
-    const element =
-      this.cotizacionPage?.nativeElement ||
-      document.querySelector('.cotizacion-page');
-
-    if (!element) {
-      throw new Error('No se encontró la cotización para exportar');
-    }
-
-    const pageEl = element as HTMLElement;
-    const ionContent = pageEl.closest('ion-content') as HTMLElement | null;
-
-    pageEl.classList.add('pdf-capture');
-
-    if (ionContent) {
-      ionContent.scrollTop = 0;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 80));
-
-    try {
-      const canvas = await html2canvas(pageEl, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: pageEl.scrollWidth,
-        height: pageEl.scrollHeight,
-        windowWidth: pageEl.scrollWidth,
-        windowHeight: pageEl.scrollHeight
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'letter');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const marginMm = 12;
-      const contentWidth = pageWidth - marginMm * 2;
-      const contentHeight = pageHeight - marginMm * 2;
-      const imgHeight = (canvas.height * contentWidth) / canvas.width;
-
-      if (imgHeight <= contentHeight) {
-        pdf.addImage(
-          imgData,
-          'PNG',
-          marginMm,
-          marginMm,
-          contentWidth,
-          imgHeight
-        );
-      } else {
-        let heightLeft = imgHeight;
-        let position = 0;
-
-        pdf.addImage(
-          imgData,
-          'PNG',
-          marginMm,
-          marginMm + position,
-          contentWidth,
-          imgHeight
-        );
-        heightLeft -= contentHeight;
-
-        while (heightLeft > 2) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(
-            imgData,
-            'PNG',
-            marginMm,
-            marginMm + position,
-            contentWidth,
-            imgHeight
-          );
-          heightLeft -= contentHeight;
-        }
-      }
-
-      const fileName =
-        `Cotizacion-${this.numeroDocumento.replace(/[^\w.-]+/g, '_')}.pdf`;
-
-      const pdfBytes = pdf.output('arraybuffer');
-
-      return {
-        blob: new Blob([pdfBytes], { type: 'application/pdf' }),
-        fileName
-      };
-    } finally {
-      pageEl.classList.remove('pdf-capture');
-    }
-  }
-
-  private descargarBlob(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = fileName;
-    link.click();
-
-    URL.revokeObjectURL(url);
   }
 
   private async mostrarToast(

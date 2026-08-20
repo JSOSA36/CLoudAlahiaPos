@@ -24,21 +24,36 @@
             <img src="/assets/alahia-logo.png" alt="Alahia" />
           </div>
           <div class="menu-titles">
-            <h2 class="app-title">AlahiaPos</h2>
+            <h2 class="app-title">Alahia ERP</h2>
             <h3 class="empresa-nombre">{{ _Parametro.NombreEmpresa }}</h3>
-            <p class="usuario-info">{{ _Parametro.Rol }} — {{ _Parametro.UserName }}</p>
+            <p class="usuario-info">{{ _Parametro.UserName }}</p>
           </div>
-          <div class="plan-info">
-            <ion-badge [color]="getPlanColor(_Parametro.nombrePlan)">
-              {{ _Parametro?.nombrePlan || 'Plan Demo' }}
-            </ion-badge>
-            <p class="plan-desc">
-              {{
-                (_Parametro?.nombrePlan === 'Demo' || !_Parametro?.nombrePlan)
-                  ? 'Gratis por 15 días'
-                  : 'Plan activo'
-              }}
-            </p>
+          <div
+            class="plan-card-menu"
+            *ngIf="_Parametro.IdEmpresa || _Parametro.nombrePlan"
+            [attr.data-nivel]="_Parametro.nivelSoporte">
+            <div class="plan-card-menu__plan">
+              <p class="plan-card-menu__name">{{ _Parametro?.nombrePlan || 'Plan Demo' }}</p>
+              <p class="plan-card-menu__status">
+                {{
+                  (_Parametro?.nombrePlan === 'Demo' || !_Parametro?.nombrePlan)
+                    ? 'Gratis por 15 días'
+                    : 'Plan activo'
+                }}
+              </p>
+            </div>
+            <div class="plan-card-menu__soporte" *ngIf="_Parametro.IdEmpresa">
+              <div class="soporte-menu-main">
+                <span class="soporte-menu-icon-wrap">
+                  <ion-icon [name]="iconoSoporte" class="soporte-menu-icon" aria-hidden="true"></ion-icon>
+                </span>
+                <div class="soporte-menu-text">
+                  <small>Nivel de soporte</small>
+                  <strong>{{ etiquetaSoporte }}</strong>
+                </div>
+              </div>
+              <button type="button" class="btn-ver-soporte-menu" (click)="abrirSoporte($event)">Ver</button>
+            </div>
           </div>
         </div>
       </ion-header>
@@ -110,4 +125,9 @@
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
   <app-alahia-ai-fab></app-alahia-ai-fab>
+  <app-nivel-soporte-modal
+    *ngIf="mostrarSoporte"
+    [nivel]="_Parametro.nivelSoporte"
+    (cerrar)="mostrarSoporte = false">
+  </app-nivel-soporte-modal>
 </ion-app>

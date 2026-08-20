@@ -106,8 +106,10 @@ export class EcfPreviewLauncherService {
         nombre: d.descripcion,
         cantidad: d.cantidad,
         precio: d.precio,
+        itbis: d.itbis || 0,
         subTotal: d.subTotal
       })),
+      subTotal: ticket.subTotal,
       totalItbis: ticket.totalItbis,
       total: ticket.total ?? res?.total
     };

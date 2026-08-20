@@ -34,7 +34,11 @@ export const MODULOS_PERMISO_SIN_MENU: string[] = [
   'PRODUCCION_CONFIG',
   'PRODUCCION_VER',
   'PRODUCCION_REPORTES',
-  'PRODUCCION_REABRIR'
+  'PRODUCCION_REABRIR',
+  'RRHH_CORRECCION',
+  'RRHH_PERMISOS_APROBAR',
+  'RRHH_NOMINA_APROBAR',
+  'RRHH_NOMINA_PAGAR'
 ];
 
 export function esModuloPermisoSinMenu(codigo: string | null | undefined): boolean {
@@ -57,6 +61,13 @@ export const CONTABILIDAD_SUBMODULOS_TITULOS: Record<string, string> = {
   CONTABILIDAD_CIERRE: 'Cierre Contable',
   CONTABILIDAD_CONFIGURACION_INTEGRACION: 'Configuración de Integración'
 };
+
+/** Formatos DGII que un perfil Contabilidad debe ver, aunque no estén tildados uno a uno. */
+export const CONTABILIDAD_REPORTES_FISCALES: string[] = [
+  'REPORTE_607',
+  'REPORTE_606',
+  'IT1'
+];
 
 export const MENU_GRUPOS: MenuGrupoConfig[] = [
   {
@@ -177,6 +188,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     icono: 'file-medical',
     orden: 9,
     modulos: [
+      'FICHA_CLINICA',
       'DOCUMENTOS_CLINICOS',
       'HISTORIAL_SERVICIOS'
     ]
@@ -228,9 +240,9 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     orden: 13,
     modulos: [
       'EMPRESA',
+      'IMPRESION_TERMICA',
       'PARAMETROS',
       'NCF_SECUENCIAS',
-      'EMPLEADOS',
       'USUARIOS',
       'PERFILES',
       'ALAHIA_AI',
@@ -243,6 +255,13 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'TICKETS',
       'TICKETS_ADMIN'
     ]
+  },
+  {
+    id: 'rrhh',
+    titulo: 'RRHH y Nómina',
+    icono: 'user-tie',
+    orden: 8,
+    modulos: ['EMPLEADOS', 'RRHH_DEPARTAMENTOS', 'RRHH_CARGOS', 'RRHH_BENEFICIOS', 'RRHH_LABORAL', 'RRHH_PONCHADOR', 'RRHH_ASISTENCIA', 'RRHH_PERMISOS', 'RRHH_NOMINA']
   }
 ];
 
@@ -257,6 +276,16 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   CUENTAS_FINANCIERAS: 'Bancos y Cuentas Financieras',
   MOVIMIENTOS_FINANCIEROS: 'Libro de movimientos',
   CONCILIACION_BANCARIA: 'Conciliación Bancaria',
+  RRHH_DEPARTAMENTOS: 'Departamentos',
+  EMPLEADOS: 'Empleados',
+  RRHH_CARGOS: 'Cargos',
+  RRHH_BENEFICIOS: 'Beneficios',
+  RRHH_LABORAL: 'Expediente Laboral',
+  RRHH_PONCHADOR: 'Ponchador',
+  RRHH_ASISTENCIA: 'Asistencia',
+  RRHH_PERMISOS: 'Permisos y licencias',
+  RRHH_NOMINA: 'Nómina',
+  FICHA_CLINICA: 'Ficha del paciente',
   TRANSFERENCIAS_FINANCIERAS: 'Transferencias',
   METODO_PAGO_CUENTAS: 'Métodos de pago → cuenta',
   REPORTE_606: 'Formato 606 (Compras)',
@@ -274,6 +303,7 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   POLITICAS_ACEPTACIONES: 'Aceptaciones de Políticas',
   MACROBITS_ADMIN: 'Admin MacroBits',
   EMPRESAS_ADMIN: 'Empresas (alta)',
+  IMPRESION_TERMICA: 'Impresión térmica',
   SUSCRIPCIONES_COBROS: 'Cobros y Suscripciones',
   PAGO_SUSCRIPCION: 'Pago de Suscripción',
   TICKETS: 'Tickets de Soporte',

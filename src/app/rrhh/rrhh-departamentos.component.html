@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Departamentos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Departamentos</h1>
+        <p class="sub">Organización de la empresa. El empleado se asigna a un departamento en el expediente; el cargo no depende de este maestro.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="nuevo()">Nuevo</button>
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : 'Guardar departamento' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Listado</p>
+          <h2>Departamentos registrados</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table list-pick">
+          <thead>
+            <tr><th>Código</th><th>Nombre</th><th>Ubicación</th><th>Responsable</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of listado" [class.sel]="form.idDepartamento === d.idDepartamento" (click)="editar(d)">
+              <td>{{ d.codigo }}</td>
+              <td>{{ d.nombre }}</td>
+              <td>{{ d.ubicacion || '—' }}</td>
+              <td>{{ nombreEmp(d.idResponsable) }}</td>
+              <td class="estado" [ngClass]="d.activo ? 'ACTIVO' : 'RECHAZADA'">{{ d.activo ? 'Activo' : 'Inactivo' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">Aún no hay departamentos. Complete el formulario y guarde.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ form.idDepartamento ? 'Edición' : 'Alta' }}</p>
+          <h2>{{ form.idDepartamento ? 'Datos del departamento' : 'Nuevo departamento' }}</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Código</span>
+          <input [(ngModel)]="form.codigo" name="deptoCodigo" placeholder="Se genera si lo deja vacío" />
+        </label>
+        <label class="field">
+          <span>Nombre</span>
+          <input [(ngModel)]="form.nombre" name="deptoNombre" placeholder="Ej. Operaciones" />
+        </label>
+        <label class="field">
+          <span>Responsable</span>
+          <select [(ngModel)]="form.idResponsable" name="deptoResp">
+            <option [ngValue]="null">Sin asignar</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleados">{{ e.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Ubicación</span>
+          <input [(ngModel)]="form.ubicacion" name="deptoUbic" placeholder="Sucursal, piso, área" />
+        </label>
+        <label class="field">
+          <span>Teléfono</span>
+          <input [(ngModel)]="form.telefono" name="deptoTel" />
+        </label>
+        <label class="field">
+          <span>Correo</span>
+          <input type="email" [(ngModel)]="form.email" name="deptoEmail" />
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="form.descripcion" name="deptoDesc" rows="2"></textarea>
+        </label>
+        <label class="field">
+          <span>Estado</span>
+          <select [(ngModel)]="form.activo" name="deptoAct">
+            <option [ngValue]="true">Activo</option>
+            <option [ngValue]="false">Inactivo</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </div>
+</ion-content>

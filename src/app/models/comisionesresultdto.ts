@@ -4,6 +4,9 @@ export class ComisionesResultDto {
 
   empleados: string = "";
 
+  /** Base sin ITBIS de donde se calculó la comisión. */
+  montoBase: number = 0;
+
   totalComisiones: number = 0;
 
   totalConsumo: number = 0;

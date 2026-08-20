@@ -359,6 +359,8 @@ currency:'DOP':'symbol':'1.2-2' }}
 class="stock-label"
 
 *ngIf="
+  !prod.esServicio &&
+  prod.controlarStock &&
   prod.cantidad > 0
 ">
 
@@ -377,14 +379,14 @@ class="stock-vacio"
 
 *ngIf="
 
-  prod.cantidad <= 0 &&
-
   !prod.esServicio &&
 
-  prod.controlarStock
+  prod.controlarStock &&
+
+  prod.cantidad <= 0
 ">
 
-🔴 No disponible
+No disponible
 
 </div>
 
@@ -446,32 +448,10 @@ class="right-panel"
 
     </div>
 
-    <!-- Resumen + toggle (libera espacio al carrito) -->
-    <button
-      type="button"
-      class="header-summary"
-      (click)="toggleHeaderCarrito()">
-      <div class="header-summary-text">
-        <span class="summary-cliente">{{ resumenClienteCarrito }}</span>
-        <span class="summary-meta">
-          {{ resumenPagoCarrito }}
-          <ng-container *ngIf="resumenComprobanteCarrito">
-            · {{ resumenComprobanteCarrito }}
-          </ng-container>
-        </span>
-      </div>
-      <ion-icon
-        [name]="headerCarritoExpandido ? 'chevron-up-outline' : 'chevron-down-outline'">
-      </ion-icon>
-    </button>
-
-    <div class="header-details" *ngIf="headerCarritoExpandido">
+    <div class="header-details">
 
     <!-- CLIENTE -->
-    <div
-      class="cliente-box"
-
-      *ngIf="mostrarSelectorCliente()">
+    <div class="cliente-box">
 
       <ion-item
         (click)="abrirClientes()"
@@ -501,130 +481,6 @@ class="right-panel"
         </ion-icon>
 
       </ion-item>
-
-    </div>
-
-    <!-- CONFIGURACION FACTURA: Contado / Crédito (siempre) -->
-    <div
-      class="row-config"
-      *ngIf="tipoDocumento === 'Factura'">
-
-      <div class="col">
-        <label class="cfg-label">Condición de pago</label>
-        <ion-segment [(ngModel)]="tipoPago">
-          <ion-segment-button value="CONTADO">
-            Contado
-          </ion-segment-button>
-          <ion-segment-button value="CREDITO" *ngIf="usaCxC">
-            Crédito
-          </ion-segment-button>
-        </ion-segment>
-      </div>
-
-      <div class="col" *ngIf="tipoPago === 'CREDITO'">
-        <label class="cfg-label">Plazo de crédito *</label>
-        <ion-select
-          [(ngModel)]="plazoCreditoCodigo"
-          (ionChange)="onPlazoCreditoChange()"
-          interface="popover"
-          placeholder="Seleccione plazo">
-          <ion-select-option
-            *ngFor="let p of plazosCredito"
-            [value]="p.value">
-            {{ p.label }}
-          </ion-select-option>
-        </ion-select>
-      </div>
-
-      <div class="col" *ngIf="tipoPago === 'CREDITO' && plazoCreditoCodigo === 'custom'">
-        <label class="cfg-label">Días personalizados *</label>
-        <ion-input
-          type="number"
-          min="0"
-          [(ngModel)]="plazoCreditoDiasCustom"
-          placeholder="Ej. 20">
-        </ion-input>
-      </div>
-
-      <div class="col col-vence" *ngIf="tipoPago === 'CREDITO' && fechaVencimientoCreditoPreview">
-        <label class="cfg-label">Vence</label>
-        <div class="vence-preview">
-          {{ fechaVencimientoCreditoPreview | date:'dd/MM/yyyy' }}
-        </div>
-      </div>
-    </div>
-
-    <!-- CONFIGURACION COMPROBANTE FISCAL (FE) -->
-    <div
-      class="row-config"
-      *ngIf="tipoDocumento === 'Factura' && facturacionElectronica">
-
-      <div class="col">
-        <ion-select
-          (ionChange)="onTipoEcfChange()"
-          [(ngModel)]="tipoEcfDgii"
-          interface="popover"
-          placeholder="Tipo comprobante">
-          <ion-select-option
-            *ngFor="let tc of tiposComprobante"
-            [value]="tc.value"
-            [disabled]="tc.disabled">
-            {{ tc.label }}
-          </ion-select-option>
-        </ion-select>
-      </div>
-
-    </div>
-
-    <!-- DATOS FISCALES -->
-    <div
-      class="row-fiscal"
-
-      *ngIf="
-      tipoDocumento === 'Factura' &&
-      requiereDatosFiscales()
-      ">
-
-      <div class="campo campo-rnc">
-
-        <label>
-
-          RNC / Cédula
-
-        </label>
-
-        <input
-          type="text"
-          [(ngModel)]="rncFiscal"
-          placeholder="Ingrese RNC"
-          (keydown.enter)="consultarRnc()">
-
-      </div>
-
-      <div class="campo campo-empresa">
-
-        <label>
-
-          Nombre Fiscal
-
-        </label>
-
-        <input
-          type="text"
-          [(ngModel)]="nombreFiscal"
-          readonly
-          placeholder="Empresa encontrada">
-
-      </div>
-
-    </div>
-
-    <div
-      *ngIf="mensajeRnc"
-      class="rnc-estado"
-      [ngClass]="estadoRnc">
-
-      {{ mensajeRnc }}
 
     </div>
 
@@ -838,25 +694,21 @@ class="right-panel"
   <p class="descuento-hint">Aplica al total del carrito (antes de ITBIS si corresponde).</p>
 </div>
 
-<div class="sum-line" *ngIf="aplicarITBIS">
-  <span>ITBIS (18%)</span>
-  <strong>
-    {{ getItbis() | currency:'DOP':'symbol':'1.2-2' }}
-  </strong>
-</div>
+<div class="sum-totals-row">
+  <div class="sum-tot-item" *ngIf="aplicarITBIS">
+    <span>ITBIS (18%)</span>
+    <strong>{{ getItbis() | currency:'DOP':'symbol':'1.2-2' }}</strong>
+  </div>
 
-<div class="sum-line" *ngIf="aplicarPropina">
-  <span>Propina (10%)</span>
-  <strong>
-    {{ getPropina() | currency:'DOP':'symbol':'1.2-2' }}
-  </strong>
-</div>
+  <div class="sum-tot-item" *ngIf="aplicarPropina">
+    <span>Propina (10%)</span>
+    <strong>{{ getPropina() | currency:'DOP':'symbol':'1.2-2' }}</strong>
+  </div>
 
-<div class="sum-line total-final">
-  <span>Total</span>
-  <strong>
-    {{ getTotal() | currency:'DOP':'symbol':'1.2-2' }}
-  </strong>
+  <div class="sum-tot-item total-final">
+    <span>Total</span>
+    <strong>{{ getTotal() | currency:'DOP':'symbol':'1.2-2' }}</strong>
+  </div>
 </div>
 
 </div>

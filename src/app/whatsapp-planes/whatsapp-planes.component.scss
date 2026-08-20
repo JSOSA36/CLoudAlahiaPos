@@ -464,6 +464,68 @@ ul li{
     font-weight:500;
 
 }
+
+.soporte-nivel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.soporte-nivel ion-icon {
+  font-size: 18px;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.soporte-nivel[data-nivel='GOLD'] {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.soporte-nivel[data-nivel='GOLD'] ion-icon,
+.soporte-nivel[data-nivel='GOLD'] strong {
+  color: #ca8a04;
+}
+
+.soporte-nivel[data-nivel='PREMIUM'] {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.soporte-nivel[data-nivel='PREMIUM'] ion-icon,
+.soporte-nivel[data-nivel='PREMIUM'] strong {
+  color: #7c3aed;
+}
+
+.soporte-nivel span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  flex: 1;
+}
+
+.soporte-nivel strong {
+  color: #1d4ed8;
+  letter-spacing: 0.03em;
+}
+
+.btn-ver {
+  border: 0;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 .facturacion-gratis{
 
     list-style:none;

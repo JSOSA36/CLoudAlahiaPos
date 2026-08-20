@@ -257,7 +257,12 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
     const nested = (f as any).clientes?.nombreComercial || (f as any).clientes?.NombreComercial;
     if (nested) return nested;
     const c = this.todosClientes.find((x) => x.idCliente === this.idClienteDe(f));
-    return c?.nombreComercial || 'Cliente';
+    if (c?.nombreComercial) return c.nombreComercial;
+    const cuenta = ((f as any).nombreCuenta || (f as any).nombreEmpresa || '').trim();
+    if (Number((f as any).idEmpleadoConsumo) > 0) {
+      return cuenta ? `Colaborador · ${cuenta}` : 'Colaborador';
+    }
+    return cuenta || 'Cliente';
   }
 
   diasVencimiento(f: FacturaHeaderDto): number | null {

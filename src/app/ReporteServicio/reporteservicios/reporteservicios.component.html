@@ -39,6 +39,10 @@
           <ion-icon slot="start" name="search-outline"></ion-icon>
           Consultar
         </ion-button>
+        <ion-button color="medium" (click)="exportarPdf()" [disabled]="cargando || !serviciosFiltrados.length">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
       </div>
     </section>
 

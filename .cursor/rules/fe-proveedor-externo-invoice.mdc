@@ -1,0 +1,16 @@
+---
+description: FE por suplidor externo — no reinventar; seguir camino Invoice validado
+globs: "**/facturacion-electronica/**,**/servicios/**fe**,**/servicios/**fiscal**"
+alwaysApply: false
+---
+
+# ALAHIA-FE-EXT-01 — Proveedor externo (frontend)
+
+Backend canónico: `AlahiaPosApi/docs/dgii-ecf/Camino-Proveedor-Externo-Invoice.md`
+
+Al configurar FE de una empresa hacia suplidor (Invoice / Pedro / compatible):
+
+- Usar modo **PROVEEDOR_EXTERNO** (API `FacturacionElectronica/proveedor/{idEmpresa}`): `baseUrl` + `apiKey`.
+- No apuntar la UI a `Alahia.eCF.Api` si la empresa está en externo.
+- Emisión: el backend ya arma la trama; el front no debe rearmar JSON del suplidor.
+- Health “desconectado” con GET `/api/Receipt` puede ser falso (Invoice solo admite POST); validar con emisión o consulta por e-NCF.

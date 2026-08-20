@@ -74,8 +74,6 @@ montoDescuento = 0;
 montoDescuentoPromo = 0;
 /** Panel desplegable de descuento en el footer del carrito */
 descuentoPanelAbierto = false;
-/** Config del header del carrito (cliente, pago, comprobante) colapsable */
-headerCarritoExpandido = false;
 tasaITBIS: number = 0.18;
 aplicarITBIS: boolean = true;
   public ListadoEmpleados: Empleado[] = [];
@@ -94,6 +92,7 @@ aplicarITBIS: boolean = true;
   | "Gubernamental"
 = "FACT";
   comisionEmpleado: boolean = false;
+  printTicketLavador = false;
   carrito: ItemCarrito[] = [];
 
 
@@ -109,7 +108,7 @@ tipoServicio: 'LOCAL' | 'DELIVERY' | 'LLEVAR' = 'LOCAL';
   mostrarSearch = true;
   catsOpen = true;
   isCartOpen = false;
-  /** Hasta 1100px: catálogo full + carrito sheet/FAB (tablet/móvil). */
+  /** Tablet/móvil táctil (o teléfono). Monitores chicos con mouse = vista desktop. */
   esModoCompacto = false;
   private compactMq?: MediaQueryList;
   private compactMqListener?: (e: MediaQueryListEvent) => void;
@@ -146,6 +145,11 @@ tipoEcfDgii: number | null = null;
   // Toggles header carrito
  
   aplicarPropina: boolean = false;
+
+  idEmpleadoConsumo: number | null = null;
+  porcentajeDescuentoEmpleado = 0;
+  cargarConsumoNomina = false;
+  nombreColaborador = '';
 
   constructor(
     private _categoriaService: CategoriasService,
@@ -206,6 +210,21 @@ cerrarPanel() {
     nombre: cliente.nombreComercial
   };
 
+}
+
+private esClienteAlPortador(): boolean {
+  const id = Number(
+    this.clienteSeleccionado?.id ??
+    this.clienteSeleccionado?.idCliente ??
+    0
+  );
+  if (Number.isFinite(id) && id > 0) return false;
+  const nombre = (
+    this.clienteSeleccionado?.nombre ||
+    this.clienteSeleccionado?.nombreComercial ||
+    ''
+  ).trim().toLowerCase();
+  return !nombre || nombre === 'al portador';
 }
   abrirCarrito(){
   this.carritoModal = true;
@@ -368,6 +387,10 @@ cargarParametrosPOS() {
         x => x.clave === 'CANTIDAD_COPIAS_ORDEN'
       );
 
+      const printTicketLavador = params.find(
+        x => x.clave === 'PrintTicketLavador'
+      );
+
       // =====================================
       // 🔥 ASIGNAR
       // =====================================
@@ -406,6 +429,12 @@ cargarParametrosPOS() {
       this.cantidadCopiasOrden =
         Number(cantidadCopiasOrden?.valor ?? 1);
 
+      const lavadorOn =
+        printTicketLavador?.valor === 'true' ||
+        printTicketLavador?.valor === '1';
+      this.printTicketLavador = lavadorOn;
+      this.parametro.PrintTicketLavador = lavadorOn;
+
       // =====================================
       // 🔥 LOG
       // =====================================
@@ -425,6 +454,8 @@ cargarParametrosPOS() {
       console.log('Imprimir Orden:', this.imprimirOrden);
 
       console.log('Cantidad Copias Orden:', this.cantidadCopiasOrden);
+
+      console.log('PrintTicketLavador:', this.printTicketLavador);
 
     });
 }
@@ -446,7 +477,10 @@ cargarParametrosPOS() {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return;
     }
-    this.compactMq = window.matchMedia('(max-width: 1100px)');
+    // Teléfono siempre; tablet táctil hasta 1100px. Monitor pequeño con mouse = normal.
+    this.compactMq = window.matchMedia(
+      '(max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse))'
+    );
     this.esModoCompacto = this.compactMq.matches;
     this.compactMqListener = (e: MediaQueryListEvent) => {
       this.esModoCompacto = e.matches;
@@ -583,6 +617,23 @@ async openModalCobro(imprimirCotizacion = false) {
 
   if (!this.carrito.length) return;
 
+  if (this.tipoDocumento === 'Cotizacion' && this.esClienteAlPortador()) {
+    const alert = await this.alertCtrl.create({
+      header: 'Cliente requerido',
+      message: 'Falta seleccionar el cliente. La cotización está como Al Portador y no se puede registrar así.',
+      cssClass: 'alert-doc-pos',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Seleccionar cliente', role: 'confirm' }
+      ]
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') return;
+    await this.abrirClientes();
+    if (this.esClienteAlPortador()) return;
+  }
+
   // =====================================
   // 🔥 ORDEN → GUARDAR DIRECT
   // =====================================
@@ -656,7 +707,8 @@ async openModalCobro(imprimirCotizacion = false) {
               this.armarTicketDesdeCarrito(idOrden, {
                 numeroDocumento: numeroDocumento,
                 tipoFactura: 'Orden'
-              })
+              }),
+              'orden'
             );
           }
 
@@ -674,119 +726,11 @@ async openModalCobro(imprimirCotizacion = false) {
   }
 
   // =====================================
-  // 🔥 FACTURA A CRÉDITO
+  // 🔥 FACTURA → modal de cobro (Contado/Crédito + comprobante)
   // =====================================
 
-  if (
-      this.tipoDocumento === 'Factura' &&
-      this.tipoPago === 'CREDITO'
-  ) {
-
-    if (!this.usaCxC) {
-      this.tipoPago = 'CONTADO';
-      (
-        await this.toastCtrl.create({
-          message: 'Módulo Cuentas por Cobrar no disponible',
-          duration: 2000,
-          color: 'danger',
-          position: 'top',
-        })
-      ).present();
-      return;
-    }
-
-    if (!this.clienteSeleccionado?.id) {
-      (
-        await this.toastCtrl.create({
-          message: 'Debe seleccionar un cliente para venta a crédito',
-          duration: 2000,
-          color: 'warning',
-          position: 'top',
-        })
-      ).present();
-      return;
-    }
-
-    const dias = this.diasPlazoCredito;
-    if (dias < 0) {
-      (
-        await this.toastCtrl.create({
-          message: 'Indique un plazo de crédito válido',
-          duration: 2000,
-          color: 'warning',
-          position: 'top',
-        })
-      ).present();
-      return;
-    }
-
-    const facturaDTO = this.armarFacturaDTO({
-      tipoFactura: 'Credito',
-      imprimir: false,
-      pagos: [],
-      plazoDias: dias,
-    });
-
-    this._FacturaHeader
-      .createFacturaDirecta(facturaDTO)
-
-      .subscribe({
-
-        next: async (resp: any) => {
-
-          const carritoSnap = [...this.carrito];
-          const itbisSnap = this.montoItbis;
-          const totalSnap = this.total;
-          const clienteSnap = this.clienteSeleccionado ? { ...this.clienteSeleccionado } : null;
-          const rncSnap = this.rncFiscal;
-          const nombreFiscalSnap = this.nombreFiscal;
-          const ecfTipoSnap = this.tipoEcfDgii;
-
-          this.resetPOS();
-
-          const idFactura =
-            resp?.idFactura ??
-            resp?.id ??
-            resp;
-
-          if (idFactura) {
-            if (ecfTipoSnap) {
-              this.carrito = carritoSnap;
-              this.montoItbis = itbisSnap;
-              this.total = totalSnap;
-              this.clienteSeleccionado = clienteSnap;
-              this.rncFiscal = rncSnap;
-              this.nombreFiscal = nombreFiscalSnap;
-              this.tipoEcfDgii = ecfTipoSnap;
-
-              await this.procesarEcfYPreview(idFactura);
-
-              this.resetPOS();
-            }
-            // Crédito: sin modal de impresión → no envía a printer automáticamente
-          }
-
-          this.parametro.IdFacturaHeader = 0;
-
-        },
-
-        error: (err) => {
-
-          console.error(
-            '❌ Error creando factura crédito',
-            err
-          );
-
-        }
-
-      });
-
-    return;
-  }
-
-  // =====================================
-  // 🔥 FACTURA CONTADO
-  // =====================================
+  // Releer módulo por si la sesión arrancó antes de activar CxC
+  this.usaCxC = this.parametro.tieneModulo('CUENTAS_COBRAR');
 
   const modal = await this.modal.create({
 
@@ -809,7 +753,31 @@ async openModalCobro(imprimirCotizacion = false) {
       NombreCliente: this.clienteSeleccionado?.nombreComercial
         || this.clienteSeleccionado?.nombre
         || this.nombreFiscal
-        || null
+        || null,
+
+      PlazoDias: this.diasPlazoCredito,
+
+      TipoPagoInicial: this.tipoPago === 'CREDITO' ? 'CREDITO' : 'CONTADO',
+
+      UsaCxC: this.usaCxC,
+
+      PlazosCredito: this.plazosCredito,
+
+      PlazoCreditoCodigo: this.plazoCreditoCodigo,
+
+      PlazoCreditoDiasCustom: this.plazoCreditoDiasCustom,
+
+      FacturacionElectronica: this.facturacionElectronica,
+
+      TiposComprobante: this.tiposComprobante,
+
+      TipoEcfDgii: this.tipoEcfDgii,
+
+      RncFiscal: this.rncFiscal,
+
+      NombreFiscal: this.nombreFiscal,
+
+      mostrarConsumoColaborador: this.parametro.tieneModuloRrhh()
 
     }
 
@@ -821,15 +789,85 @@ async openModalCobro(imprimirCotizacion = false) {
 
   if (role !== 'ok') return;
 
+  // Sincronizar facturación elegida en el modal
+  if (data?.plazoCreditoCodigo != null) {
+    this.plazoCreditoCodigo = data.plazoCreditoCodigo;
+  }
+  if (data?.plazoCreditoDiasCustom != null) {
+    this.plazoCreditoDiasCustom = data.plazoCreditoDiasCustom;
+  }
+  if (data?.rnc != null) {
+    this.rncFiscal = data.rnc || '';
+  }
+  if (data?.nombreFiscal != null) {
+    this.nombreFiscal = data.nombreFiscal || '';
+  }
+  if (data?.tipoComprobante) {
+    this.tipoComprobante = data.tipoComprobante;
+  }
+  if (data?.tipoEcfDgii !== undefined) {
+    this.tipoEcfDgii = data.tipoEcfDgii;
+    // No limpiar RNC ya sincronizado desde el modal
+    if (this.tipoEcfDgii === null) {
+      this.tipoComprobante = 'FACT';
+      this.aplicarITBIS = false;
+    } else if (this.tipoEcfDgii === 32) {
+      this.tipoComprobante = 'Consumidor Final';
+      this.aplicarITBIS = true;
+    } else if (this.tipoEcfDgii === 45) {
+      this.tipoComprobante = 'Gubernamental';
+      this.aplicarITBIS = true;
+    } else {
+      this.tipoComprobante = 'Crédito Fiscal';
+      this.aplicarITBIS = true;
+    }
+  }
+  if (data?.tipoFactura) {
+    this.tipoPago =
+      String(data.tipoFactura).toUpperCase() === 'CREDITO' ? 'CREDITO' : 'CONTADO';
+  }
+  this.idEmpleadoConsumo = Number(data?.idEmpleadoConsumo) > 0
+    ? Number(data.idEmpleadoConsumo)
+    : null;
+  this.porcentajeDescuentoEmpleado = Number(data?.porcentajeDescuentoEmpleado) || 0;
+  this.cargarConsumoNomina = !!data?.cargarConsumoNomina;
+  this.nombreColaborador = (data?.nombreColaborador || '').trim();
+  if (this.idEmpleadoConsumo && this.porcentajeDescuentoEmpleado > 0) {
+    this.descuentoTipo = 'PORCENTAJE';
+    this.descuentoValor = this.porcentajeDescuentoEmpleado;
+  }
+  this.recalcularTotales();
+
   if (!data?.pagos || data.pagos.length === 0) {
 
-    console.warn("⚠️ No hay pagos");
-
-    return;
+    // Crédito sin abono no viene con pagos; Contado siempre debe traer pagos
+    // (salvo NC que cubre 100%).
+    if ((data?.tipoFactura || '').toString().toUpperCase() !== 'CREDITO') {
+      console.warn("⚠️ No hay pagos");
+      return;
+    }
 
   }
 
+  // Si el modal convirtió a crédito parcial, alinear cliente en POS
+  if ((data?.tipoFactura || '').toString().toUpperCase() === 'CREDITO' && data?.idCliente) {
+    if (!this.clienteSeleccionado?.id && !this.clienteSeleccionado?.idCliente) {
+      this.clienteSeleccionado = {
+        id: data.idCliente,
+        idCliente: data.idCliente,
+        nombre: this.nombreFiscal || 'Cliente'
+      } as any;
+    }
+  }
+
   const facturaDTO = this.armarFacturaDTO(data);
+
+  const pagadoSnap = Number(data?.pagado);
+  const pendienteSnap = Number(data?.pendiente);
+  const tipoFactSnap =
+    (data?.tipoFactura || 'Contado').toString().toUpperCase() === 'CREDITO'
+      ? 'Credito'
+      : 'Contado';
 
   this._FacturaHeader
     .createFacturaDirecta(facturaDTO)
@@ -845,12 +883,20 @@ async openModalCobro(imprimirCotizacion = false) {
         const rncSnap = this.rncFiscal;
         const nombreFiscalSnap = this.nombreFiscal;
         const ecfTipoSnap = this.tipoEcfDgii;
+        const pagadoFinal = Number.isFinite(pagadoSnap)
+          ? pagadoSnap
+          : (resp?.pagado ?? totalSnap);
+        const pendienteFinal = Number.isFinite(pendienteSnap)
+          ? pendienteSnap
+          : (resp?.pendiente ?? 0);
         const ticketSnap = this.armarTicketDesdeCarrito(0, {
           carrito: carritoSnap,
           total: totalSnap,
           itbis: itbisSnap,
           cliente: clienteSnap,
-          tipoFactura: 'Contado'
+          tipoFactura: tipoFactSnap,
+          pagado: pagadoFinal,
+          pendiente: pendienteFinal
         });
 
         this.resetPOS();
@@ -885,6 +931,8 @@ async openModalCobro(imprimirCotizacion = false) {
                 );
               }
             }
+
+            this.enviarTicketLavadorSiAplica(Number(idFactura));
           }
 
           this.parametro.IdFacturaHeader = 0;
@@ -904,42 +952,93 @@ async openModalCobro(imprimirCotizacion = false) {
 
 }
 
+  private enviarTicketLavadorSiAplica(idFactura: number): void {
+    if (!idFactura || !this.printTicketLavador) {
+      return;
+    }
+    const api = (this.parametro.ApiPrint || '').trim();
+    if (!api) {
+      return;
+    }
+    this._printService.printLavador(idFactura).subscribe({
+      next: () => console.log('Ticket lavador enviado'),
+      error: err => console.error('Error ticket lavador', err)
+    });
+  }
+
   /**
-   * Tablet: preview térmico + window del navegador.
-   * Desktop: ApiPrint remoto (cantidadCopias solo aplica ahí).
+   * Prioridad: ApiPrint (impresora térmica).
+   * - Factura final → ticket cliente (TOTAL / PAGADO / PENDIENTE + e-CF)
+   * - Orden → ticket de orden (BizcochoEncargo/print)
+   * Vista previa del navegador solo si no hay ApiPrint configurado.
    */
   private async imprimirTicketDocumento(
     idDocumento: number,
     cantidadCopias = 1,
-    facturaLocal?: any
-  ): Promise<void> {
-    if (this.esModoCompacto) {
+    facturaLocal?: any,
+    modo: 'factura' | 'orden' = 'factura'
+  ): Promise<boolean> {
+    const api = (this.parametro.ApiPrint || '').trim();
+    const copias = Math.max(1, cantidadCopias || 1);
+
+    if (api) {
       try {
-        await this._printService.openTicketPosPreview(
-          idDocumento,
-          facturaLocal
-        );
-      } catch (err) {
-        console.error('❌ Error abriendo vista previa del ticket', err);
+        for (let i = 0; i < copias; i++) {
+          await new Promise<void>((resolve, reject) => {
+            const req$ =
+              modo === 'orden'
+                ? this._printService.printTicket(
+                    idDocumento,
+                    this.parametro.IdEmpresa
+                  )
+                : this._printService.printFacturaCliente(idDocumento);
+
+            req$.subscribe({
+              next: (resp: any) => {
+                if (resp && resp.success === false) {
+                  reject(new Error(resp.message || 'Impresión rechazada'));
+                  return;
+                }
+                resolve();
+              },
+              error: reject
+            });
+          });
+        }
+        return true;
+      } catch (err: any) {
+        console.error('Error ApiPrint ticket', err);
+        const detalle =
+          err?.error?.message ||
+          err?.message ||
+          'El agente local no imprimió. Reimprima desde el historial.';
         (
           await this.toastCtrl.create({
-            message: 'No se pudo abrir la vista previa del ticket',
-            duration: 2500,
+            message: `No se pudo imprimir: ${detalle}`,
+            duration: 4500,
             color: 'danger',
             position: 'top'
           })
         ).present();
+        return false;
       }
-      return;
     }
 
-    const copias = Math.max(1, cantidadCopias || 1);
-    for (let i = 0; i < copias; i++) {
-      this._printService
-        .printTicket(idDocumento, this.parametro.IdEmpresa)
-        .subscribe({
-          error: (err) => console.error('❌ Error ApiPrint ticket', err)
-        });
+    // Sin ApiPrint: solo entonces vista previa (tablet / sin servidor de impresión)
+    try {
+      await this._printService.openTicketPosPreview(idDocumento, facturaLocal);
+      return true;
+    } catch (err) {
+      console.error('Error abriendo vista previa del ticket', err);
+      (
+        await this.toastCtrl.create({
+          message: 'No hay impresora configurada y no se pudo abrir la vista previa',
+          duration: 2500,
+          color: 'danger',
+          position: 'top'
+        })
+      ).present();
+      return false;
     }
   }
 
@@ -954,17 +1053,26 @@ async openModalCobro(imprimirCotizacion = false) {
       cliente?: any;
       numeroDocumento?: string | number;
       tipoFactura?: string;
+      pagado?: number;
+      pendiente?: number;
     }
   ): any {
     const items = opts?.carrito ?? this.carrito;
     const cliente = opts?.cliente ?? this.clienteSeleccionado;
+    const total = opts?.total ?? this.total;
+    const pagado = opts?.pagado != null ? Number(opts.pagado) : total;
+    const pendiente = opts?.pendiente != null
+      ? Number(opts.pendiente)
+      : Math.max(0, total - pagado);
 
     return {
       idFacturaHeader: idDocumento,
       numeroDocumento: opts?.numeroDocumento || idDocumento,
       fechaInseccion: new Date(),
       tipoFactura: opts?.tipoFactura || this.tipoPago || 'Contado',
-      total: opts?.total ?? this.total,
+      total,
+      pagado,
+      pendiente,
       totalItbis: opts?.itbis ?? this.montoItbis,
       clientes: {
         nombreComercial:
@@ -1015,6 +1123,10 @@ private resetPOS() {
   this.montoDescuentoPromo = 0;
   this.descuentoTipo = 'MONTO';
   this.descuentoPanelAbierto = false;
+  this.idEmpleadoConsumo = null;
+  this.porcentajeDescuentoEmpleado = 0;
+  this.cargarConsumoNomina = false;
+  this.nombreColaborador = '';
 
   // Parámetros temporales
   this.parametro.IdFacturaHeader = 0;
@@ -1114,7 +1226,7 @@ async abrirOrdenesModal() {
 
   const modal = await this.modal.create({
     component: OrdenesComponent,
-    cssClass: 'modal-fullscreen',
+    cssClass: 'modal-ordenes-full',
     componentProps: {
       modo: 'seleccionar',
       esModal: true,
@@ -1135,7 +1247,7 @@ async abrirCotizacionesModal() {
 
   const modal = await this.modal.create({
     component: OrdenesComponent,
-    cssClass: 'modal-fullscreen',
+    cssClass: 'modal-ordenes-full',
     componentProps: {
       modo: 'seleccionar',
       esModal: true,
@@ -1181,6 +1293,21 @@ private armarFacturaDTO(dataModal: any) {
     fechaBencimiento = calcularFechaVencimiento(diasOk).toISOString();
   }
 
+  const nombreClienteFactura =
+    (this.nombreFiscal || dataModal.nombreFiscal || '').trim()
+    || (this.clienteSeleccionado?.nombreComercial
+      || this.clienteSeleccionado?.nombre
+      || '').trim()
+    || (this.nombreColaborador || dataModal.nombreColaborador || '').trim()
+    || 'Al Portador';
+
+  const rncClienteFactura =
+    (this.rncFiscal || dataModal.rnc || '').trim()
+    || (this.clienteSeleccionado?.cedulaRNC
+      || this.clienteSeleccionado?.rnc
+      || '').trim()
+    || null;
+
   return {
     header: {
       idEmpresa: this.parametro.IdEmpresa,
@@ -1197,10 +1324,17 @@ private armarFacturaDTO(dataModal: any) {
       tipoFactura,
       plazo,
       fechaBencimiento,
-      rnc: this.rncFiscal || null,
-      nombreEmpresa: this.nombreFiscal || null,
+      rnc: rncClienteFactura,
+      // Historial / tickets muestran NombreEmpresa como nombre del cliente
+      nombreEmpresa: nombreClienteFactura,
+      nombreCuenta: nombreClienteFactura,
       idFacturaHeader: this.parametro.IdFacturaHeader,
       idMoso: 1,
+      idEmpleadoConsumo: this.idEmpleadoConsumo || dataModal.idEmpleadoConsumo || null,
+      porcentajeDescuentoEmpleado: this.porcentajeDescuentoEmpleado
+        || Number(dataModal.porcentajeDescuentoEmpleado)
+        || 0,
+      cargarConsumoNomina: this.cargarConsumoNomina || !!dataModal.cargarConsumoNomina,
 
       idTipoDocumentos: idTipoDocumento,
 
@@ -1335,6 +1469,24 @@ private async procesarEcfYPreview(idFactura: number) {
     idUsuario: this.parametro.IdUsuario
   };
 
+  const armarFacturaPreview = (resultado?: any) => ({
+    empresa: resultado?.razonSocialEmisor || this.parametro.NombreEmpresa,
+    fecha: new Date(),
+    tipoDocumentoFiscal: this.ecfPreview.labelTipoEcf(this.tipoEcfDgii),
+    cliente: this.nombreFiscal || this.clienteSeleccionado?.nombre || 'Consumidor',
+    rnc: this.rncFiscal || this.clienteSeleccionado?.cedulaRNC || null,
+    items: this.carrito.map(item => ({
+      nombre: item.nombre,
+      cantidad: item.cantidad,
+      precio: item.precio,
+      itbis: item.itbisProducto || 0,
+      subTotal: item.subtotal
+    })),
+    subTotal: this.subtotalProductos,
+    totalItbis: this.montoItbis,
+    total: this.total,
+  });
+
   try {
     const resultado = await this.feService.emitirYEnviar(request).toPromise();
 
@@ -1346,33 +1498,29 @@ private async procesarEcfYPreview(idFactura: number) {
         position: 'top',
       });
       await toast.present();
+
+      // Falló emisión: preview para revisar / reintentar impresión
+      await this.ecfPreview.openFromEmision({
+        resultado: resultado || {},
+        factura: armarFacturaPreview(resultado),
+        tipo: 'factura',
+        tipoEcfDgii: this.tipoEcfDgii
+      });
       return;
     }
 
-    const tipoLabel = this.ecfPreview.labelTipoEcf(this.tipoEcfDgii);
+    // Éxito emisión: intentar ticket térmico
+    const printed = await this.imprimirTicketDocumento(idFactura, 1);
 
-    const facturaPreview = {
-      empresa: resultado.razonSocialEmisor,
-      fecha: new Date(),
-      tipoDocumentoFiscal: tipoLabel,
-      cliente: this.nombreFiscal || this.clienteSeleccionado?.nombre || 'Consumidor',
-      rnc: this.rncFiscal || this.clienteSeleccionado?.cedulaRNC || null,
-      items: this.carrito.map(item => ({
-        nombre: item.nombre,
-        cantidad: item.cantidad,
-        precio: item.precio,
-        subTotal: item.subtotal
-      })),
-      totalItbis: this.montoItbis,
-      total: this.total,
-    };
-
-    await this.ecfPreview.openFromEmision({
-      resultado,
-      factura: facturaPreview,
-      tipo: 'factura',
-      tipoEcfDgii: this.tipoEcfDgii
+    const ok = await this.toastCtrl.create({
+      message: printed
+        ? 'Comprobante electrónico emitido e enviado a imprimir'
+        : 'Comprobante emitido, pero el ticket no se imprimió. Reimprima desde el historial.',
+      duration: printed ? 2200 : 4500,
+      color: printed ? 'success' : 'warning',
+      position: 'top',
     });
+    await ok.present();
 
   } catch (err: any) {
     console.error('Error emisión e-CF', err);
@@ -1383,6 +1531,13 @@ private async procesarEcfYPreview(idFactura: number) {
       position: 'top',
     });
     await toast.present();
+
+    await this.ecfPreview.openFromEmision({
+      resultado: err?.error || {},
+      factura: armarFacturaPreview(),
+      tipo: 'factura',
+      tipoEcfDgii: this.tipoEcfDgii
+    });
   }
 }
 
@@ -1394,11 +1549,7 @@ requiereDatosFiscales(): boolean {
 }
 
 mostrarSelectorCliente(): boolean {
-  if (this.tipoDocumento !== 'Factura') {
-    return true;
-  }
-
-  return !this.requiereDatosFiscales();
+  return true;
 }
 recalcularTotales() {
 
@@ -2222,30 +2373,6 @@ if (
 
   toggleDescuentoPanel() {
     this.descuentoPanelAbierto = !this.descuentoPanelAbierto;
-  }
-
-  toggleHeaderCarrito() {
-    this.headerCarritoExpandido = !this.headerCarritoExpandido;
-  }
-
-  get resumenClienteCarrito(): string {
-    return this.clienteSeleccionado?.nombre || 'Al portador';
-  }
-
-  get resumenPagoCarrito(): string {
-    if (this.tipoDocumento !== 'Factura') return this.tipoDocumento;
-    return this.tipoPago === 'CREDITO' ? 'Crédito' : 'Contado';
-  }
-
-  get resumenComprobanteCarrito(): string {
-    if (this.tipoDocumento !== 'Factura') return '';
-    if (this.facturacionElectronica) {
-      const tc = this.tiposComprobante?.find(
-        (t: any) => t.value === this.tipoEcfDgii
-      );
-      return tc?.label || 'Sin comprobante';
-    }
-    return this.tipoComprobante || 'FACT';
   }
 
   /** Servicios y productos sin control de stock no validan existencia. */

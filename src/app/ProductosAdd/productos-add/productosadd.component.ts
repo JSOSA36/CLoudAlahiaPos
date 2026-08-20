@@ -9,6 +9,7 @@ import { Area } from 'src/app/models/area.model';
 import {
   defaultComportamientoParaNaturaleza,
   normalizarTipoComportamiento,
+  opcionesComportamientoParaNaturaleza,
   TIPO_COMPORTAMIENTO,
   TIPOS_COMPORTAMIENTO_OPCIONES
 } from 'src/app/shared/tipo-comportamiento';
@@ -21,7 +22,6 @@ import { AnalisisProductoProveedorComponent } from 'src/app/Compras/analisis-pro
   styleUrls: ['./productosadd.component.scss'],
 })
 export class ProductosAddComponent implements OnInit {
-  readonly tiposComportamiento = TIPOS_COMPORTAMIENTO_OPCIONES;
   readonly TIPO = TIPO_COMPORTAMIENTO;
 
   @Input() producto!: productos | null;
@@ -72,14 +72,20 @@ export class ProductosAddComponent implements OnInit {
 
     if (this.producto) {
       const esServicio = !!this.producto.esServicio;
-      const controlarStock = !!this.producto.controlarStock;
+      const controlarStock = esServicio ? false : !!this.producto.controlarStock;
+      let tipo = this.producto.tipoComportamiento
+        ? normalizarTipoComportamiento(this.producto.tipoComportamiento)
+        : defaultComportamientoParaNaturaleza(esServicio, controlarStock);
+
+      if (esServicio && (tipo === TIPO_COMPORTAMIENTO.INVENTARIO || tipo === TIPO_COMPORTAMIENTO.ACTIVO_FIJO)) {
+        tipo = TIPO_COMPORTAMIENTO.SERVICIO;
+      }
+
       this.form = {
         idproducto: this.producto.idProducto,
         nombre: this.producto.nombre,
         esServicio,
-        tipoComportamiento: this.producto.tipoComportamiento
-          ? normalizarTipoComportamiento(this.producto.tipoComportamiento)
-          : defaultComportamientoParaNaturaleza(esServicio, controlarStock),
+        tipoComportamiento: tipo,
         controlarStock,
         precioVenta: this.producto.precioVenta,
         cantidad: this.producto.cantidad,
@@ -87,7 +93,7 @@ export class ProductosAddComponent implements OnInit {
         idCategoria: this.producto.idCategoria,
         idArea: this.producto.idArea,
         isActivo: this.producto.isActivo,
-        tipoOperacion: this.producto.tipoOperacion || 'AMBAS',
+        tipoOperacion: this.producto.tipoOperacion || (esServicio ? 'VENTA' : 'AMBAS'),
         seVende: this.producto.seVende ?? true,
         Itbis: !!this.producto.itbis,
         codigoBarra: this.producto.codigoBarra,
@@ -98,9 +104,19 @@ export class ProductosAddComponent implements OnInit {
     }
   }
 
+  get tiposComportamiento() {
+    return opcionesComportamientoParaNaturaleza(!!this.form.esServicio);
+  }
+
   get descripcionTipoComportamiento(): string {
     const tipo = normalizarTipoComportamiento(this.form.tipoComportamiento);
-    return this.tiposComportamiento.find(t => t.value === tipo)?.descripcion ?? '';
+    return TIPOS_COMPORTAMIENTO_OPCIONES.find(t => t.value === tipo)?.descripcion ?? '';
+  }
+
+  /** Compra ERP solo si el ítem se compra (producto o servicio subcontratado). */
+  get muestraComportamientoCompra(): boolean {
+    const op = String(this.form.tipoOperacion || '').toUpperCase();
+    return op === 'COMPRA' || op === 'AMBAS';
   }
 
   get esInventarioCompra(): boolean {
@@ -110,9 +126,19 @@ export class ProductosAddComponent implements OnInit {
   onNaturalezaChange(): void {
     if (this.form.esServicio) {
       this.form.controlarStock = false;
-      if (!this.producto) {
-        this.form.tipoComportamiento = TIPO_COMPORTAMIENTO.GASTO;
-      }
+      this.form.tipoOperacion = 'VENTA';
+      this.form.tipoComportamiento = TIPO_COMPORTAMIENTO.SERVICIO;
+      this.form.cantidad = 0;
+    } else {
+      this.form.tipoOperacion = this.form.tipoOperacion || 'AMBAS';
+      this.form.tipoComportamiento = TIPO_COMPORTAMIENTO.INVENTARIO;
+      this.form.controlarStock = true;
+    }
+  }
+
+  onTipoOperacionChange(): void {
+    if (!this.muestraComportamientoCompra && this.form.esServicio) {
+      this.form.tipoComportamiento = TIPO_COMPORTAMIENTO.SERVICIO;
     }
   }
 
@@ -125,11 +151,16 @@ export class ProductosAddComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    this.imagenFile = event.target.files[0];
+    const file = event?.target?.files?.[0] as File | undefined;
+    this.imagenFile = file || null;
     if (this.imagenFile) {
       const reader = new FileReader();
       reader.onload = () => (this.imagenPreview = reader.result as string);
       reader.readAsDataURL(this.imagenFile);
+    }
+    // Permite volver a elegir el mismo archivo u otro en la siguiente edición
+    if (event?.target) {
+      event.target.value = '';
     }
   }
 
@@ -146,7 +177,17 @@ export class ProductosAddComponent implements OnInit {
 
     const formData = new FormData();
     const esServicio = !!this.form.esServicio;
-    const tipo = normalizarTipoComportamiento(this.form.tipoComportamiento);
+    let tipo = normalizarTipoComportamiento(this.form.tipoComportamiento);
+
+    if (esServicio) {
+      this.form.controlarStock = false;
+      if (tipo === TIPO_COMPORTAMIENTO.INVENTARIO || tipo === TIPO_COMPORTAMIENTO.ACTIVO_FIJO) {
+        tipo = TIPO_COMPORTAMIENTO.SERVICIO;
+      }
+      if (!this.muestraComportamientoCompra) {
+        tipo = TIPO_COMPORTAMIENTO.SERVICIO;
+      }
+    }
 
     formData.append('idProducto', String(this.form.idproducto || 0));
     formData.append('nombre', this.form.nombre);
@@ -158,14 +199,19 @@ export class ProductosAddComponent implements OnInit {
     formData.append('isActivo', String(this.form.isActivo ?? true));
     formData.append('esServicio', String(esServicio));
     formData.append('tipoComportamiento', tipo);
-    formData.append('tipoOperacion', this.form.tipoOperacion || 'AMBAS');
+    formData.append(
+      'tipoOperacion',
+      esServicio && !this.muestraComportamientoCompra
+        ? 'VENTA'
+        : (this.form.tipoOperacion || 'AMBAS')
+    );
     formData.append('idEmpresa', this._Parametro.GetIdEmpresa().toString());
 
     if (esServicio) {
       formData.append('precio', String(this.form.precioVenta || 0));
-      formData.append('costo', '0');
+      formData.append('costo', String(this.form.costo || 0));
       formData.append('cantidad', '0');
-      formData.append('codigoBarra', 'N/A');
+      formData.append('codigoBarra', this.form.codigoBarra || 'N/A');
       formData.append('controlarStock', 'false');
     } else if (tipo === TIPO_COMPORTAMIENTO.INVENTARIO) {
       formData.append('precio', String(this.form.precioVenta || 0));
@@ -214,6 +260,10 @@ export class ProductosAddComponent implements OnInit {
   }
 
   onToggleStock(event: CustomEvent) {
+    if (this.form.esServicio) {
+      this.form.controlarStock = false;
+      return;
+    }
     this.form.controlarStock = event.detail.checked;
   }
 

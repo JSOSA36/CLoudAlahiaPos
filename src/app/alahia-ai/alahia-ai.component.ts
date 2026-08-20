@@ -33,7 +33,7 @@ export class AlahiaAiComponent implements OnInit {
     this.messages.push({
       role: 'assistant',
       content:
-        'Soy Alahia AI, tu asesor empresarial. Pregúntame sobre ventas, cobros, inventario, utilidad o gastos usando los datos reales de tu ERP.',
+        'Soy Alahia AI, tu asesor empresarial. Pregúntame sobre ventas, cobros, inventario, utilidad o gastos. Uso los datos de tu empresa (consulta segura de solo lectura). Si aún no configuraste proveedor/API key, ve a Configurar.',
       at: new Date()
     });
 

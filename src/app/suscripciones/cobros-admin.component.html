@@ -130,8 +130,8 @@
     </div>
     <p class="hint">
       Define <strong>MontoServicio</strong>, <strong>CargoAdicional</strong> y
-      <strong>LimiteFacturacion</strong> (0 = sin límite). El nombre del plan es
-      automático: <em>Plan + nombre de la empresa</em>.
+      <strong>LimiteFacturacion</strong> (tope de ingresos RD$ del mes; 0 = sin límite).
+      El nombre del plan es automático: <em>Plan + nombre de la empresa</em>.
     </p>
     <div class="picker-row">
       <label>Cliente</label>
@@ -180,8 +180,8 @@
       </div>
     </div>
     <p class="tasa-nota" *ngIf="calculo">
-      {{ calculo.nombrePlan }} · límite facturas/mes:
-      {{ (calculo.limiteFacturacion || 0) === 0 ? 'Sin límite' : calculo.limiteFacturacion }}
+      {{ calculo.nombrePlan }} · límite ingresos/mes (RD$):
+      {{ (calculo.limiteFacturacion || 0) === 0 ? 'Sin límite' : (calculo.limiteFacturacion | number:'1.0-0') }}
       · reconexión RD$ {{ (calculo.cargoReconexionDop || 0) | number:'1.0-0' }}
       <span *ngIf="calculo.reconexionPendiente"> (pendiente en este ciclo)</span>
       · tasa 1 USD = {{ calculo.tasaUsdDop || 60 }} RD$
@@ -226,7 +226,7 @@
         </label>
 
         <label class="tarifa-field">
-          <span>Límite facturas / mes</span>
+          <span>Límite ingresos / mes (RD$)</span>
           <input
             type="number"
             [(ngModel)]="limiteFacturacionInput"

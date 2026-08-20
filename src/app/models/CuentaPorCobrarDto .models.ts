@@ -3,4 +3,6 @@ export interface CuentaPorCobrarDto {
   nombreCliente: string;    // 🔹 Nombre comercial o del cliente
   telefono: string;         // 🔹 Teléfono de contacto
   totalDeuda: number;       // 🔹 Total de deuda pendiente (RD$)
+  idEmpleados?: number | null;
+  esEmpleado?: boolean;
 }

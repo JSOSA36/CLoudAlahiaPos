@@ -5,11 +5,6 @@
   <article *ngIf="vista" class="quote">
     <header class="quote-head">
       <div class="empresa">
-        <img
-          *ngIf="vista.logoEmpresa && vista.logoEmpresa.trim()"
-          [src]="vista.logoEmpresa"
-          alt="Logo"
-          class="logo" />
         <h1>{{ vista.nombreEmpresa }}</h1>
         <p *ngIf="vista.direccionEmpresa">{{ vista.direccionEmpresa }}</p>
         <p *ngIf="vista.telefonoEmpresa">Tel: {{ vista.telefonoEmpresa }}</p>
@@ -28,7 +23,19 @@
 
     <section class="cliente">
       <h3>Cliente</h3>
-      <p>{{ vista.clienteNombre }}</p>
+      <p><strong>{{ vista.clienteNombre }}</strong></p>
+      <p *ngIf="vista.clienteTelefono">
+        <strong>Teléfono:</strong> {{ vista.clienteTelefono }}
+      </p>
+      <p *ngIf="vista.clienteRnc">
+        <strong>RNC / Cédula:</strong> {{ vista.clienteRnc }}
+      </p>
+      <p *ngIf="vista.clienteDireccion">
+        <strong>Dirección:</strong> {{ vista.clienteDireccion }}
+      </p>
+      <p *ngIf="vista.clienteCorreo">
+        <strong>Correo:</strong> {{ vista.clienteCorreo }}
+      </p>
       <p *ngIf="vista.nota"><strong>Nota:</strong> {{ vista.nota }}</p>
     </section>
 

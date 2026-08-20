@@ -43,11 +43,13 @@
           🚀 Facturación Electrónica GRATUITA
         </li>
 
-        <li class="soporte-gratis">
-          🎧 Soporte GRATUITO
-        </li>
-
       </ul>
+
+      <div class="soporte-nivel" data-nivel="STANDARD">
+        <ion-icon name="headset-outline" aria-hidden="true"></ion-icon>
+        <span>Nivel de Soporte: <strong>Standard</strong></span>
+        <button type="button" class="btn-ver" (click)="abrirSoporte('STANDARD')">Ver</button>
+      </div>
 
       <div class="facturacion-box">
 
@@ -84,11 +86,13 @@
           🚀 Facturación Electrónica GRATUITA
         </li>
 
-        <li class="soporte-gratis">
-          🎧 Soporte GRATUITO
-        </li>
-
       </ul>
+
+      <div class="soporte-nivel" data-nivel="STANDARD">
+        <ion-icon name="headset-outline" aria-hidden="true"></ion-icon>
+        <span>Nivel de Soporte: <strong>Standard</strong></span>
+        <button type="button" class="btn-ver" (click)="abrirSoporte('STANDARD')">Ver</button>
+      </div>
 
       <div class="facturacion-box">
 
@@ -125,11 +129,13 @@
           🚀 Facturación Electrónica GRATUITA
         </li>
 
-        <li class="soporte-gratis">
-          🎧 Soporte GRATUITO
-        </li>
-
       </ul>
+
+      <div class="soporte-nivel" data-nivel="GOLD">
+        <ion-icon name="star" aria-hidden="true"></ion-icon>
+        <span>Nivel de Soporte: <strong>Gold</strong></span>
+        <button type="button" class="btn-ver" (click)="abrirSoporte('GOLD')">Ver</button>
+      </div>
 
       <div class="facturacion-box">
 
@@ -164,11 +170,13 @@
           🚀 Facturación Electrónica GRATUITA
         </li>
 
-        <li class="soporte-gratis">
-          🎧 Soporte GRATUITO
-        </li>
-
       </ul>
+
+      <div class="soporte-nivel" data-nivel="PREMIUM">
+        <ion-icon name="diamond-outline" aria-hidden="true"></ion-icon>
+        <span>Nivel de Soporte: <strong>Premium</strong></span>
+        <button type="button" class="btn-ver" (click)="abrirSoporte('PREMIUM')">Ver</button>
+      </div>
 
       <div class="facturacion-box">
 
@@ -203,11 +211,13 @@
           🚀 Facturación Electrónica GRATUITA
         </li>
 
-        <li class="soporte-gratis">
-          🎧 Soporte GRATUITO
-        </li>
-
       </ul>
+
+      <div class="soporte-nivel" data-nivel="PREMIUM">
+        <ion-icon name="diamond-outline" aria-hidden="true"></ion-icon>
+        <span>Nivel de Soporte: <strong>Premium</strong></span>
+        <button type="button" class="btn-ver" (click)="abrirSoporte('PREMIUM')">Ver</button>
+      </div>
 
       <div class="facturacion-box">
 
@@ -230,3 +240,9 @@
   </div>
 
 </ion-content>
+
+<app-nivel-soporte-modal
+  *ngIf="nivelSoporteModal"
+  [nivel]="nivelSoporteModal"
+  (cerrar)="nivelSoporteModal = null">
+</app-nivel-soporte-modal>

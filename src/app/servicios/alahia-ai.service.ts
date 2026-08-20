@@ -9,6 +9,25 @@ import {
   AlahiaAiResumenResponse
 } from '../models/alahia-ai.models';
 
+export interface EmpresaAiConfigDto {
+  idEmpresa: number;
+  provider: string;
+  model: string;
+  baseUrl?: string | null;
+  activo: boolean;
+  hasApiKey: boolean;
+  fechaActualizacion?: string | null;
+}
+
+export interface GuardarEmpresaAiConfigDto {
+  provider: string;
+  model: string;
+  baseUrl?: string | null;
+  activo: boolean;
+  apiKey?: string | null;
+  clearApiKey?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AlahiaAiService {
   private readonly baseUrl: string;
@@ -45,5 +64,17 @@ export class AlahiaAiService {
 
   historial(conversationId: string): Observable<{ ticketBody: string }> {
     return this.http.get<{ ticketBody: string }>(`${this.baseUrl}/historial/${conversationId}`);
+  }
+
+  getConfig(): Observable<EmpresaAiConfigDto> {
+    return this.http.get<EmpresaAiConfigDto>(`${this.baseUrl}/config/${this.parametros.IdEmpresa}`);
+  }
+
+  saveConfig(dto: GuardarEmpresaAiConfigDto): Observable<EmpresaAiConfigDto> {
+    return this.http.put<EmpresaAiConfigDto>(`${this.baseUrl}/config`, {
+      idEmpresa: this.parametros.IdEmpresa,
+      idUsuario: this.parametros.IdUsuario,
+      ...dto
+    });
   }
 }

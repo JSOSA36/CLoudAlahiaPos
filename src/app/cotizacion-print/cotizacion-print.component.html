@@ -3,17 +3,11 @@
 
     <header class="doc-header">
       <div class="empresa-block">
-        <img
-          *ngIf="mostrarLogo"
-          [src]="empresa?.logoUrl"
-          alt="Logo"
-          class="logo" />
-
         <h1>{{ nombreComercial }}</h1>
-        <p *ngIf="empresa?.direccion">{{ empresa?.direccion }}</p>
-        <p *ngIf="empresa?.telefono">Tel: {{ empresa?.telefono }}</p>
-        <p *ngIf="empresa?.rnc">RNC: {{ empresa?.rnc }}</p>
-        <p *ngIf="empresa?.correElectronico">{{ empresa?.correElectronico }}</p>
+        <p *ngIf="direccionEmpresa">{{ direccionEmpresa }}</p>
+        <p *ngIf="telefonoEmpresa">Tel: {{ telefonoEmpresa }}</p>
+        <p *ngIf="rncEmpresa">RNC: {{ rncEmpresa }}</p>
+        <p *ngIf="correoEmpresa">{{ correoEmpresa }}</p>
       </div>
 
       <div class="doc-meta">
@@ -35,13 +29,19 @@
       <h3>Cliente</h3>
       <p>
         <strong>Nombre:</strong>
-        {{ cotizacion.clientes?.nombreComercial || cotizacion.nombreCuenta || 'Al Portador' }}
+        {{ clienteNombre }}
       </p>
-      <p *ngIf="cotizacion.clientes?.celular">
-        <strong>Teléfono:</strong> {{ cotizacion.clientes?.celular }}
+      <p *ngIf="clienteTelefono">
+        <strong>Teléfono:</strong> {{ clienteTelefono }}
       </p>
-      <p *ngIf="cotizacion.clientes?.rnc">
-        <strong>RNC / Cédula:</strong> {{ cotizacion.clientes?.rnc }}
+      <p *ngIf="clienteRnc">
+        <strong>RNC / Cédula:</strong> {{ clienteRnc }}
+      </p>
+      <p *ngIf="clienteDireccion">
+        <strong>Dirección:</strong> {{ clienteDireccion }}
+      </p>
+      <p *ngIf="clienteCorreo">
+        <strong>Correo:</strong> {{ clienteCorreo }}
       </p>
       <p *ngIf="cotizacion.nota">
         <strong>Nota:</strong> {{ cotizacion.nota }}

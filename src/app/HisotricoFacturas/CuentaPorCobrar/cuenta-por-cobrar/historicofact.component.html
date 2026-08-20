@@ -231,8 +231,10 @@
                 <span>
 
                   {{
-                    iten?.nombreEmpresa ||
-                    'Al Portador'
+                    iten?.nombreEmpresa
+                    || iten?.nombreCuenta
+                    || iten?.clientes?.nombreComercial
+                    || 'Al Portador'
                   }}
 
                 </span>
@@ -453,11 +455,28 @@
                     iten.idFacturaHeader
                   )
                 "
-                [disabled]="iten.estaCancelada">
+                [disabled]="iten.estaCancelada"
+                title="Reimprimir factura">
 
                 <ion-icon
                   slot="icon-only"
                   name="print-outline">
+                </ion-icon>
+
+              </ion-button>
+
+              <ion-button
+                *ngIf="printTicketLavador"
+                size="small"
+                color="tertiary"
+                fill="solid"
+                (click)="SendPrintLavador(iten.idFacturaHeader)"
+                [disabled]="iten.estaCancelada"
+                title="Reimprimir ticket lavador">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="person-outline">
                 </ion-icon>
 
               </ion-button>

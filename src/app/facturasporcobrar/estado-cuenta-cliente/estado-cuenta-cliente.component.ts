@@ -6,6 +6,8 @@ import { EstadoCuentaCliente } from 'src/app/models/estado-cuenta-cliente.models
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { PagosFacturasClientesService } from 'src/app/servicios/PagosFacturasClientesService';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { pdfFecha, pdfMoneda } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-estado-cuenta-cliente',
@@ -73,7 +75,58 @@ export class EstadoCuentaClienteComponent implements OnInit {
 
   imprimir() {
     if (!this.reporte) return;
-    window.print();
+    emitirReporteTabla({
+      titulo: 'Estado de Cuenta del Cliente',
+      empresa: this.parametro.NombreEmpresa,
+      subtitulo: `${this.reporte.clienteNombre || ''} · Doc ${this.reporte.clienteDocumento || '—'} · ${pdfFecha(this.reporte.desde)} — ${pdfFecha(this.reporte.hasta)}`,
+      kpis: [
+        { label: 'Facturado', value: pdfMoneda(this.reporte.totalFacturado) },
+        { label: 'Cobrado', value: pdfMoneda(this.reporte.totalCobrado) },
+        { label: 'Balance pendiente', value: pdfMoneda(this.reporte.balancePendiente) }
+      ],
+      secciones: [
+        {
+          titulo: 'Movimientos',
+          columnas: [
+            { header: 'Fecha', width: 62 },
+            { header: 'Documento', width: 70 },
+            { header: 'Concepto', width: '*' },
+            { header: 'Débito', width: 70, align: 'right' },
+            { header: 'Crédito', width: 70, align: 'right' },
+            { header: 'Balance', width: 75, align: 'right' }
+          ],
+          filas: (this.reporte.movimientos || []).map(m => [
+            pdfFecha(m.fecha),
+            m.numeroDocumento || '',
+            m.concepto,
+            m.debito ? pdfMoneda(m.debito) : '',
+            m.credito ? pdfMoneda(m.credito) : '',
+            pdfMoneda(m.balance)
+          ])
+        },
+        {
+          titulo: 'Facturas pendientes',
+          columnas: [
+            { header: 'Fecha', width: 62 },
+            { header: 'Documento', width: 80 },
+            { header: 'Original', width: 75, align: 'right' },
+            { header: 'Pagado', width: 75, align: 'right' },
+            { header: 'Pendiente', width: 75, align: 'right' },
+            { header: 'Vencimiento', width: '*' }
+          ],
+          filas: (this.reporte.facturasPendientes || []).map(f => [
+            pdfFecha(f.fecha),
+            f.numeroDocumento || '',
+            pdfMoneda(f.montoOriginal),
+            pdfMoneda(f.pagado),
+            pdfMoneda(f.pendiente),
+            `${pdfFecha(f.fechaVencimiento)} · ${this.etiquetaDias(f.diasVencimiento)}`
+          ])
+        }
+      ],
+      nombreArchivo: `EstadoCuenta_${(this.reporte.clienteNombre || 'cliente').replace(/\s+/g, '_')}.pdf`,
+      modo: 'open'
+    });
   }
 
   volver() {

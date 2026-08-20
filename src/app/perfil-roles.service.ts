@@ -13,20 +13,19 @@ export class PerfilRolesService {
     private http: HttpClient,
     private config: AppConfigService
   ) {
-    // https://apikds.alahiapos.com/api/PerfilRoles
-    this.baseUrl = `${this.config.apiUrl}/PerfilRoles`;
+    this.baseUrl = `${this.config.apiUrl}/perfilesRoles`;
   }
 
-  // =====================================
-  // 🔹 OBTENER MÓDULOS DE UN PERFIL
-  // =====================================
+  getModulos(idPerfil: number, idEmpresa: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/${idPerfil}/${idEmpresa}/modulos`
+    );
+  }
+
   getModulosByPerfil(idPerfil: number): Observable<Modulo[]> {
     return this.http.get<Modulo[]>(`${this.baseUrl}/${idPerfil}`);
   }
 
-  // =====================================
-  // 🔹 ASIGNAR MÓDULOS AL PERFIL
-  // =====================================
   asignarModulos(idPerfil: number, idsModulos: number[]): Observable<any> {
     return this.http.post(
       `${this.baseUrl}/${idPerfil}`,

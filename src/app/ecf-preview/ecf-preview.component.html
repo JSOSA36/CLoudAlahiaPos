@@ -91,6 +91,7 @@
           <th>Descripción</th>
           <th class="text-right">Cant.</th>
           <th class="text-right">Precio</th>
+          <th class="text-right">ITBIS</th>
           <th class="text-right">Total</th>
         </tr>
       </thead>
@@ -99,6 +100,7 @@
           <td>{{ item.nombre }}</td>
           <td class="text-right">{{ item.cantidad }}</td>
           <td class="text-right">{{ item.precio | number:'1.2-2' }}</td>
+          <td class="text-right">{{ (item.itbis || 0) | number:'1.2-2' }}</td>
           <td class="text-right">{{ item.subTotal | number:'1.2-2' }}</td>
         </tr>
       </tbody>
@@ -106,7 +108,11 @@
 
     <!-- Totales -->
     <div class="totales" *ngIf="factura?.total != null">
-      <div class="total-row" *ngIf="factura?.totalItbis">
+      <div class="total-row" *ngIf="factura?.subTotal != null">
+        <span>Subtotal:</span>
+        <span>{{ factura.subTotal | number:'1.2-2' }}</span>
+      </div>
+      <div class="total-row" *ngIf="factura?.totalItbis != null">
         <span>ITBIS:</span>
         <span>{{ factura.totalItbis | number:'1.2-2' }}</span>
       </div>

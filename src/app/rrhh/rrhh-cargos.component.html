@@ -1,0 +1,182 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Cargos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Cargos</h1>
+        <p class="sub">El cargo lleva salario, horario y beneficios. El empleado solo se asigna al cargo y hereda ese paquete.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="nuevo()">Nuevo</button>
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : 'Guardar cargo' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Listado</p>
+          <h2>Cargos registrados</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table list-pick">
+          <thead>
+            <tr><th>Código</th><th>Nombre</th><th>Salario</th><th>Horario</th><th>Beneficios</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of listado" [class.sel]="form.idCargo === c.idCargo" (click)="editar(c)">
+              <td>{{ c.codigo }}</td>
+              <td>{{ c.nombre }}</td>
+              <td>{{ c.moneda }} {{ c.salarioBase | number:'1.2-2' }}</td>
+              <td>{{ c.resumenHorario || 'Sin horario' }}</td>
+              <td>{{ c.beneficios?.length || 0 }}</td>
+              <td class="estado" [ngClass]="c.activo ? 'ACTIVO' : 'RECHAZADA'">{{ c.activo ? 'Activo' : 'Inactivo' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">Aún no hay cargos.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ form.idCargo ? 'Edición' : 'Alta' }}</p>
+          <h2>{{ form.idCargo ? 'Datos del cargo' : 'Nuevo cargo' }}</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Código</span>
+          <input [(ngModel)]="form.codigo" name="cargoCodigo" placeholder="Se genera si lo deja vacío" />
+        </label>
+        <label class="field">
+          <span>Nombre</span>
+          <input [(ngModel)]="form.nombre" name="cargoNombre" placeholder="Ej. Cajero" />
+        </label>
+        <label class="field">
+          <span>Tipo</span>
+          <select [(ngModel)]="form.tipoEmpleado" name="cargoTipo">
+            <option value="FIJO">Fijo</option>
+            <option value="TEMPORAL">Temporal</option>
+            <option value="POR_HORA">Por hora</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Salario base mensual</span>
+          <input type="number" min="0" step="0.01" [(ngModel)]="form.salarioBase" name="cargoSalario" />
+        </label>
+        <label class="field">
+          <span>Moneda</span>
+          <select [(ngModel)]="form.moneda" name="cargoMon">
+            <option value="DOP">DOP</option>
+            <option value="USD">USD</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Frecuencia de pago</span>
+          <select [(ngModel)]="form.frecuenciaPago" name="cargoFreq">
+            <option value="MENSUAL">Mensual</option>
+            <option value="QUINCENAL">Quincenal</option>
+            <option value="SEMANAL">Semanal</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Estado</span>
+          <select [(ngModel)]="form.activo" name="cargoAct">
+            <option [ngValue]="true">Activo</option>
+            <option [ngValue]="false">Inactivo</option>
+          </select>
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="form.descripcion" name="cargoDesc" rows="2"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Horario de este cargo</p>
+          <h2>Días y horas que aplica a quien tenga el cargo</h2>
+        </div>
+      </div>
+      <p class="muted">La asistencia (tardanza, extra, ausencia) se calcula con este horario. Si otro cargo usaba el mismo reloj, al guardar se crea uno propio para no mezclarlos.</p>
+      <div class="grid" style="margin-bottom: 0.85rem;">
+        <label class="field">
+          <span>Gracia de tardanza (minutos)</span>
+          <input type="number" min="0" [(ngModel)]="form.minutosTardanzaGracia" name="cargoGracia" />
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table">
+          <thead>
+            <tr>
+              <th>Día</th>
+              <th>Laborable</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th>Receso inicio</th>
+              <th>Receso fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of form.dias">
+              <td>{{ diasSemana[d.diaSemana - 1].nombre }}</td>
+              <td>
+                <input type="checkbox" [(ngModel)]="d.esLaborable" [name]="'lab'+d.diaSemana" (change)="onLaborable(d)" />
+              </td>
+              <td><input class="horario-time" type="time" [(ngModel)]="d.horaEntrada" [name]="'ent'+d.diaSemana" [disabled]="!d.esLaborable" /></td>
+              <td><input class="horario-time" type="time" [(ngModel)]="d.horaSalida" [name]="'sal'+d.diaSemana" [disabled]="!d.esLaborable" /></td>
+              <td><input class="horario-time" type="time" [(ngModel)]="d.recesoInicio" [name]="'ri'+d.diaSemana" [disabled]="!d.esLaborable" /></td>
+              <td><input class="horario-time" type="time" [(ngModel)]="d.recesoFin" [name]="'rf'+d.diaSemana" [disabled]="!d.esLaborable" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Paquete</p>
+          <h2>Beneficios de este cargo</h2>
+        </div>
+      </div>
+      <p class="muted" *ngIf="!beneficios.length">Cree beneficios en el mantenimiento de Beneficios y luego márquelos aquí.</p>
+      <div class="check-grid">
+        <label class="check-item" *ngFor="let b of beneficios">
+          <input type="checkbox" [checked]="tieneBeneficio(b.idBeneficio)" (change)="toggleBeneficio(b.idBeneficio, $event)" />
+          <span>
+            <strong>{{ b.nombre }}</strong><br />
+            <span class="muted">
+              <ng-container *ngIf="b.tipoCalculo === 'DESCUENTO_CONSUMO'">
+                {{ b.monto }}% en consumo
+                {{ b.descontarConsumoNomina ? ' · se descuenta en quincena' : ' · solo en caja' }}
+              </ng-container>
+              <ng-container *ngIf="b.tipoCalculo !== 'DESCUENTO_CONSUMO'">
+                {{ b.tipoCalculo === 'PORCENTAJE_SALARIO' ? (b.monto + '% del salario') : (b.monto | number:'1.2-2') }}
+                · {{ b.periodicidad }}
+                {{ b.enEspecie ? '· servicios' : '' }}
+                {{ etiquetaPagoCargo(b) }}
+              </ng-container>
+            </span>
+          </span>
+        </label>
+      </div>
+    </section>
+  </div>
+</ion-content>

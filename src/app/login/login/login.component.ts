@@ -201,7 +201,7 @@ async login() {
           return;
         }
 
-        // 🟢 UPGRADE
+        // 🟢 Límite de ingresos del plan: bloquear acceso (sin modal de cambio de plan)
         if (resp?.requiereUpgrade) {
 
           this.parametros.IdEmpresa = resp?.empresa?.idEmpresa || 0;
@@ -209,10 +209,11 @@ async login() {
           await loading.dismiss();
 
           await this.mostrarMensaje(
-            'Plan agotado',
-            resp?.mensaje || 'Has alcanzado el límite de tu plan',
+            'Límite del plan alcanzado',
+            resp?.mensaje ||
+              'Ha llegado al límite de ingresos de su plan contratado. Debe ponerse en contacto con nosotros para ampliar su servicio.',
             'alert-circle-outline',
-            true
+            false
           );
 
           return;
@@ -255,7 +256,7 @@ async login() {
 
         const empresa = resp?.empresa || {};
         const usuario = resp?.usuario || {};
-        const modulosRaw = resp?.modulos || [];
+        const modulosRaw = resp?.modulos || resp?.Modulos || [];
         const modulos = (Array.isArray(modulosRaw) ? modulosRaw : []).map((m: any) => {
           let codigo = String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase();
           if (codigo === 'KDS') codigo = 'CENTRO_PRODUCCION';
@@ -277,10 +278,30 @@ async login() {
         this.parametros.IdEmpresa = empresa.idEmpresa || 0;
         this.parametros.NombreEmpresa = empresa.nombreComercial || '';
         this.parametros.nombrePlan = empresa.nombrePlan || '';
+        this.parametros.setNivelSoporte(empresa.nivelSoporte);
+        localStorage.setItem('NombreEmpresa', this.parametros.NombreEmpresa || '');
+        localStorage.setItem('nombrePlan', this.parametros.nombrePlan || '');
         this.parametros.puedeEliminarOrden = usuario.puedeEliminarOrden || false;
         this.parametros.PuedeEliminarItemCarrito = usuario.puedeEliminarItemCarrito || false;
         this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false;
         this.parametros.PuedeEditarPrecioCarrito = usuario.puedeEditarPrecioCarrito || false;
+
+        // Cabecera de documentos (cotización, conduce, etc.)
+        this.parametros._Empresa = {
+          ...(this.parametros._Empresa || ({} as any)),
+          idEmpresa: empresa.idEmpresa || 0,
+          nombreComercial: empresa.nombreComercial || '',
+          rnc: empresa.rnc || empresa.RNC || '',
+          direccion: empresa.direccion || empresa.Direccion || '',
+          telefono: empresa.telefono || empresa.Telefono || '',
+          correElectronico: empresa.correElectronico || empresa.CorreElectronico || '',
+          logo: empresa.logo || empresa.Logo || '',
+          logoUrl: empresa.logoUrl || empresa.LogoUrl || empresa.logo || empresa.Logo || '',
+          nombrePlan: empresa.nombrePlan || '',
+          nivelSoporte: empresa.nivelSoporte || 'STANDARD',
+          guidPublico: empresa.guidPublico || empresa.GuidPublico || '',
+          urlCitas: empresa.urlCitas || empresa.UrlCitas || '',
+        } as any;
 
 
 
@@ -445,6 +466,9 @@ private async redirigirSegunModulos(modulos: any[]) {
   const tieneHistorico =
     tieneCodigo('HISTORICO_FACTURAS') || ids.includes(24);
 
+  const tieneOrdenes =
+    tieneCodigo('ORDENES') || ids.includes(2);
+
   if (tieneDashboard) {
     await this.router.navigateByUrl('/dashboard-gerencial', { replaceUrl: true });
     return;
@@ -462,6 +486,11 @@ private async redirigirSegunModulos(modulos: any[]) {
 
   if (tieneHistorico) {
     await this.router.navigateByUrl('/historicofact', { replaceUrl: true });
+    return;
+  }
+
+  if (tieneOrdenes) {
+    await this.router.navigateByUrl('/Ordenes', { replaceUrl: true });
     return;
   }
 

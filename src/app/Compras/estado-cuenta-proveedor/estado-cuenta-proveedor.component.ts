@@ -6,6 +6,8 @@ import { Proveedor } from 'src/app/models/proveedores';
 import { ComprasService } from 'src/app/servicios/compras.service';
 import { ProveedoresService } from 'src/app/servicios/proveedores.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { pdfFecha, pdfMoneda } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-estado-cuenta-proveedor',
@@ -73,7 +75,58 @@ export class EstadoCuentaProveedorComponent implements OnInit {
     if (!this.reporte) {
       return;
     }
-    window.print();
+    emitirReporteTabla({
+      titulo: 'Estado de Cuenta del Proveedor',
+      empresa: this.parametro.NombreEmpresa,
+      subtitulo: `${this.reporte.proveedorNombre || ''} · RNC ${this.reporte.proveedorRnc || '—'} · ${pdfFecha(this.reporte.desde)} — ${pdfFecha(this.reporte.hasta)}`,
+      kpis: [
+        { label: 'Comprado', value: pdfMoneda(this.reporte.totalComprado) },
+        { label: 'Pagado', value: pdfMoneda(this.reporte.totalPagado) },
+        { label: 'Balance pendiente', value: pdfMoneda(this.reporte.balancePendiente) }
+      ],
+      secciones: [
+        {
+          titulo: 'Movimientos',
+          columnas: [
+            { header: 'Fecha', width: 62 },
+            { header: 'Documento', width: 70 },
+            { header: 'Concepto', width: '*' },
+            { header: 'Débito', width: 70, align: 'right' },
+            { header: 'Crédito', width: 70, align: 'right' },
+            { header: 'Balance', width: 75, align: 'right' }
+          ],
+          filas: (this.reporte.movimientos || []).map(m => [
+            pdfFecha(m.fecha),
+            m.numeroDocumento || '',
+            m.concepto,
+            m.debito ? pdfMoneda(m.debito) : '',
+            m.credito ? pdfMoneda(m.credito) : '',
+            pdfMoneda(m.balance)
+          ])
+        },
+        {
+          titulo: 'Facturas pendientes',
+          columnas: [
+            { header: 'Fecha', width: 62 },
+            { header: 'Documento', width: 80 },
+            { header: 'Original', width: 75, align: 'right' },
+            { header: 'Pagado', width: 75, align: 'right' },
+            { header: 'Pendiente', width: 75, align: 'right' },
+            { header: 'Vencimiento', width: '*' }
+          ],
+          filas: (this.reporte.facturasPendientes || []).map(f => [
+            pdfFecha(f.fecha),
+            f.numeroDocumento || '',
+            pdfMoneda(f.montoOriginal),
+            pdfMoneda(f.pagado),
+            pdfMoneda(f.pendiente),
+            `${pdfFecha(f.fechaVencimiento)} · ${this.etiquetaDias(f.diasVencimiento)}`
+          ])
+        }
+      ],
+      nombreArchivo: `EstadoCuentaProv_${(this.reporte.proveedorNombre || 'proveedor').replace(/\s+/g, '_')}.pdf`,
+      modo: 'open'
+    });
   }
 
   volver() {

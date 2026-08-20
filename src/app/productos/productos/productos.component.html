@@ -318,6 +318,13 @@
 
 <ion-content>
 
+  <div class="prod-loading" *ngIf="cargando">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando productos…</p>
+  </div>
+
+  <ng-container *ngIf="!cargando && productosFiltrados.length">
+
   <!-- ===================================== -->
   <!-- 📱 MOBILE -->
   <!-- ===================================== -->
@@ -836,6 +843,23 @@
     </div>
 
   </div>
+
+  </ng-container>
+
+  <div
+    class="prod-empty"
+    *ngIf="!cargando && !productosFiltrados.length">
+    <ion-icon name="cube-outline"></ion-icon>
+    <h3 *ngIf="!ListadoProductos.length">Aún no hay productos</h3>
+    <h3 *ngIf="ListadoProductos.length">Sin resultados</h3>
+    <p *ngIf="!ListadoProductos.length">
+      Crea el primer producto o servicio del catálogo.
+    </p>
+    <p *ngIf="ListadoProductos.length">
+      Prueba otra búsqueda o ajusta los filtros.
+    </p>
+  </div>
+
 <ion-fab
   vertical="bottom"
   horizontal="end"

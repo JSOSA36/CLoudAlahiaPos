@@ -27,8 +27,8 @@
 
     <ion-select-option
       *ngFor="let e of empleados"
-      [value]="e.idEmpleados">
-      {{ e.nombre }}
+      [value]="+(e.idEmpleados ?? e.idEmpleado ?? e.IdEmpleados)">
+      {{ e.nombre ?? e.Nombre }}
     </ion-select-option>
 
   </ion-select>
@@ -71,8 +71,8 @@
 
     <ion-select-option
       *ngFor="let p of perfiles"
-      [value]="p.idPerfil">
-      {{ p.nombre }}
+      [value]="+(p.idPerfil ?? p.IdPerfil)">
+      {{ p.nombre ?? p.Nombre }}
     </ion-select-option>
 
   </ion-select>

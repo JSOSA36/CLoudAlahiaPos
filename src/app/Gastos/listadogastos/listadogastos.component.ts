@@ -140,6 +140,10 @@ export class ListadogastosComponent implements OnInit {
     return await modal.present();
   }
 
+  esNomina(g: any): boolean {
+    return (g?.origenModulo || '').toUpperCase() === 'NOMINA';
+  }
+
   trackById(index: number, item: any) {
     return item.idGasto;
   }

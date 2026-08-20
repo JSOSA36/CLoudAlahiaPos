@@ -1,0 +1,119 @@
+.ns-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.ns-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
+}
+
+.ns-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  background: #2563eb;
+  color: #fff;
+}
+
+.ns-modal[data-nivel='GOLD'] .ns-banner {
+  background: linear-gradient(135deg, #facc15, #ca8a04);
+  color: #1c1917;
+}
+
+.ns-modal[data-nivel='PREMIUM'] .ns-banner {
+  background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+  color: #fff;
+}
+
+.ns-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.ns-badge ion-icon {
+  font-size: 22px;
+}
+
+.ns-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ns-banner-text p {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.ns-banner-text h2 {
+  margin: 2px 0 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.ns-close {
+  border: 0;
+  background: rgba(255, 255, 255, 0.22);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ns-modal ul {
+  margin: 0;
+  padding: 1rem 1.15rem 1.2rem;
+  list-style: none;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.ns-modal li {
+  position: relative;
+  padding-left: 1.15rem;
+  color: #334155;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.ns-modal li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.ns-modal[data-nivel='GOLD'] li::before {
+  color: #ca8a04;
+}
+
+.ns-modal[data-nivel='PREMIUM'] li::before {
+  color: #7c3aed;
+}

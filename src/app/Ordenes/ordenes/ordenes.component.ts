@@ -2,10 +2,10 @@
 // LISTADO DE ÓRDENES / COTIZACIONES
 // =========================================
 
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { IonModal, ModalController,AlertController,ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { facturaheader } from 'src/app/models/facturaheader';
+import { facturaheader, idClienteDeFactura, normalizarIdClienteFactura } from 'src/app/models/facturaheader';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { Input } from '@angular/core';
@@ -19,8 +19,7 @@ import { PrintService } from 'src/app/servicios/print.services';
 import { PrinterComponent } from 'src/app/printer/printer.component';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
 import { ProduccionService } from 'src/app/servicios/produccion.service';
-import { ProduccionTrabajo } from 'src/app/models/produccion.models';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-ordenes',
@@ -28,7 +27,7 @@ import { Subscription, firstValueFrom } from 'rxjs';
   styleUrls: ['./ordenes.component.scss'],
 })
 
-export class OrdenesComponent implements OnInit, OnDestroy {
+export class OrdenesComponent implements OnInit {
 
   @ViewChild(IonModal) _modal!: IonModal;
   @Input() modo: 'editar' | 'seleccionar' = 'editar';
@@ -40,15 +39,37 @@ procesandoPago = false;
   @Input() tipoDocumento: 'Orden' | 'Cotizacion' = 'Orden';
   @Input() esModal: boolean = false;
   puedeEliminarOrden: boolean = false;
+  cargando = false;
+  filtroCliente = '';
 
-  /** Parámetro ESTATUS_ORDENES: muestra estado del Centro de Producción. */
+  /** Parámetro ESTATUS_ORDENES: muestra estado del Centro de Producción (HTTP, sin SignalR). */
   mostrarEstatusOrdenes = false;
+  printTicketLavador = false;
   private estatusPorOrigen = new Map<number, { codigo: string; nombre: string }>();
-  private subEstatus?: Subscription;
+
+  get ordenesFiltradas(): facturaheader[] {
+    const q = (this.filtroCliente || '').trim().toLowerCase();
+    const list = this._Parametro.ListadoOrdenes || [];
+    if (!q) return list;
+    return list.filter(o => {
+      const nombre = (
+        o.clientes?.nombreComercial ||
+        (o as any).nombreCuenta ||
+        ''
+      ).toLowerCase();
+      const numero = String(o.numeroDocumento || o.idFacturaHeader || '');
+      return nombre.includes(q) || numero.toLowerCase().includes(q);
+    });
+  }
 
   get totalOrdenes(): number {
-    return (this._Parametro.ListadoOrdenes || [])
+    return this.ordenesFiltradas
       .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+  }
+
+  indiceOrden(item: facturaheader): number {
+    return (this._Parametro.ListadoOrdenes || [])
+      .findIndex(o => o.idFacturaHeader === item.idFacturaHeader);
   }
   constructor(
     private modal: ModalController,
@@ -110,16 +131,25 @@ actualizarPrecio(idDetalle:number, precio:number){
     this.cargarEmpleadosEmpresa();
      this.puedeEliminarOrden =
     this._Parametro.puedeEliminarOrden;
+    this.cargarFlagPrintTicketLavador();
     if (this.tipoDocumento === 'Orden') {
       this.cargarFlagEstatusOrdenes();
     }
   }
 
-  ngOnDestroy(): void {
-    this.subEstatus?.unsubscribe();
-    if (this.mostrarEstatusOrdenes) {
-      this.produccion.stopRealtime();
-    }
+  private cargarFlagPrintTicketLavador(): void {
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find(x => x.clave === 'PrintTicketLavador');
+        const valor = String(p?.valor ?? '').toLowerCase();
+        this.printTicketLavador = valor === 'true' || valor === '1';
+        this._Parametro.PrintTicketLavador = this.printTicketLavador;
+      },
+      error: () => {
+        this.printTicketLavador = false;
+      }
+    });
   }
 
   private cargarFlagEstatusOrdenes(): void {
@@ -130,25 +160,13 @@ actualizarPrecio(idDetalle:number, precio:number){
         const valor = String(p?.valor ?? '').toLowerCase();
         this.mostrarEstatusOrdenes = valor === 'true' || valor === '1';
         if (this.mostrarEstatusOrdenes) {
-          this.activarSeguimientoEstatus();
+          void this.cargarEstatusProduccion();
         }
       },
       error: () => {
         this.mostrarEstatusOrdenes = false;
       }
     });
-  }
-
-  private async activarSeguimientoEstatus(): Promise<void> {
-    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
-    await this.cargarEstatusProduccion();
-    this.subEstatus?.unsubscribe();
-    this.subEstatus = this.produccion.upsertObs$().subscribe(t => this.aplicarEstatusTrabajo(t));
-    try {
-      await this.produccion.startRealtime(idEmpresa);
-    } catch {
-      /* el listado sigue con hydrate por refresh */
-    }
   }
 
   private async cargarEstatusProduccion(): Promise<void> {
@@ -175,17 +193,6 @@ actualizarPrecio(idDetalle:number, precio:number){
     } catch {
       /* sin motor / sin permiso: no romper listado */
     }
-  }
-
-  private aplicarEstatusTrabajo(t: ProduccionTrabajo, detect = true): void {
-    if (!t?.origenId) return;
-
-    // Conservar estado aunque salga del tablero (Entregada / Cancelada)
-    this.estatusPorOrigen.set(t.origenId, {
-      codigo: t.codigoEstadoActual || '',
-      nombre: t.nombreEstadoActual || t.codigoEstadoActual || ''
-    });
-    if (detect) this.cdr.detectChanges();
   }
 
   etiquetaEstatus(idFacturaHeader: number): string {
@@ -379,7 +386,13 @@ imprimirOrden(idFactura: number, event?: Event) {
       return;
     }
 
-    this.printService.openCotizacionCarta(cotizacion);
+    this.printService.openCotizacionCarta(cotizacion, true);
+    return;
+  }
+
+  const apiPrint = (this._Parametro.ApiPrint || '').trim();
+  if (!apiPrint) {
+    this.toast('No hay impresora configurada (ApiPrint). Configure el agente de impresión.');
     return;
   }
 
@@ -389,17 +402,27 @@ imprimirOrden(idFactura: number, event?: Event) {
       this._Parametro.IdEmpresa
     )
     .subscribe({
-      next: () => {
-        this.toast('Orden enviada a imprimir 🖨️');
+      next: (resp: any) => {
+        if (resp && resp.success === false) {
+          this.toast(resp.message || 'No se pudo imprimir la orden');
+          return;
+        }
+        this.toast('Orden enviada a imprimir');
       },
       error: (err) => {
         console.error('❌ Error imprimiendo orden:', err);
-        this.toast('Error imprimiendo orden');
+        const detalle =
+          err?.error?.message ||
+          err?.message ||
+          'Revise el agente de impresión y el nombre de la impresora.';
+        this.toast(`Error imprimiendo orden: ${detalle}`);
       }
     });
 }
   RefreshOrdenes() {
   this.accordionActivo = null;
+  this.cargando = true;
+  this._Parametro.ListadoOrdenes = [];
 
   const peticion =
     this.tipoDocumento === 'Cotizacion'
@@ -413,8 +436,8 @@ imprimirOrden(idFactura: number, event?: Event) {
              ? '📦 Cotizaciones recibidas:'
              : '📦 Órdenes recibidas:',
            c
-         ),
-        this._Parametro.ListadoOrdenes = [...c];
+         );
+        this._Parametro.ListadoOrdenes = [...c].map(normalizarIdClienteFactura);
 
         if (this.tipoDocumento !== 'Cotizacion') {
           this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
@@ -422,12 +445,25 @@ imprimirOrden(idFactura: number, event?: Event) {
             this.cargarEstatusProduccion();
           }
         }
+        this.cargando = false;
+        this.cdr.markForCheck();
       },
-      error: () => {
+      error: (err) => {
+        const tipo = this.tipoDocumento === 'Cotizacion' ? 'cotizaciones' : 'órdenes';
+        console.error(`❌ Error cargando ${tipo}`, {
+          status: err?.status,
+          statusText: err?.statusText,
+          url: err?.url,
+          message: err?.message,
+          error: err?.error,
+          name: err?.name,
+          full: err
+        });
+        this.cargando = false;
+        this.cdr.markForCheck();
         this.toast(
-          this.tipoDocumento === 'Cotizacion'
-            ? 'Error cargando cotizaciones'
-            : 'Error cargando órdenes'
+          `Error cargando ${tipo}` +
+          (err?.status ? ` (${err.status} ${err.statusText || ''})`.trim() : '')
         );
       }
     });
@@ -519,7 +555,13 @@ getPendiente(iten: any): number {
     cssClass: 'modal-factura-full',
     componentProps: {
       IdFactPay: factura.idFacturaHeader,
-      TotalFactura: pendiente
+      TotalFactura: pendiente,
+      IdCliente: idClienteDeFactura(factura) || null,
+      NombreCliente: factura.nombreCuenta
+        || factura.nombreEmpresa
+        || factura.clientes?.nombreComercial
+        || null,
+      UsaCxC: this._Parametro.tieneModulo('CUENTAS_COBRAR')
     }
   });
 
@@ -556,7 +598,8 @@ getPendiente(iten: any): number {
     }
 
     if (data.tipoFactura === 'Credito') {
-      dto.detalleAbono = data.pagos;
+      dto.detalleAbono = data.pagos || [];
+      dto.plazoDias = data.plazoDias ?? 30;
     }
 
     console.log("📦 DTO enviado:", dto);
@@ -569,12 +612,13 @@ getPendiente(iten: any): number {
 
           try {
 
-            // 🔥 lavador (igual que antes)
-            this.printService.printLavador(dto.idFactura)
-              .subscribe({
-                next: () => console.log("🧾 Lavador impreso"),
-                error: err => console.error("❌ Error lavador", err)
-              });
+            if (this.printTicketLavador) {
+              this.printService.printLavador(dto.idFactura)
+                .subscribe({
+                  next: () => console.log("🧾 Lavador impreso"),
+                  error: err => console.error("❌ Error lavador", err)
+                });
+            }
        
             // 🔥 NUEVO → abrir modal de impresión
             if (dto.imprimirFactura) {

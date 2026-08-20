@@ -8,6 +8,8 @@ import {
   TIPOS_BIENES_SERVICIOS_606,
   etiquetaFormaPagoDgii
 } from '../shared/dgii-606.catalog';
+import { pdfFecha, pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporte-606',
@@ -90,5 +92,54 @@ export class Reporte606Component implements OnInit {
     a.download = `DGII_F_606_${rnc}_${periodo}.TXT`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  exportarPdf(): void {
+    if (!this.data?.lineas?.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Formato 606 — Compras DGII',
+      empresa: this.data.nombreEmpresa,
+      subtitulo: `RNC ${this.data.rncEmpresa || '—'} · Período ${this.data.periodo} · ${pdfFecha(this.data.desde)} — ${pdfFecha(this.data.hasta)}`,
+      landscape: true,
+      kpis: [
+        { label: 'Registros', value: String(this.data.cantidadRegistros) },
+        { label: 'Con alertas', value: String(this.data.cantidadConAlertas) },
+        { label: 'Total facturado', value: pdfMoneda(this.data.totalMontoFacturado) },
+        { label: 'ITBIS', value: pdfMoneda(this.data.totalItbisFacturado) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Fecha', width: 55 },
+          { header: 'Origen', width: 45 },
+          { header: 'Doc', width: 50 },
+          { header: 'Proveedor', width: '*' },
+          { header: 'RNC', width: 70 },
+          { header: 'NCF', width: 80 },
+          { header: 'Tipo', width: 55 },
+          { header: 'Servicios', width: 58, align: 'right' },
+          { header: 'Bienes', width: 58, align: 'right' },
+          { header: 'ITBIS', width: 55, align: 'right' },
+          { header: 'Pago', width: 50 },
+          { header: 'TXT', width: 70 }
+        ],
+        filas: this.data.lineas.map(l => [
+          pdfFecha(l.fechaComprobante),
+          l.origenDocumento === 'Gasto' ? 'Gasto' : 'Compra',
+          l.numeroDocumento || ('#' + l.idOrdenCompraHeader),
+          l.proveedorNombre || '—',
+          l.rncCedula || '—',
+          l.ncf || '—',
+          this.etiquetaTipoBienes(l.tipoBienesServicios),
+          pdfNumero(l.montoFacturadoServicios),
+          pdfNumero(l.montoFacturadoBienes),
+          pdfNumero(l.itbisFacturado),
+          this.etiquetaFormaPago(l.formaPagoDgii),
+          l.esValidaParaEnvio ? 'OK' : (l.alertas?.[0] || 'Revisar')
+        ])
+      }],
+      nombreArchivo: `606_${this.data.periodo || this.periodo}.pdf`
+    });
   }
 }

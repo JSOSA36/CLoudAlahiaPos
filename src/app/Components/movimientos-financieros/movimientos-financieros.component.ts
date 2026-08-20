@@ -68,8 +68,9 @@ export class MovimientosFinancierosComponent implements OnInit {
     this.cuentaService.getByEmpresa(this.parametros.GetIdEmpresa()).subscribe({
       next: resp => {
         this.cuentas = resp;
-        if (!this.idCuenta && resp.length === 1) {
-          this.idCuenta = resp[0].idCuentaFinanciera;
+        if (!this.idCuenta && resp.length) {
+          const principal = resp.find((c: any) => c.esPrincipal) || resp[0];
+          this.idCuenta = principal?.idCuentaFinanciera ?? null;
         }
         if (this.idCuenta) {
           this.CargarMovimientos();

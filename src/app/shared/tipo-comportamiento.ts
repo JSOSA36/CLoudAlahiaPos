@@ -24,16 +24,16 @@ export const TIPOS_COMPORTAMIENTO_OPCIONES: TipoComportamientoOpcion[] = [
     label: 'Inventario',
     descripcion: 'Entra a inventario al comprar (materia prima, mercancía, repuestos).'
   },
-  {
-    value: TIPO_COMPORTAMIENTO.SERVICIO,
-    label: 'Servicio contratado',
-    descripcion: 'Servicio comprado a proveedor (honorarios, mantenimiento externo).'
-  },
-  {
-    value: TIPO_COMPORTAMIENTO.GASTO,
-    label: 'Gasto',
-    descripcion: 'Gasto operativo sin inventario (utilities, insumos, etc.).'
-  },
+    {
+      value: TIPO_COMPORTAMIENTO.SERVICIO,
+      label: 'Servicio contratado',
+      descripcion: 'Servicio comprado a proveedor (honorarios, mantenimiento, subcontrato). No inventaria.'
+    },
+    {
+      value: TIPO_COMPORTAMIENTO.GASTO,
+      label: 'Gasto',
+      descripcion: 'Gasto operativo sin inventario (utilities, insumos de compra, etc.).'
+    },
   {
     value: TIPO_COMPORTAMIENTO.ACTIVO_FIJO,
     label: 'Activo fijo',
@@ -80,10 +80,26 @@ export function resolverComportamientoCompra(producto: {
 
 /** Valor por defecto al crear artículo según naturaleza comercial. */
 export function defaultComportamientoParaNaturaleza(esServicio: boolean, controlarStock: boolean): TipoComportamiento {
-  if (controlarStock && !esServicio) {
+  // Servicio ofrecido: no inventaria. El tipo de compra solo aplica si luego se compra (subcontrato).
+  if (esServicio) {
+    return TIPO_COMPORTAMIENTO.SERVICIO;
+  }
+  if (controlarStock) {
     return TIPO_COMPORTAMIENTO.INVENTARIO;
   }
   return TIPO_COMPORTAMIENTO.GASTO;
+}
+
+/** Opciones de compra válidas según naturaleza. Servicio ofrecido nunca es Inventario/Activo fijo. */
+export function opcionesComportamientoParaNaturaleza(esServicio: boolean): TipoComportamientoOpcion[] {
+  if (!esServicio) {
+    return TIPOS_COMPORTAMIENTO_OPCIONES;
+  }
+  return TIPOS_COMPORTAMIENTO_OPCIONES.filter(
+    o =>
+      o.value === TIPO_COMPORTAMIENTO.SERVICIO ||
+      o.value === TIPO_COMPORTAMIENTO.GASTO
+  );
 }
 
 export function requiereAlmacen(tipo?: string | null): boolean {

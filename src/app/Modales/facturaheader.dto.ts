@@ -3,6 +3,7 @@ import { facturadetalles } from "../models/facturadetalles";
 
 export class FacturaHeaderDto {
   idFacturaHeader: number = 0;
+  numeroDocumento: string = "";
   plazo: string = "";
   tipoFactura: string = "";
   moneda: string = "";
@@ -27,6 +28,7 @@ export class FacturaHeaderDto {
   estaCerrada: boolean = false;
   nota: string = "";
   fechaBencimiento: Date = new Date();
+  fechaInseccion?: Date | string;
   estado: string = "";
   pagado: number = 0;
   pendiente: number = 0;

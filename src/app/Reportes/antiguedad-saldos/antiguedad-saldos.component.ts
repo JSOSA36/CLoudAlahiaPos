@@ -2,8 +2,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { ProveedoresService } from 'src/app/servicios/proveedores.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
@@ -15,6 +13,8 @@ import {
 } from 'src/app/models/antiguedad-saldos.models';
 import { clientes } from 'src/app/models/clientes';
 import { Proveedor } from 'src/app/models/proveedores';
+import { pdfFecha, pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 Chart.register(...registerables);
 
@@ -211,7 +211,7 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
   }
 
   imprimir(): void {
-    window.print();
+    this.emitirPdf('open');
   }
 
   exportarExcel(): void {
@@ -281,48 +281,74 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
   }
 
   async exportarPdf(): Promise<void> {
+    this.emitirPdf('download');
+  }
+
+  private emitirPdf(modo: 'download' | 'open'): void {
     if (!this.data?.lineas?.length) {
-      await this.toast('No hay datos para exportar', 'warning');
+      this.toast('No hay datos para exportar', 'warning');
       return;
     }
 
-    const el = document.getElementById('as-export-root');
-    if (!el) return;
-
     this.exportando = true;
     try {
-      const canvas = await html2canvas(el, {
-        scale: 1.6,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
+      emitirReporteTabla({
+        titulo: this.titulo,
+        empresa: this.nombreEmpresa,
+        subtitulo: `Corte ${this.fmtFecha(this.data.fechaCorte)}`,
+        landscape: true,
+        kpis: [
+          { label: 'Total pendiente', value: pdfMoneda(this.totales.totalPendiente) },
+          { label: this.etiquetaTerceros, value: String(this.ind.totalTerceros) },
+          { label: 'Documentos', value: String(this.totales.cantidadDocumentos) },
+          { label: 'Mayor deuda', value: `${pdfMoneda(this.ind.mayorDeuda)} · ${this.ind.terceroMayorDeuda || '—'}` }
+        ],
+        secciones: [{
+          columnas: [
+            { header: this.etiquetaTercero, width: 110 },
+            { header: 'Documento', width: 70 },
+            { header: 'Fecha', width: 58 },
+            { header: 'Vence', width: 58 },
+            { header: 'Días', width: 32, align: 'right' },
+            { header: 'Rango', width: 70 },
+            { header: 'Saldo', width: 70, align: 'right' },
+            { header: '0-30', width: 58, align: 'right' },
+            { header: '31-60', width: 58, align: 'right' },
+            { header: '61-90', width: 58, align: 'right' },
+            { header: '>90', width: '*', align: 'right' }
+          ],
+          filas: this.data.lineas.map(l => [
+            l.terceroNombre,
+            l.documento,
+            this.fmtFecha(l.fechaDocumento),
+            this.fmtFecha(l.fechaVencimiento),
+            l.diasVencidos ?? 0,
+            this.etiquetaRango(l),
+            pdfMoneda(l.saldoPendiente),
+            pdfNumero(l.rango0a30),
+            pdfNumero(l.rango31a60),
+            pdfNumero(l.rango61a90),
+            pdfNumero(l.rangoMas90)
+          ]),
+          filaTotales: [
+            'Totales',
+            String(this.totales.cantidadDocumentos),
+            '',
+            '',
+            pdfNumero(this.ind.promedioDiasVencidos),
+            '',
+            pdfMoneda(this.totales.totalPendiente),
+            pdfMoneda(this.totales.total0a30),
+            pdfMoneda(this.totales.total31a60),
+            pdfMoneda(this.totales.total61a90),
+            pdfMoneda(this.totales.totalMas90)
+          ]
+        }],
+        nombreArchivo: `Antiguedad_${this.modo.toUpperCase()}_${this.fechaCorte}.pdf`,
+        modo
       });
-
-      const img = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 8;
-      const usableW = pageW - margin * 2;
-      const usableH = pageH - margin * 2;
-      const imgH = (canvas.height * usableW) / canvas.width;
-
-      let heightLeft = imgH;
-      let position = margin;
-
-      pdf.addImage(img, 'PNG', margin, position, usableW, imgH);
-      heightLeft -= usableH;
-
-      while (heightLeft > 0) {
-        position = margin - (imgH - heightLeft);
-        pdf.addPage();
-        pdf.addImage(img, 'PNG', margin, position, usableW, imgH);
-        heightLeft -= usableH;
-      }
-
-      pdf.save(`Antiguedad_${this.modo.toUpperCase()}_${this.fechaCorte}.pdf`);
     } catch {
-      await this.toast('No se pudo generar el PDF', 'danger');
+      this.toast('No se pudo generar el PDF', 'danger');
     } finally {
       this.exportando = false;
     }

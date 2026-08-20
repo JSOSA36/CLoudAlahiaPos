@@ -24,6 +24,7 @@ export interface EmpresaAdminListItem {
   esDemoVigente: boolean;
   cantidadModulos: number;
   limiteUsuario?: number;
+  nivelSoporte?: string;
 }
 
 export interface EmpresaAdminDetalle extends EmpresaAdminListItem {
@@ -43,6 +44,7 @@ export interface EmpresaAdminAltaRequest {
   esDemo: boolean;
   diasDemo: number;
   montoServicio: number;
+  nivelSoporte?: string;
   codigosModulo: string[];
 }
 
@@ -54,6 +56,13 @@ export interface EmpresaAdminAltaResult {
   esDemo: boolean;
   idPerfil: number;
   message: string;
+}
+
+export interface EmpresaAdminVerticalPreset {
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  codigosModulo: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -73,6 +82,10 @@ export class EmpresaAdminService {
     return this.http.get<ModuloCatalogoItem[]>(`${this.baseUrl}/catalogo-modulos${q}`);
   }
 
+  verticales(): Observable<EmpresaAdminVerticalPreset[]> {
+    return this.http.get<EmpresaAdminVerticalPreset[]>(`${this.baseUrl}/verticales`);
+  }
+
   detalle(idEmpresa: number): Observable<EmpresaAdminDetalle> {
     return this.http.get<EmpresaAdminDetalle>(`${this.baseUrl}/${idEmpresa}`);
   }
@@ -83,6 +96,10 @@ export class EmpresaAdminService {
 
   actualizarDemo(idEmpresa: number, body: { esDemo: boolean; diasDemo: number; montoServicio: number }) {
     return this.http.put(`${this.baseUrl}/${idEmpresa}/demo`, body);
+  }
+
+  actualizarNivelSoporte(idEmpresa: number, nivelSoporte: string) {
+    return this.http.put(`${this.baseUrl}/${idEmpresa}/nivel-soporte`, { nivelSoporte });
   }
 
   sincronizarModulos(idEmpresa: number, codigosModulo: string[]) {

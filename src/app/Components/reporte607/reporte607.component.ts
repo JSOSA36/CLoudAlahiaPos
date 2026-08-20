@@ -3,6 +3,8 @@ import { ToastController } from '@ionic/angular';
 import { Reporte607, Reporte607Linea } from 'src/app/models/reporte607.models';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { pdfFecha, pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporte607',
@@ -91,5 +93,57 @@ export class Reporte607Component implements OnInit {
     a.download = `DGII_F_607_${rnc}_${periodo}.TXT`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  exportarPdf(): void {
+    if (!this.lineasDetalle.length) {
+      return;
+    }
+    const r = this.data;
+    emitirReporteTabla({
+      titulo: 'Formato 607 — Ventas DGII',
+      empresa: r?.nombreEmpresa,
+      subtitulo: `RNC ${r?.rncEmpresa || '—'} · Período ${r?.periodo} · ${pdfFecha(r?.desde)} — ${pdfFecha(r?.hasta)}`,
+      landscape: true,
+      kpis: [
+        { label: 'Registros TXT', value: String(r?.cantidadRegistros || 0) },
+        { label: 'Con alertas', value: String(r?.cantidadConAlertas || 0) },
+        { label: 'Monto facturado', value: pdfMoneda(r?.totalMontoFacturado) },
+        { label: 'ITBIS', value: pdfMoneda(r?.totalItbisFacturado) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Fecha', width: 52 },
+          { header: 'Tipo', width: 38 },
+          { header: 'Cliente', width: '*' },
+          { header: 'RNC/Céd', width: 70 },
+          { header: 'NCF', width: 78 },
+          { header: 'NCF Mod.', width: 70 },
+          { header: 'Monto', width: 58, align: 'right' },
+          { header: 'ITBIS', width: 52, align: 'right' },
+          { header: 'Efectivo', width: 52, align: 'right' },
+          { header: 'Transf.', width: 52, align: 'right' },
+          { header: 'Tarjeta', width: 52, align: 'right' },
+          { header: 'Crédito', width: 52, align: 'right' },
+          { header: 'TXT', width: 55 }
+        ],
+        filas: this.lineasDetalle.map(l => [
+          pdfFecha(l.fechaComprobante),
+          this.etiquetaTipoDoc(l.tipoDocumentoAlahia),
+          l.clienteNombre || '—',
+          l.rncCedulaComprador || '—',
+          l.ncf || '—',
+          l.ncfModificado || '—',
+          pdfNumero(l.montoFacturado),
+          pdfNumero(l.itbisFacturado),
+          pdfNumero(l.efectivo),
+          pdfNumero(l.chequeTransferenciaDeposito),
+          pdfNumero(l.tarjetaDebitoCredito),
+          pdfNumero(l.ventaCredito),
+          l.esValidaParaEnvio ? 'OK' : (l.alertas?.[0] || 'Revisar')
+        ])
+      }],
+      nombreArchivo: `607_${r?.periodo || this.periodo}.pdf`
+    });
   }
 }

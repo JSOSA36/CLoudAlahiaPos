@@ -11,6 +11,8 @@ import {
   TIPO_COMPORTAMIENTO,
   etiquetaTipoComportamiento
 } from 'src/app/shared/tipo-comportamiento';
+import { pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 type FiltroTipo = 'TODOS' | 'PRODUCTO' | 'SERVICIO';
 
@@ -114,4 +116,46 @@ export class ReporteProductosComponent implements OnInit {
   }
 
   etiquetaTipo = etiquetaTipoComportamiento;
+
+  exportarPdf(): void {
+    if (!this.filtrados.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de productos',
+      empresa: this.parametro.NombreEmpresa,
+      landscape: true,
+      kpis: [
+        { label: 'Registros', value: String(this.resumen.total) },
+        { label: 'Productos', value: String(this.resumen.productos) },
+        { label: 'Servicios', value: String(this.resumen.servicios) },
+        { label: 'Valor inventario', value: pdfMoneda(this.resumen.valorInventario) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Código', width: 70 },
+          { header: 'Nombre', width: '*' },
+          { header: 'Tipo', width: 55 },
+          { header: 'Comportamiento', width: 80 },
+          { header: 'Categoría', width: 80 },
+          { header: 'Existencia', width: 55, align: 'right' },
+          { header: 'Costo', width: 55, align: 'right' },
+          { header: 'Venta', width: 55, align: 'right' },
+          { header: 'Estado', width: 50 }
+        ],
+        filas: this.filtrados.map(p => [
+          p.codigoBarra || '—',
+          p.nombre,
+          p.esServicio ? 'Servicio' : 'Producto',
+          this.etiquetaTipo(p.tipoComportamiento),
+          this.nombreCategoria(p),
+          pdfNumero(Number(p.cantidad || 0)),
+          pdfNumero(Number(p.precioCompra || 0)),
+          pdfNumero(Number(p.precioVenta || 0)),
+          p.isActivo ? 'Activo' : 'Inactivo'
+        ])
+      }],
+      nombreArchivo: 'Reporte_productos.pdf'
+    });
+  }
 }

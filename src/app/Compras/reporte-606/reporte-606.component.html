@@ -40,6 +40,13 @@
           <ion-icon slot="start" name="download-outline"></ion-icon>
           Descargar TXT DGII
         </ion-button>
+        <ion-button
+          color="medium"
+          [disabled]="!data?.lineas?.length"
+          (click)="exportarPdf()">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
       </div>
     </section>
 

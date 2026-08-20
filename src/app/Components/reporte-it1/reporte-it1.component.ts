@@ -3,6 +3,8 @@ import { ToastController } from '@ionic/angular';
 import { It1Casilla, ReporteIt1 } from 'src/app/models/reporte-it1.models';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { ReporteIt1Service } from 'src/app/servicios/reporte-it1.service';
+import { pdfFecha, pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporte-it1',
@@ -87,6 +89,64 @@ export class ReporteIt1Component implements OnInit {
     a.download = `DGII_IT1_${rnc}_${periodo}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  exportarPdf(): void {
+    if (!this.data) {
+      return;
+    }
+    const r = this.data;
+    const filasCasilla = (lista: It1Casilla[]) =>
+      (lista || []).map(c => [
+        String(c.numero),
+        c.etiqueta,
+        c.cantidad == null ? '—' : pdfNumero(c.cantidad),
+        pdfNumero(c.monto),
+        c.origen,
+        (c.alertas || []).join(' · ') || '—'
+      ]);
+
+    emitirReporteTabla({
+      titulo: 'Declaración IT-1 — Liquidación ITBIS',
+      empresa: r.razonSocial || r.nombreComercial || this.parametro.NombreEmpresa,
+      subtitulo: `RNC ${r.rncEmpresa || '—'} · Periodo ${r.periodo} · ${pdfFecha(r.desde)} — ${pdfFecha(r.hasta)}`,
+      landscape: true,
+      kpis: [
+        { label: 'Ops. periodo', value: pdfMoneda(r.totalOperacionesPeriodo) },
+        { label: 'ITBIS cobrado', value: pdfMoneda(r.totalItbisCobrado) },
+        { label: 'ITBIS deducible', value: pdfMoneda(r.totalItbisDeducible) },
+        { label: 'Impuesto a pagar', value: pdfMoneda(r.impuestoAPagar) },
+        { label: 'Saldo a favor', value: pdfMoneda(r.saldoAFavor) },
+        { label: 'Total general', value: pdfMoneda(r.totalGeneralAPagar) }
+      ],
+      secciones: [
+        {
+          titulo: 'Anexo A',
+          columnas: [
+            { header: '#', width: 28 },
+            { header: 'Casilla', width: '*' },
+            { header: 'Cant.', width: 45, align: 'right' },
+            { header: 'Monto', width: 70, align: 'right' },
+            { header: 'Origen', width: 70 },
+            { header: 'Alertas', width: 90 }
+          ],
+          filas: filasCasilla(r.anexoA)
+        },
+        {
+          titulo: 'IT-1',
+          columnas: [
+            { header: '#', width: 28 },
+            { header: 'Casilla', width: '*' },
+            { header: 'Cant.', width: 45, align: 'right' },
+            { header: 'Monto', width: 70, align: 'right' },
+            { header: 'Origen', width: 70 },
+            { header: 'Alertas', width: 90 }
+          ],
+          filas: filasCasilla(r.it1)
+        }
+      ],
+      nombreArchivo: `IT1_${r.periodo}.pdf`
+    });
   }
 
   private async toast(message: string) {

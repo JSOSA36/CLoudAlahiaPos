@@ -1,0 +1,27 @@
+---
+description: Relojes de asistencia físicos — cable o WiFi, IP local, sin suscripción del fabricante.
+globs: src/app/rrhh/**/*.ts,src/app/rrhh/**/*.html
+alwaysApply: false
+---
+
+# Relojes de asistencia (ponchador físico)
+
+Alahia **no** sustituye el reloj. El aparato marca; el ERP lee o recibe la marca y la deja en `RrhhPonchada`.
+
+## Red
+
+- Unos modelos solo tienen **cable de red (Ethernet)**.
+- Los más modernos también **WiFi**.
+- En ambos casos el reloj queda en la LAN con **IP + puerto**. Alahia no distingue el medio: no asumir “solo cable” ni “solo WiFi”.
+- ZKTeco clásico: puerto **4370** (SDK). No es suscripción Cloud de ZKTeco.
+- “Cloud Server / ADMS” en el menú del reloj es el protocolo de empuje HTTP hacia **nuestro** servidor, no un plan de pago del fabricante.
+
+## Integración
+
+- Conector por marca (ZKTeco, Hikvision, genérico JSON). El contrato en Alahia es el mismo.
+- Si el API está en la nube y el reloj en la tienda: agente local (como impresión) o push del reloj.
+- Si el API está en la misma red: conectar por IP:puerto.
+- Mapear PIN/ID del reloj → `IdEmpleados`. No inventar colaboradores.
+- Idempotencia por clave externa. Sin duplicar marcas.
+
+Huella vs cara: el hardware lo decide el cliente (cocina mojada → cara; oficina → huella está bien).

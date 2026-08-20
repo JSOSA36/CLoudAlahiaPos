@@ -183,6 +183,10 @@
         <p *ngIf="empresa?.nombrePlan && empresa?.nombrePlan !== 'Demo'">
           Plan activo en tu cuenta
         </p>
+        <p class="nivel-soporte-linea" *ngIf="!esRegistroInicial && empresa?.idEmpresa">
+          Nivel de Soporte: <strong>{{ etiquetaSoporteEmpresa }}</strong>
+          <button type="button" class="btn-ver-soporte" (click)="abrirSoporte()">Ver</button>
+        </p>
       </ion-label>
 
     </ion-item>
@@ -220,3 +224,9 @@
   </ion-card>
 
 </ion-content>
+
+<app-nivel-soporte-modal
+  *ngIf="mostrarSoporte"
+  [nivel]="nivelSoporteEmpresa"
+  (cerrar)="mostrarSoporte = false">
+</app-nivel-soporte-modal>

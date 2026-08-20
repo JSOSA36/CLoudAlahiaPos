@@ -25,20 +25,49 @@
     </ion-title>
 
   </ion-toolbar>
+
+  <ion-toolbar class="toolbar-busqueda">
+    <ion-searchbar
+      [(ngModel)]="filtroCliente"
+      [placeholder]="tipoDocumento === 'Cotizacion'
+        ? 'Buscar cotización por cliente…'
+        : 'Buscar orden por cliente…'"
+      debounce="200"
+      animated="true"
+      show-clear-button="focus">
+    </ion-searchbar>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
-  <!-- SIN DATOS -->
-  <ion-item *ngIf="_Parametro.ListadoOrdenes.length == 0">
-    <ion-title class="ion-text-center">
+  <div class="ordenes-loading" *ngIf="cargando">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>
       {{ tipoDocumento === 'Cotizacion'
-        ? 'No hay cotizaciones que mostrar'
-        : 'No hay órdenes que mostrar' }}
+        ? 'Cargando cotizaciones…'
+        : 'Cargando órdenes…' }}
+    </p>
+  </div>
+
+  <!-- SIN DATOS -->
+  <ion-item *ngIf="!cargando && ordenesFiltradas.length == 0">
+    <ion-title class="ion-text-center">
+      <ng-container *ngIf="filtroCliente.trim(); else sinRegistros">
+        {{ tipoDocumento === 'Cotizacion'
+          ? 'No hay cotizaciones para ese cliente'
+          : 'No hay órdenes para ese cliente' }}
+      </ng-container>
+      <ng-template #sinRegistros>
+        {{ tipoDocumento === 'Cotizacion'
+          ? 'No hay cotizaciones que mostrar'
+          : 'No hay órdenes que mostrar' }}
+      </ng-template>
     </ion-title>
   </ion-item>
 
   <ion-accordion-group 
+    *ngIf="!cargando"
     [value]="accordionActivo" 
     (ionChange)="onAccordionChange($event)"
     style="color: white;"
@@ -48,7 +77,7 @@
     <!-- LISTADO DE ORDENES -->
     <!-- ======================================================= -->
     <ion-accordion 
-      *ngFor="let iten of _Parametro.ListadoOrdenes; let i = index; trackBy: trackByFactura"
+      *ngFor="let iten of ordenesFiltradas; let i = index; trackBy: trackByFactura"
       [value]="iten.idFacturaHeader"
       style="color:white;"
     >
@@ -202,7 +231,7 @@
 
             <ion-button 
               *ngIf="puedeEliminarOrden"
-              (click)="RemoverItem(i, j, itenDetalle.idFacturaDetalle, iten.idFacturaHeader)"  
+              (click)="RemoverItem(indiceOrden(iten), j, itenDetalle.idFacturaDetalle, iten.idFacturaHeader)"  
               size="small" 
               color="danger"
             >
@@ -210,7 +239,7 @@
             </ion-button>
 
             <ion-button 
-              (click)="DisminuirCantidad(i, j, itenDetalle.idFacturaDetalle)"  
+              (click)="DisminuirCantidad(indiceOrden(iten), j, itenDetalle.idFacturaDetalle)"  
               size="small" 
               color="warning"
             >
@@ -218,7 +247,7 @@
             </ion-button>
 
             <ion-button 
-              (click)="AumetarCantidad(i, j, itenDetalle.idFacturaDetalle)"  
+              (click)="AumetarCantidad(indiceOrden(iten), j, itenDetalle.idFacturaDetalle)"  
               size="small" 
               color="success"
             >
@@ -254,12 +283,12 @@
 </ion-content>
 
 <!-- FOOTER RESUMEN -->
-<ion-footer *ngIf="_Parametro.ListadoOrdenes.length > 0" class="footer-ordenes">
+<ion-footer *ngIf="!cargando && ordenesFiltradas.length > 0" class="footer-ordenes">
   <ion-toolbar color="dark">
     <div class="footer-ordenes-content">
       <div class="footer-ordenes-item">
         <span>{{ tipoDocumento === 'Cotizacion' ? 'Cotizaciones' : 'Órdenes' }}</span>
-        <strong>{{ _Parametro.ListadoOrdenes.length }}</strong>
+        <strong>{{ ordenesFiltradas.length }}</strong>
       </div>
       <div class="footer-ordenes-item total">
         <span>Total General</span>

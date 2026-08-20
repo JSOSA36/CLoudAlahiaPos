@@ -14,6 +14,8 @@ import {
 import {
   ParametrosService
 } from 'src/app/servicios/parametros.service';
+import { pdfFechaHora, pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 export interface LineaPerdida {
 
@@ -220,8 +222,50 @@ implements OnInit {
   }
 
   imprimir(): void {
-
-    window.print();
+    if (!this.lineas.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de Pérdidas de Inventario',
+      empresa: this.parametros.NombreEmpresa,
+      subtitulo: `Salidas por motivo PERDIDA · Del ${this.formatearFecha(this.desde)} al ${this.formatearFecha(this.hasta)}`,
+      kpis: [
+        { label: 'Registros', value: String(this.lineas.length) },
+        { label: 'Unidades', value: pdfNumero(this.totalUnidades) },
+        { label: 'Total pérdida', value: pdfMoneda(this.totalPerdida) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Fecha', width: 80 },
+          { header: 'Producto', width: '*' },
+          { header: 'Cant.', width: 45, align: 'right' },
+          { header: 'Costo', width: 65, align: 'right' },
+          { header: 'Valor pérdida', width: 75, align: 'right' },
+          { header: 'Almacén', width: 70 },
+          { header: 'Observación', width: 90 }
+        ],
+        filas: this.lineas.map(item => [
+          pdfFechaHora(item.fecha),
+          item.producto,
+          pdfNumero(item.cantidad),
+          pdfMoneda(item.costo),
+          pdfMoneda(item.valorPerdida),
+          item.almacen || '—',
+          item.observacion || '—'
+        ]),
+        filaTotales: [
+          'TOTAL',
+          '',
+          pdfNumero(this.totalUnidades),
+          '',
+          pdfMoneda(this.totalPerdida),
+          '',
+          ''
+        ]
+      }],
+      nombreArchivo: `Perdidas_${this.desde}_${this.hasta}.pdf`,
+      modo: 'open'
+    });
   }
 
   limpiarFiltros(): void {

@@ -3,6 +3,28 @@ ion-accordion ion-item::part(icon) {
   color: #fff !important; /* blanco */
 }
 
+.ordenes-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 50vh;
+  padding: 24px;
+  color: var(--ion-color-medium-shade, #666);
+}
+
+.ordenes-loading p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ordenes-loading ion-spinner {
+  width: 40px;
+  height: 40px;
+}
+
 ion-item[slot="header"]::part(native) {
   border-radius: 6px;
   margin-bottom: 6px;
@@ -201,5 +223,18 @@ ion-item[slot="header"]::part(native) {
   &.total strong {
     color: #fbbf24;
     font-size: 20px;
+  }
+}
+
+.toolbar-busqueda {
+  --background: #fff;
+  --min-height: 56px;
+  padding: 0 6px 6px;
+
+  ion-searchbar {
+    --background: #f1f5f9;
+    --border-radius: 12px;
+    --box-shadow: none;
+    padding: 0;
   }
 }

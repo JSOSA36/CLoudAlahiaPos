@@ -68,7 +68,7 @@ tipoOperacion = 'todos';
 
   infiniteDisabled = false;
 
-  cargando = false;
+  cargando = true;
 
   existenciaModalAbierto = false;
 

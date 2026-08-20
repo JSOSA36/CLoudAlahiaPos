@@ -70,6 +70,7 @@
                 </span>
                 <small *ngIf="e.esDemoVigente">Hasta {{ e.fechaTerminacion | date:'dd/MM/yyyy' }}</small>
                 <small *ngIf="!e.esDemoVigente">USD {{ e.montoServicio | number:'1.2-2' }}</small>
+                <small>Soporte {{ etiquetaSoporte(e.nivelSoporte) }}</small>
               </td>
               <td>{{ e.cantidadModulos }}</td>
               <td class="actions">
@@ -122,6 +123,14 @@
         <label>
           <span>Límite usuarios</span>
           <input type="number" min="1" [(ngModel)]="form.limiteUsuario" [readonly]="!!editandoId" />
+        </label>
+        <label>
+          <span>Nivel de soporte</span>
+          <select [(ngModel)]="form.nivelSoporte">
+            <option value="STANDARD">Standard</option>
+            <option value="GOLD">Gold</option>
+            <option value="PREMIUM">Premium</option>
+          </select>
         </label>
       </div>
 
@@ -178,6 +187,25 @@
             <button type="button" class="btn btn-ghost" (click)="limpiarSeleccion()">Ninguno</button>
           </div>
         </div>
+
+        <div class="verticales" *ngIf="verticales.length">
+          <p class="verticales-label">Plantilla por giro (demo de calle)</p>
+          <div class="verticales-row">
+            <button
+              type="button"
+              class="vert-chip"
+              *ngFor="let v of verticales"
+              [class.active]="verticalActiva === v.codigo"
+              (click)="aplicarVertical(v.codigo)"
+              [title]="v.descripcion">
+              {{ v.nombre }}
+            </button>
+          </div>
+          <p class="hint" *ngIf="verticalActiva as va">
+            {{ descripcionVertical(va) }}
+          </p>
+        </div>
+
         <div class="modulos-grid">
           <label class="mod-item" *ngFor="let m of modulosAsignables">
             <input

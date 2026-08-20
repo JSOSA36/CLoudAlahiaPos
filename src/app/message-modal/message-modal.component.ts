@@ -9,6 +9,7 @@ import {
   SuscripcionLineaFactura
 } from '../servicios/empresa-cargos-recurrentes.service';
 import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
+import { mensajeMontoInsuficiente } from '../suscripciones/monto-insuficiente.util';
 
 @Component({
   selector: 'app-message-modal',
@@ -205,12 +206,30 @@ export class MessageModalComponent {
 );
         this.parametros.setAlertaPago(null);
       },
-      error: async () => {
+      error: async (err) => {
         this.enviando = false;
+        const body = err?.error;
+        if (body?.codigo === 'MONTO_INSUFICIENTE') {
+          // No cerrar el modal de pago: el usuario puede corregir y reintentar.
+          const alert = await this.alertCtrl.create({
+            header: 'Monto insuficiente',
+            message: mensajeMontoInsuficiente(body),
+            backdropDismiss: false,
+            cssClass: 'alert-monto-insuficiente',
+            buttons: ['Entendido']
+          });
+          await alert.present();
+          return;
+        }
+
+        const msg =
+          body?.message
+          || (typeof body === 'string' ? body : null)
+          || 'Ocurrió un problema al enviar el comprobante. Intenta nuevamente.';
 
         await this.mostrarAlertaCerrar(
-          'Error',
-          'Ocurrió un problema al enviar el comprobante. Intenta nuevamente.',
+          'No se pudo enviar',
+          msg,
           'danger'
         );
       }

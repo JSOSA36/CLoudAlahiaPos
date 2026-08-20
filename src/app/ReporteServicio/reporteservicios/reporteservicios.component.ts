@@ -7,6 +7,8 @@ import {
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { Empleado } from 'src/app/models/empleado.models';
+import { pdfFecha, pdfMoneda } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporteservicios',
@@ -150,4 +152,51 @@ export class ReporteserviciosComponent implements OnInit {
 
   trackByFactura = (_: number, s: ServicioEmpleadoDto) =>
     `${s.noFactura}-${s.idProducto}`;
+
+  exportarPdf(): void {
+    if (!this.serviciosFiltrados.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de servicios',
+      empresa: this.parametros.NombreEmpresa,
+      subtitulo: `${pdfFecha(this.desde)} — ${pdfFecha(this.hasta)}${this.empleadoSeleccionado ? ' · ' + this.empleadoSeleccionado : ''}`,
+      landscape: true,
+      kpis: [
+        { label: 'Servicios', value: String(this.totalServicios) },
+        { label: 'Subtotal', value: pdfMoneda(this.totalSubtotal) },
+        { label: 'Comisiones', value: pdfMoneda(this.totalComision) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Fecha', width: 62 },
+          { header: 'Servicio', width: '*' },
+          { header: 'Cliente', width: 90 },
+          { header: 'Empleado', width: 90 },
+          { header: 'Factura', width: 70 },
+          { header: 'Subtotal', width: 70, align: 'right' },
+          { header: 'Comisión', width: 70, align: 'right' }
+        ],
+        filas: this.serviciosFiltrados.map(s => [
+          pdfFecha(s.fecha as any),
+          s.tipoFactura === 'Credito' ? `${s.producto} (Crédito)` : s.producto,
+          s.cliente || 'Consumidor Final',
+          s.empleado,
+          s.noFactura,
+          pdfMoneda(s.subTotal),
+          pdfMoneda(s.comision)
+        ]),
+        filaTotales: [
+          'TOTAL',
+          '',
+          '',
+          '',
+          String(this.totalServicios),
+          pdfMoneda(this.totalSubtotal),
+          pdfMoneda(this.totalComision)
+        ]
+      }],
+      nombreArchivo: `Reporte_servicios_${this.desde}_${this.hasta}.pdf`
+    });
+  }
 }

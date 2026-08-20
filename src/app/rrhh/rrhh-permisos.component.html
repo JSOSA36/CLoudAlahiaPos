@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Permisos y licencias</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Permisos y licencias</h1>
+        <p class="sub">Vacaciones, licencias y permisos con o sin goce. Lo aprobado se toma en cuenta en la asistencia.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-yellow" (click)="solicitar()">Enviar solicitud</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Nueva solicitud</p>
+          <h2>Datos del permiso</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Empleado</span>
+          <select [(ngModel)]="form.idEmpleados" name="permEmp">
+            <option [ngValue]="0">Seleccione…</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleados">{{ e.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Tipo</span>
+          <select [(ngModel)]="form.idTipoAusencia" name="permTipo">
+            <option [ngValue]="0">Seleccione…</option>
+            <option *ngFor="let t of tipos" [ngValue]="t.idTipoAusencia">
+              {{ t.nombre }} ({{ t.conGoceSueldo ? 'con goce' : 'sin goce' }})
+            </option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Desde</span>
+          <input type="date" [(ngModel)]="form.fechaInicio" name="permDesde" />
+        </label>
+        <label class="field">
+          <span>Hasta</span>
+          <input type="date" [(ngModel)]="form.fechaFin" name="permHasta" />
+        </label>
+        <label class="field">
+          <span>Hora inicio (si es por horas)</span>
+          <input type="time" [(ngModel)]="form.horaInicio" name="permHoraI" />
+        </label>
+        <label class="field">
+          <span>Hora fin</span>
+          <input type="time" [(ngModel)]="form.horaFin" name="permHoraF" />
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Motivo</span>
+          <textarea [(ngModel)]="form.motivo" name="permMotivo" rows="2"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Bandeja</p>
+          <h2>Solicitudes</h2>
+        </div>
+      </div>
+      <table class="rrhh-table" *ngIf="filas.length">
+        <thead>
+          <tr><th>Empleado</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <td>{{ nombreEmp(f.idEmpleados) }}</td>
+            <td>{{ nombreTipo(f.idTipoAusencia) }}</td>
+            <td>{{ f.fechaInicio | date:'yyyy-MM-dd' }}</td>
+            <td>{{ f.fechaFin | date:'yyyy-MM-dd' }}</td>
+            <td class="estado" [ngClass]="f.estado">{{ f.estado }}</td>
+            <td *ngIf="puedeAprobar && f.estado === 'PENDIENTE'">
+              <button type="button" class="btn btn-primary" (click)="decidir(f.idSolicitud, true)">Aprobar</button>
+              <button type="button" class="btn btn-outline" (click)="decidir(f.idSolicitud, false)">Rechazar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty" *ngIf="!filas.length">No hay solicitudes en este período.</p>
+    </section>
+  </div>
+</ion-content>

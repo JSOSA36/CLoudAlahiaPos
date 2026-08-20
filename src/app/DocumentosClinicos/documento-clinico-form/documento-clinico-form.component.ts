@@ -16,9 +16,19 @@ import { PlantillaDocumentoClinico } from 'src/app/models/plantilla-documento-cl
 
 import { HistorialServiciosService } from 'src/app/servicios/historial-servicios.service';
 
+import { EmpleadosService } from 'src/app/servicios/empleados.service';
+
+import { ClienteService } from 'src/app/servicios/cliente.service';
+
+import { FichaClinicaService } from 'src/app/servicios/ficha-clinica.service';
+
 import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component';
 
 import { clientes } from 'src/app/models/clientes';
+
+import { Empleado } from 'src/app/models/empleado.models';
+
+import { firstValueFrom } from 'rxjs';
 
 import {
   generarHtmlDocumentoClinico,
@@ -54,6 +64,20 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
   clienteSeleccionado: clientes | null = null;
 
+  empleados: Empleado[] = [];
+
+  idEmpleadoSeleccionado: number | null = null;
+
+  cargoDoctor = '';
+
+  private edadFicha: number | null = null;
+
+  private edadDocumento = '';
+
+  edadInput: number | null = null;
+
+  private edadEditada = false;
+
 
 
   private plantillaActual: PlantillaDocumentoClinico | null = null;
@@ -74,6 +98,12 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
     private historialSrv: HistorialServiciosService,
 
+    private empleadosSrv: EmpleadosService,
+
+    private clientesSrv: ClienteService,
+
+    private fichaClinicaSrv: FichaClinicaService,
+
     private parametro: ParametrosService,
 
     private modalCtrl: ModalController,
@@ -89,6 +119,8 @@ export class DocumentoClinicoFormComponent implements OnInit {
   ngOnInit() {
 
     this.cargarTiposDocumento();
+
+    this.cargarEmpleados();
 
 
 
@@ -108,6 +140,8 @@ export class DocumentoClinicoFormComponent implements OnInit {
       }
 
       this.cargarDatosDesdeJSON();
+
+      this.cargarClienteCompleto();
 
       if (this.form.tipoDocumento) {
         this.resolverPlantilla(this.form.tipoDocumento, false);
@@ -184,6 +218,61 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
 
 
+  get edadPaciente(): string {
+
+    const n = this.edadNumerica;
+
+    if (n != null) {
+
+      return `${n} ${n === 1 ? 'año' : 'años'}`;
+
+    }
+
+    return '';
+
+  }
+
+  get edadNumerica(): number | null {
+
+    if (this.edadInput != null && this.edadInput !== ('' as any)) {
+
+      const n = Number(this.edadInput);
+
+      if (Number.isFinite(n) && n >= 0 && n <= 120) {
+
+        return Math.trunc(n);
+
+      }
+
+    }
+
+    if (this.edadFicha != null && this.edadFicha >= 0 && this.edadFicha <= 120) {
+
+      return this.edadFicha;
+
+    }
+
+    return this.extraerNumeroEdad(this.edadDocumento);
+
+  }
+
+  onEdadChange() {
+
+    this.edadEditada = true;
+
+  }
+
+  private get fechaNacimientoPaciente(): string {
+
+    return this.extraerFechaNacimiento(this.clienteSeleccionado);
+
+  }
+
+  compareEmpleados = (a: number | string | null, b: number | string | null): boolean =>
+    a == null || b == null ? a === b : Number(a) === Number(b);
+
+
+
   private esContenidoHtmlInvalido(html?: string | null): boolean {
     const valor = (html || '').trim();
     if (!valor) {
@@ -203,14 +292,15 @@ export class DocumentoClinicoFormComponent implements OnInit {
   }
 
   private prepararVistaDocumento(): void {
-    let html = this.form.contenidoHTMLFinal?.trim();
+    const regenerado = this.generarContenidoHTMLFinal().trim();
+    let html = !this.esContenidoHtmlInvalido(regenerado)
+      ? regenerado
+      : this.form.contenidoHTMLFinal?.trim();
 
     if (this.esContenidoHtmlInvalido(html)) {
-      const regenerado = this.generarContenidoHTMLFinal().trim();
-      if (!this.esContenidoHtmlInvalido(regenerado)) {
-        html = regenerado;
-        this.form.contenidoHTMLFinal = regenerado;
-      }
+      html = '';
+    } else if (!this.esContenidoHtmlInvalido(regenerado)) {
+      this.form.contenidoHTMLFinal = regenerado;
     }
 
     this.vistaHtmlDocumento = html && !this.esContenidoHtmlInvalido(html)
@@ -304,6 +394,441 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
 
 
+  private cargarEmpleados() {
+
+    const idEmpresa = this.parametro.GetIdEmpresa();
+
+    if (!idEmpresa) {
+      return;
+    }
+
+    this.empleadosSrv.getByEmpresa(idEmpresa).subscribe({
+      next: (lista) => {
+        this.empleados = (lista || []).filter(e => e.estado !== false);
+        this.sincronizarDoctorSeleccionado();
+      },
+      error: () => {
+        this.empleados = [];
+      }
+    });
+
+  }
+
+
+
+  private cargarClienteCompleto() {
+
+    const idCliente = this.form.idCliente;
+
+    if (!idCliente) {
+
+      return;
+
+    }
+
+    this.clientesSrv.GetById(idCliente).subscribe({
+
+      next: (cliente) => {
+
+        if (cliente) {
+
+          this.aplicarCliente(cliente);
+
+        }
+
+        this.cargarEdadDesdeFicha(idCliente);
+
+      },
+
+      error: () => {
+
+        this.cargarEdadDesdeFicha(idCliente);
+
+      }
+
+    });
+
+  }
+
+
+
+  private cargarEdadDesdeFicha(idCliente: number) {
+
+    if (!idCliente) {
+
+      return;
+
+    }
+
+    this.fichaClinicaSrv.getVista(this.parametro.GetIdEmpresa(), idCliente).subscribe({
+
+      next: (vista) => {
+
+        const fecha =
+
+          this.extraerFechaNacimiento(vista?.cliente) ||
+
+          this.extraerFechaNacimiento(vista?.ficha);
+
+        if (fecha) {
+
+          this.aplicarCliente({
+
+            idCliente,
+
+            fechaNacimiento: fecha,
+
+            nombreComercial: vista?.cliente?.nombreComercial,
+
+            cedulaRNC: vista?.cliente?.cedulaRnc || vista?.ficha?.cedulaRnc
+
+          });
+
+        }
+
+        if (vista?.cliente?.edad != null) {
+
+          this.edadFicha = vista.cliente.edad;
+
+          this.aplicarEdad(vista.cliente.edad);
+
+        }
+
+        if (this.modo === 'ver' || this.plantillaActual) {
+
+          this.prepararVistaDocumento();
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+
+  private aplicarCliente(raw: any) {
+
+    if (!raw) {
+
+      return;
+
+    }
+
+    const actual = this.clienteSeleccionado || new clientes();
+
+    const idCliente = Number(
+
+      raw.idCliente ?? raw.iDCliente ?? raw.IDCliente ?? actual.idCliente ?? 0
+
+    );
+
+    const nombreComercial = String(
+
+      raw.nombreComercial ?? raw.NombreComercial ?? actual.nombreComercial ?? ''
+
+    );
+
+    const cedulaRNC = String(
+
+      raw.cedulaRNC ?? raw.CedulaRNC ?? raw.cedulaRnc ?? actual.cedulaRNC ?? ''
+
+    );
+
+    const fechaNacimiento =
+
+      this.extraerFechaNacimiento(raw) || actual.fechaNacimiento || '';
+
+    this.clienteSeleccionado = Object.assign(new clientes(), actual, {
+
+      idCliente,
+
+      nombreComercial,
+
+      cedulaRNC,
+
+      fechaNacimiento
+
+    });
+
+    this.aplicarEdad(this.calcularEdadNumero(fechaNacimiento));
+
+    if (idCliente) {
+
+      this.form.idCliente = idCliente;
+
+    }
+
+    if (nombreComercial) {
+
+      this.form.nombreCliente = nombreComercial;
+
+    }
+
+  }
+
+
+
+  private extraerFechaNacimiento(raw: any): string {
+
+    const valor = raw?.fechaNacimiento ?? raw?.FechaNacimiento ?? '';
+
+    if (valor == null || valor === '') {
+
+      return '';
+
+    }
+
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+
+      return this.aFechaInput(valor);
+
+    }
+
+    const texto = String(valor).trim();
+
+    if (!texto) {
+
+      return '';
+
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(texto)) {
+
+      return texto.substring(0, 10);
+
+    }
+
+    const fecha = new Date(texto);
+
+    if (Number.isNaN(fecha.getTime())) {
+
+      return '';
+
+    }
+
+    return this.aFechaInput(fecha);
+
+  }
+
+
+
+  private aFechaInput(fecha: Date): string {
+
+    const y = fecha.getFullYear();
+
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+
+    const d = String(fecha.getDate()).padStart(2, '0');
+
+    return `${y}-${m}-${d}`;
+
+  }
+
+  private aplicarEdad(valor: number | null) {
+
+    if (this.edadEditada) {
+
+      return;
+
+    }
+
+    if (valor == null || !Number.isFinite(valor) || valor < 0 || valor > 120) {
+
+      return;
+
+    }
+
+    this.edadInput = Math.trunc(valor);
+
+  }
+
+  private extraerNumeroEdad(valor?: string | null): number | null {
+
+    if (valor == null || String(valor).trim() === '') {
+
+      return null;
+
+    }
+
+    const match = String(valor).match(/(\d+)/);
+
+    if (!match) {
+
+      return null;
+
+    }
+
+    const n = Number(match[1]);
+
+    return Number.isFinite(n) && n >= 0 && n <= 120 ? Math.trunc(n) : null;
+
+  }
+
+  private calcularEdadNumero(fecha?: string): number | null {
+
+    if (!fecha) {
+
+      return null;
+
+    }
+
+    const nacio = new Date(`${fecha.substring(0, 10)}T00:00:00`);
+
+    if (Number.isNaN(nacio.getTime())) {
+
+      return null;
+
+    }
+
+    const hoy = new Date();
+
+    let edad = hoy.getFullYear() - nacio.getFullYear();
+
+    const m = hoy.getMonth() - nacio.getMonth();
+
+    if (m < 0 || (m === 0 && hoy.getDate() < nacio.getDate())) {
+
+      edad--;
+
+    }
+
+    return edad >= 0 && edad <= 120 ? edad : null;
+
+  }
+
+  private fechaDesdeEdad(): string | undefined {
+
+    const edad = this.edadNumerica;
+
+    if (edad == null) {
+
+      return this.fechaNacimientoPaciente || undefined;
+
+    }
+
+    const actual = this.calcularEdadNumero(this.fechaNacimientoPaciente);
+
+    if (actual === edad && this.fechaNacimientoPaciente) {
+
+      return this.fechaNacimientoPaciente;
+
+    }
+
+    const hoy = new Date();
+
+    const y = hoy.getFullYear() - edad;
+
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+
+    const d = String(hoy.getDate()).padStart(2, '0');
+
+    return `${y}-${m}-${d}`;
+
+  }
+
+  private async persistirEdadCliente() {
+
+    const idCliente = this.form.idCliente;
+
+    const fecha = this.fechaDesdeEdad();
+
+    if (!idCliente || !fecha) {
+
+      return;
+
+    }
+
+    try {
+
+      const cliente = await firstValueFrom(this.clientesSrv.GetById(idCliente));
+
+      if (!cliente) {
+
+        return;
+
+      }
+
+      const edadGuardada = this.calcularEdadNumero(this.extraerFechaNacimiento(cliente));
+
+      if (edadGuardada === this.edadNumerica) {
+
+        return;
+
+      }
+
+      cliente.fechaNacimiento = fecha;
+
+      await firstValueFrom(this.clientesSrv.EditarClientes(cliente));
+
+      this.aplicarCliente({ ...cliente, fechaNacimiento: fecha });
+
+    } catch {
+
+      // El documento se guarda igual; la edad queda en el JSON de la receta.
+
+    }
+
+  }
+
+
+
+  onDoctorChange() {
+
+    if (this.idEmpleadoSeleccionado != null) {
+      this.idEmpleadoSeleccionado = Number(this.idEmpleadoSeleccionado);
+    }
+
+    const empleado = this.empleados.find(
+      e => e.idEmpleados === Number(this.idEmpleadoSeleccionado)
+    );
+
+    if (!empleado) {
+      this.form.nombreDoctor = '';
+      this.cargoDoctor = '';
+      return;
+    }
+
+    this.form.nombreDoctor = (empleado.nombre || '').trim();
+    this.cargoDoctor = (empleado.ocupacion || '').trim() || 'ODONTÓLOGO';
+
+  }
+
+
+
+  private sincronizarDoctorSeleccionado() {
+
+    if (!this.empleados.length) {
+      return;
+    }
+
+    if (this.idEmpleadoSeleccionado) {
+      this.onDoctorChange();
+      return;
+    }
+
+    const nombre = (this.form.nombreDoctor || '').trim().toLowerCase();
+    if (nombre) {
+      const porNombre = this.empleados.find(
+        e => (e.nombre || '').trim().toLowerCase() === nombre
+      );
+      if (porNombre) {
+        this.idEmpleadoSeleccionado = porNombre.idEmpleados;
+        this.onDoctorChange();
+        return;
+      }
+    }
+
+    if (this.modo === 'crear' && this.empleados.length === 1) {
+      this.idEmpleadoSeleccionado = this.empleados[0].idEmpleados;
+      this.onDoctorChange();
+    }
+
+  }
+
+
+
   private cargarDatosDesdeJSON() {
 
     if (!this.form.datosJSON?.trim()) {
@@ -332,20 +857,50 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
         this.form.indicaciones = datos.indicaciones;
 
+      } else if (datos.medicamentos) {
+
+        this.form.indicaciones = datos.medicamentos;
+
       }
 
 
 
+      if (datos.idEmpleado) {
+
+        this.idEmpleadoSeleccionado = Number(datos.idEmpleado);
+
+      }
+
+
+
+      if (datos.cargoDoctor) {
+
+        this.cargoDoctor = datos.cargoDoctor;
+
+      }
+
+
+
+      if (datos.fechaNacimiento) {
+        this.aplicarCliente({
+          idCliente: this.form.idCliente,
+          nombreComercial: datos.nombreCliente || this.form.nombreCliente || '',
+          fechaNacimiento: datos.fechaNacimiento,
+          cedulaRNC: datos.cedulaCliente
+        });
+      }
+
       if (datos.cedulaCliente) {
-        if (!this.clienteSeleccionado) {
-          this.clienteSeleccionado = {
-            idCliente: this.form.idCliente,
-            nombreComercial: datos.nombreCliente || this.form.nombreCliente || '',
-            cedulaRNC: datos.cedulaCliente
-          } as clientes;
-        } else {
-          this.clienteSeleccionado.cedulaRNC = datos.cedulaCliente;
-        }
+        this.aplicarCliente({
+          idCliente: this.form.idCliente,
+          nombreComercial: datos.nombreCliente || this.form.nombreCliente || '',
+          cedulaRNC: datos.cedulaCliente
+        });
+      }
+
+      if (datos.edadCliente) {
+        this.edadDocumento = String(datos.edadCliente);
+        this.aplicarEdad(this.extraerNumeroEdad(this.edadDocumento));
       }
 
     } catch {
@@ -353,6 +908,8 @@ export class DocumentoClinicoFormComponent implements OnInit {
       // datosJSON inválido: se ignoran campos adicionales
 
     }
+
+    this.sincronizarDoctorSeleccionado();
 
   }
 
@@ -384,11 +941,17 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
     if (data?.cliente) {
 
-      this.clienteSeleccionado = data.cliente;
+      this.edadFicha = null;
 
-      this.form.idCliente =
+      this.edadDocumento = '';
 
-        data.cliente.idCliente ?? data.cliente.iDCliente ?? 0;
+      this.edadInput = null;
+
+      this.edadEditada = false;
+
+      this.aplicarCliente(data.cliente);
+
+      this.cargarEdadDesdeFicha(this.form.idCliente);
 
       this.autocompletarUltimoProcedimiento();
 
@@ -527,11 +1090,15 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
   private armarVariablesPlantilla(): VariablesPlantillaDocumento {
 
+    const empresa = this.parametro._Empresa;
+
     return {
 
       cliente: this.clienteSeleccionado?.nombreComercial || this.form.nombreCliente || '',
 
       cedula: this.clienteSeleccionado?.cedulaRNC || '',
+
+      edad: this.edadPaciente,
 
       fecha: this.form.fechaEmision || '',
 
@@ -539,13 +1106,23 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
       doctor: (this.form.nombreDoctor || '').trim(),
 
+      nombreEmpresa: (empresa?.nombreComercial || '').trim(),
+
+      eslogan: 'Salud Bucal Para Todos...',
+
+      direccion: (empresa?.direccion || '').trim(),
+
+      telefono: (empresa?.telefono || '').trim(),
+
+      cargoDoctor: (this.cargoDoctor || '').trim() || 'ODONTÓLOGO',
+
       procedimiento: (this.form.procedimiento || '').trim(),
 
       horasReposo: this.form.horasReposo ?? null,
 
       observaciones: (this.form.observaciones || '').trim(),
 
-      medicamentos: (this.form.medicamentos || '').trim(),
+      medicamentos: (this.form.indicaciones || '').trim(),
 
       indicaciones: (this.form.indicaciones || '').trim()
 
@@ -595,13 +1172,21 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
       nombreDoctor: this.form.nombreDoctor || '',
 
+      idEmpleado: this.idEmpleadoSeleccionado || null,
+
+      cargoDoctor: this.cargoDoctor || '',
+
+      edadCliente: this.edadPaciente,
+
+      fechaNacimiento: this.fechaDesdeEdad() || '',
+
       horasReposo: this.form.horasReposo ?? null,
 
       procedimiento: this.form.procedimiento || '',
 
       observaciones: this.form.observaciones || '',
 
-      medicamentos: this.form.medicamentos || '',
+      medicamentos: this.form.indicaciones || '',
 
       indicaciones: this.form.indicaciones || '',
 
@@ -683,15 +1268,15 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
 
 
-    if (!this.form.numeroDocumento?.trim()) {
+    if (!this.form.nombreDoctor?.trim() || !this.idEmpleadoSeleccionado) {
 
       (
 
         await this.toastCtrl.create({
 
-          message: 'Ingrese el número de documento.',
+          message: 'Seleccione el médico que firma el documento.',
 
-          duration: 2000,
+          duration: 2200,
 
           color: 'warning'
 
@@ -727,13 +1312,13 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
 
 
-    if (this.esReceta && !this.form.medicamentos?.trim()) {
+    if (this.esReceta && !this.form.indicaciones?.trim()) {
 
       (
 
         await this.toastCtrl.create({
 
-          message: 'Ingrese los medicamentos de la receta.',
+          message: 'Ingrese las indicaciones de la receta.',
 
           duration: 2000,
 
@@ -781,7 +1366,7 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
       observaciones: (this.form.observaciones || '').trim(),
 
-      medicamentos: (this.form.medicamentos || '').trim(),
+      medicamentos: (this.form.indicaciones || '').trim(),
 
       indicaciones: (this.form.indicaciones || '').trim(),
 
@@ -817,7 +1402,7 @@ export class DocumentoClinicoFormComponent implements OnInit {
 
     if (!(await this.validar())) return;
 
-
+    await this.persistirEdadCliente();
 
     const payload = this.armarPayload();
 

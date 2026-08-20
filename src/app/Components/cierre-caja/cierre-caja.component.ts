@@ -474,6 +474,15 @@ get metodosPagoResumen(): any[] {
   );
 }
 
+  /** El cajero no puede contar efectivo negativo. */
+  get efectivoEsperadoFisico(): number {
+    return Math.max(0, Number(this.efectivoEsperado.toFixed(2)));
+  }
+
+  get gastosExcedenEfectivo(): boolean {
+    return Number(this.efectivoEsperado.toFixed(2)) < 0;
+  }
+
   /* =====================================
   🔥 TOTAL MONEDAS
   ====================================== */
@@ -538,7 +547,7 @@ get metodosPagoResumen(): any[] {
 
       this.efectivoContado
 
-      - this.efectivoEsperado
+      - this.efectivoEsperadoFisico
     );
   }
 
@@ -560,6 +569,12 @@ get metodosPagoResumen(): any[] {
 
     this.diferenciaPermitida;
 
+  const observacionOk =
+
+    !this.gastosExcedenEfectivo
+
+    || (this.observacion || '').trim().length >= 8;
+
   return (
 
     tieneTotales
@@ -571,6 +586,10 @@ get metodosPagoResumen(): any[] {
     &&
 
     cajaCuadrada
+
+    &&
+
+    observacionOk
   );
 }
 getMetodoTotalTransferencia(): number {
@@ -600,6 +619,14 @@ getMetodoTotalTransferencia(): number {
 async cerrarCaja(): Promise<void> {
 
   if(!this.puedeCerrarCaja){
+
+    if (this.gastosExcedenEfectivo && (this.observacion || '').trim().length < 8) {
+      await this.MostrarAlerta(
+        'Observación requerida',
+        'Los gastos de caja superan el efectivo disponible. Escribe una observación para poder cerrar.'
+      );
+      return;
+    }
 
     await this.MostrarAlerta(
       'Caja inválida',

@@ -8,6 +8,55 @@ ion-card-title {
   font-size: 1rem;
 }
 
+.paciente-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.paciente-datos {
+  min-width: 0;
+  flex: 1;
+}
+
+.paciente-datos h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.paciente-datos p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.paciente-edad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px !important;
+  color: #0f172a !important;
+  font-weight: 600;
+}
+
+.paciente-edad input {
+  width: 72px;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.paciente-edad span {
+  font-weight: 500;
+  color: #64748b;
+}
+
 .vista-consulta-content {
   --padding-top: 8px;
   --padding-start: 10px;

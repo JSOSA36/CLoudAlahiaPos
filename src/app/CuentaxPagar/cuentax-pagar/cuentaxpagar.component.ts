@@ -10,6 +10,13 @@ import {
   ClienteSaldoAFavorListado,
   NotasCreditoService
 } from 'src/app/servicios/notas-credito.service';
+import { RncCLienteDGIIService } from 'src/app/servicios/RncCLienteDGII.services';
+import { RrhhService } from 'src/app/servicios/rrhh.service';
+import {
+  PLAZOS_CREDITO,
+  PlazoCreditoOpcion,
+  resolverDiasPlazo
+} from 'src/app/shared/plazo-credito.util';
 
 @Component({
   selector: 'app-cuentax-pagar',
@@ -22,14 +29,47 @@ export class CuentaxPagarComponent implements OnInit {
   modalPagoAbierto = false;
   campoPagoActual: 'pago1' | 'pago2' = 'pago1';
   @Input() IdFactPay!: number;
+  /** Solo en venta nueva del POS; no en cobro de factura existente. */
+  @Input() mostrarConsumoColaborador = true;
   @Input() TotalFactura!: number;
   @Input() Subtotal!: number;
   @Input() Itbis!: number;
   /** Cliente del POS (requerido para pagar con NC). */
   @Input() IdCliente: number | null = null;
   @Input() NombreCliente: string | null = null;
+  /** Plazo en días si el cobro parcial pasa a crédito (default 30). */
+  @Input() PlazoDias: number = 30;
 
   @Input() TipoOrden!: string;
+  /** CONTADO | CREDITO desde el POS. */
+  @Input() TipoPagoInicial: 'CONTADO' | 'CREDITO' = 'CONTADO';
+  @Input() UsaCxC = false;
+  @Input() PlazosCredito: PlazoCreditoOpcion[] = PLAZOS_CREDITO;
+  @Input() PlazoCreditoCodigo = '30';
+  @Input() PlazoCreditoDiasCustom: number | null = 30;
+  @Input() FacturacionElectronica = false;
+  @Input() TiposComprobante: Array<{
+    value: number | null;
+    label: string;
+    disabled?: boolean;
+    alertaBaja?: boolean;
+    restantes?: number;
+  }> = [];
+  @Input() TipoEcfDgii: number | null = null;
+  @Input() RncFiscal = '';
+  @Input() NombreFiscal = '';
+
+  colaboradores: Array<{
+    idEmpleados: number;
+    nombre: string;
+    porcentaje: number;
+    descontarNomina: boolean;
+  }> = [];
+  idEmpleadoConsumo: number | null = 0;
+  pctColaborador = 0;
+  descontarNominaColaborador = false;
+  nombreColaborador = '';
+
   cambio: number = 0;
   _TipoComprobante: string = 'Consumo';
   _PropinaLegal: boolean = false;
@@ -65,7 +105,7 @@ export class CuentaxPagarComponent implements OnInit {
 
   _MontoPago1: number = 0;
   _PagosMixtos: any[] = [];
-  ImprimirFacturaCliente: boolean = false;
+  ImprimirFacturaCliente: boolean = true;
   _MetodoPago2: string = '';
   _MontoPago2: number = 0;
 
@@ -82,17 +122,58 @@ export class CuentaxPagarComponent implements OnInit {
   montoNc = 0;
   errorNc = '';
 
+  plazoCreditoCodigo = '30';
+  plazoCreditoDiasCustom: number | null = 30;
+  plazosCredito = PLAZOS_CREDITO;
+  tipoEcfDgii: number | null = null;
+  rncFiscal = '';
+  nombreFiscal = '';
+  estadoRnc = '';
+  mensajeRnc = '';
+
   readonly METODO_NC = 'NotaCredito';
 
+  get totalAPagar(): number {
+    const t = Number(this.TotalFactura) || 0;
+    const desc = this.montoDescuentoColaborador;
+    return Math.round((t - desc) * 100) / 100;
+  }
+
+  get montoDescuentoColaborador(): number {
+    const pct = Number(this.pctColaborador) || 0;
+    if (pct <= 0) return 0;
+    const base = Number(this.Subtotal) || Number(this.TotalFactura) || 0;
+    return Math.round(base * (pct / 100) * 100) / 100;
+  }
+
   get restanteTrasNc(): number {
-    const total = Number(this.TotalFactura) || 0;
+    const total = this.totalAPagar;
     const nc = this._UsarNotaCredito ? (Number(this.montoNc) || 0) : 0;
     return Math.round((total - nc) * 100) / 100;
   }
 
+  get requiereDatosFiscales(): boolean {
+    return (
+      this._TipoComprobante === 'Crédito Fiscal' ||
+      this._TipoComprobante === 'Gubernamental'
+    );
+  }
+
+  get diasPlazoCredito(): number {
+    return resolverDiasPlazo(this.plazoCreditoCodigo, this.plazoCreditoDiasCustom);
+  }
+
   calcularPagoNormal() {
-    const recibido = this.EfectivoRecibido || this.restanteTrasNc;
-    this.cambio = recibido - this.restanteTrasNc;
+    this.calcularCambio();
+  }
+
+  /** Saldo que queda a crédito si el cobro es parcial. */
+  get pendienteAbono(): number {
+    if (!this.esAbonoParcialCredito) return 0;
+    return Math.max(
+      0,
+      Math.round((this.restanteTrasNc - this.montoRecibidoAplicar) * 100) / 100
+    );
   }
 
   calcularPagoMixto() {
@@ -103,6 +184,10 @@ export class CuentaxPagarComponent implements OnInit {
   }
 
   puedeProcesar(): boolean {
+    if (this._TipoFactura === 'Credito') {
+      return true;
+    }
+
     if (this._UsarNotaCredito) {
       if (!this.saldoNc || this.montoNc <= 0) return false;
       if (this.restanteTrasNc < 0) return false;
@@ -114,7 +199,29 @@ export class CuentaxPagarComponent implements OnInit {
     }
 
     this.calcularPagoMixto();
-    return Math.abs(this.restante) < 0.01;
+    // Mixto: al menos un monto; puede ser parcial (queda a crédito)
+    return this.totalPagado > 0.009;
+  }
+
+  /** Monto que realmente se aplica como pago (sin NC). */
+  get montoRecibidoAplicar(): number {
+    const restante = this.restanteTrasNc;
+    if (restante <= 0) return 0;
+
+    if (!this._PagoMixto) {
+      const recibido = Number(this.EfectivoRecibido);
+      if (!Number.isFinite(recibido) || recibido <= 0) return 0;
+      return Math.min(recibido, restante);
+    }
+
+    this.calcularPagoMixto();
+    return Math.min(this.totalPagado, restante);
+  }
+
+  get esAbonoParcialCredito(): boolean {
+    const restante = this.restanteTrasNc;
+    const recibido = this.montoRecibidoAplicar;
+    return restante > 0.02 && recibido > 0.009 && recibido < restante - 0.02;
   }
 
   constructor(
@@ -124,17 +231,107 @@ export class CuentaxPagarComponent implements OnInit {
     private _ClientesService: ClienteService,
     private alertCtrl: AlertController,
     private metodoPagoCuentaService: MetodoPagoCuentaService,
-    private notasCreditoService: NotasCreditoService
+    private notasCreditoService: NotasCreditoService,
+    private rncService: RncCLienteDGIIService,
+    private rrhh: RrhhService
   ) {}
 
   ngOnInit() {
+    this.plazosCredito = this.PlazosCredito?.length
+      ? this.PlazosCredito
+      : PLAZOS_CREDITO;
+    this.plazoCreditoCodigo = this.PlazoCreditoCodigo || '30';
+    this.plazoCreditoDiasCustom = this.PlazoCreditoDiasCustom ?? 30;
+    this.tipoEcfDgii = this.TipoEcfDgii ?? null;
+    this.rncFiscal = this.RncFiscal || '';
+    this.nombreFiscal = this.NombreFiscal || '';
+    this._TipoFactura =
+      this.TipoPagoInicial === 'CREDITO' && this.UsaCxC ? 'Credito' : 'Contado';
+    this.onTipoEcfChange(false);
+    this.onPlazoCreditoChange();
+
     this.CargarMetodosPago();
+    if (Number(this.IdFactPay) > 0 || !this._Parametro.tieneModuloRrhh()) {
+      this.mostrarConsumoColaborador = false;
+    }
+    this.cargarColaboradores();
+    this.EfectivoRecibido = this.restanteTrasNc;
+    this.calcularPagoNormal();
     if (this.IdCliente && this.IdCliente > 0) {
       this._ClienteSeleccionado = {
         idCliente: this.IdCliente,
         nombre: this.NombreCliente
       };
     }
+  }
+
+  onTipoFacturaChange() {
+    if (this._TipoFactura === 'Credito') {
+      this._UsarNotaCredito = false;
+      this.limpiarNc();
+      this._PagoMixto = false;
+      this._FormaPago = '';
+      this.EfectivoRecibido = 0;
+      this._MontoPago1 = 0;
+      this._MontoPago2 = 0;
+      this.MontoPago1 = 0;
+      this.MontoPago2 = 0;
+      this.cambio = 0;
+      this._ConAbonoCredito = false;
+      this.onPlazoCreditoChange();
+    } else {
+      this.EfectivoRecibido = this.restanteTrasNc;
+      this.calcularPagoNormal();
+    }
+  }
+
+  onPlazoCreditoChange(): void {
+    if (this.plazoCreditoCodigo === 'custom' && (this.plazoCreditoDiasCustom == null || this.plazoCreditoDiasCustom < 0)) {
+      this.plazoCreditoDiasCustom = 30;
+    }
+    const dias = this.diasPlazoCredito;
+    if (dias >= 0) {
+      this.PlazoDias = dias;
+    }
+  }
+
+  onTipoEcfChange(limpiarSiNoRequiere = true) {
+    if (this.tipoEcfDgii === null || this.tipoEcfDgii === undefined) {
+      this._TipoComprobante = 'FACT';
+    } else if (this.tipoEcfDgii === 32) {
+      this._TipoComprobante = 'Consumidor Final';
+    } else if (this.tipoEcfDgii === 45) {
+      this._TipoComprobante = 'Gubernamental';
+    } else {
+      this._TipoComprobante = 'Crédito Fiscal';
+    }
+
+    if (limpiarSiNoRequiere && !this.requiereDatosFiscales) {
+      this.rncFiscal = '';
+      this.nombreFiscal = '';
+      this.mensajeRnc = '';
+      this.estadoRnc = '';
+    }
+  }
+
+  consultarRnc() {
+    if (!this.rncFiscal) return;
+
+    this.estadoRnc = 'loading';
+    this.mensajeRnc = 'Consultando DGII...';
+
+    this.rncService.consultarRnc(this.rncFiscal).subscribe({
+      next: (resp: any) => {
+        this.nombreFiscal = resp?.nombre || '';
+        this.estadoRnc = 'success';
+        this.mensajeRnc = 'RNC encontrado correctamente';
+      },
+      error: () => {
+        this.nombreFiscal = '';
+        this.estadoRnc = 'error';
+        this.mensajeRnc = 'No se encontró el RNC';
+      }
+    });
   }
 
   calcularCambio() {
@@ -153,6 +350,29 @@ export class CuentaxPagarComponent implements OnInit {
         },
         error: (err) => console.error(err)
       });
+  }
+
+  cargarColaboradores(): void {
+    if (!this.mostrarConsumoColaborador) return;
+    const id = this._Parametro.GetIdEmpresa();
+    if (!id) return;
+    this.rrhh.consumoColaborador(id).subscribe({
+      next: (rows) => (this.colaboradores = rows || []),
+      error: (err) => console.error(err)
+    });
+  }
+
+  onColaboradorChange(): void {
+    const id = Number(this.idEmpleadoConsumo) || 0;
+    this.idEmpleadoConsumo = id > 0 ? id : null;
+    const row = this.colaboradores.find(c => Number(c.idEmpleados) === id);
+    this.pctColaborador = Number(row?.porcentaje) || 0;
+    this.descontarNominaColaborador = !!row?.descontarNomina;
+    this.nombreColaborador = row?.nombre || '';
+    if (this._TipoFactura === 'Contado') {
+      this.EfectivoRecibido = this.restanteTrasNc;
+      this.calcularPagoNormal();
+    }
   }
 
   onToggleNotaCredito() {
@@ -193,7 +413,7 @@ export class CuentaxPagarComponent implements OnInit {
           this.buscandoNc = false;
           this.saldoNc = saldo;
           const disponible = Number(saldo.saldoDisponible) || 0;
-          const total = Number(this.TotalFactura) || 0;
+          const total = this.totalAPagar;
           this.montoNc = Math.min(disponible, total);
           this.calcularCambio();
           this.calcularPagoMixto();
@@ -216,7 +436,7 @@ export class CuentaxPagarComponent implements OnInit {
     if (!this.saldoNc) return;
     const max = Math.min(
       Number(this.saldoNc.saldoDisponible) || 0,
-      Number(this.TotalFactura) || 0
+      Number(this.totalAPagar) || 0
     );
     let m = Number(this.montoNc) || 0;
     if (m < 0) m = 0;
@@ -252,17 +472,17 @@ export class CuentaxPagarComponent implements OnInit {
   }
 
   get restanteCredito(): number {
-    if (!this._ConAbonoCredito) return this.TotalFactura;
+    if (!this._ConAbonoCredito) return this.totalAPagar;
 
     if (!this._AbonoMixtoCredito) {
-      return this.TotalFactura - Number(this._MontoAbonoCredito || 0);
+      return this.totalAPagar - Number(this._MontoAbonoCredito || 0);
     }
 
     const abono =
       Number(this._MontoAbono1 || 0) +
       Number(this._MontoAbono2 || 0);
 
-    return this.TotalFactura - abono;
+    return this.totalAPagar - abono;
   }
 
   setMonto(valor: number) {
@@ -293,7 +513,7 @@ export class CuentaxPagarComponent implements OnInit {
 
   private construirPagosContado(): any[] {
     const pagos: any[] = [];
-    const total = Number(this.TotalFactura) || 0;
+    const total = this.totalAPagar;
     const montoNc = this._UsarNotaCredito ? (Number(this.montoNc) || 0) : 0;
     const restante = Math.round((total - montoNc) * 100) / 100;
 
@@ -314,27 +534,25 @@ export class CuentaxPagarComponent implements OnInit {
     }
 
     if (!this._PagoMixto) {
-      pagos.push({
-        metodo: this._FormaPago,
-        monto: restante
-      });
-    } else {
-      let monto1 = Number(this.MontoPago1) || Number(this._MontoPago1) || 0;
-      let monto2 = Number(this.MontoPago2) || Number(this._MontoPago2) || 0;
-      const suma = monto1 + monto2;
-
-      if (suma < restante) {
-        const diferencia = restante - suma;
-        if (this._MetodoPago1 === 'Efectivo') monto1 += diferencia;
-        else if (this._MetodoPago2 === 'Efectivo') monto2 += diferencia;
-        else monto2 += diferencia;
+      const recibido = Number(this.EfectivoRecibido);
+      const monto = (!Number.isFinite(recibido) || recibido <= 0)
+        ? 0
+        : Math.min(recibido, restante);
+      if (monto > 0.009) {
+        pagos.push({
+          metodo: this._FormaPago,
+          monto: Math.round(monto * 100) / 100
+        });
       }
-
+    } else {
+      const monto1 = Number(this.MontoPago1) || Number(this._MontoPago1) || 0;
+      const monto2 = Number(this.MontoPago2) || Number(this._MontoPago2) || 0;
+      // No forzar a cubrir el total: si paga menos, queda a crédito
       if (monto1 > 0) {
-        pagos.push({ metodo: this._MetodoPago1, monto: monto1 });
+        pagos.push({ metodo: this._MetodoPago1, monto: Math.round(monto1 * 100) / 100 });
       }
       if (monto2 > 0) {
-        pagos.push({ metodo: this._MetodoPago2, monto: monto2 });
+        pagos.push({ metodo: this._MetodoPago2, monto: Math.round(monto2 * 100) / 100 });
       }
     }
 
@@ -352,7 +570,7 @@ export class CuentaxPagarComponent implements OnInit {
     } else {
       let monto1 = Number(this._MontoAbono1) || 0;
       let monto2 = Number(this._MontoAbono2) || 0;
-      const total = Number(this.TotalFactura) || 0;
+      const total = this.totalAPagar;
       const suma = monto1 + monto2;
 
       if (suma > total) {
@@ -374,17 +592,13 @@ export class CuentaxPagarComponent implements OnInit {
   }
 
   async CloseModal() {
-    if (this._TipoFactura === 'Credito' && !this._ClienteSeleccionado && !this.IdCliente) {
-      (await this.toastCtrl.create({
-        message: 'Debe seleccionar un cliente para crédito',
-        duration: 1500,
-        color: 'warning'
-      })).present();
-      return;
-    }
+    const idCliente =
+      this.IdCliente ||
+      this._ClienteSeleccionado?.idCliente ||
+      this._ClienteSeleccionado?.id ||
+      0;
 
     if (this._UsarNotaCredito) {
-      const idCliente = this.IdCliente || this._ClienteSeleccionado?.idCliente || 0;
       if (!idCliente) {
         (await this.toastCtrl.create({
           message: 'Seleccione el cliente titular de la nota de crédito',
@@ -434,25 +648,65 @@ export class CuentaxPagarComponent implements OnInit {
 
           const m1 = Number(this.MontoPago1) || Number(this._MontoPago1) || 0;
           const m2 = Number(this.MontoPago2) || Number(this._MontoPago2) || 0;
-          if (!m1 || !m2) {
+          if (m1 + m2 <= 0.009) {
             (await this.toastCtrl.create({
-              message: 'Debe colocar ambos montos',
+              message: 'Indique al menos un monto de pago',
               duration: 1500,
               color: 'warning'
             })).present();
             return;
           }
-
-          const totalPagos = m1 + m2;
-          if (Math.abs(totalPagos - this.restanteTrasNc) > 0.01) {
+        } else {
+          const recibido = Number(this.EfectivoRecibido) || 0;
+          if (recibido <= 0.009) {
             (await this.toastCtrl.create({
-              message: 'Los montos mixtos deben cubrir el restante tras la nota de crédito',
-              duration: 2000,
-              color: 'danger'
+              message: 'Indique el monto a cobrar. Si no habrá abono, seleccione Crédito arriba.',
+              duration: 2500,
+              color: 'warning'
             })).present();
             return;
           }
         }
+      }
+    }
+
+    if (this._TipoFactura === 'Credito') {
+      if (!this.UsaCxC && !this.idEmpleadoConsumo) {
+        (await this.toastCtrl.create({
+          message: 'Módulo Cuentas por Cobrar no disponible',
+          duration: 2000,
+          color: 'danger'
+        })).present();
+        return;
+      }
+      if (!idCliente && !this.idEmpleadoConsumo) {
+        (await this.toastCtrl.create({
+          message: 'Seleccione un cliente o un colaborador para dejar a crédito',
+          duration: 2000,
+          color: 'warning'
+        })).present();
+        return;
+      }
+      const dias = this.diasPlazoCredito;
+      if (dias < 0) {
+        (await this.toastCtrl.create({
+          message: 'Indique un plazo de crédito válido',
+          duration: 2000,
+          color: 'warning'
+        })).present();
+        return;
+      }
+      this.PlazoDias = dias;
+    }
+
+    if (this.requiereDatosFiscales) {
+      if (!this.rncFiscal?.trim() || !this.nombreFiscal?.trim()) {
+        (await this.toastCtrl.create({
+          message: 'Consulte el RNC / cédula del comprobante fiscal',
+          duration: 2200,
+          color: 'warning'
+        })).present();
+        return;
       }
     }
 
@@ -462,39 +716,117 @@ export class CuentaxPagarComponent implements OnInit {
       pagos = this.construirPagosContado();
     }
 
-    if (this._TipoFactura === 'Credito' && this._ConAbonoCredito) {
-      pagos = this.construirPagosAbono();
+    if (this._TipoFactura === 'Credito') {
+      // En crédito el cobro queda oculto; no tomar un efectivo residual del modo Contado.
+      this.EfectivoRecibido = 0;
+      this._PagoMixto = false;
+      this._ConAbonoCredito = false;
+      if (this.montoRecibidoAplicar > 0.009) {
+        this._ConAbonoCredito = true;
+        if (!this._PagoMixto) {
+          this._FormaPagoAbonoCredito = this._FormaPago;
+          this._MontoAbonoCredito = this.montoRecibidoAplicar;
+          this._AbonoMixtoCredito = false;
+        } else {
+          this._AbonoMixtoCredito = true;
+          this._MetodoAbono1 = this._MetodoPago1;
+          this._MontoAbono1 = Number(this.MontoPago1) || Number(this._MontoPago1) || 0;
+          this._MetodoAbono2 = this._MetodoPago2;
+          this._MontoAbono2 = Number(this.MontoPago2) || Number(this._MontoPago2) || 0;
+        }
+        pagos = this.construirPagosAbono();
 
-      const totalAbono = pagos.reduce(
-        (sum: number, p: any) => sum + Number(p.monto),
-        0
-      );
+        const totalAbono = pagos.reduce(
+          (sum: number, p: any) => sum + Number(p.monto),
+          0
+        );
 
-      if (totalAbono >= this.TotalFactura) {
-        (await this.toastCtrl.create({
-          message: 'El abono no puede ser igual o mayor al total',
-          duration: 1500,
-          color: 'danger'
-        })).present();
-        return;
+        if (totalAbono >= this.totalAPagar) {
+          (await this.toastCtrl.create({
+            message: 'El abono no puede ser igual o mayor al total',
+            duration: 1500,
+            color: 'danger'
+          })).present();
+          return;
+        }
       }
     }
 
-    const sumaPagos = pagos.reduce((s, p) => s + Number(p.monto || 0), 0);
-    if (this._TipoFactura === 'Contado' && Math.abs(sumaPagos - Number(this.TotalFactura)) > 0.02) {
-      (await this.toastCtrl.create({
-        message: 'La suma de pagos no coincide con el total de la factura',
-        duration: 2000,
-        color: 'danger'
-      })).present();
-      return;
+    // Pagos de métodos (sin NC) vs total a cubrir tras NC
+    const sumaMetodos = pagos
+      .filter(p => p.metodo !== this.METODO_NC)
+      .reduce((s, p) => s + Number(p.monto || 0), 0);
+    const restante = this.restanteTrasNc;
+    let tipoFacturaSalida: 'Contado' | 'Credito' = this._TipoFactura;
+    const plazoDias = Number.isFinite(Number(this.PlazoDias)) && Number(this.PlazoDias) >= 0
+      ? Math.floor(Number(this.PlazoDias))
+      : 30;
+
+    if (this._TipoFactura === 'Contado' && restante > 0.02) {
+      if (sumaMetodos <= 0.009 && !(this._UsarNotaCredito && this.restanteTrasNc <= 0.009)) {
+        (await this.toastCtrl.create({
+          message: 'Indique un monto de pago mayor a cero',
+          duration: 2000,
+          color: 'warning'
+        })).present();
+        return;
+      }
+
+      if (sumaMetodos < restante - 0.02) {
+        // Abono parcial → crédito automático
+        if (!idCliente && !this.idEmpleadoConsumo) {
+          (await this.toastCtrl.create({
+            message: 'Para dejar saldo pendiente debe seleccionar un cliente o un colaborador (queda a crédito)',
+            duration: 2800,
+            color: 'warning'
+          })).present();
+          return;
+        }
+        tipoFacturaSalida = 'Credito';
+      } else if (Math.abs(sumaMetodos - restante) > 0.02 && sumaMetodos > restante + 0.02) {
+        // Solo efectivo puede sobrar (cambio); otros métodos no deben exceder
+        const esEfectivo = !this._PagoMixto &&
+          String(this._FormaPago || '').toUpperCase().includes('EFECTIVO');
+        if (!esEfectivo) {
+          (await this.toastCtrl.create({
+            message: 'El monto no puede superar el total a pagar',
+            duration: 2000,
+            color: 'danger'
+          })).present();
+          return;
+        }
+        // Recortar pagos de efectivo al restante; el cambio ya se calcula
+        pagos = pagos.map(p =>
+          p.metodo === this.METODO_NC
+            ? p
+            : { ...p, monto: Math.min(Number(p.monto) || 0, restante) }
+        );
+      }
     }
 
     const dataSalida = {
       idFactura: this.IdFactPay ?? 0,
-      tipoFactura: this._TipoFactura,
-      idCliente: this.IdCliente || this._ClienteSeleccionado?.idCliente || 0,
+      tipoFactura: tipoFacturaSalida,
+      idCliente,
+      idEmpleadoConsumo: this.idEmpleadoConsumo,
+      porcentajeDescuentoEmpleado: this.pctColaborador,
+      cargarConsumoNomina: !!this.idEmpleadoConsumo
+        && this.descontarNominaColaborador
+        && tipoFacturaSalida === 'Credito',
+      nombreColaborador: this.nombreColaborador || null,
       imprimir: this.ImprimirFacturaCliente,
+      plazoDias: tipoFacturaSalida === 'Credito' ? plazoDias : undefined,
+      plazoCreditoCodigo: this.plazoCreditoCodigo,
+      plazoCreditoDiasCustom: this.plazoCreditoDiasCustom,
+      tipoEcfDgii: this.tipoEcfDgii,
+      tipoComprobante: this._TipoComprobante,
+      rnc: this.rncFiscal || null,
+      nombreFiscal: this.nombreFiscal || this.nombreColaborador || null,
+      pagado: pagos.reduce((s, p) => s + Number(p.monto || 0), 0),
+      pendiente: Math.max(
+        0,
+        Math.round((this.totalAPagar - pagos.reduce((s, p) => s + Number(p.monto || 0), 0)) * 100) / 100
+      ),
       pagos
     };
 

@@ -169,22 +169,42 @@
 }
 
 @media print {
+  /* margin 0 evita encabezado/pie del navegador (fecha, título, URL) */
   @page {
     size: letter portrait;
-    margin: 0.45in;
+    margin: 0;
   }
 
+  html,
   body {
-    margin: 0;
-    background: #fff;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
 
   .no-print {
     display: none !important;
   }
 
+  ion-header,
+  ion-footer,
+  ion-toolbar,
+  ion-buttons,
+  ion-menu,
+  ion-split-pane,
+  app-alahia-ai-fab {
+    display: none !important;
+  }
+
   ion-content {
-    --background: #fff;
+    --background: #fff !important;
+    --padding-start: 0 !important;
+    --padding-end: 0 !important;
+    --padding-top: 0 !important;
+    --padding-bottom: 0 !important;
+    position: static !important;
+    overflow: visible !important;
+    contain: none !important;
   }
 
   .cotizacion-page {
@@ -192,8 +212,10 @@
     max-width: none;
     min-height: auto;
     margin: 0;
-    padding: 0;
+    /* margen visual del documento (sustituye al del navegador) */
+    padding: 0.55in 0.6in !important;
     box-shadow: none;
+    background: #fff !important;
   }
 }
 

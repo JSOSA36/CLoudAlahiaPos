@@ -3,6 +3,8 @@ import { ToastController } from '@ionic/angular';
 import { clientes } from 'src/app/models/clientes';
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { pdfMoneda, pdfNumero } from 'src/app/shared/pdf/pdfmake-core';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporte-clientes',
@@ -61,5 +63,42 @@ export class ReporteClientesComponent implements OnInit {
       conCredito: filas.filter(c => Number(c.limiteCredito || 0) > 0).length,
       limiteTotal: filas.reduce((s, c) => s + Number(c.limiteCredito || 0), 0)
     };
+  }
+
+  exportarPdf(): void {
+    if (!this.filtrados.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de clientes',
+      empresa: this.parametro.NombreEmpresa,
+      landscape: true,
+      kpis: [
+        { label: 'Clientes', value: String(this.resumen.total) },
+        { label: 'Con límite crédito', value: String(this.resumen.conCredito) },
+        { label: 'Suma límites', value: pdfMoneda(this.resumen.limiteTotal) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Nombre', width: '*' },
+          { header: 'Cédula / RNC', width: 80 },
+          { header: 'Teléfono', width: 70 },
+          { header: 'Celular', width: 70 },
+          { header: 'Email', width: 100 },
+          { header: 'Dirección', width: 110 },
+          { header: 'Límite crédito', width: 70, align: 'right' }
+        ],
+        filas: this.filtrados.map(c => [
+          c.nombreComercial,
+          c.cedulaRNC || '—',
+          c.telefono || '—',
+          c.celular || '—',
+          c.email || '—',
+          c.direccion || '—',
+          pdfNumero(Number(c.limiteCredito || 0))
+        ])
+      }],
+      nombreArchivo: 'Reporte_clientes.pdf'
+    });
   }
 }

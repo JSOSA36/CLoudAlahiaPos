@@ -3,6 +3,7 @@ import { ToastController } from '@ionic/angular';
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 type FiltroEstado = 'TODOS' | 'ACTIVOS' | 'INACTIVOS';
 
@@ -71,5 +72,37 @@ export class ReporteEmpleadosComponent implements OnInit {
       activos: this.filtrados.filter(e => e.estado).length,
       inactivos: this.filtrados.filter(e => !e.estado).length
     };
+  }
+
+  exportarPdf(): void {
+    if (!this.filtrados.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de empleados',
+      empresa: this.parametro.NombreEmpresa,
+      kpis: [
+        { label: 'Total', value: String(this.resumen.total) },
+        { label: 'Activos', value: String(this.resumen.activos) },
+        { label: 'Inactivos', value: String(this.resumen.inactivos) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Nombre', width: '*' },
+          { header: 'Ocupación', width: 110 },
+          { header: 'Celular', width: 80 },
+          { header: 'Dirección', width: 140 },
+          { header: 'Estado', width: 55 }
+        ],
+        filas: this.filtrados.map(e => [
+          e.nombre,
+          e.ocupacion || '—',
+          e.celular || '—',
+          e.direccion || '—',
+          e.estado ? 'Activo' : 'Inactivo'
+        ])
+      }],
+      nombreArchivo: 'Reporte_empleados.pdf'
+    });
   }
 }

@@ -180,6 +180,10 @@
           <span>Debe Haber</span>
           <strong class="azul">{{ efectivoEsperado | currency:'DOP' }}</strong>
         </div>
+        <div class="line" *ngIf="gastosExcedenEfectivo">
+          <span>Efectivo a contar</span>
+          <strong class="verde">{{ efectivoEsperadoFisico | currency:'DOP' }}</strong>
+        </div>
 
       </div>
 
@@ -192,7 +196,7 @@
 
         <div class="resultado-item">
           <span>Esperado</span>
-          <strong class="azul">{{ efectivoEsperado | currency:'DOP' }}</strong>
+          <strong class="azul">{{ efectivoEsperadoFisico | currency:'DOP' }}</strong>
         </div>
 
         <div class="resultado-item">
@@ -290,9 +294,16 @@
           [(ngModel)]="observacion">
         </ion-textarea>
 
-      <!-- =====================================
-🔥 DIFERENCIA MENOR
-===================================== -->
+<div
+  class="alerta-info"
+  *ngIf="gastosExcedenEfectivo">
+
+  Los gastos de caja superan el efectivo disponible.
+  El efectivo físico esperado es
+  <strong>{{ efectivoEsperadoFisico | currency:'DOP' }}</strong>.
+  Escribe una observación y podrás cerrar.
+
+</div>
 
 <div
   class="alerta-warning"
@@ -301,6 +312,8 @@
     diferencia !== 0
     &&
     diferenciaPermitida
+    &&
+    !gastosExcedenEfectivo
   ">
 
   ⚠️ Existe una diferencia menor de
@@ -312,41 +325,6 @@
   en caja.
 
 </div>
-
-<!-- =====================================
-🔥 DIFERENCIA GRAVE
-===================================== -->
-
-<!-- =====================================
-🔥 DIFERENCIA MENOR
-===================================== -->
-
-<!-- =====================================
-🔥 DIFERENCIA MENOR
-===================================== -->
-
-<div
-  class="alerta-warning"
-
-  *ngIf="
-    diferencia !== 0
-    &&
-    diferenciaPermitida
-  ">
-
-  ⚠️ Existe una diferencia menor de
-
-  <strong>
-    {{ diferencia | currency:'DOP' }}
-  </strong>
-
-  en caja.
-
-</div>
-
-<!-- =====================================
-🔥 DIFERENCIA GRAVE
-===================================== -->
 
 <div
   class="alerta-diferencia"
@@ -355,6 +333,8 @@
     !diferenciaPermitida
     &&
     diferencia !== 0
+    &&
+    !gastosExcedenEfectivo
   ">
 
   ❌ Existe una diferencia de

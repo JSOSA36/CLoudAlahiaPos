@@ -109,24 +109,35 @@ export class FormEncargosComponent implements OnInit {
   buscarPorCelular(event: any) {
 
     const celular =
-      event.target.value?.trim();
+      (event?.target?.value ?? this.form.value.celular ?? '')
+        .toString()
+        .trim();
 
     // 🔥 LIMPIAR
-    if (!celular || celular.length < 7) {
+    if (!celular || celular.replace(/\D/g, '').length < 7) {
 
       this.form.patchValue({
 
-        idCliente: 0,
+        idCliente: 0
 
-        cliente: ''
       });
 
       return;
     }
 
+    const idEmpresa =
+      this.authService.GetIdEmpresa()
+      || this.authService.IdEmpresa
+      || 0;
+
+    if (!idEmpresa) {
+      console.warn('⚠️ Sin IdEmpresa para buscar cliente');
+      return;
+    }
+
     this.clienteService
       .GetByTelefono(
-        this.authService.IdEmpresa,
+        idEmpresa,
         celular
       )
       .subscribe({
@@ -149,17 +160,32 @@ export class FormEncargosComponent implements OnInit {
             return;
           }
 
+          const id =
+            Number(
+              cliente.idCliente
+              ?? cliente.iDCliente
+              ?? cliente.IDCliente
+              ?? 0
+            );
+
+          const nombre =
+            cliente.nombre
+            || cliente.nombreComercial
+            || '';
+
+          const tel =
+            cliente.celular
+            || cliente.telefono
+            || celular;
+
           // 🔥 EXISTE
           this.form.patchValue({
 
-            idCliente:
-              cliente.idCliente,
+            idCliente: id,
 
-            cliente:
-              cliente.nombre,
+            cliente: nombre,
 
-            celular:
-              cliente.telefono
+            celular: tel
           });
         },
 
@@ -201,13 +227,13 @@ export class FormEncargosComponent implements OnInit {
     this.form.patchValue({
 
       idCliente:
-        cliente.idCliente,
+        Number(cliente.idCliente ?? cliente.iDCliente ?? cliente.IDCliente ?? 0),
 
       cliente:
-        cliente.nombre,
+        cliente.nombre || cliente.nombreComercial || '',
 
       celular:
-        cliente.telefono
+        cliente.celular || cliente.telefono || ''
     });
   }
 

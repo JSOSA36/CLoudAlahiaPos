@@ -38,6 +38,13 @@ export class EmpresaService {
   updateEmpresa(value: FormData): Observable<any> {
     return this.httpClient.put<any>(`${this.baseUrl}/`, value);
   }
+
+  /** Guarda solo la URL del agente de impresión (ApiPrint). */
+  setApiPrint(idEmpresa: number, apiPrint: string): Observable<any> {
+    return this.httpClient.put<any>(`${this.baseUrl}/${idEmpresa}/api-print`, {
+      apiPrint
+    });
+  }
   // 🔥 MARCAR PAGO (ADMIN)
 marcarPago(empresaId: number) {
   return this.httpClient.post(`${this.baseUrl}/MarcarPago/${empresaId}`, {});

@@ -181,7 +181,7 @@
 
 .form-grid label.full { grid-column: 1 / -1; }
 
-.form-grid input, .demo-fields input {
+.form-grid input, .form-grid select, .demo-fields input {
   border: 1px solid var(--ea-line);
   border-radius: 10px;
   padding: 0.55rem 0.7rem;
@@ -235,6 +235,46 @@
 }
 
 .modulos-actions { display: flex; gap: 0.4rem; }
+
+.verticales {
+  margin: 0.75rem 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.verticales-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.verticales-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.vert-chip {
+  border: 1.5px solid #f2c94c;
+  background: #fff;
+  color: #174a70;
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vert-chip.active {
+  background: linear-gradient(135deg, #2f80ed, #174a70);
+  color: #fff;
+  border-color: #174a70;
+}
 
 .modulos-grid {
   display: grid;

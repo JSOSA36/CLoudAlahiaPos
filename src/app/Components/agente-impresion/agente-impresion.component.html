@@ -1,0 +1,314 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Impresión térmica</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="it-content">
+  <div class="page">
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Configuración · Caja</p>
+        <h1>Impresión térmica</h1>
+        <p class="sub" *ngIf="agenteEnEjecucion">
+          El agente ya está en ejecución. No instale de nuevo. Confirme la impresora abajo.
+        </p>
+        <p class="sub" *ngIf="!agenteEnEjecucion">
+          Esta pantalla busca el agente en este PC (localhost:5045). Solo instale si no está corriendo.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="verificar(true)" [disabled]="verificando">
+          Verificar
+        </button>
+        <button
+          *ngIf="!agenteEnEjecucion"
+          type="button"
+          class="btn btn-yellow"
+          (click)="tab = 'guia'; paso = 2">
+          Descargar agente
+        </button>
+      </div>
+    </section>
+
+    <div class="tabs">
+      <button type="button" class="tab" [class.active]="tab === 'impresora'" (click)="tab = 'impresora'">
+        Impresora
+      </button>
+      <button type="button" class="tab" [class.active]="tab === 'guia'" (click)="tab = 'guia'">
+        Guía / instalar
+      </button>
+    </div>
+
+    <!-- TAB IMPRESORA -->
+    <section class="panel" *ngIf="tab === 'impresora'">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Tickets y recibos</p>
+          <h2>Impresora de tickets</h2>
+        </div>
+        <div class="status-pill" [class.ok]="estado === 'ok'" [class.warn]="estado === 'outdated'" [class.bad]="estado === 'offline'">
+          <span *ngIf="estado === 'ok'">Agente conectado</span>
+          <span *ngIf="estado === 'outdated'">Desactualizado</span>
+          <span *ngIf="estado === 'offline'">Sin conexión</span>
+          <span *ngIf="estado === 'idle'">Sin verificar</span>
+        </div>
+      </div>
+
+      <p class="hint">
+        Seleccione la impresora instalada en Windows. Se guarda en el agente local
+        y se usa al imprimir facturas y recibos.
+      </p>
+
+      <div class="status-box" [class.ok]="estado === 'ok'" [class.warn]="estado === 'outdated'" [class.bad]="estado === 'offline'">
+        <ion-spinner *ngIf="verificando" name="crescent"></ion-spinner>
+        <ng-container *ngIf="!verificando">
+          <p>{{ mensajeEstado || 'Verifique el agente para listar impresoras.' }}</p>
+          <p class="meta" *ngIf="versionDetectada || parametros.ApiPrint">
+            <span *ngIf="versionDetectada">v{{ versionDetectada }}</span>
+            <span *ngIf="versionDetectada && (parametros.ApiPrint || apiPrint)"> · </span>
+            <span>{{ parametros.ApiPrint || apiPrint || '' }}</span>
+          </p>
+        </ng-container>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-outline" [disabled]="verificando" (click)="verificar(true)">
+          Verificar agente
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline"
+          [disabled]="cargandoImpresoras || estado === 'offline'"
+          (click)="cargarImpresoras()">
+          Actualizar lista
+        </button>
+        <button type="button" class="btn btn-link" (click)="tab = 'guia'">Ir a la guía</button>
+      </div>
+
+      <div class="state" *ngIf="cargandoImpresoras">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando impresoras…</span>
+      </div>
+
+      <ng-container *ngIf="!cargandoImpresoras">
+        <div class="field" *ngIf="impresoras.length">
+          <label>Seleccionar de la lista</label>
+          <ion-select
+            class="select"
+            [(ngModel)]="impresoraFactura"
+            interface="popover"
+            placeholder="Seleccione impresora"
+            okText="Ok"
+            cancelText="Cancelar">
+            <ion-select-option *ngFor="let p of impresoras" [value]="p">{{ p }}</ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="field" *ngIf="estado === 'ok' || estado === 'outdated' || impresoraFactura">
+          <label>Nombre exacto en Windows</label>
+          <input
+            class="input"
+            type="text"
+            [(ngModel)]="impresoraFactura"
+            placeholder="Ej. 2C-POS80-01-V6 Printer"
+            autocomplete="off" />
+          <p class="field-hint">
+            Ábralo en <strong>Configuración → Bluetooth y dispositivos → Impresoras</strong>
+            y copie el nombre tal cual (si la lista viene vacía, escríbalo aquí).
+          </p>
+        </div>
+
+        <label class="check" *ngIf="impresoraFactura">
+          <input type="checkbox" [(ngModel)]="mismaImpresora" />
+          Usar la misma para lavador / otros tickets
+        </label>
+
+        <div class="field" *ngIf="impresoraFactura && !mismaImpresora">
+          <label>Impresora lavador</label>
+          <input
+            class="input"
+            type="text"
+            [(ngModel)]="impresoraLavador"
+            placeholder="Nombre exacto en Windows"
+            autocomplete="off" />
+        </div>
+
+        <button
+          *ngIf="estado === 'ok' || estado === 'outdated' || impresoraFactura"
+          type="button"
+          class="btn btn-yellow btn-block"
+          [disabled]="guardandoImpresora || !impresoraFactura"
+          (click)="guardarImpresora()">
+          <ion-spinner *ngIf="guardandoImpresora" name="crescent"></ion-spinner>
+          <span *ngIf="!guardandoImpresora">Guardar impresora</span>
+        </button>
+
+        <div class="callout ok" *ngIf="agenteEnEjecucion && impresoraFactura">
+          Impresora ya configurada: <strong>{{ impresoraFactura }}</strong>.
+          No hace falta volver a instalar el agente.
+        </div>
+
+        <div class="callout warn" *ngIf="estado === 'offline'">
+          No hay respuesta del agente en este PC. Pulse <strong>Verificar</strong> otra vez
+          (el servicio puede tardar al encender). <strong>No reinstale</strong> si ya lo tenía.
+          La guía es solo para el primer equipo de caja.
+        </div>
+
+        <div class="callout warn" *ngIf="agenteEnEjecucion && !impresoras.length && !impresoraFactura">
+          El agente está en ejecución, pero no listó impresoras (común si corre como servicio).
+          Escriba el <strong>nombre exacto</strong> de Windows y pulse Guardar.
+        </div>
+      </ng-container>
+    </section>
+
+    <!-- TAB GUÍA -->
+    <ng-container *ngIf="tab === 'guia'">
+      <div class="callout ok" *ngIf="agenteEnEjecucion">
+        El agente ya está en ejecución
+        <span *ngIf="versionDetectada"> (v{{ versionDetectada }})</span>
+        en {{ urlDetectada || apiPrint }}.
+        <strong>No vuelva a instalar.</strong>
+        <button type="button" class="btn btn-link" (click)="tab = 'impresora'">Volver a impresora</button>
+      </div>
+      <nav class="steps" aria-label="Pasos">
+        <button
+          type="button"
+          class="step"
+          *ngFor="let s of pasos"
+          [class.active]="paso === s.id"
+          [class.done]="paso > s.id"
+          (click)="irA(s.id)">
+          <span class="num">{{ s.id }}</span>
+          {{ s.corto }}
+        </button>
+      </nav>
+
+      <section class="panel" *ngIf="paso === 1">
+        <p class="panel-eyebrow">Paso 1</p>
+        <h2>Qué hace el agente</h2>
+        <p class="hint">
+          Programa pequeño en el <strong>mismo PC</strong> de la impresora térmica.
+          Alahia envía el ticket; el agente lo imprime.
+        </p>
+        <ul class="list">
+          <li>No requiere instalar .NET a mano.</li>
+          <li>Queda como servicio Windows (<code>AlahiaPrinterApi</code>) y <strong>arranca solo</strong> al encender el PC.</li>
+          <li>Se actualiza solo desde el servidor. No hay que reinstalar en cada reinicio ni tras Windows Update.</li>
+        </ul>
+        <div class="nav-row">
+          <span></span>
+          <button type="button" class="btn btn-yellow" (click)="siguiente()">Continuar</button>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="paso === 2">
+        <p class="panel-eyebrow">Paso 2</p>
+        <h2>Descargar el instalador</h2>
+        <p class="hint">Se descarga un ZIP. Guárdelo en el escritorio del PC de la caja.</p>
+        <button type="button" class="btn btn-yellow btn-block" (click)="descargar()">
+          Descargar Alahia Printer Agent
+        </button>
+        <p class="hint link">
+          Si el botón no abre:
+          <a [href]="downloadUrl" target="_blank" rel="noopener">enlace directo</a>
+        </p>
+        <div class="nav-row">
+          <button type="button" class="btn btn-outline" (click)="anterior()">Atrás</button>
+          <button type="button" class="btn btn-yellow" (click)="siguiente()">Ya lo descargué</button>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="paso === 3">
+        <p class="panel-eyebrow">Paso 3</p>
+        <h2>Instalar en Windows</h2>
+        <ol class="list">
+          <li>Descomprima el ZIP.</li>
+          <li>Clic derecho en <code>Install.bat</code> → <strong>Ejecutar como administrador</strong>.</li>
+          <li>Espere el mensaje de OK. Hágalo <strong>una sola vez</strong>.</li>
+        </ol>
+        <div class="callout warn">
+          Hágalo en el PC que tiene la impresora, no en una tablet remota.
+          Después no vuelva a instalar en cada reinicio: el agente arranca solo y se actualiza solo.
+          Si Windows Update lo deja parado, use <code>Repair.bat</code> (no Instalar otra vez).
+        </div>
+        <div class="nav-row">
+          <button type="button" class="btn btn-outline" (click)="anterior()">Atrás</button>
+          <button type="button" class="btn btn-yellow" (click)="siguiente()">Ya instalé</button>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="paso === 4">
+        <p class="panel-eyebrow">Paso 4</p>
+        <h2>Conectar con Alahia</h2>
+        <p class="hint">
+          En el PC de la caja use el valor sugerido. Si el agente está en otro equipo, use su IP.
+        </p>
+
+        <div class="field">
+          <label>URL del agente (ApiPrint)</label>
+          <input class="input" type="url" [(ngModel)]="apiPrint" placeholder="http://localhost:5045" />
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-outline" (click)="usarSugerida()">Usar {{ urlSugerida }}</button>
+          <button type="button" class="btn btn-link" (click)="copiarUrl()">Copiar</button>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-yellow btn-block"
+          [disabled]="guardando"
+          (click)="guardarYContinuar()">
+          <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+          <span *ngIf="!guardando">Guardar y elegir impresora</span>
+        </button>
+
+        <div class="nav-row">
+          <button type="button" class="btn btn-outline" (click)="anterior()">Atrás</button>
+          <button type="button" class="btn btn-link" (click)="siguiente()">Saltar a verificar</button>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="paso === 5">
+        <p class="panel-eyebrow">Paso 5</p>
+        <h2>Verificar conexión</h2>
+        <p class="hint">URL: <code>{{ (parametros.ApiPrint || apiPrint) || '—' }}</code></p>
+
+        <div class="status-box" [class.ok]="estado === 'ok'" [class.warn]="estado === 'outdated'" [class.bad]="estado === 'offline'">
+          <ion-spinner *ngIf="verificando" name="crescent"></ion-spinner>
+          <ng-container *ngIf="!verificando">
+            <strong *ngIf="estado === 'ok'">Listo</strong>
+            <strong *ngIf="estado === 'outdated'">Actualizar recomendado</strong>
+            <strong *ngIf="estado === 'offline'">Sin conexión</strong>
+            <strong *ngIf="estado === 'idle'">Sin probar aún</strong>
+            <p>{{ mensajeEstado || 'Pulse Verificar para comprobar el agente.' }}</p>
+            <p class="meta" *ngIf="versionDetectada">v{{ versionDetectada }} (mín. v{{ minVersion }})</p>
+          </ng-container>
+        </div>
+
+        <button type="button" class="btn btn-outline btn-block" [disabled]="verificando" (click)="verificar(true)">
+          Verificar ahora
+        </button>
+
+        <button
+          *ngIf="estado === 'ok'"
+          type="button"
+          class="btn btn-yellow btn-block"
+          (click)="tab = 'impresora'; cargarImpresoras()">
+          Elegir impresora
+        </button>
+
+        <div class="nav-row">
+          <button type="button" class="btn btn-outline" (click)="anterior()">Atrás</button>
+          <button type="button" class="btn btn-outline" (click)="irA(2)">Re-descargar</button>
+        </div>
+      </section>
+    </ng-container>
+
+  </div>
+</ion-content>

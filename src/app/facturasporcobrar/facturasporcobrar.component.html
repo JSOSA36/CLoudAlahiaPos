@@ -100,7 +100,7 @@
                     </ion-checkbox>
                   </ng-container>
                   <div>
-                    <strong>Factura #{{ f.idFacturaHeader }}</strong>
+                    <strong>{{ f.numeroDocumento || ('FACT-' + f.idFacturaHeader) }}</strong>
                     <span class="fecha" *ngIf="f.fechaBencimiento">
                       Vence {{ f.fechaBencimiento | date:'dd/MM/yyyy' }}
                     </span>

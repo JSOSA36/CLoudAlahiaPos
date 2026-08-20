@@ -9,7 +9,7 @@
 ============================= */
 .pos-layout {
   display: grid;
-  grid-template-columns: 1fr 480px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   height: calc(100vh - 56px);
   background: #f6f8fb;
   overflow: hidden;
@@ -220,7 +220,10 @@
 
 .panel-body{
   padding: 10px;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .producto-card {
@@ -795,14 +798,17 @@ footer-warning
   font-weight: 800;
 }
 /* ============================
-   TABLET/MOVIL: FACTURA COMO SHEET (hasta 1100px)
+   TABLET/MOVIL: FACTURA COMO SHEET
+   (teléfono o tablet táctil; no monitores chicos con mouse)
 ============================ */
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   /* tu layout en móvil */
   .pos-layout{
     grid-template-columns: 1fr !important;
-    height: auto !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
   }
 
   /* 🔥 el panel deja de estar "en la página" y se vuelve fixed */
@@ -1323,15 +1329,18 @@ footer-warning
   --padding-start:10px;
 
 }
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .pos-layout{
     grid-template-columns: 1fr !important;
-    height:auto;
+    /* Mantener altura viewport: height:auto rompe el scroll de productos */
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
   }
 
 }
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   ion-col{
     flex: 0 0 50%;
@@ -1339,7 +1348,7 @@ footer-warning
   }
 
 }
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .producto-card{
     height:180px;
@@ -1350,7 +1359,7 @@ footer-warning
   }
 
 }
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .cats-row{
     padding: 6px 4px;
@@ -1541,11 +1550,13 @@ ion-buttons[slot="end"] {
 }
 .cliente-box {
   background: #111827;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .cliente-select {
   --background: #fff3cd;
+  --min-height: 36px;
+  min-height: 36px;
   border-radius: 10px;
 }
 
@@ -1736,7 +1747,7 @@ ion-buttons[slot="end"] {
 .row-config {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 2px;
 }
 
 .row-config .col {
@@ -1777,11 +1788,14 @@ ion-buttons[slot="end"] {
 /* ============================
    FIX FINAL TABLET/MOVIL (NO ROMPE PC)
 ============================ */
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   /* layout 1 columna */
   .pos-layout{
     grid-template-columns: 1fr !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
   }
 
   /* 🔥 convierte carrito en modal */
@@ -1899,18 +1913,18 @@ ion-buttons[slot="end"] {
   display: none;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
   .mobile-only {
     display: block;
   }
 }
 /* 🔴 OCULTAR SEARCH SUPERIOR EN TABLET/MÓVIL */
-@media (max-width: 1100px) {
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
   .search-top {
     display: none !important;
   }
 }
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .right-panel{
 
@@ -2047,14 +2061,19 @@ ion-buttons[slot="end"] {
 
 .cliente-box {
 
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 .cliente-select {
 
   --background: #fff3cd;
+  --min-height: 36px;
+  --padding-start: 10px;
+  --padding-end: 8px;
+  --inner-padding-end: 0;
+  min-height: 36px;
 
-  border-radius: 12px;
+  border-radius: 10px;
 
   overflow: hidden;
 
@@ -2070,11 +2089,17 @@ ion-buttons[slot="end"] {
 
   align-items:center;
 
-  gap:6px;
+  gap:5px;
 
   color:#111827;
 
   font-weight:700;
+  font-size: 12px;
+  margin: 0;
+}
+
+.cliente-select ion-label ion-icon {
+  font-size: 15px;
 }
 
 .cliente-nombre {
@@ -2083,7 +2108,13 @@ ion-buttons[slot="end"] {
 
   color: #111827;
 
-  font-size: 15px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.cliente-select > ion-icon {
+  font-size: 14px;
+  margin-inline-start: 4px;
 }
 
 /* =========================================
@@ -2096,7 +2127,7 @@ ion-buttons[slot="end"] {
 
   gap:12px;
 
-  margin-top:12px;
+  margin-top: 2px;
 
   align-items:center;
 }
@@ -2369,7 +2400,7 @@ ion-buttons[slot="end"] {
 📱 MOBILE
 ========================================= */
 
-@media(max-width:1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .row-config {
 
@@ -2389,12 +2420,13 @@ ion-buttons[slot="end"] {
 
   .cliente-select {
 
-    --min-height:58px;
+    --min-height: 36px;
+    min-height: 36px;
   }
 
   .cliente-nombre {
 
-    font-size:14px;
+    font-size: 13px;
   }
 }
 /* =========================================
@@ -2449,7 +2481,7 @@ ion-buttons[slot="end"] {
 }
 
 /* MOBILE / TABLET */
-@media(max-width:1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .btn-amarillo {
 
@@ -2487,7 +2519,7 @@ ion-buttons[slot="end"] {
 📱 OCULTAR FLECHAS CATEGORÍAS EN TABLET/MÓVIL
 ========================================= */
 
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .scroll-btn{
     display: none !important;
@@ -2507,7 +2539,7 @@ ion-buttons[slot="end"] {
 📱 MOSTRAR HASTA 1100px
 ========================================= */
 
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .cart-float{
 
@@ -2555,14 +2587,14 @@ ion-buttons[slot="end"] {
   gap: 4px;
 }
 /* =========================================
-💻 DESKTOP (solo pantallas anchas)
+💻 DESKTOP (mouse / pantallas no táctiles)
 ========================================= */
 
-@media (min-width: 1101px){
+@media (min-width: 768px) and (hover: hover) and (pointer: fine), (min-width: 1101px){
 
   .pos-layout{
     display:grid;
-    grid-template-columns: 1fr 480px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
     height: calc(100vh - 56px);
     overflow: hidden;
   }
@@ -2574,8 +2606,9 @@ ion-buttons[slot="end"] {
     display:flex !important;
     flex-direction:column !important;
 
-    width:480px !important;
-    min-width:480px !important;
+    width:360px !important;
+    min-width:300px !important;
+    max-width:360px !important;
 
     height:100% !important;
     max-height:100% !important;
@@ -2603,11 +2636,13 @@ ion-buttons[slot="end"] {
 📱 TABLET / MOVIL
 ========================================= */
 
-@media (max-width:1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .pos-layout{
     grid-template-columns:1fr !important;
-    height:auto !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
   }
 
   .right-panel{
@@ -2678,7 +2713,7 @@ ion-buttons[slot="end"] {
 }
 
 /* Mostrar en tablet/móvil */
-@media (max-width: 1100px){
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)){
 
   .btn-cerrar-mobile{
     display: flex;
@@ -2835,9 +2870,11 @@ ion-buttons[slot="end"] {
 
   width: 100% !important;
 
-  margin: 0 !important;
-
   box-sizing: border-box;
+}
+
+.invoice-summary {
+  margin: 0 !important;
 }
 
 /* Separar textos del borde */
@@ -2881,7 +2918,7 @@ ion-buttons[slot="end"] {
 
 .btn-vender {
 
-  margin: 0 0 12px 0 !important;
+  margin: 14px 0 8px 0 !important;
 
   width: 100%;
 
@@ -2911,7 +2948,7 @@ ion-buttons[slot="end"] {
 /* =========================================
 TABLET UX: header con mismas etiquetas + grid + footer cobro
 ========================================= */
-@media (max-width: 1100px) {
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
   /* Misma info que desktop: no ocultar textos */
   .btn-header-pos .btn-label {
     display: inline;
@@ -2989,7 +3026,7 @@ TABLET UX: header con mismas etiquetas + grid + footer cobro
 /* =========================================
 TABLET/MÓVIL: categorías pequeñas en 2 columnas
 ========================================= */
-@media (max-width: 1100px) {
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
   .cats-wrapper {
     padding: 0 !important;
   }
@@ -3110,6 +3147,58 @@ TABLET/MÓVIL: categorías pequeñas en 2 columnas
   padding: 8px 10px !important;
 }
 
+.sum-totals-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 6px 0 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 2px;
+}
+
+.sum-tot-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.sum-tot-item + .sum-tot-item {
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.sum-tot-item span {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sum-tot-item strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.85);
+  line-height: 1.15;
+  min-width: 0 !important;
+  padding-right: 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sum-tot-item.total-final span {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.sum-tot-item.total-final strong {
+  font-size: 16px;
+  font-weight: 900;
+}
+
 .sum-line.descuento-toggle {
   width: 100%;
   border: 0;
@@ -3178,59 +3267,62 @@ TABLET/MÓVIL: categorías pequeñas en 2 columnas
   padding: 6px 4px !important;
 }
 
-/* Header carrito colapsable */
-.header-summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px 10px;
-  border: 1px solid rgba(247, 201, 72, 0.55);
-  border-radius: 10px;
-  background: rgba(255, 248, 220, 0.92);
-  cursor: pointer;
-  text-align: left;
-  color: #1f2937;
-}
-
-.header-summary-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.summary-cliente {
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.summary-meta {
-  font-size: 11px;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-summary ion-icon {
-  font-size: 18px;
-  color: #64748b;
-  flex-shrink: 0;
-}
-
+/* Header carrito fijo (cliente, pago, comprobante) */
 .header-details {
-  margin-top: 8px;
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .panel-header.header-warning {
   padding-bottom: 8px !important;
 }
+
+/* =========================================
+📱 TABLET/MÓVIL: scroll real de productos
+========================================= */
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
+  .pos-layout {
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
+  }
+
+  .left-area {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .cats-accordion {
+    flex: 0 0 auto !important;
+  }
+
+  .panel.panel-products {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .panel.panel-products .panel-head {
+    flex-shrink: 0 !important;
+  }
+
+  .panel.panel-products .panel-body.products-area,
+  .panel.panel-products .products-area {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* Espacio para el botón flotante del carrito */
+    padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+}
+

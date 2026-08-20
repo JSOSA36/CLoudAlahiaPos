@@ -18,7 +18,7 @@
   <ion-card class="factura-info-card">
     <ion-card-header>
       <ion-card-title class="card-title-yellow">
-        📄 Factura #0000{{ factura.idFacturaHeader }}
+        📄 {{ factura.numeroDocumento || ('FACT-' + factura.idFacturaHeader) }}
       </ion-card-title>
     </ion-card-header>
 
@@ -92,6 +92,12 @@
               placeholder="Agrega una observación o referencia...">
             </ion-textarea>
           </ion-item>
+
+          <ion-item lines="none">
+            <ion-checkbox slot="start" [(ngModel)]="imprimirRecibo" [disabled]="cargando">
+            </ion-checkbox>
+            <ion-label>Imprimir recibo para el cliente</ion-label>
+          </ion-item>
         </ion-list>
 
         <ion-button
@@ -119,20 +125,29 @@
       <ion-card-content>
         <ion-list *ngIf="pagos && pagos.length > 0">
           <ion-item *ngFor="let pago of pagos" lines="full">
-            <ion-label>
+            <ion-label class="ion-text-wrap">
               <h2>
-                {{ pago.formaPago }} — 
+                {{ pago.formaPago }} —
                 <strong style="color:#0a9f6b;">
                   RD$ {{ pago.monto | number:'1.2-2' }}
                 </strong>
               </h2>
               <p style="font-size: 0.9em; color:#666;">
-                {{ pago.fechaInseccion | date:'dd/MM/yyyy' }}
+                {{ pago.fechaInseccion | date:'dd/MM/yyyy HH:mm' }}
               </p>
               <p *ngIf="pago.nota" style="font-size: 0.85em; font-style: italic;">
                 "{{ pago.nota }}"
               </p>
             </ion-label>
+            <ion-button
+              slot="end"
+              fill="outline"
+              color="primary"
+              size="small"
+              (click)="reimprimirRecibo(pago); $event.stopPropagation()">
+              <ion-icon slot="start" name="print-outline"></ion-icon>
+              Recibo
+            </ion-button>
           </ion-item>
         </ion-list>
 

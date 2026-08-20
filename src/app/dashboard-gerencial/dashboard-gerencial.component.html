@@ -87,6 +87,39 @@
         </article>
       </section>
 
+      <!-- COMISIONES: debajo de utilidad operativa (clave para el cliente) -->
+      <section
+        class="dg-section dg-comisiones-destacadas"
+        *ngIf="data.charts.comisionesPorEmpleado?.length">
+        <article class="dg-comisiones-panel">
+          <div class="dg-comisiones-head">
+            <div class="dg-comisiones-title">
+              <p class="dg-comisiones-eyebrow">Pago al equipo</p>
+              <h2>Comisión por empleado</h2>
+              <p class="dg-comisiones-sub">
+                Lo que corresponde a cada colaborador este mes
+              </p>
+            </div>
+            <div class="dg-comisiones-total">
+              <span>Total comisiones</span>
+              <strong>RD$ {{ pl.comisiones | number:'1.0-0':'es-DO' }}</strong>
+            </div>
+          </div>
+
+          <div class="dg-comisiones-list">
+            <div
+              class="dg-comision-row"
+              *ngFor="let c of data.charts.comisionesPorEmpleado; let i = index">
+              <span class="dg-comision-rank" [attr.data-rank]="i + 1">{{ i + 1 }}</span>
+              <span class="dg-comision-name">{{ c.nombre }}</span>
+              <span class="dg-comision-monto">
+                RD$ {{ c.monto | number:'1.0-0':'es-DO' }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </section>
+
       <!-- RESUMEN INTELIGENTE (Alahia AI) -->
       <section class="dg-ai-resumen" *ngIf="mostrarResumenAi">
         <div class="dg-ai-resumen__head">
@@ -269,14 +302,14 @@
         </div>
       </section>
 
-      <!-- DETALLE TOP + COMISIONES -->
-      <section class="dg-section" *ngIf="topRentables.length || data.charts.comisionesPorEmpleado?.length">
+      <!-- DETALLE TOP PRODUCTOS -->
+      <section class="dg-section" *ngIf="topRentables.length">
         <div class="dg-section-head">
           <h2>Detalle de rentabilidad</h2>
         </div>
         <div class="dg-grid detail-grid">
 
-          <article class="dg-card dg-card-fill" *ngIf="topRentables.length">
+          <article class="dg-card dg-card-fill">
             <h3>Productos más rentables</h3>
             <div class="table-wrap">
               <table class="dg-table">
@@ -301,28 +334,6 @@
                     <td class="num">{{ p.costo | number:'1.0-0':'es-DO' }}</td>
                     <td class="num strong">{{ p.margen | number:'1.0-0':'es-DO' }}</td>
                     <td class="num pct">{{ p.rentabilidadPct | number:'1.1-1':'es-DO' }}%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </article>
-
-          <article class="dg-card dg-card-fill" *ngIf="data.charts.comisionesPorEmpleado?.length">
-            <h3>Comisión por empleado</h3>
-            <div class="table-wrap">
-              <table class="dg-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Empleado</th>
-                    <th class="num">Comisión</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let c of data.charts.comisionesPorEmpleado; let i = index">
-                    <td>{{ i + 1 }}</td>
-                    <td>{{ c.nombre }}</td>
-                    <td class="num strong">RD$ {{ c.monto | number:'1.0-0':'es-DO' }}</td>
                   </tr>
                 </tbody>
               </table>

@@ -19,6 +19,7 @@ import { TicketsComponent } from './tickets/tickets.component';
 import { TicketsAdminComponent } from './tickets/tickets-admin.component';
 import { CentroProduccionComponent } from './centro-produccion/centro-produccion.component';
 import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
+import { AlahiaAiConfigComponent } from './alahia-ai/alahia-ai-config.component';
 
 const routes: Routes = [
   {
@@ -219,6 +220,19 @@ const routes: Routes = [
     loadChildren: () => import('./Empresa/empresa/empresa.module').then(m => m.EmpresaModule),
     
   },
+  {
+    path: 'agente-impresion',
+    redirectTo: 'impresion-termica',
+    pathMatch: 'full'
+  },
+  {
+    path: 'impresion-termica',
+    loadChildren: () =>
+      import('./Components/agente-impresion/agente-impresion.module').then(
+        (m) => m.AgenteImpresionModule
+      ),
+    canActivate: [AuthGuard]
+  },
    {
     path: 'cuentaxcobrar',
     loadChildren: () => import('./facturasporcobrar/facturasporcobrar.module').then(m => m.FacturasporcobrarModule),
@@ -304,6 +318,54 @@ const routes: Routes = [
     .then(m => m.ListadoEmpleadosModule),
   canActivate: [AuthGuard],
   data: { tipo: 'empleado' }
+},
+{
+  path: 'rrhh-departamentos',
+  loadComponent: () => import('./rrhh/rrhh-departamentos.component')
+    .then(m => m.RrhhDepartamentosComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-cargos',
+  loadComponent: () => import('./rrhh/rrhh-cargos.component')
+    .then(m => m.RrhhCargosComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-beneficios',
+  loadComponent: () => import('./rrhh/rrhh-beneficios.component')
+    .then(m => m.RrhhBeneficiosComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-laboral',
+  loadComponent: () => import('./rrhh-laboral/rrhh-laboral.component')
+    .then(m => m.RrhhLaboralComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-ponchador',
+  loadComponent: () => import('./rrhh/rrhh-ponchador.component')
+    .then(m => m.RrhhPonchadorComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-asistencia',
+  loadComponent: () => import('./rrhh/rrhh-asistencia.component')
+    .then(m => m.RrhhAsistenciaComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-permisos',
+  loadComponent: () => import('./rrhh/rrhh-permisos.component')
+    .then(m => m.RrhhPermisosComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'rrhh-nomina',
+  loadComponent: () => import('./rrhh/rrhh-nomina.component')
+    .then(m => m.RrhhNominaComponent),
+  canActivate: [AuthGuard]
 },
 
 {
@@ -397,6 +459,12 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   
+  {
+    path: 'ficha-clinica',
+    loadChildren: () => import('./ficha-clinica/ficha-clinica.module')
+      .then(m => m.FichaClinicaModule),
+    canActivate: [AuthGuard]
+  },
   {
     path: 'documentosclinicos',
     loadChildren: () => import('./DocumentosClinicos/listado-documentos-clinicos/listado-documentos-clinicos.module')
@@ -576,6 +644,11 @@ const routes: Routes = [
   {
     path: 'alahia-ai',
     component: AlahiaAiComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'alahia-ai/config',
+    component: AlahiaAiConfigComponent,
     canActivate: [AuthGuard]
   }
 ];

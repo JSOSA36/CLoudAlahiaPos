@@ -1,16 +1,13 @@
 <!-- =====================================
-🔥 MÉTODO DE PAGO
+  MÉTODO DE PAGO
 ===================================== -->
 
-<ion-card-header color="warning">
-
-  <ion-card-title class="ion-text-center">
-
-    Método de Pago
-
-  </ion-card-title>
-
-</ion-card-header>
+<div class="mp-header">
+  <h2 class="mp-title">Método de Pago</h2>
+  <p class="mp-subtitle">
+    {{ _TipoFactura === 'Credito' ? 'Facturación a crédito' : 'Facturación y cobro' }}
+  </p>
+</div>
 
 <ion-card class="factura-card">
 
@@ -18,8 +15,196 @@
 
     <ion-card-content>
 
+      <div class="facturacion-box consumo-colaborador-box" *ngIf="mostrarConsumoColaborador">
+        <p class="facturacion-title">¿Quién consume?</p>
+        <ion-item lines="none" class="facturacion-item">
+          <ion-label position="stacked">Colaborador (descuento / crédito nómina)</ion-label>
+          <ion-select
+            [(ngModel)]="idEmpleadoConsumo"
+            (ionChange)="onColaboradorChange()"
+            interface="popover"
+            placeholder="Venta normal (nadie)">
+            <ion-select-option [value]="0">Venta normal (nadie)</ion-select-option>
+            <ion-select-option
+              *ngFor="let e of colaboradores"
+              [value]="e.idEmpleados">
+              {{ e.nombre }}{{ e.porcentaje > 0 ? ' · ' + e.porcentaje + '%' : '' }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p class="facturacion-hint" *ngIf="!colaboradores.length">
+          No hay colaboradores activos para esta empresa.
+        </p>
+        <p class="facturacion-hint" *ngIf="idEmpleadoConsumo && pctColaborador > 0">
+          Este colaborador tiene un beneficio de {{ pctColaborador }}% sobre el consumo
+          (RD$ {{ montoDescuentoColaborador | number:'1.2-2' }}).
+          Total: RD$ {{ totalAPagar | number:'1.2-2' }}.
+          Puede cobrar ahora o dejar a crédito.
+          <ng-container *ngIf="descontarNominaColaborador">
+            Si queda a crédito, el saldo se descuenta en la quincena.
+          </ng-container>
+        </p>
+        <p class="facturacion-hint" *ngIf="idEmpleadoConsumo && pctColaborador <= 0">
+          Este colaborador no tiene % de descuento en su cargo. Puede dejar el consumo a crédito en su cuenta.
+        </p>
+      </div>
+
+      <!-- Contado / Crédito -->
+      <div class="cobro-tipo">
+        <ion-segment
+          [(ngModel)]="_TipoFactura"
+          (ionChange)="onTipoFacturaChange()"
+          class="facturacion-segment cobro-segment">
+          <ion-segment-button value="Contado">
+            Contado
+          </ion-segment-button>
+          <ion-segment-button value="Credito" *ngIf="UsaCxC || idEmpleadoConsumo">
+            Crédito
+          </ion-segment-button>
+        </ion-segment>
+
+        <div class="facturacion-plazo" *ngIf="_TipoFactura === 'Credito'">
+          <ion-item lines="none" class="facturacion-item">
+            <ion-label position="stacked">Plazo de crédito *</ion-label>
+            <ion-select
+              [(ngModel)]="plazoCreditoCodigo"
+              (ionChange)="onPlazoCreditoChange()"
+              interface="popover"
+              placeholder="Seleccione plazo">
+              <ion-select-option
+                *ngFor="let p of plazosCredito"
+                [value]="p.value">
+                {{ p.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item
+            lines="none"
+            class="facturacion-item"
+            *ngIf="plazoCreditoCodigo === 'custom'">
+            <ion-label position="stacked">Días personalizados *</ion-label>
+            <ion-input
+              type="number"
+              min="0"
+              [(ngModel)]="plazoCreditoDiasCustom"
+              (ionInput)="onPlazoCreditoChange()"
+              placeholder="Ej. 20">
+            </ion-input>
+          </ion-item>
+
+          <p class="facturacion-hint">
+            La factura quedará a crédito con el plazo seleccionado. Confirme con Guardar.
+          </p>
+        </div>
+      </div>
+
+      <!-- Facturación (comprobante / RNC) — encima de forma de pago -->
+      <div class="facturacion-box" *ngIf="FacturacionElectronica || requiereDatosFiscales">
+        <p class="facturacion-title">Facturación</p>
+
+        <ion-item
+          lines="none"
+          class="facturacion-item"
+          *ngIf="FacturacionElectronica">
+          <ion-label position="stacked">Comprobante fiscal</ion-label>
+          <ion-select
+            [(ngModel)]="tipoEcfDgii"
+            (ionChange)="onTipoEcfChange()"
+            interface="popover"
+            placeholder="Tipo comprobante">
+            <ion-select-option
+              *ngFor="let tc of TiposComprobante"
+              [value]="tc.value"
+              [disabled]="tc.disabled">
+              {{ tc.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <div class="facturacion-rnc" *ngIf="requiereDatosFiscales">
+          <ion-item lines="none" class="facturacion-item">
+            <ion-label position="stacked">RNC / Cédula *</ion-label>
+            <ion-input
+              [(ngModel)]="rncFiscal"
+              placeholder="Ingrese RNC"
+              (keyup.enter)="consultarRnc()">
+            </ion-input>
+          </ion-item>
+          <ion-button
+            expand="block"
+            class="facturacion-rnc-btn"
+            (click)="consultarRnc()"
+            [disabled]="!rncFiscal || estadoRnc === 'loading'">
+            {{ estadoRnc === 'loading' ? 'Consultando…' : 'Consultar RNC' }}
+          </ion-button>
+          <ion-item lines="none" class="facturacion-item">
+            <ion-label position="stacked">Nombre fiscal</ion-label>
+            <ion-input
+              [(ngModel)]="nombreFiscal"
+              readonly
+              placeholder="Empresa encontrada">
+            </ion-input>
+          </ion-item>
+          <p
+            class="facturacion-hint"
+            *ngIf="mensajeRnc"
+            [class.error]="estadoRnc === 'error'"
+            [class.ok]="estadoRnc === 'success'">
+            {{ mensajeRnc }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Cobro: solo Contado -->
+      <div class="cobro-hero" *ngIf="_TipoFactura === 'Contado'">
+        <div class="cobro-hero-head">
+          <p class="cobro-hero-title">Cobro</p>
+        </div>
+
+        <ion-item lines="none" class="cobro-check" *ngIf="restanteTrasNc > 0">
+          <ion-checkbox slot="start" [(ngModel)]="_PagoMixto"></ion-checkbox>
+          <ion-label>
+            Pago mixto <span *ngIf="_UsarNotaCredito">(del restante)</span>
+          </ion-label>
+        </ion-item>
+
+        <div class="cobro-fields" *ngIf="!_PagoMixto && restanteTrasNc > 0">
+          <ion-item lines="none" class="cobro-field">
+            <ion-label position="stacked">Forma de pago</ion-label>
+            <ion-select
+              [(ngModel)]="_FormaPago"
+              interface="modal"
+              cssClass="select-pago-modal"
+              placeholder="Seleccione método">
+              <ion-select-option
+                *ngFor="let metodo of metodosPago"
+                [value]="metodo.metodoPago">
+                {{ metodo.metodoPago }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none" class="cobro-field cobro-field-monto">
+            <ion-label position="stacked">
+              {{
+                (_FormaPago || '').toUpperCase().includes('EFECTIVO')
+                  ? 'Efectivo recibido'
+                  : 'Monto a cobrar'
+              }}
+            </ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="EfectivoRecibido"
+              (ionInput)="calcularPagoNormal()"
+              placeholder="Puede ser menor al total (queda a crédito)">
+            </ion-input>
+          </ion-item>
+        </div>
+      </div>
+
       <!-- Nota de crédito / saldo a favor -->
-      <ion-item lines="none">
+      <ion-item lines="none" *ngIf="_TipoFactura === 'Contado'">
         <ion-checkbox
           slot="start"
           [(ngModel)]="_UsarNotaCredito"
@@ -28,7 +213,7 @@
         <ion-label>Aplicar nota de crédito</ion-label>
       </ion-item>
 
-      <div *ngIf="_UsarNotaCredito" class="nc-pago-box">
+      <div *ngIf="_TipoFactura === 'Contado' && _UsarNotaCredito" class="nc-pago-box">
         <p class="nc-hint" *ngIf="NombreCliente || IdCliente">
           Cliente: <strong>{{ NombreCliente || ('#' + IdCliente) }}</strong>
         </p>
@@ -47,8 +232,7 @@
 
         <ion-button
           expand="block"
-          size="small"
-          fill="outline"
+          class="nc-buscar-btn"
           (click)="buscarNotaCredito()"
           [disabled]="buscandoNc">
           {{ buscandoNc ? 'Buscando…' : 'Buscar saldo' }}
@@ -78,106 +262,11 @@
       </div>
 
       <!-- =====================================
-      🔥 TOGGLE MIXTO
-      ====================================== -->
-
-      <ion-item lines="none" *ngIf="restanteTrasNc > 0">
-
-        <ion-checkbox
-
-          slot="start"
-
-          [(ngModel)]="_PagoMixto">
-
-        </ion-checkbox>
-
-        <ion-label>
-
-          Pago Mixto <span *ngIf="_UsarNotaCredito">(del restante)</span>
-
-        </ion-label>
-
-      </ion-item>
-
-      <!-- =====================================
-      🔥 PAGO NORMAL
-      ====================================== -->
-
-      <div *ngIf="!_PagoMixto && restanteTrasNc > 0">
-
-        <ion-item>
-
-          <ion-label>
-
-            Forma de Pago
-
-          </ion-label>
-
-          <ion-select
-
-            [(ngModel)]="_FormaPago"
-
-            interface="modal"
-
-            cssClass="select-pago-modal">
-
-            <ion-select-option
-
-              *ngFor="
-                let metodo of
-                metodosPago
-              "
-
-              [value]="
-                metodo.metodoPago
-              ">
-
-              {{ metodo.metodoPago }}
-
-            </ion-select-option>
-
-          </ion-select>
-
-        </ion-item>
-
-        <!-- =====================================
-        🔥 EFECTIVO
-        ====================================== -->
-
-        <div *ngIf="_FormaPago === 'EFECTIVO'">
-
-          <ion-item>
-
-            <ion-label position="stacked">
-
-              💵 Efectivo recibido
-
-            </ion-label>
-
-            <ion-input
-
-              type="number"
-
-              [(ngModel)]="EfectivoRecibido"
-
-              (ionInput)="calcularPagoNormal()"
-
-              placeholder="Pago exacto">
-
-            </ion-input>
-
-          </ion-item>
-
-        </div>
-
-      </div>
-
-      <!-- =====================================
       🔥 PAGO MIXTO
       ====================================== -->
 
       <div
-        *ngIf="_PagoMixto && restanteTrasNc > 0"
+        *ngIf="_TipoFactura === 'Contado' && _PagoMixto && restanteTrasNc > 0"
 
         class="multi-pago">
 
@@ -371,7 +460,7 @@
 
     <div class="total-label">
 
-      TOTAL A PAGAR
+      {{ _TipoFactura === 'Credito' ? 'TOTAL FACTURA' : 'TOTAL A PAGAR' }}
 
     </div>
 
@@ -379,7 +468,7 @@
 
       RD$
       {{
-        TotalFactura
+        totalAPagar
         | number:'1.2-2'
       }}
 
@@ -388,18 +477,14 @@
   </div>
 
   <!-- =====================================
-  🔥 CAMBIO
+  🔥 CAMBIO (solo si sobra) / PENDIENTE (abono parcial)
   ====================================== -->
 
   <div
 
     class="cambio-box"
 
-    *ngIf="
-      _FormaPago === 'EFECTIVO'
-      &&
-      !_PagoMixto
-    ">
+    *ngIf="!_PagoMixto && cambio > 0">
 
     <div class="cambio-label">
 
@@ -419,11 +504,35 @@
 
   </div>
 
+  <div
+
+    class="cambio-box pendiente-box"
+
+    *ngIf="esAbonoParcialCredito">
+
+    <div class="cambio-label">
+
+      PENDIENTE (crédito)
+
+    </div>
+
+    <div class="cambio-valor">
+
+      RD$
+      {{
+        pendienteAbono
+        | number:'1.2-2'
+      }}
+
+    </div>
+
+  </div>
+
   <!-- =====================================
   🔥 IMPRIMIR
   ====================================== -->
 
-  <ion-item lines="none">
+  <ion-item lines="none" class="print-check-box">
 
     <ion-checkbox
 
@@ -437,27 +546,23 @@
 
     <ion-label>
 
-      🧾 Imprimir factura cliente
+      Imprimir factura cliente
 
     </ion-label>
 
   </ion-item>
 
-  <!-- =====================================
-  🔥 BOTÓN
-  ====================================== -->
-
   <ion-button
 
     expand="block"
 
-    color="success"
+    class="mp-btn-primary"
 
     (click)="CloseModal()"
 
     [disabled]="!puedeProcesar()">
 
-    Procesar Pago
+    {{ _TipoFactura === 'Credito' ? 'Guardar' : 'Procesar pago' }}
 
   </ion-button>
 
@@ -466,6 +571,8 @@
     expand="block"
 
     fill="outline"
+
+    class="mp-btn-cancel"
 
     (click)="CerrarModal()">
 

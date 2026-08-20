@@ -4,7 +4,7 @@ import {
   HttpHeaders
 } from '@angular/common/http';
 
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, of, throwError, timeout } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 
 import { ParametrosService }
@@ -25,6 +25,9 @@ from '../printer/printer.component';
 import { FacturaHeaderService }
 from './factura-header.service';
 
+import { EmpresaService }
+from './empresa.services';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,7 +37,8 @@ export class PrintService {
     private http: HttpClient,
     private parametros: ParametrosService,
     private modalCtrl: ModalController,
-    private facturaHeader: FacturaHeaderService
+    private facturaHeader: FacturaHeaderService,
+    private empresaSrv: EmpresaService
   ) {}
 
   private httpOptions = {
@@ -42,6 +46,78 @@ export class PrintService {
       'Content-Type': 'application/json'
     })
   };
+
+  private get apiPrint(): string {
+    return (this.parametros.ApiPrint || '').trim().replace(/\/$/, '');
+  }
+
+  private ensureApiPrint(): string {
+    const api = this.apiPrint;
+    if (!api) {
+      console.error('❌ ApiPrint no configurado');
+      throw new Error('ApiPrint vacío');
+    }
+    return api;
+  }
+
+  /**
+   * HTTPS (POS nube) → HTTP ApiPrint en IP LAN: Chrome bloquea XHR (Mixed Content).
+   * localhost/127.0.0.1 no aplica ese bloqueo en la misma máquina.
+   */
+  private needsNavPrint(apiBase: string): boolean {
+    if (typeof location === 'undefined' || location.protocol !== 'https:') {
+      return false;
+    }
+    try {
+      const u = new URL(apiBase);
+      if (u.protocol !== 'http:') {
+        return false;
+      }
+      const host = u.hostname.toLowerCase();
+      return host !== 'localhost' && host !== '127.0.0.1' && host !== '[::1]';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Navegación top-level (no XHR): llega al PrinterApi aunque el POS sea HTTPS.
+   * El agente responde HTML corto con ?nav=1 y cierra la pestaña.
+   */
+  private printViaNavigation(url: string): Observable<any> {
+    const navUrl = url.includes('?') ? `${url}&nav=1` : `${url}?nav=1`;
+    try {
+      const opened = window.open(
+        navUrl,
+        'alahia_printer_agent',
+        'noopener,noreferrer,width=160,height=100'
+      );
+      if (!opened) {
+        const a = document.createElement('a');
+        a.href = navUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    } catch (err) {
+      console.error('Print via navigation failed', err);
+      return of({ success: false, via: 'navigation', error: String(err) });
+    }
+    return of({ success: true, via: 'navigation' });
+  }
+
+  /** GET al agente local: XHR normal, o navegación si Mixed Content bloquearía. */
+  private agentGet(path: string): Observable<any> {
+    const api = this.ensureApiPrint();
+    const url = `${api}${path.startsWith('/') ? path : `/${path}`}`;
+    if (this.needsNavPrint(api)) {
+      return this.printViaNavigation(url);
+    }
+    return this.http.get(url, { withCredentials: false });
+  }
+
 // =========================================
 // 🔥 PRINT CIERRE CAJA
 // =========================================
@@ -49,35 +125,8 @@ export class PrintService {
 printCierre(
   idCajaCierre: number
 ): Observable<any> {
-
-  if (!this.apiPrint) {
-
-    console.error(
-      "❌ ApiPrint no configurado"
-    );
-
-    throw new Error(
-      "ApiPrint vacío"
-    );
-  }
-
-  return this.http.get(
-
-    `${this.apiPrint}` +
-
-    `/api/Printer/cierre/` +
-
-    `${idCajaCierre}`,
-
-    {
-      withCredentials: false
-    }
-  );
+  return this.agentGet(`/api/Printer/cierre/${idCajaCierre}`);
 }
-  private get apiPrint(): string {
-
-    return this.parametros.ApiPrint || '';
-  }
 
   // =========================================
   // 🔥 PRINT GENERAL
@@ -89,61 +138,26 @@ printCierre(
 printCierreEncargos(
   idEmpresa: number
 ): Observable<any> {
-
-  if (!this.apiPrint) {
-
-    console.error(
-      "❌ ApiPrint no configurado"
-    );
-
-    throw new Error(
-      "ApiPrint vacío"
-    );
-  }
-
-  return this.http.get(
-
-    `${this.apiPrint}` +
-
-    `/api/Printer/cierre-encargos/` +
-
-    `${idEmpresa}`,
-
-    {
-      withCredentials: false
-    }
-  );
+  return this.agentGet(`/api/Printer/cierre-encargos/${idEmpresa}`);
 }
+
   printTicket(
     idFacturaHeader: number,
     idEmpresa: number
   ): Observable<any> {
-
-    if (!this.apiPrint) {
-
-      console.error(
-        "❌ ApiPrint no configurado"
-      );
-
-      throw new Error(
-        "ApiPrint vacío"
-      );
-    }
-
-    return this.http.get(
-
-      `${this.apiPrint}` +
-
-      `/api/Printer/ticket/` +
-
-      `${idFacturaHeader}/` +
-
-      `${idEmpresa}`,
-
-      {
-        withCredentials: false
-      }
+    return this.agentGet(
+      `/api/Printer/ticket/${idFacturaHeader}/${idEmpresa}`
     );
+  }
+
+  /** Ticket térmico factura cliente (TOTAL / PAGADO / PENDIENTE). */
+  printFacturaCliente(idFactura: number): Observable<any> {
+    return this.agentGet(`/api/Printer/factura/${idFactura}`);
+  }
+
+  /** Recibo de abono CxC para el cliente. */
+  printReciboAbono(idPago: number): Observable<any> {
+    return this.agentGet(`/api/Printer/recibo-abono/${idPago}`);
   }
 
   /**
@@ -195,9 +209,10 @@ printCierreEncargos(
   }
 
   async openCotizacionCarta(
-    cotizacion: any
+    cotizacion: any,
+    autoImprimir = false
   ): Promise<void> {
-    const empresa = this.empresaParaDocumento();
+    const empresa = await this.resolverEmpresaDocumento();
 
     const modal = await this.modalCtrl.create({
       component: CotizacionPrintComponent,
@@ -205,11 +220,54 @@ printCierreEncargos(
       componentProps: {
         cotizacion,
         empresa,
-        nombreEmpresa: this.parametros.NombreEmpresa
+        nombreEmpresa:
+          empresa?.nombreComercial ||
+          this.parametros.NombreEmpresa,
+        autoImprimir
       }
     });
 
     await modal.present();
+  }
+
+  /**
+   * Garantiza RNC/dirección/teléfono para documentos.
+   * Si la sesión solo tiene el nombre (login viejo), recarga la empresa.
+   */
+  private async resolverEmpresaDocumento(): Promise<any> {
+    let emp = this.empresaParaDocumento();
+    const incompleta =
+      !emp ||
+      (!String(emp.rnc || emp.RNC || '').trim() &&
+        !String(emp.direccion || emp.Direccion || '').trim() &&
+        !String(emp.telefono || emp.Telefono || '').trim());
+
+    const idEmpresa =
+      emp?.idEmpresa ||
+      emp?.IdEmpresa ||
+      this.parametros.IdEmpresa ||
+      0;
+
+    if (incompleta && idEmpresa > 0) {
+      try {
+        const full = await firstValueFrom(this.empresaSrv.getEmpresa(idEmpresa));
+        if (full) {
+          this.parametros._Empresa = {
+            ...(this.parametros._Empresa || ({} as any)),
+            ...full,
+            logoUrl: (full as any).logoUrl || full.logo || ''
+          } as any;
+          if (full.nombreComercial) {
+            this.parametros.NombreEmpresa = full.nombreComercial;
+          }
+          emp = this.empresaParaDocumento();
+        }
+      } catch (e) {
+        console.warn('No se pudo recargar empresa para documento', e);
+      }
+    }
+
+    return emp;
   }
 
   /** Copia de empresa para documentos: sin logo si la empresa no tiene uno propio. */
@@ -230,8 +288,6 @@ printCierreEncargos(
     if (sinLogo) {
       copia.logo = undefined;
       copia.logoUrl = undefined;
-      src.logo = undefined;
-      src.logoUrl = undefined;
     }
 
     return copia;
@@ -274,30 +330,7 @@ printCierreEncargos(
   printLavador(
     idFacturaHeader: number
   ): Observable<any> {
-
-    if (!this.apiPrint) {
-
-      console.error(
-        "❌ ApiPrint no configurado"
-      );
-
-      throw new Error(
-        "ApiPrint vacío"
-      );
-    }
-
-    return this.http.get(
-
-      `${this.apiPrint}` +
-
-      `/api/Printer/lavador/` +
-
-      `${idFacturaHeader}`,
-
-      {
-        withCredentials: false
-      }
-    );
+    return this.agentGet(`/api/Printer/lavador/${idFacturaHeader}`);
   }
 
   // =========================================
@@ -307,79 +340,89 @@ printCierreEncargos(
   printFacturaPDF(
     idFactura: number
   ): Observable<any> {
-
-    if (!this.apiPrint) {
-
-      console.error(
-        "❌ ApiPrint no configurado"
-      );
-
-      throw new Error(
-        "ApiPrint vacío"
-      );
-    }
-
-    return this.http.get(
-
-      `${this.apiPrint}` +
-
-      `/api/Printer/facturaPDF/` +
-
-      `${idFactura}`,
-
-      {
-        withCredentials: false
-      }
-    );
+    return this.agentGet(`/api/Printer/facturaPDF/${idFactura}`);
   }
 
   printNotaCredito(
     idNotaCredito: number,
     idEmpresa: number
   ): Observable<any> {
+    return this.agentGet(
+      `/api/Printer/nota-credito/${idNotaCredito}/${idEmpresa}`
+    );
+  }
 
-    if (!this.apiPrint) {
+  // =========================================
+  // 🔥 TEST API / VERSION AGENTE
+  // =========================================
 
-      console.error(
-        "❌ ApiPrint no configurado"
-      );
-
-      throw new Error(
-        "ApiPrint vacío"
-      );
+  /** Ping a una URL concreta (localhost / 127.0.0.1 / ApiPrint guardado). */
+  pingAt(baseUrl: string): Observable<PrinterAgentStatus> {
+    const api = (baseUrl || '').trim().replace(/\/$/, '');
+    if (!api) {
+      return throwError(() => new Error('ApiPrint vacío'));
     }
-
-    return this.http.get(
-
-      `${this.apiPrint}` +
-
-      `/api/Printer/nota-credito/` +
-
-      `${idNotaCredito}/` +
-
-      `${idEmpresa}`,
-
-      {
-        withCredentials: false
-      }
-    );
+    return this.http.get<PrinterAgentStatus>(
+      `${api}/api/Printer/ping`,
+      { withCredentials: false }
+    ).pipe(timeout(2500));
   }
 
-  // =========================================
-  // 🔥 TEST API
-  // =========================================
+  ping(): Observable<PrinterAgentStatus> {
+    return this.pingAt(this.apiPrint);
+  }
 
-  ping(): Observable<any> {
+  version(): Observable<PrinterAgentStatus> {
+    const api = this.apiPrint;
+    if (!api) {
+      return throwError(() => new Error('ApiPrint vacío'));
+    }
+    return this.http.get<PrinterAgentStatus>(
+      `${api}/api/Printer/version`,
+      { withCredentials: false }
+    ).pipe(timeout(2500));
+  }
 
-    return this.http.get(
+  getPrinterSettingsAt(baseUrl: string): Observable<PrinterAgentSettings> {
+    const api = (baseUrl || '').trim().replace(/\/$/, '');
+    if (!api) {
+      return throwError(() => new Error('ApiPrint vacío'));
+    }
+    return this.http.get<PrinterAgentSettings>(
+      `${api}/api/Printer/settings`,
+      { withCredentials: false }
+    ).pipe(timeout(4000));
+  }
 
-      `${this.apiPrint}` +
+  getPrinterSettings(): Observable<PrinterAgentSettings> {
+    return this.getPrinterSettingsAt(this.apiPrint);
+  }
 
-      `/api/Printer/ping`,
-
-      {
-        withCredentials: false
-      }
+  savePrinterSettings(factura: string, lavador?: string): Observable<PrinterAgentSettings> {
+    return this.http.put<PrinterAgentSettings>(
+      `${this.apiPrint}/api/Printer/settings`,
+      { factura, lavador: lavador || factura },
+      { withCredentials: false }
     );
   }
+}
+
+export interface PrinterAgentStatus {
+  success?: boolean;
+  ok?: boolean;
+  message?: string;
+  version?: string;
+  port?: number;
+  serviceName?: string;
+  machineName?: string;
+  utc?: string;
+}
+
+export interface PrinterAgentSettings {
+  success?: boolean;
+  message?: string;
+  factura?: string;
+  lavador?: string;
+  localConfigPath?: string;
+  printers?: string[];
 }

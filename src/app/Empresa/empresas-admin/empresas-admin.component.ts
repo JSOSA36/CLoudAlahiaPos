@@ -6,8 +6,10 @@ import {
   EmpresaAdminDetalle,
   EmpresaAdminListItem,
   EmpresaAdminService,
+  EmpresaAdminVerticalPreset,
   ModuloCatalogoItem
 } from 'src/app/servicios/empresa-admin.service';
+import { etiquetaNivelSoporte, normalizarNivelSoporte } from 'src/app/shared/nivel-soporte';
 
 @Component({
   selector: 'app-empresas-admin',
@@ -26,6 +28,8 @@ export class EmpresasAdminComponent implements OnInit {
   form: EmpresaAdminAltaRequest = this.emptyForm();
   catalogo: ModuloCatalogoItem[] = [];
   seleccion = new Set<string>();
+  verticales: EmpresaAdminVerticalPreset[] = [];
+  verticalActiva: string | null = null;
 
   // Demo panel (edición)
   demoEsDemo = true;
@@ -40,6 +44,10 @@ export class EmpresasAdminComponent implements OnInit {
 
   ngOnInit(): void {
     void this.cargar();
+  }
+
+  etiquetaSoporte(valor?: string): string {
+    return etiquetaNivelSoporte(valor);
   }
 
   get listaFiltrada(): EmpresaAdminListItem[] {
@@ -69,7 +77,9 @@ export class EmpresasAdminComponent implements OnInit {
     this.editandoId = null;
     this.form = this.emptyForm();
     this.mostrarForm = true;
+    this.verticalActiva = null;
     await this.cargarCatalogo();
+    await this.cargarVerticales();
     // Premarcar plantilla (todos asignables)
     this.seleccion = new Set(this.modulosAsignables.map(m => m.codigo));
   }
@@ -90,6 +100,7 @@ export class EmpresasAdminComponent implements OnInit {
         esDemo: d.esDemoVigente,
         diasDemo: 15,
         montoServicio: d.montoServicio || 0,
+        nivelSoporte: normalizarNivelSoporte(d.nivelSoporte),
         codigosModulo: d.codigosModulo || []
       };
       this.demoEsDemo = d.esDemoVigente;
@@ -97,6 +108,8 @@ export class EmpresasAdminComponent implements OnInit {
       this.demoMonto = d.montoServicio > 0 ? d.montoServicio : 0;
       this.catalogo = d.modulosDisponibles || [];
       this.seleccion = new Set((d.codigosModulo || []).map(c => c.trim()));
+      this.verticalActiva = null;
+      await this.cargarVerticales();
       this.mostrarForm = true;
     } catch {
       await this.toast('No se pudo cargar la empresa', 'danger');
@@ -113,6 +126,7 @@ export class EmpresasAdminComponent implements OnInit {
   toggleModulo(codigo: string): void {
     if (this.seleccion.has(codigo)) this.seleccion.delete(codigo);
     else this.seleccion.add(codigo);
+    this.verticalActiva = null;
   }
 
   isChecked(codigo: string): boolean {
@@ -121,10 +135,36 @@ export class EmpresasAdminComponent implements OnInit {
 
   seleccionarTodos(): void {
     this.seleccion = new Set(this.modulosAsignables.map(m => m.codigo));
+    this.verticalActiva = null;
   }
 
   limpiarSeleccion(): void {
     this.seleccion.clear();
+    this.verticalActiva = null;
+  }
+
+  aplicarVertical(codigo: string): void {
+    const preset = this.verticales.find(v => v.codigo === codigo);
+    if (!preset) return;
+    const allowed = new Set(this.modulosAsignables.map(m => m.codigo.toUpperCase()));
+    this.seleccion = new Set(
+      (preset.codigosModulo || [])
+        .map(c => c.trim())
+        .filter(c => allowed.has(c.toUpperCase()))
+    );
+    this.verticalActiva = codigo;
+  }
+
+  descripcionVertical(codigo: string): string {
+    return this.verticales.find(v => v.codigo === codigo)?.descripcion || '';
+  }
+
+  private async cargarVerticales(): Promise<void> {
+    try {
+      this.verticales = (await firstValueFrom(this.api.verticales())) || [];
+    } catch {
+      this.verticales = [];
+    }
   }
 
   async guardar(): Promise<void> {
@@ -195,6 +235,10 @@ export class EmpresasAdminComponent implements OnInit {
         diasDemo: this.demoDias > 0 ? this.demoDias : 15,
         montoServicio: this.demoMonto
       }));
+      await firstValueFrom(this.api.actualizarNivelSoporte(
+        this.editandoId,
+        normalizarNivelSoporte(this.form.nivelSoporte)
+      ));
       await this.toast('Empresa actualizada', 'success');
       this.cerrarForm();
       await this.cargar();
@@ -226,6 +270,7 @@ export class EmpresasAdminComponent implements OnInit {
       esDemo: true,
       diasDemo: 15,
       montoServicio: 0,
+      nivelSoporte: 'STANDARD',
       codigosModulo: []
     };
   }

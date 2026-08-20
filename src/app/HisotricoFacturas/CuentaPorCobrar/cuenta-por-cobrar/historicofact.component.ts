@@ -6,7 +6,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonModal, ModalController,AlertController,ToastController ,LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { facturaheader } from 'src/app/models/facturaheader';
+import { facturaheader, idClienteDeFactura } from 'src/app/models/facturaheader';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { FactDetalleService } from 'src/app/servicios/fact-detalle.service';
@@ -16,6 +16,7 @@ import { ClientesComponent } from 'src/app/Clientes/clientes/clientes.component'
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
 import { NotaCreditoComercialComponent } from 'src/app/Modales/nota-credito-comercial/nota-credito-comercial.component';
 import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
@@ -42,6 +43,8 @@ facturasOriginal:
   accordionActivo: string | number | null = null;
 puedeEliminarOrden: boolean = false;
 cargando: boolean = false;
+comisionEmpleado = false;
+printTicketLavador = false;
 // 🔥 FILTRO FECHA
 
 desde: string =
@@ -64,6 +67,7 @@ hasta: string =
       private empleadosService: EmpleadosService,
       private toastCtrl: ToastController,
       private printService: PrintService,
+      private parametroConfig: ParametroConfigService,
       private loadingCtrl: LoadingController
       
   ) {}
@@ -132,6 +136,7 @@ actualizarPrecio(idDetalle:number, precio:number){
     ]);
 
     this.puedeEliminarOrden = this._Parametro.puedeEliminarOrden;
+    this.cargarParametroComision();
 
   } catch (error) {
     console.error('Error cargando datos', error);
@@ -474,7 +479,13 @@ getPendiente(iten: any): number {
     cssClass: 'modal-factura-full',
     componentProps: {
       IdFactPay: factura.idFacturaHeader,
-      TotalFactura: pendiente   // 👈🔥 AQUÍ VA EL MONTO REAL A COBRAR
+      TotalFactura: pendiente,
+      IdCliente: idClienteDeFactura(factura) || null,
+      NombreCliente: factura.nombreCuenta
+        || factura.nombreEmpresa
+        || factura.clientes?.nombreComercial
+        || null,
+      UsaCxC: this._Parametro.tieneModulo('CUENTAS_COBRAR')
     }
   });
 
@@ -598,13 +609,139 @@ getPendiente(iten: any): number {
     }
   }
 
-  SendPrintAccount(IdFact: number) {
-   this.printService
-    .printTicket(IdFact,this._Parametro.IdEmpresa)
-    .subscribe(() => {
+  async SendPrintAccount(IdFact: number) {
+    const apiPrint = (this._Parametro.ApiPrint || '').trim();
+    if (!apiPrint) {
+      const t = await this.toastCtrl.create({
+        message: 'No hay impresora configurada (ApiPrint). Ve a Impresión térmica.',
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      });
+      await t.present();
+      return;
+    }
 
-        console.log("Factura enviada a impresión ✅");
+    const loading = await this.loadingCtrl.create({
+      message: 'Imprimiendo…',
+      duration: 15000
+    });
+    await loading.present();
 
+    this.printService.printFacturaCliente(IdFact).subscribe({
+      next: async (resp: any) => {
+        await loading.dismiss();
+        if (resp && resp.success === false) {
+          const err = await this.toastCtrl.create({
+            message: resp.message || 'No se pudo imprimir la factura',
+            duration: 5000,
+            color: 'danger',
+            position: 'top'
+          });
+          await err.present();
+          return;
+        }
+        const ok = await this.toastCtrl.create({
+          message: 'Factura enviada a la impresora',
+          duration: 2500,
+          color: 'success',
+          position: 'top'
+        });
+        await ok.present();
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        console.error('Error imprimiendo factura:', err);
+        const detalle =
+          err?.error?.message ||
+          err?.message ||
+          'Revise el agente (localhost:5045) y el nombre de la impresora.';
+        const t = await this.toastCtrl.create({
+          message: `Error al imprimir: ${detalle}`,
+          duration: 5500,
+          color: 'danger',
+          position: 'top'
+        });
+        await t.present();
+      }
+    });
+  }
+
+  private cargarParametroComision(): void {
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find(x => x.clave === 'COMISION_EMPLEADO');
+        const valor = String(p?.valor ?? '').toLowerCase();
+        this.comisionEmpleado = valor === 'true' || valor === '1';
+
+        const lav = (params || []).find(x => x.clave === 'PrintTicketLavador');
+        const valorLav = String(lav?.valor ?? '').toLowerCase();
+        this.printTicketLavador = valorLav === 'true' || valorLav === '1';
+        this._Parametro.PrintTicketLavador = this.printTicketLavador;
+      },
+      error: () => {
+        this.comisionEmpleado = false;
+        this.printTicketLavador = false;
+      }
+    });
+  }
+
+  async SendPrintLavador(IdFact: number) {
+    const apiPrint = (this._Parametro.ApiPrint || '').trim();
+    if (!apiPrint) {
+      const t = await this.toastCtrl.create({
+        message: 'No hay impresora configurada (ApiPrint). Ve a Impresión térmica.',
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      });
+      await t.present();
+      return;
+    }
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Imprimiendo ticket lavador…',
+      duration: 15000
+    });
+    await loading.present();
+
+    this.printService.printLavador(IdFact).subscribe({
+      next: async (resp: any) => {
+        await loading.dismiss();
+        if (resp && resp.success === false) {
+          const err = await this.toastCtrl.create({
+            message: resp.message || 'No se pudo imprimir el ticket de lavador',
+            duration: 5000,
+            color: 'danger',
+            position: 'top'
+          });
+          await err.present();
+          return;
+        }
+        const ok = await this.toastCtrl.create({
+          message: 'Ticket de lavador enviado a la impresora',
+          duration: 2500,
+          color: 'success',
+          position: 'top'
+        });
+        await ok.present();
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        console.error('Error imprimiendo ticket lavador:', err);
+        const detalle =
+          err?.error?.message ||
+          err?.message ||
+          'Revise el agente (localhost:5045) y el nombre de la impresora.';
+        const t = await this.toastCtrl.create({
+          message: `Error al imprimir lavador: ${detalle}`,
+          duration: 5500,
+          color: 'danger',
+          position: 'top'
+        });
+        await t.present();
+      }
     });
   }
 

@@ -1,0 +1,240 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Nómina</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Proceso de nómina</h1>
+        <p class="sub">Calcule, revise y pague el ciclo. Una nómina aprobada o cerrada no se modifica.</p>
+        <div class="cycle">
+          <span [class.on]="!actual || actual.estado === 'BORRADOR'">Borrador</span>
+          <span [class.on]="actual?.estado === 'EN_REVISION'">En revisión</span>
+          <span [class.on]="actual?.estado === 'APROBADA'">Aprobada</span>
+          <span [class.on]="actual?.estado === 'PAGADA'">Pagada</span>
+          <span [class.on]="actual?.estado === 'CERRADA'">Cerrada</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-yellow" (click)="nuevo()">Crear proceso</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Nuevo período</p>
+          <h2>Datos del ciclo</h2>
+        </div>
+      </div>
+      <div class="fields-bar">
+        <label class="field">
+          <span>Inicio</span>
+          <input type="date" [(ngModel)]="crear.fechaInicio" name="nomIni" />
+        </label>
+        <label class="field">
+          <span>Fin</span>
+          <input type="date" [(ngModel)]="crear.fechaFin" name="nomFin" />
+        </label>
+        <label class="field">
+          <span>Frecuencia</span>
+          <select [(ngModel)]="crear.frecuencia" name="nomFreq">
+            <option value="SEMANAL">Semanal</option>
+            <option value="QUINCENAL">Quincenal</option>
+            <option value="MENSUAL">Mensual</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Histórico</p>
+          <h2>Períodos</h2>
+        </div>
+      </div>
+      <div class="table-wrap" *ngIf="listado.length">
+        <table class="rrhh-table hist-table">
+          <thead>
+            <tr>
+              <th>Período</th>
+              <th>Frecuencia</th>
+              <th>Estado</th>
+              <th>Colaboradores</th>
+              <th class="num">Neto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let n of listado" [class.sel]="actual?.idNominaProceso === n.idNominaProceso" (click)="abrir(n.idNominaProceso)">
+              <td>{{ n.fechaInicio | date:'dd/MM/yyyy' }} — {{ n.fechaFin | date:'dd/MM/yyyy' }}</td>
+              <td>{{ etiquetaFrecuencia(n.frecuencia) }}</td>
+              <td><span class="badge" [ngClass]="n.estado">{{ etiquetaEstado(n.estado) }}</span></td>
+              <td>{{ n.empleados }}</td>
+              <td class="neto">{{ n.totalNeto | number:'1.2-2' }}</td>
+              <td><button type="button" class="btn btn-outline btn-sm" (click)="abrir(n.idNominaProceso); $event.stopPropagation()">Abrir</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">Aún no hay procesos de nómina.</p>
+    </section>
+
+    <section class="panel" *ngIf="actual">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ actual.fechaInicio | date:'dd/MM/yyyy' }} — {{ actual.fechaFin | date:'dd/MM/yyyy' }}</p>
+          <h2>{{ etiquetaFrecuencia(actual.frecuencia) }} · {{ etiquetaEstado(actual.estado) }}</h2>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" *ngIf="actual.detalle?.length" (click)="recibosTodos()">
+            Recibos PDF
+          </button>
+          <button type="button" class="btn btn-outline" *ngIf="actual.detalle?.length" (click)="enviarRecibos()" [disabled]="enviando">
+            {{ enviando ? 'Enviando…' : 'Enviar por correo' }}
+          </button>
+          <button type="button" class="btn btn-primary" *ngIf="actual.estado === 'BORRADOR' || actual.estado === 'EN_REVISION'" (click)="generar()" [disabled]="loading">
+            {{ loading ? 'Calculando…' : 'Generar pre-nómina' }}
+          </button>
+          <button type="button" class="btn btn-outline" *ngIf="actual.estado === 'BORRADOR'" (click)="estado('EN_REVISION')">Enviar a revisión</button>
+          <button type="button" class="btn btn-outline" *ngIf="actual.estado === 'EN_REVISION'" (click)="estado('BORRADOR')">Devolver</button>
+          <button type="button" class="btn btn-success" *ngIf="actual.estado === 'EN_REVISION' && puedeAprobar" (click)="estado('APROBADA')">Aprobar</button>
+          <button type="button" class="btn btn-outline" *ngIf="actual.estado === 'PAGADA' && puedeAprobar" (click)="estado('CERRADA')">Cerrar</button>
+        </div>
+      </div>
+
+      <p class="note" *ngIf="actual.observacion">{{ actual.observacion }}</p>
+      <p class="note" *ngIf="actual.envioRecibos?.mensaje">{{ actual.envioRecibos.mensaje }}</p>
+      <p class="note warn" *ngIf="actual.advertenciaContabilidad">{{ actual.advertenciaContabilidad }}</p>
+      <p class="note pay" *ngIf="actual.estado === 'PAGADA' && cuentaPago()">
+        Pagada desde {{ cuentaPago()?.nombre }} ({{ cuentaPago()?.tipoCuenta }})
+        <span *ngIf="actual.idMovimientoFinanciero"> · movimiento {{ actual.idMovimientoFinanciero }}</span>
+      </p>
+
+      <div class="pay-box" *ngIf="actual.estado === 'APROBADA' && puedePagar">
+        <div>
+          <p class="panel-eyebrow">Tesorería y contabilidad</p>
+          <h3>Marcar pagada</h3>
+          <p class="pay-help">
+            El neto sale de la cuenta seleccionada. Se registra el gasto de nómina y, si Contabilidad está activa, se genera el asiento.
+          </p>
+        </div>
+        <div class="pay-actions">
+          <label class="field">
+            <span>Cuenta de origen</span>
+            <select [(ngModel)]="idCuentaPago" name="nomCuentaPago">
+              <option [ngValue]="null">Seleccione banco o caja</option>
+              <option *ngFor="let c of cuentas" [ngValue]="c.idCuentaFinanciera">{{ etiquetaCuenta(c) }}</option>
+            </select>
+          </label>
+          <p class="pay-warn" *ngIf="fondosInsuficientes()">Fondos insuficientes en la cuenta para cubrir el neto.</p>
+          <p class="pay-warn" *ngIf="!cuentas.length">No hay cuentas activas. Cree una caja o banco en Tesorería.</p>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="marcarPagada()"
+            [disabled]="pagando || (suma('neto') > 0 && !idCuentaPago)">
+            {{ pagando ? 'Registrando pago…' : 'Marcar pagada' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="kpis" *ngIf="actual.detalle?.length">
+        <div class="kpi">
+          <span>Colaboradores</span>
+          <strong>{{ actual.detalle.length }}</strong>
+        </div>
+        <div class="kpi">
+          <span>Bruto</span>
+          <strong>{{ suma('bruto') | number:'1.2-2' }}</strong>
+        </div>
+        <div class="kpi desc">
+          <span>Descuentos</span>
+          <strong>{{ totalDescuentos() | number:'1.2-2' }}</strong>
+        </div>
+        <div class="kpi neto">
+          <span>Neto a pagar</span>
+          <strong>{{ suma('neto') | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="nomina-wrap" *ngIf="actual.detalle?.length">
+        <table class="nomina-grid">
+          <thead>
+            <tr class="grp">
+              <th class="emp" rowspan="2">Colaborador</th>
+              <th colspan="4">Ingresos</th>
+              <th colspan="4">Otros descuentos</th>
+              <th class="ley" colspan="3">Deducciones de ley</th>
+              <th colspan="2">Resultado</th>
+              <th rowspan="2"></th>
+            </tr>
+            <tr class="cols">
+              <th>Sueldo</th>
+              <th>Horas extra</th>
+              <th>Comisiones</th>
+              <th>Beneficios</th>
+              <th>Asistencia</th>
+              <th>Préstamos</th>
+              <th>Anticipos</th>
+              <th>Consumo</th>
+              <th class="ley">AFP</th>
+              <th class="ley">SFS</th>
+              <th class="ley">ISR</th>
+              <th>Bruto</th>
+              <th>Neto a pagar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of actual.detalle">
+              <td class="emp">{{ e.nombreEmpleado }}</td>
+              <td class="num">{{ monto(e.salarioBase) }}</td>
+              <td class="num" [class.muted-n]="!e.horasExtra">{{ monto(e.horasExtra) }}</td>
+              <td class="num" [class.muted-n]="!e.comisiones">{{ monto(e.comisiones) }}</td>
+              <td class="num" [class.muted-n]="!e.otrosIngresos">{{ monto(e.otrosIngresos) }}</td>
+              <td class="num desc" [class.muted-n]="!e.descuentosAsistencia">{{ monto(e.descuentosAsistencia) }}</td>
+              <td class="num desc" [class.muted-n]="!e.prestamos">{{ monto(e.prestamos) }}</td>
+              <td class="num desc" [class.muted-n]="!e.anticipos">{{ monto(e.anticipos) }}</td>
+              <td class="num desc" [class.muted-n]="!e.otrosDescuentos">{{ monto(e.otrosDescuentos) }}</td>
+              <td class="num desc ley">{{ monto(afp(e)) }}</td>
+              <td class="num desc ley">{{ monto(sfs(e)) }}</td>
+              <td class="num desc ley" [class.muted-n]="!isr(e)">{{ monto(isr(e)) }}</td>
+              <td class="num">{{ monto(e.bruto) }}</td>
+              <td class="num neto">{{ monto(e.neto) }}</td>
+              <td>
+                <button type="button" class="btn btn-outline btn-sm" (click)="recibo(e)">Recibo</button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="emp">Totales</td>
+              <td class="num">{{ monto(suma('salarioBase')) }}</td>
+              <td class="num">{{ monto(suma('horasExtra')) }}</td>
+              <td class="num">{{ monto(suma('comisiones')) }}</td>
+              <td class="num">{{ monto(suma('otrosIngresos')) }}</td>
+              <td class="num desc">{{ monto(suma('descuentosAsistencia')) }}</td>
+              <td class="num desc">{{ monto(suma('prestamos')) }}</td>
+              <td class="num desc">{{ monto(suma('anticipos')) }}</td>
+              <td class="num desc">{{ monto(suma('otrosDescuentos')) }}</td>
+              <td class="num desc ley">{{ monto(sumaLegal('AFP_EMPLEADO')) }}</td>
+              <td class="num desc ley">{{ monto(sumaLegal('SFS_EMPLEADO')) }}</td>
+              <td class="num desc ley">{{ monto(sumaLegal('ISR_EMPLEADO')) }}</td>
+              <td class="num">{{ monto(suma('bruto')) }}</td>
+              <td class="num neto">{{ monto(suma('neto')) }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </div>
+</ion-content>

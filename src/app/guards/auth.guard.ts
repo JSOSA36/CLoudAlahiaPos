@@ -13,8 +13,8 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean {
+    this.parametros.ensureSessionFromStorage();
 
-    // ✔️ Sesión válida basada en datos reales
     if (this.parametros.IdUsuario && this.parametros.IdEmpresa) {
       return true;
     }

@@ -92,14 +92,14 @@
         <span class="ss-step">{{ cuentasCobro.length ? 2 : 1 }}</span>
         <div>
           <h2>Adjuntar voucher</h2>
-          <p>Solo la imagen o PDF del comprobante. Banco y referencia se ven en el volante.</p>
+          <p>Foto clara del comprobante (JPG/PNG). El sistema lee el monto automáticamente.</p>
         </div>
       </div>
 
       <label class="ss-file" [class.ss-file--ok]="!!archivo">
-        <input type="file" accept="image/*,application/pdf" (change)="onFile($event)" />
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/*" (change)="onFile($event)" />
         <ion-icon [name]="archivo ? 'checkmark-circle' : 'cloud-upload-outline'"></ion-icon>
-        <span *ngIf="!archivo">Seleccionar imagen o PDF</span>
+        <span *ngIf="!archivo">Seleccionar foto del voucher</span>
         <span *ngIf="archivo">{{ archivo.name }}</span>
       </label>
 

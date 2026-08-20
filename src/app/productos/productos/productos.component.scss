@@ -998,3 +998,41 @@ td {
   --background: linear-gradient(135deg, #1454B8, #0B419B);
   --box-shadow: 0 10px 22px rgba(20, 84, 184, 0.35);
 }
+
+.prod-loading,
+.prod-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 56px 20px;
+  color: #64748b;
+}
+
+.prod-loading ion-spinner {
+  width: 42px;
+  height: 42px;
+}
+
+.prod-loading p,
+.prod-empty p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.prod-empty ion-icon {
+  font-size: 2.6rem;
+  color: var(--ion-color-primary);
+  opacity: 0.75;
+}
+
+.prod-empty h3 {
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+

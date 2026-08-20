@@ -1,0 +1,419 @@
+<ion-header class="no-print">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Ficha del paciente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportarPdf()" [disabled]="!ficha || exportandoPdf">
+        {{ exportandoPdf ? 'Exportando…' : 'Exportar PDF' }}
+      </ion-button>
+      <ion-button (click)="guardar()" [disabled]="!ficha || guardando">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ficha-content">
+  <div class="ficha-sheet">
+    <header class="ficha-head">
+      <div>
+        <h1>{{ nombreEmpresa || 'Clínica dental' }}</h1>
+        <p>Ficha clínica del paciente</p>
+      </div>
+      <div class="ficha-head-actions no-print">
+        <ion-button (click)="seleccionarPaciente()">
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          {{ clienteSeleccionado ? 'Cambiar paciente' : 'Buscar paciente' }}
+        </ion-button>
+      </div>
+    </header>
+
+    <div class="empty-state no-print" *ngIf="!clienteSeleccionado">
+      <p>El paciente es el mismo cliente del ERP. Busque o cree el cliente y complete la historia clínica aquí.</p>
+      <p class="hint">La cuenta (costos, pagos y balance) se toma de las facturas. No se registra un presupuesto aparte.</p>
+    </div>
+
+    <div class="loading no-print" *ngIf="cargando">Cargando ficha…</div>
+
+    <form *ngIf="ficha && !cargando" class="ficha-form">
+      <section class="block">
+        <h2>Datos personales</h2>
+        <div class="grid-3">
+          <label>Nombres
+            <input [(ngModel)]="ficha.nombres" name="nombres" />
+          </label>
+          <label>Apellidos
+            <input [(ngModel)]="ficha.apellidos" name="apellidos" />
+          </label>
+          <label>Cédula / RNC
+            <input [(ngModel)]="ficha.cedulaRnc" name="cedula" />
+          </label>
+          <label>Edad
+            <input type="number" min="0" max="120" name="edad"
+                   [(ngModel)]="edadInput" placeholder="Años" />
+          </label>
+          <label>Sexo
+            <select [(ngModel)]="ficha.sexo" name="sexo">
+              <option value="">—</option>
+              <option value="F">Femenino</option>
+              <option value="M">Masculino</option>
+            </select>
+          </label>
+          <label>Estado civil
+            <select [(ngModel)]="ficha.estadoCivil" name="civil">
+              <option value="">—</option>
+              <option value="Soltero/a">Soltero/a</option>
+              <option value="Casado/a">Casado/a</option>
+              <option value="Unión libre">Unión libre</option>
+              <option value="Divorciado/a">Divorciado/a</option>
+              <option value="Viudo/a">Viudo/a</option>
+            </select>
+          </label>
+          <label>Nacionalidad
+            <input [(ngModel)]="ficha.nacionalidad" name="nacionalidad" />
+          </label>
+          <label>Teléfono
+            <input [(ngModel)]="ficha.telefono" name="telefono" />
+          </label>
+          <label>Celular
+            <input [(ngModel)]="ficha.celular" name="celular" />
+          </label>
+          <label>Correo
+            <input [(ngModel)]="ficha.email" name="email" />
+          </label>
+          <label class="span-3">Dirección
+            <input [(ngModel)]="ficha.direccion" name="direccion" />
+          </label>
+          <label>Contacto de emergencia
+            <input [(ngModel)]="ficha.contactoEmergenciaNombre" name="emergNombre" />
+          </label>
+          <label>Tel. emergencia
+            <input [(ngModel)]="ficha.contactoEmergenciaTelefono" name="emergTel" />
+          </label>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2>Anamnesis</h2>
+        <div class="checks">
+          <label *ngFor="let c of anamnesisCampos">
+            <input type="checkbox"
+                   [ngModel]="esAnamnesis(c.key)"
+                   (ngModelChange)="setAnamnesis(c.key, $event)"
+                   [name]="'a-' + c.key" />
+            {{ c.label }}
+          </label>
+        </div>
+        <h3>Enfermedades de contagio</h3>
+        <div class="checks">
+          <label *ngFor="let c of contagioCampos">
+            <input type="checkbox"
+                   [ngModel]="esAnamnesis(c.key)"
+                   (ngModelChange)="setAnamnesis(c.key, $event)"
+                   [name]="'c-' + c.key" />
+            {{ c.label }}
+          </label>
+          <label class="otra">Otra
+            <input [(ngModel)]="ficha.anamnesis.otraContagio" name="otraContagio" />
+          </label>
+        </div>
+        <label>Medicamentos
+          <input [(ngModel)]="ficha.medicamentos" name="medicamentos" />
+        </label>
+      </section>
+
+      <section class="block">
+        <h2>Odontograma</h2>
+        <p class="hint no-print">Toque un diente para seleccionarlo y anotar su condición. Cada pieza guarda su propia nota; puede marcar varias.</p>
+        <div class="odontograma">
+          <svg width="0" height="0" class="svg-defs" aria-hidden="true">
+            <defs>
+              <linearGradient id="od-esmalte" x1="0.15" y1="0" x2="0.9" y2="1">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="35%" stop-color="#fbf7f0"/>
+                <stop offset="70%" stop-color="#efe4d2"/>
+                <stop offset="100%" stop-color="#d9cbb4"/>
+              </linearGradient>
+              <linearGradient id="od-raiz" x1="0" y1="0" x2="0.35" y2="1">
+                <stop offset="0%" stop-color="#edd9b0"/>
+                <stop offset="55%" stop-color="#d4b07a"/>
+                <stop offset="100%" stop-color="#b88955"/>
+              </linearGradient>
+              <radialGradient id="od-brillo" cx="35%" cy="42%" r="55%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+          </svg>
+
+          <div class="fila dientes">
+            <div class="cuadrante">
+              <button *ngFor="let n of arcoSuperiorDer" type="button"
+                      class="celda" [class.sel]="dienteSeleccionado === n"
+                      [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                      (click)="seleccionarDiente(n)">
+                <ng-container *ngTemplateOutlet="dibujoDiente; context: {$implicit: n}"></ng-container>
+              </button>
+            </div>
+            <span class="sep"></span>
+            <div class="cuadrante">
+              <button *ngFor="let n of arcoSuperiorIzq" type="button"
+                      class="celda" [class.sel]="dienteSeleccionado === n"
+                      [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                      (click)="seleccionarDiente(n)">
+                <ng-container *ngTemplateOutlet="dibujoDiente; context: {$implicit: n}"></ng-container>
+              </button>
+            </div>
+          </div>
+
+          <div class="numeros">
+            <div class="fila nums">
+              <div class="cuadrante">
+                <button *ngFor="let n of arcoSuperiorDer" type="button"
+                        class="num" [class.sel]="dienteSeleccionado === n"
+                        [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                        (click)="seleccionarDiente(n)">{{ n }}</button>
+              </div>
+              <span class="sep"></span>
+              <div class="cuadrante">
+                <button *ngFor="let n of arcoSuperiorIzq" type="button"
+                        class="num" [class.sel]="dienteSeleccionado === n"
+                        [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                        (click)="seleccionarDiente(n)">{{ n }}</button>
+              </div>
+            </div>
+            <div class="fila nums">
+              <div class="cuadrante">
+                <button *ngFor="let n of arcoInferiorDer" type="button"
+                        class="num" [class.sel]="dienteSeleccionado === n"
+                        [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                        (click)="seleccionarDiente(n)">{{ n }}</button>
+              </div>
+              <span class="sep"></span>
+              <div class="cuadrante">
+                <button *ngFor="let n of arcoInferiorIzq" type="button"
+                        class="num" [class.sel]="dienteSeleccionado === n"
+                        [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                        (click)="seleccionarDiente(n)">{{ n }}</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="fila dientes inf">
+            <div class="cuadrante">
+              <button *ngFor="let n of arcoInferiorDer" type="button"
+                      class="celda" [class.sel]="dienteSeleccionado === n"
+                      [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                      (click)="seleccionarDiente(n)">
+                <ng-container *ngTemplateOutlet="dibujoDiente; context: {$implicit: n}"></ng-container>
+              </button>
+            </div>
+            <span class="sep"></span>
+            <div class="cuadrante">
+              <button *ngFor="let n of arcoInferiorIzq" type="button"
+                      class="celda" [class.sel]="dienteSeleccionado === n"
+                      [class.marcado]="dienteMarcado(n) || dienteConNota(n)"
+                      (click)="seleccionarDiente(n)">
+                <ng-container *ngTemplateOutlet="dibujoDiente; context: {$implicit: n}"></ng-container>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="diente-editor no-print" *ngIf="dienteActual">
+          <label class="hallazgo-check">
+            <input type="checkbox" [ngModel]="dienteActual.marcado"
+                   (ngModelChange)="setHallazgo($event)" name="hallazgoDiente" />
+            Hallazgo en diente {{ dienteActual.numero }}
+          </label>
+          <label>Condición / observación de esta pieza
+            <input [(ngModel)]="dienteActual.nota" name="notaDiente" (ngModelChange)="onNotaDiente()"
+                   placeholder="Ej. caries oclusal, corona, extraer…" />
+          </label>
+        </div>
+
+        <ul class="hallazgos" *ngIf="dientesConHallazgo.length">
+          <li *ngFor="let d of dientesConHallazgo" (click)="seleccionarDiente(d.numero)">
+            <strong>{{ d.numero }}</strong>
+            <span>{{ d.nota || 'Marcado' }}</span>
+          </li>
+        </ul>
+      </section>
+
+      <ng-template #dibujoDiente let-n>
+        <svg viewBox="0 0 64 112" class="dibujo"
+             [class.inf]="esInferior(n)" [class.flip]="esFlip(n)" aria-hidden="true">
+          <!-- Molar superior: 3 raíces + corona ancha con cúspides -->
+          <g *ngIf="tipoDiente(n) === 'molar' && !esInferior(n)">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M17 52 C10 34 7 18 13 5 C19 16 22 34 24 52Z"/>
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M29 52 C26 30 28 12 32 3 C36 12 38 30 35 52Z"/>
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M40 52 C42 34 45 16 51 5 C57 18 54 34 47 52Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M14 51 C11 53 9 60 9 70 C8 84 11 96 16 103
+                     C19 108 24 110 28 107 C31 111 35 111 38 107
+                     C42 110 47 108 50 103 C55 96 56 84 55 70
+                     C55 60 53 53 50 51 C38 48 26 48 14 51Z"/>
+            <path fill="url(#od-brillo)" d="M16 58 C18 72 22 88 28 98 C24 80 20 64 16 58Z"/>
+            <path fill="none" stroke="#cfc0a8" stroke-width="1"
+                  d="M18 78 Q32 92 46 78"/>
+            <path fill="none" stroke="#cfc0a8" stroke-width="0.8"
+                  d="M32 68 L32 100"/>
+          </g>
+          <!-- Molar inferior: 2 raíces -->
+          <g *ngIf="tipoDiente(n) === 'molar' && esInferior(n)">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M18 52 C12 32 10 16 16 4 C22 16 26 34 28 52Z"/>
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M36 52 C38 34 42 16 48 4 C54 16 52 32 46 52Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M13 51 C10 54 9 62 9 72 C9 86 12 97 17 104
+                     C21 109 26 111 32 109 C38 111 43 109 47 104
+                     C52 97 55 86 55 72 C55 62 54 54 51 51 C38 48 26 48 13 51Z"/>
+            <path fill="url(#od-brillo)" d="M16 58 C18 74 22 90 29 99 C24 82 19 66 16 58Z"/>
+            <path fill="none" stroke="#cfc0a8" stroke-width="1"
+                  d="M18 80 Q32 93 46 80"/>
+          </g>
+          <!-- Premolar: 2 raíces, 2 cúspides -->
+          <g *ngIf="tipoDiente(n) === 'premolar'">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M23 54 C18 32 16 14 21 5 C26 16 28 34 29 54Z"/>
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M35 54 C36 34 38 16 43 5 C48 14 46 32 41 54Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M18 53 C15 56 14 64 15 76 C16 90 19 100 24 106
+                     C27 110 30 108 32 104 C34 108 37 110 40 106
+                     C45 100 48 90 49 76 C50 64 49 56 46 53 C36 50 26 50 18 53Z"/>
+            <path fill="url(#od-brillo)" d="M20 60 C22 76 25 92 30 100 C26 84 22 68 20 60Z"/>
+            <path fill="none" stroke="#cfc0a8" stroke-width="0.9"
+                  d="M24 82 Q32 92 40 82"/>
+          </g>
+          <!-- Canino: cúspide puntiaguda, raíz larga -->
+          <g *ngIf="tipoDiente(n) === 'canino'">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M27 56 C23 30 22 12 32 2 C42 12 41 30 37 56Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M21 55 C17 60 16 72 18 84 C20 96 25 104 32 110
+                     C39 104 44 96 46 84 C48 72 47 60 43 55 C37 52 27 52 21 55Z"/>
+            <path fill="url(#od-brillo)" d="M23 62 C25 78 28 94 32 104 C28 88 25 72 23 62Z"/>
+            <path fill="none" stroke="#d2c4ae" stroke-width="0.8"
+                  d="M32 70 L32 106"/>
+          </g>
+          <!-- Incisivo lateral: más estrecho -->
+          <g *ngIf="tipoDiente(n) === 'incisivoL'">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M28 54 C25 30 26 12 32 3 C38 12 39 30 36 54Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M23 53 C20 56 19 66 20 78 C21 90 23 99 25 104
+                     L28 107 L32 108 L36 107 L39 104
+                     C41 99 43 90 44 78 C45 66 44 56 41 53 C36 51 28 51 23 53Z"/>
+            <path fill="url(#od-brillo)" d="M24 60 C26 76 28 92 32 100 C28 84 25 68 24 60Z"/>
+          </g>
+          <!-- Incisivo central: borde incisal recto con mamelones -->
+          <g *ngIf="tipoDiente(n) === 'incisivoC'">
+            <path fill="url(#od-raiz)" stroke="#b88955" stroke-width="0.6"
+                  d="M27 54 C24 28 26 10 32 2 C38 10 40 28 37 54Z"/>
+            <path fill="url(#od-esmalte)" stroke="#c4b49a" stroke-width="0.8"
+                  d="M20 53 C16 56 15 66 16 78 C17 90 18 99 20 104
+                     L24 107 L32 108 L40 107 L44 104
+                     C46 99 47 90 48 78 C49 66 48 56 44 53 C36 50 28 50 20 53Z"/>
+            <path fill="url(#od-brillo)" d="M22 60 C24 78 27 94 32 102 C27 86 24 70 22 60Z"/>
+            <path fill="none" stroke="#e4d8c6" stroke-width="0.7"
+                  d="M24 78 L40 78"/>
+            <path fill="none" stroke="#d7cbb8" stroke-width="0.6"
+                  d="M26 104 L26 108 M32 104 L32 108 M38 104 L38 108"/>
+          </g>
+        </svg>
+      </ng-template>
+
+      <section class="block">
+        <h2>Observaciones y prótesis</h2>
+        <label>Observaciones
+          <textarea rows="3" [(ngModel)]="ficha.observaciones" name="obs"></textarea>
+        </label>
+        <div class="grid-3">
+          <label>Color
+            <input [(ngModel)]="ficha.color" name="color" />
+          </label>
+          <label>Tipo de prótesis
+            <input [(ngModel)]="ficha.tipoProtesis" name="protesis" />
+          </label>
+          <label>Laboratorio
+            <input [(ngModel)]="ficha.laboratorio" name="lab" />
+          </label>
+        </div>
+      </section>
+
+      <section class="block cuenta">
+        <h2>Cuenta del paciente</h2>
+        <p class="hint no-print">Se genera desde las facturas y pagos del cliente. Para cobrar, use el POS o Cuentas por cobrar.</p>
+
+        <div class="cuenta-kpis" *ngIf="cuenta.length">
+          <article class="kpi kpi-costo">
+            <span>Costo</span>
+            <strong>{{ moneda(vista?.totalCosto) }}</strong>
+          </article>
+          <article class="kpi kpi-pagos">
+            <span>Pagos</span>
+            <strong>{{ moneda(vista?.totalPagos) }}</strong>
+          </article>
+          <article class="kpi kpi-balance" [class.saldado]="!(vista?.totalBalance)">
+            <span>Balance</span>
+            <strong>{{ moneda(vista?.totalBalance) }}</strong>
+          </article>
+        </div>
+
+        <div class="tabla-wrap">
+          <table class="tabla-cuenta">
+            <colgroup>
+              <col class="col-fecha" />
+              <col class="col-factura" />
+              <col class="col-diente" />
+              <col class="col-trabajo" />
+              <col class="col-monto" />
+              <col class="col-monto" />
+              <col class="col-monto" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Factura</th>
+                <th>Diente</th>
+                <th>Trabajo</th>
+                <th class="num">Costo</th>
+                <th class="num">Pagos</th>
+                <th class="num">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!cuenta.length">
+                <td colspan="7" class="empty">Sin facturas de este paciente.</td>
+              </tr>
+              <tr *ngFor="let r of cuenta">
+                <td class="fecha">{{ r.fecha | date:'dd/MM/yyyy' }}</td>
+                <td class="factura">{{ r.numeroFactura }}</td>
+                <td class="diente">{{ r.diente || '—' }}</td>
+                <td class="trabajo">{{ r.trabajo }}</td>
+                <td class="num monto costo">{{ moneda(r.costo) }}</td>
+                <td class="num monto pagos">{{ moneda(r.pagos) }}</td>
+                <td class="num monto balance" [class.saldado]="!r.balance">{{ moneda(r.balance) }}</td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="cuenta.length">
+              <tr>
+                <td colspan="4">Totales</td>
+                <td class="num monto costo">{{ moneda(vista?.totalCosto) }}</td>
+                <td class="num monto pagos">{{ moneda(vista?.totalPagos) }}</td>
+                <td class="num monto balance" [class.saldado]="!(vista?.totalBalance)">{{ moneda(vista?.totalBalance) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+    </form>
+  </div>
+</ion-content>

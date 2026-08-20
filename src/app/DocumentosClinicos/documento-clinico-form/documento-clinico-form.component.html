@@ -71,19 +71,31 @@
       </ion-card-header>
 
       <ion-card-content>
-        <ion-item lines="none">
-          <ion-label>
+        <div class="paciente-box">
+          <div class="paciente-datos">
             <h3>{{ clienteSeleccionado?.nombreComercial || 'Sin paciente seleccionado' }}</h3>
             <p *ngIf="clienteSeleccionado?.cedulaRNC">
               Cédula: {{ clienteSeleccionado?.cedulaRNC }}
             </p>
-          </ion-label>
+            <label class="paciente-edad" *ngIf="clienteSeleccionado">
+              Edad
+              <input
+                type="number"
+                min="0"
+                max="120"
+                name="edadPaciente"
+                [(ngModel)]="edadInput"
+                (ngModelChange)="onEdadChange()"
+                placeholder="Años" />
+              <span>años</span>
+            </label>
+          </div>
 
-          <ion-button slot="end" (click)="seleccionarCliente()">
+          <ion-button (click)="seleccionarCliente()">
             <ion-icon slot="start" name="person-outline"></ion-icon>
             Seleccionar
           </ion-button>
-        </ion-item>
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -112,9 +124,9 @@
           </ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item *ngIf="modo !== 'crear'">
           <ion-label position="stacked">Número de documento</ion-label>
-          <ion-input [(ngModel)]="form.numeroDocumento"></ion-input>
+          <ion-input [value]="form.numeroDocumento" readonly></ion-input>
         </ion-item>
 
         <ion-item>
@@ -132,8 +144,20 @@
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Nombre del doctor</ion-label>
-          <ion-input [(ngModel)]="form.nombreDoctor"></ion-input>
+          <ion-label position="stacked">Médico</ion-label>
+          <ion-select
+            [(ngModel)]="idEmpleadoSeleccionado"
+            (ionChange)="onDoctorChange()"
+            [compareWith]="compareEmpleados"
+            interface="popover"
+            placeholder="Seleccione el médico"
+            [disabled]="soloLectura">
+            <ion-select-option
+              *ngFor="let emp of empleados"
+              [value]="emp.idEmpleados">
+              {{ emp.nombre }}{{ emp.ocupacion ? ' · ' + emp.ocupacion : '' }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
 
         <ng-container *ngIf="esCertificado">
@@ -155,13 +179,8 @@
 
         <ng-container *ngIf="esReceta">
           <ion-item>
-            <ion-label position="stacked">Medicamentos</ion-label>
-            <ion-textarea [(ngModel)]="form.medicamentos" rows="5"></ion-textarea>
-          </ion-item>
-
-          <ion-item>
             <ion-label position="stacked">Indicaciones</ion-label>
-            <ion-textarea [(ngModel)]="form.indicaciones" rows="4"></ion-textarea>
+            <ion-textarea [(ngModel)]="form.indicaciones" rows="8"></ion-textarea>
           </ion-item>
         </ng-container>
 

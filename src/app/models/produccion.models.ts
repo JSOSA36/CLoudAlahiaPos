@@ -220,7 +220,23 @@ export function columnasTablero(flujo: ProduccionFlujo | null | undefined): Prod
   if (!flujo?.estados?.length) return [];
   return [...flujo.estados]
     .filter(e => !e.esTerminal)
-    .sort((a, b) => a.orden - b.orden);
+    .sort((a, b) => a.orden - b.orden)
+    .map(e => ({
+      ...e,
+      nombreVisible: etiquetaEstadoFlujo(e.codigo, e.nombreVisible)
+    }));
+}
+
+export const PRODUCCION_ETIQUETAS_ESTADO: Record<string, string> = {
+  PENDIENTE: 'Pendiente',
+  EN_PREPARACION: 'Preparación',
+  LISTA: 'Lista',
+  ENTREGADA: 'Entregada',
+  CANCELADA: 'Cancelada'
+};
+
+export function etiquetaEstadoFlujo(codigo: string, fallback?: string | null): string {
+  return PRODUCCION_ETIQUETAS_ESTADO[codigo] || fallback || codigo;
 }
 
 export function claseSemaforo(s: string): string {

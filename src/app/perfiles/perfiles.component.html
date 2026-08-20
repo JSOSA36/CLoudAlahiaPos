@@ -28,6 +28,11 @@
       <ion-label>
         <h2>{{ perfil.nombre }}</h2>
         <p *ngIf="perfil.descripcion">{{ perfil.descripcion }}</p>
+        <p>
+          <ion-badge [color]="(perfil.modulos || []).length > 20 ? 'warning' : 'medium'">
+            {{ (perfil.modulos || []).length }} módulo(s) activo(s)
+          </ion-badge>
+        </p>
       </ion-label>
 
       <!-- Estado -->
@@ -129,13 +134,16 @@
       <ion-list *ngIf="modulosMenu.length; else sinModulos">
 
         <ion-item
-          *ngFor="let modulo of modulosMenu; trackBy: trackByModulo">
+          button
+          detail="false"
+          *ngFor="let modulo of modulosMenu; trackBy: trackByModulo"
+          (click)="toggleModulo(modulo)">
 
-        <ion-checkbox
-  slot="start"
-  [checked]="modulo.seleccionado"
-  (ionChange)="onModuloChange($event, modulo)">
-</ion-checkbox>
+          <ion-icon
+            slot="start"
+            [name]="modulo.seleccionado ? 'checkbox' : 'square-outline'"
+            [color]="modulo.seleccionado ? 'primary' : 'medium'">
+          </ion-icon>
 
           <ion-label>{{ modulo.nombre }}</ion-label>
 
@@ -156,12 +164,16 @@
       </ion-text>
 
       <ion-list *ngIf="modulosPermiso.length">
-        <ion-item *ngFor="let modulo of modulosPermiso; trackBy: trackByModulo">
-          <ion-checkbox
+        <ion-item
+          button
+          detail="false"
+          *ngFor="let modulo of modulosPermiso; trackBy: trackByModulo"
+          (click)="toggleModulo(modulo)">
+          <ion-icon
             slot="start"
-            [checked]="modulo.seleccionado"
-            (ionChange)="onModuloChange($event, modulo)">
-          </ion-checkbox>
+            [name]="modulo.seleccionado ? 'checkbox' : 'square-outline'"
+            [color]="modulo.seleccionado ? 'primary' : 'medium'">
+          </ion-icon>
           <ion-label>
             <h3>{{ modulo.nombre }}</h3>
             <p>Permiso · no es pantalla de menú</p>

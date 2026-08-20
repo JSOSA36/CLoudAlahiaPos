@@ -19,6 +19,7 @@ export interface EmpresaDto {
   tertiaryColor?: string;
   titleColor?: string;
   nombrePlan: string;
+  nivelSoporte?: 'STANDARD' | 'GOLD' | 'PREMIUM' | string;
 
   // 🔐 Identificador público
   guidPublico: string;
@@ -26,6 +27,9 @@ export interface EmpresaDto {
   // 📍 Ubicación GPS
   latitude?: string;
   longitude?: string;
+
+  // 🖨️ Agente de impresión local (PrinterApi)
+  apiPrint?: string;
 
   // 🔔 Notificaciones
   tokenNotificacion?: string;

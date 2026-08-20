@@ -28,6 +28,13 @@
           <ion-icon slot="start" name="download-outline"></ion-icon>
           Exportar Excel (CSV)
         </ion-button>
+        <ion-button
+          color="medium"
+          [disabled]="!data"
+          (click)="exportarPdf()">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
       </div>
     </section>
 

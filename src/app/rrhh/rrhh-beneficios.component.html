@@ -1,0 +1,165 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Beneficios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Beneficios</h1>
+        <p class="sub">Gasolina, seguro, teléfono y otros. Unos salen con la quincena; otros se pagan en su propio día (por ejemplo el 5 de cada mes).</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="nuevo()">Nuevo</button>
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : 'Guardar beneficio' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Catálogo</p>
+          <h2>Beneficios registrados</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table list-pick">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Cálculo</th>
+              <th>Monto</th>
+              <th>Modalidad</th>
+              <th>Cómo se paga</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let b of listado" [class.sel]="form.idBeneficio === b.idBeneficio" (click)="editar(b)">
+              <td>{{ b.codigo }}</td>
+              <td>{{ b.nombre }}</td>
+              <td>{{ etiquetaCalculo(b) }}</td>
+              <td>
+                <ng-container *ngIf="b.tipoCalculo === 'PORCENTAJE_SALARIO' || b.tipoCalculo === 'DESCUENTO_CONSUMO'">{{ b.monto }}%</ng-container>
+                <ng-container *ngIf="b.tipoCalculo !== 'PORCENTAJE_SALARIO' && b.tipoCalculo !== 'DESCUENTO_CONSUMO'">{{ b.monto | number:'1.2-2' }}</ng-container>
+              </td>
+              <td>{{ b.enEspecie ? 'Servicios' : 'En dinero' }}</td>
+              <td>{{ etiquetaPago(b) }}</td>
+              <td class="estado" [ngClass]="b.activo ? 'ACTIVO' : 'RECHAZADA'">{{ b.activo ? 'Activo' : 'Inactivo' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">Aún no hay beneficios.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ form.idBeneficio ? 'Edición' : 'Alta' }}</p>
+          <h2>{{ form.idBeneficio ? 'Datos del beneficio' : 'Nuevo beneficio' }}</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Código</span>
+          <input [(ngModel)]="form.codigo" name="benCodigo" placeholder="Ej. GASOLINA" />
+        </label>
+        <label class="field">
+          <span>Nombre</span>
+          <input [(ngModel)]="form.nombre" name="benNombre" placeholder="Ej. Gasolina / combustible" />
+        </label>
+        <label class="field">
+          <span>Tipo de cálculo</span>
+          <select [(ngModel)]="form.tipoCalculo" name="benTipo" (ngModelChange)="onTipoCalculo()">
+            <option value="MONTO_FIJO">Monto fijo</option>
+            <option value="PORCENTAJE_SALARIO">Porcentaje del salario</option>
+            <option value="DESCUENTO_CONSUMO">% de descuento en consumo</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>{{ etiquetaMonto() }}</span>
+          <input type="number" min="0" step="0.01" [(ngModel)]="form.monto" name="benMonto" />
+        </label>
+        <label class="field" *ngIf="!esDescuentoConsumo()">
+          <span>Periodicidad</span>
+          <select [(ngModel)]="form.periodicidad" name="benPer">
+            <option value="MENSUAL">Mensual</option>
+            <option value="QUINCENAL">Quincenal</option>
+            <option value="SEMANAL">Semanal</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="!esDescuentoConsumo()">
+          <span>Modalidad</span>
+          <select [(ngModel)]="form.enEspecie" name="benEsp">
+            <option [ngValue]="false">En dinero</option>
+            <option [ngValue]="true">Servicios</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="!esDescuentoConsumo()">
+          <span>Cómo se paga</span>
+          <select [(ngModel)]="form.formaDesembolso" name="benPago">
+            <option value="NOMINA">Con la nómina (15 y 30)</option>
+            <option value="PAGO_APARTE">Fecha propia (aparte de la quincena)</option>
+            <option value="NINGUNO">No se paga (solo expediente)</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="esDescuentoConsumo()">
+          <span>Descontar en la quincena</span>
+          <select [(ngModel)]="form.descontarConsumoNomina" name="benDescNom">
+            <option [ngValue]="true">Sí: el consumo (ya con descuento) se descuenta del pago</option>
+            <option [ngValue]="false">No: solo aplica el % en caja</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="form.formaDesembolso === 'PAGO_APARTE'">
+          <span>Día del mes</span>
+          <select [(ngModel)]="form.diaPagoMes" name="benDia">
+            <option *ngFor="let d of diasMes" [ngValue]="d">Día {{ d }}</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="form.formaDesembolso === 'PAGO_APARTE'">
+          <span>Método</span>
+          <select [(ngModel)]="form.metodoPago" name="benMet">
+            <option value="TRANSFERENCIA">Transferencia</option>
+            <option value="EFECTIVO">Efectivo</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Estado</span>
+          <select [(ngModel)]="form.activo" name="benAct">
+            <option [ngValue]="true">Activo</option>
+            <option [ngValue]="false">Inactivo</option>
+          </select>
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Descripción</span>
+          <textarea [(ngModel)]="form.descripcion" name="benDesc" rows="2"></textarea>
+        </label>
+      </div>
+      <p class="muted" *ngIf="esDescuentoConsumo() && form.descontarConsumoNomina">
+        En el POS se aplica el {{ form.monto || 0 }}% al consumo del colaborador. Lo que quede (el 70% si el descuento es 30%) se descuenta en la quincena.
+      </p>
+      <p class="muted" *ngIf="esDescuentoConsumo() && !form.descontarConsumoNomina">
+        En el POS se aplica el {{ form.monto || 0 }}% al consumo. El colaborador paga el resto en caja.
+      </p>
+      <p class="muted" *ngIf="!esDescuentoConsumo() && form.formaDesembolso === 'NOMINA'">
+        Entra en la liquidación de nómina y se paga junto al sueldo.
+      </p>
+      <p class="muted" *ngIf="!esDescuentoConsumo() && form.formaDesembolso === 'PAGO_APARTE'">
+        No entra en la quincena. Se programa el día {{ form.diaPagoMes }} de cada mes por {{ form.metodoPago === 'EFECTIVO' ? 'efectivo' : 'transferencia' }}.
+      </p>
+      <p class="muted" *ngIf="!esDescuentoConsumo() && form.formaDesembolso === 'NINGUNO'">
+        Queda en el expediente del cargo. No sale dinero al empleado por este beneficio.
+      </p>
+    </section>
+  </div>
+</ion-content>

@@ -1,0 +1,108 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Asistencia</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Asistencia</h1>
+        <p class="sub">Horas, tardanzas y extras. Un permiso aprobado evita que el empleado salga ausente o tardío.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-yellow" (click)="calcular()" [disabled]="loading">
+          {{ loading ? 'Calculando…' : 'Calcular' }}
+        </button>
+        <button type="button" class="btn btn-ghost" (click)="cargar()">Consultar</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Filtro</p>
+          <h2>Rango y empleado</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Desde</span>
+          <input type="date" [(ngModel)]="desde" name="asisDesde" />
+        </label>
+        <label class="field">
+          <span>Hasta</span>
+          <input type="date" [(ngModel)]="hasta" name="asisHasta" />
+        </label>
+        <label class="field">
+          <span>Empleado</span>
+          <select [(ngModel)]="idEmpleados" name="asisEmp">
+            <option [ngValue]="0">Todos</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleados">{{ e.nombre }}</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="puedeCorregir && correcciones.length">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Auditoría</p>
+          <h2>Correcciones pendientes</h2>
+        </div>
+      </div>
+      <table class="rrhh-table">
+        <thead>
+          <tr><th>Empleado</th><th>Tipo</th><th>Motivo</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of correcciones">
+            <td>{{ c.idEmpleados }}</td>
+            <td>{{ c.tipoCorreccion }}</td>
+            <td>{{ c.motivo }}</td>
+            <td>
+              <button type="button" class="btn btn-primary" (click)="decidir(c.idCorreccion, true)">Aprobar</button>
+              <button type="button" class="btn btn-outline" (click)="decidir(c.idCorreccion, false)">Rechazar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Resultado</p>
+          <h2>Asistencia del período</h2>
+        </div>
+      </div>
+      <table class="rrhh-table" *ngIf="filas.length">
+        <thead>
+          <tr>
+            <th>Empleado</th><th>Fecha</th><th>Estado</th>
+            <th>Entrada</th><th>Salida</th>
+            <th>Tardanza</th><th>Salida ant.</th><th>Extras</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <td>{{ f.nombreEmpleado }}</td>
+            <td>{{ f.fecha | date:'yyyy-MM-dd' }}</td>
+            <td class="estado" [ngClass]="f.estado">{{ f.estado }}</td>
+            <td>{{ f.horaEntradaReal | date:'shortTime' }}</td>
+            <td>{{ f.horaSalidaReal | date:'shortTime' }}</td>
+            <td>{{ f.minutosTardanza }}</td>
+            <td>{{ f.minutosSalidaAnticipada }}</td>
+            <td>{{ f.minutosExtra }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty" *ngIf="!filas.length">Calcule o consulte un rango para ver asistencia.</p>
+    </section>
+  </div>
+</ion-content>

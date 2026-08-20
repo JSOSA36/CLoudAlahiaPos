@@ -1,0 +1,164 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Ponchador</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RRHH y Nómina</p>
+        <h1>Reloj de asistencia</h1>
+        <p class="sub">Cada reloj se conecta por IP y puerto. Alahia usa el conector de esa marca (SDK/protocolo) para leer marcas y, cuando toque, mandar usuarios o la hora. No hay que pagar nube del fabricante.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Conexión</p>
+          <h2>Cómo apuntar el reloj</h2>
+        </div>
+      </div>
+      <p class="muted">El reloj entra a la red del negocio por <strong>cable Ethernet</strong> o, en los modelos más nuevos, por <strong>WiFi</strong>. En los dos casos queda con una IP. En Alahia se registra esa IP y el puerto (ZKTeco casi siempre <strong>4370</strong>). Pulse Probar conexión.</p>
+      <p class="muted" style="margin-top: 0.4rem;">Cada marca de fabricante es un conector (SDK/protocolo). Si el ERP está en la nube y el reloj en la tienda, se usa un agente local (como la impresora) o el reloj empuja las marcas. No se paga suscripción a ZKTeco.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Equipos</p>
+          <h2>Relojes de la empresa</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="reloj.nombre" name="relNombre" placeholder="Cocina, Puerta, etc." />
+        </label>
+        <label class="field">
+          <span>IP en la red</span>
+          <input type="text" [(ngModel)]="reloj.direccionIp" name="relIp" placeholder="192.168.1.50" />
+        </label>
+        <label class="field">
+          <span>Puerto</span>
+          <input type="number" [(ngModel)]="reloj.puerto" name="relPuerto" placeholder="4370" />
+        </label>
+        <label class="field">
+          <span>Serial (opcional)</span>
+          <input type="text" [(ngModel)]="reloj.serial" name="relSerial" placeholder="Si el reloj lo muestra" />
+        </label>
+        <label class="field">
+          <span>Proveedor / conector</span>
+          <select [(ngModel)]="reloj.proveedor" name="relProv" (ngModelChange)="onProveedor()">
+            <option value="ZKTECO">ZKTeco (puerto 4370 / SDK)</option>
+            <option value="HIKVISION">Hikvision (ISAPI)</option>
+            <option value="GENERICO">Otro SDK (JSON)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Clave de comunicación (si la tiene)</span>
+          <input type="text" [(ngModel)]="reloj.claveComunicacion" name="relClave" placeholder="Comm key, suele ser 0" />
+        </label>
+      </div>
+      <div class="hero-actions" style="margin-top: 0.8rem;">
+        <button type="button" class="btn btn-outline" (click)="probarConexion()" [disabled]="guardando">Probar conexión</button>
+        <button type="button" class="btn btn-yellow" (click)="guardarReloj()" [disabled]="guardando">Guardar reloj</button>
+      </div>
+      <p class="muted" *ngIf="pruebaMsg" style="margin-top: 0.6rem;">{{ pruebaMsg }}</p>
+      <div class="table-wrap" style="margin-top: 1rem;">
+        <table class="rrhh-table">
+          <thead>
+            <tr><th>Nombre</th><th>IP:puerto</th><th>Conector</th><th>Última comunicación</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of dispositivos">
+              <td>{{ d.nombre }}</td>
+              <td>{{ d.direccionIp ? (d.direccionIp + ':' + (d.puerto || '—')) : (d.serial || '—') }}</td>
+              <td>{{ d.proveedor }}</td>
+              <td>{{ d.ultimaComunicacion ? (d.ultimaComunicacion | date:'short') : 'Aún no habla' }}</td>
+              <td>
+                <button type="button" class="btn btn-outline" (click)="probarGuardado(d)">Probar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty" *ngIf="!dispositivos.length">Registre el reloj por IP y puerto. Ejemplo ZKTeco: 192.168.1.50 puerto 4370.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Personas</p>
+          <h2>Código del reloj → colaborador</h2>
+        </div>
+      </div>
+      <p class="muted">El PIN o ID que usa el colaborador en el reloj debe coincidir con este código.</p>
+      <div class="grid">
+        <label class="field">
+          <span>Colaborador</span>
+          <select [(ngModel)]="mapa.idEmpleados" name="mapEmp">
+            <option [ngValue]="0">Seleccione</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleados">{{ e.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Código / PIN en el reloj</span>
+          <input type="text" [(ngModel)]="mapa.codigoDispositivo" name="mapCod" placeholder="Ej. 1001" />
+        </label>
+      </div>
+      <div class="hero-actions" style="margin-top: 0.8rem;">
+        <button type="button" class="btn btn-primary" (click)="guardarMapa()" [disabled]="guardando">Vincular</button>
+      </div>
+      <div class="table-wrap" style="margin-top: 1rem;">
+        <table class="rrhh-table">
+          <thead>
+            <tr><th>Colaborador</th><th>Código en reloj</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of personas">
+              <td>{{ p.nombreEmpleado }}</td>
+              <td>{{ p.codigoDispositivo }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty" *ngIf="!personas.length">Vincule cada colaborador con el ID que tiene en el reloj.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Hoy</p>
+          <h2>Marcas recibidas</h2>
+        </div>
+        <button type="button" class="btn btn-outline" (click)="cargar()">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table">
+          <thead>
+            <tr><th>Hora</th><th>Código</th><th>Colaborador</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let i of ingestas">
+              <td>{{ (i.fechaHoraReloj || i.fecha) | date:'short' }}</td>
+              <td>{{ i.codigoDispositivo || i.serial }}</td>
+              <td>{{ i.nombreEmpleado || '—' }}</td>
+              <td>
+                <span class="estado" [class.ACTIVO]="i.estado === 'OK'" [class.AUSENTE]="i.estado === 'SIN_MAPA' || i.estado === 'SERIAL_DESCONOCIDO'">
+                  {{ etiquetaEstado(i.estado) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty" *ngIf="!ingestas.length">Cuando alguien marque en el reloj, la marca aparece aquí y entra a asistencia.</p>
+      </div>
+    </section>
+  </div>
+</ion-content>

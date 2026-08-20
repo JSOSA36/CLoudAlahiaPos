@@ -12,6 +12,7 @@ import {
   SuscripcionLineaFactura
 } from '../servicios/empresa-cargos-recurrentes.service';
 import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
+import { mensajeMontoInsuficiente } from './monto-insuficiente.util';
 
 @Component({
   selector: 'app-pago-suscripcion',
@@ -130,7 +131,7 @@ export class PagoSuscripcionComponent implements OnInit {
     }
 
     this.enviando = true;
-    const loading = await this.loadingCtrl.create({ message: 'Enviando voucher…' });
+    const loading = await this.loadingCtrl.create({ message: 'Leyendo monto del voucher…' });
     await loading.present();
 
     const dto: CrearPagoDto = {
@@ -159,10 +160,38 @@ export class PagoSuscripcionComponent implements OnInit {
       error: async (err) => {
         this.enviando = false;
         await loading.dismiss();
-        const msg = err?.error?.message || err?.error || 'No se pudo enviar el voucher';
-        await this.toast(typeof msg === 'string' ? msg : 'No se pudo enviar el voucher', 'danger');
+        await this.mostrarErrorVoucher(err);
       }
     });
+  }
+
+  private async mostrarErrorVoucher(err: any) {
+    const body = err?.error;
+    const codigo = body?.codigo || '';
+    const msg =
+      body?.message
+      || (typeof body === 'string' ? body : null)
+      || 'No se pudo enviar el voucher';
+
+    if (codigo === 'MONTO_INSUFICIENTE') {
+      const alert = await this.alertCtrl.create({
+        header: 'Monto insuficiente',
+        message: mensajeMontoInsuficiente(body),
+        backdropDismiss: false,
+        cssClass: 'alert-monto-insuficiente',
+        buttons: ['Entendido']
+      });
+      await alert.present();
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'No se pudo enviar',
+      message: typeof msg === 'string' ? msg : 'No se pudo enviar el voucher',
+      cssClass: 'alert-monto-insuficiente',
+      buttons: ['Entendido']
+    });
+    await alert.present();
   }
 
   estadoClass(estado: string): string {

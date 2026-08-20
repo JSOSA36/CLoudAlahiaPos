@@ -35,7 +35,8 @@ export class UsuariosService {
   // ACTUALIZAR USUARIO
   // ============================
   updateUsuario(dto: UsuarioDto): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${dto.idusuario}`, dto);
+    const id = (dto as any).idusuario ?? (dto as any).idUsuario;
+    return this.http.put(`${this.baseUrl}/${id}`, dto);
   }
 
   // ============================

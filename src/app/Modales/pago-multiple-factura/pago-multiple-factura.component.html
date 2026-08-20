@@ -22,7 +22,7 @@
     <ion-list class="lineas-list" lines="full">
       <ion-item *ngFor="let l of lineas">
         <ion-label>
-          <h2>Factura #{{ l.factura.idFacturaHeader }}</h2>
+          <h2>{{ l.factura.numeroDocumento || ('FACT-' + l.factura.idFacturaHeader) }}</h2>
           <p>
             Pendiente {{ l.factura.pendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}
             <span *ngIf="l.factura.fechaBencimiento">

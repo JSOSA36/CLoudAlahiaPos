@@ -257,6 +257,10 @@ export interface CotizacionPublicaVista {
   logoEmpresa?: string;
   rncEmpresa?: string;
   clienteNombre: string;
+  clienteTelefono?: string;
+  clienteRnc?: string;
+  clienteDireccion?: string;
+  clienteCorreo?: string;
   subTotal: number;
   totalItbis: number;
   totalDescuento: number;

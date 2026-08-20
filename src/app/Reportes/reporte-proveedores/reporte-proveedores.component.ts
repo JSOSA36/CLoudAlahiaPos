@@ -3,6 +3,7 @@ import { ToastController } from '@ionic/angular';
 import { Proveedor } from 'src/app/models/proveedores';
 import { ProveedoresService } from 'src/app/servicios/proveedores.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { emitirReporteTabla } from 'src/app/shared/pdf/reporte-tabla-pdf';
 
 @Component({
   selector: 'app-reporte-proveedores',
@@ -61,5 +62,40 @@ export class ReporteProveedoresComponent implements OnInit {
       activos: this.filtrados.filter(p => p.isActivo).length,
       inactivos: this.filtrados.filter(p => !p.isActivo).length
     };
+  }
+
+  exportarPdf(): void {
+    if (!this.filtrados.length) {
+      return;
+    }
+    emitirReporteTabla({
+      titulo: 'Reporte de proveedores',
+      empresa: this.parametro.NombreEmpresa,
+      landscape: true,
+      kpis: [
+        { label: 'Total', value: String(this.resumen.total) },
+        { label: 'Activos', value: String(this.resumen.activos) },
+        { label: 'Inactivos', value: String(this.resumen.inactivos) }
+      ],
+      secciones: [{
+        columnas: [
+          { header: 'Nombre', width: '*' },
+          { header: 'RNC', width: 80 },
+          { header: 'Teléfono', width: 75 },
+          { header: 'Email', width: 110 },
+          { header: 'Dirección', width: 120 },
+          { header: 'Estado', width: 55 }
+        ],
+        filas: this.filtrados.map(p => [
+          p.nombreComercial,
+          p.rnc || '—',
+          p.telefono || '—',
+          p.email || '—',
+          p.direccion || '—',
+          p.isActivo ? 'Activo' : 'Inactivo'
+        ])
+      }],
+      nombreArchivo: 'Reporte_proveedores.pdf'
+    });
   }
 }

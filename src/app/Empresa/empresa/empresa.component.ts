@@ -6,6 +6,7 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { ToastController, LoadingController, ModalController } from '@ionic/angular';
 import { ColorThemeService } from 'src/app/servicios/color-theme.service';
 import { CredencialesModalComponent } from 'src/app/crear-usuario/credencialesmodalcomponent';
+import { etiquetaNivelSoporte, NivelSoporte, normalizarNivelSoporte } from 'src/app/shared/nivel-soporte';
 
 @Component({
   selector: 'app-empresa',
@@ -18,6 +19,7 @@ export class EmpresaComponent implements OnInit {
   form!: FormGroup;
   empresa!: EmpresaDto;
   selectedFile!: File | null;
+  mostrarSoporte = false;
 
   latitud: number | null = null;
   longitud: number | null = null;
@@ -31,6 +33,18 @@ export class EmpresaComponent implements OnInit {
     private colorTheme: ColorThemeService,
     private modalCtrl: ModalController
   ) {}
+
+  get nivelSoporteEmpresa(): NivelSoporte {
+    return normalizarNivelSoporte(this.empresa?.nivelSoporte);
+  }
+
+  get etiquetaSoporteEmpresa(): string {
+    return etiquetaNivelSoporte(this.empresa?.nivelSoporte);
+  }
+
+  abrirSoporte(): void {
+    this.mostrarSoporte = true;
+  }
 
   async ngOnInit() {
     this.form = this.fb.group({

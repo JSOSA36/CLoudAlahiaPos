@@ -6,17 +6,21 @@ import { AlertController, Platform, ToastController } from '@ionic/angular';
 import { ParametrosService } from './servicios/parametros.service';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AuthService } from 'src/app/servicios/auth.service';
+import { PerfilRolesService } from './perfil-roles.service';
 import { filter } from 'rxjs/operators';
 import { CitasService } from './servicios/citas.service';
 import { PosComponent } from './Pos/pos/pos.component';
 import { PoliticasGateService } from './servicios/politicas-gate.service';
 import { NotificacionesService } from './servicios/notificaciones.service';
+import { EmpresaService } from './servicios/empresa.services';
+import { etiquetaNivelSoporte, iconoNivelSoporte } from './shared/nivel-soporte';
 import {
   MENU_GRUPOS,
   MENU_GRUPO_OTROS,
   MODULOS_EXCLUIDOS_MENU,
   CONTABILIDAD_MODULO_PADRE,
   CONTABILIDAD_SUBMODULOS_TITULOS,
+  CONTABILIDAD_REPORTES_FISCALES,
   MODULO_TITULOS_MENU,
   esModuloPermisoSinMenu
 } from './config/menu-grupos.config';
@@ -73,10 +77,20 @@ export const MODULO_RUTAS: Record<string, string> = {
   NCF_SECUENCIAS: '/ncfsecuencias',
   EMPRESA: '/empresa',
   PARAMETROS: '/ParametrosConfig',
+  IMPRESION_TERMICA: '/impresion-termica',
   EMPLEADOS: '/empleados',
+  RRHH_DEPARTAMENTOS: '/rrhh-departamentos',
+  RRHH_CARGOS: '/rrhh-cargos',
+  RRHH_BENEFICIOS: '/rrhh-beneficios',
+  RRHH_LABORAL: '/rrhh-laboral',
+  RRHH_PONCHADOR: '/rrhh-ponchador',
+  RRHH_ASISTENCIA: '/rrhh-asistencia',
+  RRHH_PERMISOS: '/rrhh-permisos',
+  RRHH_NOMINA: '/rrhh-nomina',
   USUARIOS: '/usuarios',
   PERFILES: '/perfiles',
   DOCUMENTOS_CLINICOS: '/documentosclinicos',
+  FICHA_CLINICA: '/ficha-clinica',
   HISTORIAL_SERVICIOS: '/historialservicios',
   CONTABILIDAD: '/contabilidad',
   CONTABILIDAD_CUENTAS: '/contabilidadcuentas',
@@ -170,11 +184,12 @@ export const MODULO_ICONOS: Record<string, string> = {
   DESCUENTOS: 'tags',
 
   EMPRESA: 'building',
-
+  IMPRESION_TERMICA: 'print',
   EMPLEADOS: 'user-tie',
   USUARIOS: 'user',
   PERFILES: 'user-shield',
   DOCUMENTOS_CLINICOS: 'file-medical',
+  FICHA_CLINICA: 'tooth',
   HISTORIAL_SERVICIOS: 'clipboard-list',
   CONTABILIDAD: 'calculator',
   CONTABILIDAD_CUENTAS: 'sitemap',
@@ -253,28 +268,32 @@ export class AppComponent implements OnInit, OnDestroy {
   private activeAlert: HTMLIonAlertElement | null = null;
 
   private readonly WARNING_BEFORE_EXPIRY = 5 * 60_000; // 5 minutos
-getPlanColor(plan: string): string {
-  switch (plan?.toLowerCase()) {
-    case 'básico':
-    case 'basico':
-      return 'primary'; // azul
 
-    case 'standard':
-      return 'success'; // verde
+  mostrarSoporte = false;
 
-    case 'gold':
-      return 'warning'; // amarillo
-
-    case 'platinum':
-      return 'medium'; // gris
-
-    case 'elite':
-      return 'dark'; // negro
-
-    default:
-      return 'warning'; // demo fallback
+  get etiquetaSoporte(): string {
+    return etiquetaNivelSoporte(this._Parametro.nivelSoporte);
   }
-}
+
+  get iconoSoporte(): string {
+    return iconoNivelSoporte(this._Parametro.nivelSoporte);
+  }
+
+  abrirSoporte(ev?: Event): void {
+    ev?.stopPropagation();
+    this.mostrarSoporte = true;
+  }
+
+  private cargarNivelSoporte(): void {
+    const id = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    if (!id) return;
+    this.empresaSrv.getEmpresa(id).subscribe({
+      next: (e) => {
+        if (e?.nivelSoporte) this._Parametro.setNivelSoporte(e.nivelSoporte);
+      },
+      error: () => { /* el menú sigue con STANDARD / valor en sesión */ }
+    });
+  }
   constructor(
     private router: Router,
     public _Parametro: ParametrosService,
@@ -285,7 +304,9 @@ getPlanColor(plan: string): string {
     private citasService: CitasService,
     private authService: AuthService,
     private politicasGate: PoliticasGateService,
-    private notificaciones: NotificacionesService
+    private notificaciones: NotificacionesService,
+    private perfilRoles: PerfilRolesService,
+    private empresaSrv: EmpresaService
   ) {}
 
   // ===============================
@@ -366,8 +387,10 @@ setInterval(async () => {
   // lo demás que ya tienes
 
 
-    // 🔥 menú (igual que antes)
+    this._Parametro.ensureSessionFromStorage();
     this.cargarMenu();
+    this.cargarNivelSoporte();
+    void this.refrescarModulosDesdePerfil();
 
     this._Parametro.menuRefreshObservable$
       .pipe(takeUntil(this.destroy$))
@@ -377,6 +400,8 @@ setInterval(async () => {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.cargarMenu();
+        this.cargarNivelSoporte();
+        void this.refrescarModulosDesdePerfil();
         this.startIdleWatcher();
         this.iniciarCentroNotificaciones();
       });
@@ -552,6 +577,33 @@ private startIdleWatcher() {
   // ===============================
   // 📋 MENÚ AGRUPADO POR ÁREA FUNCIONAL
   // ===============================
+  private refrescarModulosDesdePerfil(): void {
+    this._Parametro.ensureSessionFromStorage();
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    const idPerfil = this._Parametro.IdPerfil;
+    if (!idEmpresa || !idPerfil) return;
+
+    this.perfilRoles.getModulos(idPerfil, idEmpresa).subscribe({
+      next: (raw) => {
+        const modulos = (Array.isArray(raw) ? raw : []).map((m: any) => {
+          let codigo = String(m?.codigo ?? m?.Codigo ?? '').trim().toUpperCase();
+          if (codigo === 'KDS') codigo = 'CENTRO_PRODUCCION';
+          return {
+            moduloId: m?.id ?? m?.Id ?? m?.moduloId ?? m?.ModuloId ?? null,
+            codigo,
+            nombre: m?.nombre ?? m?.Nombre ?? ''
+          };
+        }).filter((m: any) => !!m.codigo);
+
+        localStorage.setItem('menu_modulos', JSON.stringify(modulos));
+        this.cargarMenu();
+      },
+      error: () => {
+        this.cargarMenu();
+      }
+    });
+  }
+
   private cargarMenu(): void {
     let modulos: any[] = [];
 
@@ -641,10 +693,19 @@ private startIdleWatcher() {
         const incluirPorHub =
           !modulo &&
           tieneContabilidadHub &&
-          grupoConfig.id === 'contabilidad' &&
-          !!MODULO_RUTAS[codigo];
+          !!MODULO_RUTAS[codigo] &&
+          (grupoConfig.id === 'contabilidad' ||
+            (grupoConfig.id === 'reportes' && CONTABILIDAD_REPORTES_FISCALES.includes(codigo)));
 
         if (!modulo && !incluirPorHub) return;
+
+        if (
+          incluirPorHub &&
+          (codigo === 'IT1' || codigo === 'DGII_FISCAL') &&
+          !this._Parametro.puedeMostrarMenuFiscal(codigo, true)
+        ) {
+          return;
+        }
 
         items.push({
           codigo,

@@ -1,545 +1,390 @@
-/* =========================
-FONDO GENERAL DEL MODAL
-========================= */
+/* =========================================================
+   Modal cobro � paleta logo Alahia
+   Azul #1454B8 / #0B419B � Amarillo #FBB901 � fondo claro
+========================================================= */
 
-.factura-scroll {
-
-  flex: 1;
-  overflow-y: auto;
-
-  padding: 15px;
-
-  background: linear-gradient(
-    180deg,
-    #1e2430 0%,
-    #2c3444 100%
-  );
-
+:host {
+  --mp-blue: #1454B8;
+  --mp-blue-dark: #0B419B;
+  --mp-blue-mid: #3B7AD0;
+  --mp-blue-soft: #eef4fc;
+  --mp-yellow: #FBB901;
+  --mp-yellow-soft: #fff8e1;
+  --mp-yellow-deep: #F8B100;
+  --mp-bg: #f3f6fb;
+  --mp-card: #ffffff;
+  --mp-text: #0f172a;
+  --mp-muted: #64748b;
+  --mp-border: #d7e3f4;
+  --mp-ok: #15803d;
+  --mp-danger: #c62828;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--mp-bg);
 }
 
+/* ---------- Header ---------- */
+.mp-header {
+  flex-shrink: 0;
+  padding: 16px 18px 14px;
+  background: linear-gradient(135deg, var(--mp-blue) 0%, var(--mp-blue-dark) 100%);
+  color: #fff;
+  border-bottom: 3px solid var(--mp-yellow);
+  box-shadow: 0 8px 22px rgba(20, 84, 184, 0.28);
+}
 
-/* =========================
-CARD CENTRAL
-========================= */
+.mp-header ion-card-title,
+.mp-header .mp-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: #fff;
+}
 
+.mp-header .mp-subtitle {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 500;
+}
+
+/* ---------- Layout ---------- */
 .factura-card {
-
   background: transparent;
   height: 100%;
   display: flex;
   flex-direction: column;
-
+  margin: 0;
+  box-shadow: none;
 }
 
+.factura-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 8px;
+  background: var(--mp-bg);
+}
 
-/* =========================
-ITEMS CONFIGURACIÓN
-========================= */
+.factura-scroll ion-card-content {
+  padding: 0;
+}
 
+/* ---------- Items ---------- */
 .factura-scroll ion-item {
-
-  --background: #fff4c4;
-
-  border: 2px solid #e0a800;
-  border-radius: 10px;
-
+  --background: var(--mp-card);
+  --color: var(--mp-text);
+  --border-color: transparent;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  --min-height: 48px;
+  border: 1px solid var(--mp-border);
+  border-radius: 12px;
   margin-bottom: 10px;
-
-  box-shadow:
-0 10px 25px rgba(0,0,0,0.4);
-
+  box-shadow: 0 4px 14px rgba(20, 84, 184, 0.06);
 }
 
+.factura-scroll ion-item ion-label {
+  color: var(--mp-muted) !important;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
 
-/* =========================
-SELECTS
-========================= */
+.factura-scroll ion-select,
+.factura-scroll ion-input {
+  color: var(--mp-text);
+  font-weight: 600;
+}
 
 ion-select {
-
-  font-weight: 500;
-
+  font-weight: 600;
 }
 
+ion-checkbox {
+  --checkbox-background-checked: var(--mp-blue);
+  --border-color-checked: var(--mp-blue);
+  --checkmark-color: #fff;
+}
 
-/* =========================
-CLIENTE SELECTOR
-========================= */
+ion-segment {
+  background: var(--mp-blue-soft);
+  border-radius: 10px;
+  padding: 3px;
+}
 
+ion-segment-button {
+  --color: var(--mp-muted);
+  --color-checked: var(--mp-blue-dark);
+  --indicator-color: var(--mp-yellow);
+  --background-checked: #fff;
+  font-weight: 700;
+  text-transform: none;
+  min-height: 36px;
+}
+
+/* ---------- Contado / Cr�dito compacto ---------- */
+.cobro-tipo {
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--mp-border);
+}
+
+/* ---------- Cobro destacado ---------- */
+.cobro-hero {
+  margin: 0 0 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #fff8e1 0%, #fffdf5 42%, #eef4fc 100%);
+  border: 2px solid #FBB901;
+  box-shadow: 0 10px 28px rgba(251, 185, 1, 0.28), 0 4px 14px rgba(20, 84, 184, 0.1);
+}
+
+.cobro-hero-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cobro-hero-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0B419B;
+}
+
+.cobro-segment {
+  background: rgba(20, 84, 184, 0.1) !important;
+}
+
+.cobro-check {
+  --background: #fff !important;
+  border: 1px solid rgba(20, 84, 184, 0.18) !important;
+  box-shadow: none !important;
+  margin-bottom: 10px !important;
+}
+
+.cobro-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cobro-field {
+  --background: #fff !important;
+  --min-height: 64px;
+  border: 2px solid #1454B8 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 6px 16px rgba(20, 84, 184, 0.12) !important;
+  margin-bottom: 0 !important;
+}
+
+.cobro-field ion-label {
+  color: #0B419B !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cobro-field ion-select,
+.cobro-field ion-input {
+  color: #0f172a !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+}
+
+.cobro-field-monto {
+  border-color: #F8B100 !important;
+  background: linear-gradient(180deg, #fffdf0 0%, #fff 100%) !important;
+  --background: linear-gradient(180deg, #fffdf0 0%, #fff 100%) !important;
+  box-shadow: 0 8px 20px rgba(251, 185, 1, 0.25) !important;
+}
+
+.cobro-field-monto ion-label {
+  color: #92400e !important;
+}
+
+.cobro-field-monto ion-input {
+  color: #0B419B !important;
+  font-size: 1.35rem !important;
+}
+
+/* ---------- Facturacion ---------- */
+.facturacion-box {
+  margin: 0 0 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--mp-card);
+  border: 1px solid var(--mp-border);
+  box-shadow: 0 6px 18px rgba(20, 84, 184, 0.07);
+  border-top: 3px solid var(--mp-yellow);
+}
+
+.consumo-colaborador-box {
+  border-top-color: var(--mp-blue);
+  background: linear-gradient(180deg, #eef4fc 0%, #fff 70%);
+}
+
+.consumo-colaborador-box .facturacion-title {
+  font-size: 0.82rem;
+}
+
+.facturacion-title {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mp-blue);
+}
+
+.facturacion-segment {
+  margin-bottom: 10px;
+}
+
+.facturacion-item {
+  --background: var(--mp-blue-soft) !important;
+  border: 1px solid rgba(20, 84, 184, 0.14) !important;
+  box-shadow: none !important;
+  margin-bottom: 8px !important;
+}
+
+.facturacion-plazo,
+.facturacion-rnc {
+  margin-top: 4px;
+}
+
+.facturacion-rnc-btn {
+  margin: 8px 0 10px;
+  height: 44px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  --border-radius: 12px;
+  --background: linear-gradient(135deg, #1454B8 0%, #0B419B 100%);
+  --background-activated: #0B419B;
+  --background-focused: #0B419B;
+  --color: #fff;
+  --box-shadow: 0 6px 16px rgba(20, 84, 184, 0.28);
+  opacity: 1;
+}
+
+.facturacion-rnc-btn[disabled] {
+  opacity: 0.55;
+}
+
+.facturacion-hint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--mp-muted);
+}
+
+.facturacion-hint.error {
+  color: var(--mp-danger);
+}
+
+.facturacion-hint.ok {
+  color: #16a34a;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+/* ---------- NC ---------- */
+.nc-pago-box {
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(251, 185, 1, 0.55);
+  box-shadow: 0 6px 16px rgba(251, 185, 1, 0.12);
+}
+
+.nc-buscar-btn {
+  margin: 8px 0 6px;
+  height: 44px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  --border-radius: 12px;
+  --background: linear-gradient(135deg, #FBB901 0%, #F8B100 100%);
+  --background-activated: #F8B100;
+  --background-focused: #F8B100;
+  --color: #0f172a;
+  --box-shadow: 0 6px 16px rgba(251, 185, 1, 0.35);
+  opacity: 1;
+}
+
+.nc-buscar-btn[disabled] {
+  opacity: 0.55;
+}
+
+.nc-hint {
+  margin: 4px 0 8px;
+  font-size: 0.82rem;
+  color: var(--mp-muted);
+}
+
+.nc-hint.error {
+  color: var(--mp-danger);
+}
+
+.nc-saldo-info {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--mp-border);
+  font-size: 0.85rem;
+  color: var(--mp-text);
+}
+
+.nc-restante {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--mp-blue-dark);
+}
+
+.hint-abono {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--mp-yellow-soft);
+  color: #92400e;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.hint-cambio {
+  margin: 6px 0 0;
+  color: var(--mp-ok);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* ---------- Cliente / RNC legacy ---------- */
 .cliente-selector {
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  background: #1f2633;
-
-  border: 2px dashed #4a90ff;
-
-  padding: 14px;
-
+  background: var(--mp-blue-soft);
+  border: 1px dashed var(--mp-blue-mid);
+  padding: 12px;
   border-radius: 12px;
-
-  color: white;
-
+  color: var(--mp-text);
+  margin-top: 10px;
 }
 
 .cliente-selector ion-icon {
-
-  color: #4a90ff;
-
-}
-
-
-/* =========================
-RESTANTE CRÉDITO
-========================= */
-
-.restante-box {
-
-  background: #111;
-
-  border-radius: 10px;
-
-  padding: 10px;
-
-  margin-top: 15px;
-
-}
-
-.restante-label {
-
-  color: #aaa;
-
-  font-size: 12px;
-
-}
-
-.restante-monto {
-
-  color: #ff3b30;
-
-  font-size: 26px;
-
-  font-weight: bold;
-
-}
-
-
-/* =========================
-FOOTER
-========================= */
-
-.factura-footer {
-
-  padding: 12px;
-
-  background: #0f1218;
-
-  border-top: 1px solid #2a3242;
-
-}
-
-
-/* =========================
-TOTAL FOOTER
-========================= */
-
-.total-footer {
-
-  background: linear-gradient(
-    180deg,
-    #000000,
-    #1a1a1a
-  );
-
-  border-radius: 12px;
-
-  padding: 12px;
-
-  margin-bottom: 10px;
-
-  text-align: center;
-
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-
-}
-
-.total-label {
-
-  color: #999;
-
-  font-size: 12px;
-
-}
-
-.total-value {
-
-  color: #ff3b30;
-
-  font-size: 34px;
-
-  font-weight: bold;
-
-}
-
-
-/* =========================
-BOTONES
-========================= */
-
-.factura-footer ion-button[color="success"] {
-
-  --background: #22c55e;
-  --border-radius: 8px;
-
-}
-
-.factura-footer ion-button[color="medium"] {
-
-  --border-radius: 8px;
-
-}
-
-
-/* =========================
-ICONOS BANCO
-========================= */
-
-.icono-banco {
-
-  width: 26px;
-  height: 26px;
-
-}
-.grupo-opciones{
-margin-bottom:20px;
-text-align:center;
-}
-
-.titulo-opcion{
-font-weight:600;
-margin-bottom:8px;
-color:#ddd;
-}
-
-.opciones-grid{
-
-display:grid;
-
-grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
-
-
-
-justify-items:center;
-
-max-width:500px;
-
-margin:auto;
-
-}
-
-.opcion{
-
-width:160px;
-
-height:45px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-background:#fff4c4;
-
-border:2px solid #e0a800;
-
-border-radius:10px;
-
-font-weight:600;
-
-cursor:pointer;
-
-transition:.2s;
-
-}
-
-.opcion:hover{
-
-transform:scale(1.05);
-
-}
-
-.opcion.activa{
-
-background:#22c55e;
-
-border-color:#22c55e;
-
-color:white;
-
-}
-.cambio-box{
-
-background:#1a1a1a;
-
-border-radius:10px;
-
-padding:8px;
-
-margin-top:8px;
-
-text-align:center;
-
-}
-
-.cambio-label{
-
-font-size:12px;
-
-color:#aaa;
-
-}
-
-.cambio-value{
-
-font-size:26px;
-
-font-weight:bold;
-
-color:#22c55e;
-
-}
-.cash-buttons{
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:8px;
-
-margin-top:10px;
-
-}
-
-.cash-btn{
-
-height:45px;
-
-border-radius:8px;
-
-border:2px solid #d4a300;
-
-background:#f7e6a0;
-
-font-weight:600;
-
-font-size:15px;
-
-cursor:pointer;
-
-transition:.15s;
-
-}
-
-.cash-btn:hover{
-
-transform:scale(1.05);
-
-}
-
-.cash-btn.exacto{
-
-background:#22c55e;
-
-border:none;
-
-color:white;
-
-}
-.efectivo-panel{
-
-display:grid;
-
-grid-template-columns:1fr 160px;
-
-gap:10px;
-
-margin-top:10px;
-
-}
-
-.cash-buttons{
-
-display:flex;
-
-flex-direction:column;
-
-gap:6px;
-
-}
-
-.cash-buttons button{
-
-height:40px;
-
-border-radius:8px;
-
-border:2px solid #d4a300;
-
-background:#f4e4a0;
-
-font-weight:600;
-
-cursor:pointer;
-
-transition:.15s;
-
-}
-
-.cash-buttons button:hover{
-
-transform:scale(1.04);
-
-}
-
-.cash-buttons .exacto{
-
-background:#22c55e;
-
-border:none;
-
-color:white;
-
-}
-.panel-efectivo{
-
-position:fixed;
-
-right:20px;
-top:120px;
-
-display:flex;
-flex-direction:column;
-
-
-
-z-index:999;
-
-}
-
-.panel-efectivo button{
-
-width:90px;
-height:42px;
-
-border-radius:8px;
-
-border:2px solid #d4a300;
-
-background:#f4e4a0;
-
-font-weight:600;
-
-cursor:pointer;
-
-transition:.15s;
-
-}
-
-.panel-efectivo button:hover{
-
-transform:scale(1.05);
-
-}
-
-.panel-efectivo .exacto{
-
-background:#22c55e;
-border:none;
-color:white;
-
-}
-.modal-efectivo{
-
---width:420px;
---height:auto;
---border-radius:14px;
-
-}
-
-.modal-efectivo-content{
-
-padding:20px;
-text-align:center;
-
-}
-
-.modal-efectivo-content h2{
-
-margin-bottom:15px;
-font-size:20px;
-font-weight:600;
-
-}
-
-.efectivo-grid{
-
-display:grid;
-
-grid-template-columns:repeat(2,1fr);
-
-gap:12px;
-
-margin-bottom:15px;
-
-}
-
-.efectivo-grid button{
-
-height:65px;
-
-font-size:20px;
-
-font-weight:700;
-
-border-radius:12px;
-
-border:2px solid #d4a300;
-
-background:#f4e4a0;
-
-}
-
-.efectivo-grid button:hover{
-
-transform:scale(1.05);
-
-}
-
-.efectivo-grid .exacto{
-
-grid-column:1/3;
-
-background:#22c55e;
-
-color:white;
-
-border:none;
-
-}
-.print-check-box{
-  margin-top: 10px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 2px solid #e5e7eb;
-}
-.cliente-selector {
-  border: 2px dashed #4c8dff;
-  border-radius: 14px;
-  padding: 12px;
-  margin-top: 10px;
+  color: var(--mp-blue);
 }
 
 .cliente-texto {
@@ -563,13 +408,14 @@ border:none;
 }
 
 .btn-buscar-rnc {
-  --background: #f4b400;
-  --background-hover: #e0a800;
-  --background-activated: #d89b00;
-  --color: #1b1b1b;
+  --background: var(--mp-yellow);
+  --background-hover: var(--mp-yellow-deep);
+  --background-activated: var(--mp-yellow-deep);
+  --color: var(--mp-text);
   --border-radius: 10px;
   min-width: 46px;
   height: 42px;
+  font-weight: 700;
 }
 
 .rnc-result {
@@ -577,7 +423,7 @@ border:none;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: rgba(255,255,255,0.06);
+  background: var(--mp-blue-soft);
   border-radius: 12px;
   padding: 10px 12px;
 }
@@ -591,61 +437,324 @@ border:none;
 
 .cliente-info strong {
   font-size: 16px;
-  color: #fff;
+  color: var(--mp-text);
 }
 
 .cliente-info small {
   font-size: 13px;
-  color: #d7d7d7;
+  color: var(--mp-muted);
 }
 
 .btn-limpiar-rnc {
   margin: 0;
 }
-.cambio-box{
-  margin: 10px 0;
 
-  padding: 12px;
-
+/* ---------- Restante / totales ---------- */
+.restante-box {
+  background: var(--mp-blue-soft);
   border-radius: 10px;
-
-  background: linear-gradient(180deg, #111, #000);
-
-  text-align: center;
-
-  box-shadow: 0 4px 10px rgba(0,0,0,.4);
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px solid var(--mp-border);
 }
 
-/* LABEL */
-.cambio-label{
+.restante-label {
+  color: var(--mp-muted);
   font-size: 12px;
-  color: #aaa;
-  letter-spacing: 1px;
+  font-weight: 600;
 }
 
-/* VALOR */
-.cambio-valor{
-  font-size: 28px;
-  font-weight: bold;
-  color: #22c55e; /* verde dinero */
-
-  margin-top: 4px;
+.restante-monto {
+  color: var(--mp-blue-dark);
+  font-size: 24px;
+  font-weight: 800;
 }
+
+/* ---------- Footer ---------- */
+.factura-footer,
+ion-footer {
+  flex-shrink: 0;
+  padding: 12px 14px 16px;
+  background: var(--mp-card);
+  border-top: 1px solid var(--mp-border);
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.total-footer {
+  background: linear-gradient(135deg, var(--mp-blue) 0%, var(--mp-blue-dark) 100%);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  text-align: center;
+  border: 1px solid rgba(251, 185, 1, 0.45);
+  box-shadow: 0 10px 24px rgba(20, 84, 184, 0.22);
+}
+
+.total-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.total-value {
+  color: var(--mp-yellow);
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+.cambio-box {
+  margin: 0 0 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  text-align: center;
+}
+
+.cambio-label {
+  font-size: 0.72rem;
+  color: var(--mp-muted);
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cambio-valor,
+.cambio-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--mp-ok);
+  margin-top: 2px;
+}
+
+.pendiente-box {
+  background: var(--mp-yellow-soft);
+  border-color: rgba(251, 185, 1, 0.5);
+}
+
+.pendiente-box .cambio-label {
+  color: #92400e;
+}
+
+.pendiente-box .cambio-valor {
+  color: #b45309;
+}
+
+.print-check-box,
+.factura-footer ion-item {
+  --background: var(--mp-blue-soft);
+  border: 1px solid var(--mp-border);
+  border-radius: 12px;
+  margin: 0 0 10px;
+  box-shadow: none;
+}
+
+.factura-footer ion-button {
+  margin: 0 0 8px;
+  --border-radius: 12px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  height: 48px;
+}
+
+.factura-footer ion-button[color="success"],
+.factura-footer ion-button.mp-btn-primary {
+  --background: linear-gradient(135deg, var(--mp-blue) 0%, var(--mp-blue-dark) 100%);
+  --background-activated: var(--mp-blue-dark);
+  --color: #fff;
+  box-shadow: 0 8px 18px rgba(20, 84, 184, 0.3);
+}
+
+.factura-footer ion-button[fill="outline"],
+.factura-footer ion-button.mp-btn-cancel {
+  --border-color: var(--mp-border);
+  --color: var(--mp-muted);
+  --border-width: 1.5px;
+  font-weight: 700;
+}
+
+/* ---------- Opciones / cash ---------- */
+.grupo-opciones {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.titulo-opcion {
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--mp-text);
+}
+
+.opciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  justify-items: center;
+  max-width: 500px;
+  margin: auto;
+  gap: 8px;
+}
+
+.opcion {
+  width: 100%;
+  max-width: 160px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--mp-text);
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.opcion:hover {
+  border-color: var(--mp-blue-mid);
+  background: var(--mp-blue-soft);
+}
+
+.opcion.activa {
+  background: var(--mp-blue);
+  border-color: var(--mp-blue);
+  color: #fff;
+}
+
+.icono-banco {
+  width: 26px;
+  height: 26px;
+}
+
+.cash-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.cash-btn,
+.cash-buttons button {
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--mp-border);
+  background: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--mp-text);
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.cash-btn:hover,
+.cash-buttons button:hover {
+  border-color: var(--mp-blue-mid);
+  background: var(--mp-blue-soft);
+}
+
+.cash-btn.exacto,
+.cash-buttons .exacto {
+  background: var(--mp-yellow);
+  border-color: var(--mp-yellow-deep);
+  color: var(--mp-text);
+}
+
+.efectivo-panel {
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.panel-efectivo {
+  position: fixed;
+  right: 20px;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  gap: 6px;
+}
+
+.panel-efectivo button {
+  width: 90px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--mp-border);
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panel-efectivo .exacto {
+  background: var(--mp-yellow);
+  border-color: var(--mp-yellow-deep);
+}
+
+.modal-efectivo {
+  --width: 420px;
+  --height: auto;
+  --border-radius: 14px;
+}
+
+.modal-efectivo-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.modal-efectivo-content h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mp-text);
+}
+
+.efectivo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.efectivo-grid button {
+  height: 65px;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-blue-soft);
+  color: var(--mp-blue-dark);
+}
+
+.efectivo-grid .exacto {
+  grid-column: 1 / 3;
+  background: var(--mp-yellow);
+  color: var(--mp-text);
+  border-color: var(--mp-yellow-deep);
+}
+
 .header-dark {
-  background: #0f172a;
+  background: var(--mp-blue-dark);
   color: #fff;
 }
 
 .multi-pago {
   margin-top: 10px;
   padding: 10px;
-  background: #111827;
+  background: var(--mp-blue-soft);
   border-radius: 10px;
+  border: 1px solid var(--mp-border);
 }
 
 .resumen-pago {
   margin-top: 10px;
   font-size: 13px;
+  color: var(--mp-text);
 }
 
 .resumen-pago div {
@@ -655,21 +764,23 @@ border:none;
 }
 
 .ok {
-  color: #22c55e;
+  color: var(--mp-ok);
 }
 
 .error {
-  color: #ef4444;
+  color: var(--mp-danger);
 }
+
 .uber-option {
-  color: #06C167; /* verde Uber Eats */
+  color: #06c167;
   font-weight: 600;
 }
 
 .pedidosya-option {
-  color: #ef4444; /* rojo PedidosYa */
+  color: #ef4444;
   font-weight: 600;
 }
+
 .select-pago-modal .modal-wrapper {
   width: 90% !important;
   max-width: 500px !important;
@@ -678,47 +789,15 @@ border:none;
 }
 
 .select-pago-modal ion-content {
-  --background: #111827; /* oscuro pro */
+  --background: #fff;
 }
 
 .select-pago-modal ion-item {
   --background: transparent;
-  color: #fff;
+  color: var(--mp-text);
 }
-
 
 .modal-pago-grande ion-content {
-  --background: #111827;
-  color: #fff;
-}
-
-.nc-pago-box {
-  margin: 8px 0 16px;
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 193, 7, 0.35);
-}
-
-.nc-hint {
-  margin: 4px 0 8px;
-  font-size: 0.85rem;
-  color: #d1d5db;
-
-  &.error {
-    color: #fca5a5;
-  }
-}
-
-.nc-saldo-info {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  color: #e5e7eb;
-  line-height: 1.45;
-}
-
-.nc-restante {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+  --background: var(--mp-bg);
+  color: var(--mp-text);
 }

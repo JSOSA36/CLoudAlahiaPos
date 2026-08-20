@@ -24,7 +24,7 @@
       </div>
       <div class="pa-hero-text">
         <h2>{{ producto ? 'Actualizar artículo' : 'Registrar artículo' }}</h2>
-        <p>Define precios, categoría y comportamiento en compras.</p>
+        <p>Separa producto físico de servicio ofrecido. Los servicios no manejan existencia.</p>
       </div>
     </section>
 
@@ -66,6 +66,9 @@
             <ion-select-option [value]="false">Producto</ion-select-option>
             <ion-select-option [value]="true">Servicio</ion-select-option>
           </ion-select>
+          <small class="pa-hint" *ngIf="form.esServicio">
+            Servicio que ofrece su empresa (ej. decoraciones, consultas). No maneja existencia.
+          </small>
         </div>
 
         <div class="pa-field">
@@ -104,16 +107,22 @@
     <section class="pa-card">
       <h3>Operación y ERP</h3>
       <div class="pa-grid">
-        <div class="pa-field" *ngIf="!form.esServicio">
+        <div class="pa-field" [class.pa-field-full]="form.esServicio">
           <label>Tipo de operación</label>
-          <ion-select [(ngModel)]="form.tipoOperacion" interface="popover">
+          <ion-select
+            [(ngModel)]="form.tipoOperacion"
+            (ionChange)="onTipoOperacionChange()"
+            interface="popover">
             <ion-select-option value="VENTA">Venta</ion-select-option>
             <ion-select-option value="COMPRA">Compra</ion-select-option>
             <ion-select-option value="AMBAS">Compra y Venta</ion-select-option>
           </ion-select>
+          <small class="pa-hint" *ngIf="form.esServicio">
+            Use Compra o Ambas solo si subcontrata o compra este servicio a un proveedor.
+          </small>
         </div>
 
-        <div class="pa-field pa-field-full">
+        <div class="pa-field pa-field-full" *ngIf="muestraComportamientoCompra">
           <label>Comportamiento ERP (compras)</label>
           <ion-select [(ngModel)]="form.tipoComportamiento" interface="popover">
             <ion-select-option

@@ -101,6 +101,7 @@ import { PoliticasMarcaPipe } from './pipes/politicas-marca.pipe';
 import { PagoEncargoComponent } from './bizcocho/pago-encargo/pago-encargo.component';
 import { FormEncargosComponent } from './bizcocho/form-encargos/form-encargos.component';
 import { WhatsappPlanesComponent } from './whatsapp-planes/whatsapp-planes.component';
+import { NivelSoporteModalComponent } from './shared/nivel-soporte-modal/nivel-soporte-modal.component';
 import { ParametrosConfigComponent } from './parametros-config/parametros-config.component';
 import { LavadorDashboardComponent } from './lavador-dashboard/lavador-dashboard.component';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
@@ -132,6 +133,7 @@ import { ModalTransferenciaFinancieraComponent } from './Components/modal-transf
 import { ModalAjusteFinancieroComponent } from './Components/modal-ajuste-financiero/modal-ajuste-financiero.component';
 import { MovimientosFinancierosComponent } from './Components/movimientos-financieros/movimientos-financieros.component';
 import { ConciliacionBancariaComponent } from './Components/conciliacion-bancaria/conciliacion-bancaria.component';
+import { AgenteImpresionComponent } from './Components/agente-impresion/agente-impresion.component';
 import { ExtractoBancarioComponent } from './Components/extracto-bancario/extracto-bancario.component';
 import { TransferenciasFinancierasComponent } from './Components/transferencias-financieras/transferencias-financieras.component';
 import { HistoricoMovimientosInventarioComponent } from './Components/historico-movimientos-inventario/historico-movimientos-inventario.component';
@@ -139,6 +141,7 @@ import { ConducesComponent } from './Components/conduces/conduces.component';
 import { EmitirConduceComponent } from './Components/conduces/emitir-conduce.component';
 import { ConducePrintComponent } from './conduce-print/conduce-print.component';
 import { HistorialServiciosComponent } from './HistorialServicios/historial-servicios/historial-servicios.component';
+import { FichaClinicaComponent } from './ficha-clinica/ficha-clinica.component';
 import { ContabilidadCuentasComponent } from './Components/contabilidad-cuentas/contabilidad-cuentas.component';
 import { ContabilidadAsientosComponent } from './Components/contabilidad-asientos/contabilidad-asientos.component';
 import { ContabilidadLibroDiarioComponent } from './Components/contabilidad-libro-diario/contabilidad-libro-diario.component';
@@ -179,6 +182,7 @@ import { FeHistorialComponent } from './facturacion-electronica/fe-historial.com
 import { FeReprocesarComponent } from './facturacion-electronica/fe-reprocesar.component';
 import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.component';
 import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
+import { AlahiaAiConfigComponent } from './alahia-ai/alahia-ai-config.component';
 import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
 @NgModule({
   declarations: [
@@ -195,6 +199,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     MovimientoCajaComponent,
     MovimientosFinancierosComponent,
     ConciliacionBancariaComponent,
+    AgenteImpresionComponent,
     ExtractoBancarioComponent,
     TransferenciasFinancierasComponent,
     MetodosPagoCuentaComponent,
@@ -232,6 +237,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     AreaComponent,
     ListadoAlmacenesComponent,
     WhatsappPlanesComponent,
+    NivelSoporteModalComponent,
     PagoEncargoComponent,
     PoliticasComponent,
     PoliticasEsperaComponent,
@@ -279,6 +285,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     ListadoDocumentosClinicosComponent,
     DocumentoClinicoFormComponent,
     HistorialServiciosComponent,
+    FichaClinicaComponent,
     CartComponent,
     ClientesComponent,
     PosComponent,
@@ -340,6 +347,7 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     FeReprocesarComponent,
     FeMonitoreoComponent,
     AlahiaAiComponent,
+    AlahiaAiConfigComponent,
     AlahiaAiFabComponent
   ],
   imports: [

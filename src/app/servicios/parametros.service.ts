@@ -12,6 +12,7 @@ import { ZonasService } from './zonas.service';
 import { FacturaHeaderService } from './factura-header.service';
 import { clientes } from '../models/clientes';
 import { FiscalFeatureFlags } from './dgii-config.service';
+import { normalizarNivelSoporte } from '../shared/nivel-soporte';
 
 /** Features fiscales apagados (default seguro / sin config). */
 export const FISCAL_FEATURES_OFF: FiscalFeatureFlags = {
@@ -56,6 +57,12 @@ public PuedeEditarPrecioCarrito: boolean = false;
   public NumeroMesa = '';
   public Buscar = '';
   public nombrePlan: string = '';
+  public nivelSoporte: string = 'STANDARD';
+
+  setNivelSoporte(valor?: string | null): void {
+    this.nivelSoporte = normalizarNivelSoporte(valor);
+    localStorage.setItem('nivelSoporte', this.nivelSoporte);
+  }
 
   /** Aviso de cobro SaaS (gracia día 30→3). Null si no aplica. */
   public alertaPago: {
@@ -101,7 +108,9 @@ public PuedeEditarPrecioCarrito: boolean = false;
   public IdFacturaHeader = 0;
   public IdFactPay = 0;
   public IdUsuario = 0;
+  public IdEmpleados = 0;
   public IdEmpresa = 0;
+  public IdPerfil = 0;
 
   public UserName = '';
   public Rol = '';
@@ -143,11 +152,15 @@ public PuedeEditarPrecioCarrito: boolean = false;
   private readonly SESSION_MINUTES = 40;
   public sessionStarted$ = new Subject<void>();
   ApiPrint: string = '';
+  /** Si true, al cobrar/guardar factura se envía el ticket de lavador al agente. */
+  PrintTicketLavador = false;
 
   constructor(
     private _Zonas: ZonasService,
     private _FacturaHeader: FacturaHeaderService
-  ) {}
+  ) {
+    this.ensureSessionFromStorage();
+  }
 setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   this.TipoDocumento = tipo;
 }
@@ -157,7 +170,11 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   setModulosActivos(modulos: number[], codigos?: string[], emitRefresh = true) {
     this.modulosActivos = new Set(modulos);
     if (codigos) {
-      this.modulosCodigos = new Set(codigos);
+      this.modulosCodigos = new Set(
+        codigos
+          .filter((c) => !!c)
+          .map((c) => String(c).trim().toUpperCase())
+      );
     }
     this.modulosActivos$.next([...this.modulosActivos]);
     if (emitRefresh) {
@@ -175,7 +192,13 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   }
 
   tieneModulo(codigo: string): boolean {
-    return this.modulosCodigos.has(codigo);
+    if (!codigo) return false;
+    const key = codigo.trim().toUpperCase();
+    if (this.modulosCodigos.has(key) || this.modulosCodigos.has(codigo)) return true;
+    for (const c of this.modulosCodigos) {
+      if (String(c).trim().toUpperCase() === key) return true;
+    }
+    return false;
   }
 
   getModulosCodigos(): string[] {
@@ -224,6 +247,13 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     return true;
   }
 
+  /** Catálogos / nómina de personal (no el listado EMPLEADOS de comisiones). */
+  tieneModuloRrhh(): boolean {
+    return this.getModulosCodigos().some(c =>
+      String(c || '').trim().toUpperCase().startsWith('RRHH_')
+    );
+  }
+
   // ==================================================
   // 🔄 MENÚ
   // ==================================================
@@ -247,6 +277,9 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     localStorage.setItem('Password', password);
     localStorage.setItem('IdEmpresa', idEmpresa.toString());
     localStorage.setItem('IdUsuario', idUsuario.toString());
+    const idEmp = Number(rawUsuario?.idEmpleado ?? rawUsuario?.IdEmpleado ?? 0) || 0;
+    this.IdEmpleados = idEmp;
+    if (idEmp) localStorage.setItem('IdEmpleados', String(idEmp));
     localStorage.setItem('token', token || 'ok');
 
     const expiry = Date.now() + this.SESSION_MINUTES * 60 * 1000;
@@ -260,6 +293,10 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.Rol = rol;
     this.IdUsuario = idUsuario;
     this.IdEmpresa = idEmpresa;
+    this.IdPerfil = Number(rawUsuario?.idPerfil ?? rawUsuario?.IdPerfil ?? 0) || 0;
+    if (this.IdPerfil) {
+      localStorage.setItem('IdPerfil', String(this.IdPerfil));
+    }
 
     // 🔥 eventos CLAVE
     this.sessionStarted$.next();
@@ -283,7 +320,9 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.UserName = '';
     this.Rol = '';
     this.IdUsuario = 0;
+    this.IdEmpleados = 0;
     this.IdEmpresa = 0;
+    this.IdPerfil = 0;
 
     // estado negocio
     this.ListadoProductosCate = [];
@@ -295,6 +334,10 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
 
     this.NombreCliente = '';
     this.NombreEmpresa = '';
+    this.nombrePlan = '';
+    this.nivelSoporte = 'STANDARD';
+    this.ApiPrint = '';
+    this.PrintTicketLavador = false;
     this.NumeroMesa = '';
     this.Buscar = '';
 
@@ -336,6 +379,32 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
 
   GetIdEmpresa(): number {
     return parseInt(localStorage.getItem('IdEmpresa') ?? '0', 10);
+  }
+
+  /** Restaura empresa/usuario/perfil desde localStorage (refresh de página). */
+  ensureSessionFromStorage(): void {
+    if (this.IdUsuario && this.IdEmpresa) return;
+
+    this.IdEmpresa = parseInt(localStorage.getItem('IdEmpresa') ?? '0', 10) || 0;
+    this.IdUsuario = parseInt(localStorage.getItem('IdUsuario') ?? '0', 10) || 0;
+    this.IdEmpleados = parseInt(localStorage.getItem('IdEmpleados') ?? '0', 10) || 0;
+    this.IdPerfil = parseInt(localStorage.getItem('IdPerfil') ?? '0', 10) || 0;
+    this.UserName = localStorage.getItem('Usuario') || this.UserName;
+    this.NombreEmpresa = localStorage.getItem('NombreEmpresa') || this.NombreEmpresa;
+    this.nombrePlan = localStorage.getItem('nombrePlan') || this.nombrePlan;
+    this.setNivelSoporte(localStorage.getItem('nivelSoporte') || this.nivelSoporte);
+
+    try {
+      const raw = localStorage.getItem('usuario');
+      if (!raw) return;
+      const u = JSON.parse(raw);
+      this.IdPerfil = Number(u?.idPerfil ?? u?.IdPerfil ?? this.IdPerfil) || this.IdPerfil;
+      this.Rol = String(u?.nombrePerfil ?? u?.NombrePerfil ?? u?.rol ?? this.Rol ?? '');
+      if (!this.UserName) this.UserName = String(u?.userName ?? u?.UserName ?? '');
+      if (this.IdPerfil) localStorage.setItem('IdPerfil', String(this.IdPerfil));
+    } catch {
+      /* ignore */
+    }
   }
 
   // ==================================================

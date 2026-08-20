@@ -1,6 +1,28 @@
 import { clientes } from "./clientes";
 import { facturadetalles } from "./facturadetalles";
 
+/** El API serializa IDCliente como idCliente; el DTO histórico usa iDCliente. */
+export function idClienteDeFactura(f: any): number {
+  const nested = f?.clientes || {};
+  return Number(
+    f?.iDCliente ||
+      f?.idCliente ||
+      f?.IDCliente ||
+      nested.idCliente ||
+      nested.iDCliente ||
+      nested.IDCliente ||
+      0
+  ) || 0;
+}
+
+export function normalizarIdClienteFactura<T extends { iDCliente?: number }>(f: T): T {
+  const id = idClienteDeFactura(f);
+  if (id > 0) {
+    f.iDCliente = id;
+  }
+  return f;
+}
+
 export class facturaheader
 {
     idFacturaHeader:number=0;

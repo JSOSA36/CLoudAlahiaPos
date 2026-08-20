@@ -46,6 +46,7 @@ export interface TicketNotaCreditoDetalle {
   cantidad: number;
   descripcion: string;
   precio: number;
+  itbis?: number;
   subTotal: number;
 }
 

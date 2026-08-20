@@ -4,6 +4,12 @@ export interface VariablesPlantillaDocumento {
   fecha: string;
   numeroDocumento: string;
   doctor: string;
+  edad?: string;
+  nombreEmpresa?: string;
+  eslogan?: string;
+  direccion?: string;
+  telefono?: string;
+  cargoDoctor?: string;
   procedimiento?: string;
   horasReposo?: number | null;
   observaciones?: string;
@@ -26,6 +32,41 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+export function calcularEdadPaciente(fechaNacimiento?: string | Date | null): string {
+  if (fechaNacimiento == null || fechaNacimiento === '') {
+    return '';
+  }
+
+  let nacimiento: Date;
+  if (fechaNacimiento instanceof Date) {
+    nacimiento = fechaNacimiento;
+  } else {
+    const texto = String(fechaNacimiento).trim();
+    if (!texto) {
+      return '';
+    }
+    const valor = texto.includes('T') ? texto : `${texto.substring(0, 10)}T00:00:00`;
+    nacimiento = new Date(valor);
+  }
+
+  if (Number.isNaN(nacimiento.getTime())) {
+    return '';
+  }
+
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const mes = hoy.getMonth() - nacimiento.getMonth();
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad -= 1;
+  }
+
+  if (edad < 0 || edad > 130) {
+    return '';
+  }
+
+  return `${edad} ${edad === 1 ? 'año' : 'años'}`;
 }
 
 export function formatearFechaDocumento(fecha: string): string {
@@ -58,9 +99,17 @@ export function generarHtmlDocumentoClinico(
   const mapa: Record<string, string> = {
     '{{CLIENTE}}': escapeHtml(variables.cliente),
     '{{CEDULA}}': escapeHtml(variables.cedula),
+    '{{EDAD}}': escapeHtml(variables.edad || ''),
     '{{FECHA}}': escapeHtml(formatearFechaDocumento(variables.fecha)),
-    '{{NUMERO_DOCUMENTO}}': escapeHtml(variables.numeroDocumento),
+            '{{NUMERO_DOCUMENTO}}': variables.numeroDocumento?.trim()
+              ? escapeHtml(variables.numeroDocumento.trim())
+              : '{{NUMERO_DOCUMENTO}}',
     '{{DOCTOR}}': escapeHtml(variables.doctor),
+    '{{NOMBRE_EMPRESA}}': escapeHtml(variables.nombreEmpresa || ''),
+    '{{ESLOGAN}}': escapeHtml(variables.eslogan || ''),
+    '{{DIRECCION}}': escapeHtml(variables.direccion || ''),
+    '{{TELEFONO}}': escapeHtml(variables.telefono || ''),
+    '{{CARGO_DOCTOR}}': escapeHtml(variables.cargoDoctor || 'ODONTÓLOGO'),
     '{{PROCEDIMIENTO}}': escapeHtml(variables.procedimiento || ''),
     '{{HORAS_REPOSO}}': escapeHtml(
       variables.horasReposo != null ? String(variables.horasReposo) : ''
@@ -89,8 +138,8 @@ const ESTILOS_IMPRESION_COLOR = `
   }
   .deco-top { background-color: #93c5fd !important; opacity: 0.35 !important; }
   .deco-bottom { background-color: #60a5fa !important; opacity: 0.25 !important; }
-  .logo-box { background-color: #2563eb !important; color: #fff !important; }
-  .brand h1 { color: #1e40af !important; }
+  .logo-box { background-color: transparent !important; }
+  .cabecera-clinica h1, .brand h1 { color: #1e3a8a !important; }
   .titulo-wrap h2, .nombre-doctor, .reposo-horas { color: #1e3a8a !important; }
   .numero-badge { background-color: #1e3a8a !important; color: #fff !important; }
   .footer-contacto { background-color: #1e3a8a !important; color: #fff !important; }
@@ -127,7 +176,7 @@ export function prepararHtmlParaImpresion(html: string): string {
   return result
     .replace(
       'class="logo-box"',
-      'class="logo-box" style="background-color:#2563eb!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;"'
+      'class="logo-box" style="background-color:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;"'
     )
     .replace(
       'class="numero-badge"',

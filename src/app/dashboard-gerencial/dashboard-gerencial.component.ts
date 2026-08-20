@@ -218,10 +218,10 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
       { label: 'Ventas brutas', value: p.ventasBrutas, tone: 'blue' },
       { label: 'Costo de venta', value: p.costoVenta, tone: 'orange' },
       { label: 'Utilidad bruta', value: p.utilidadBruta, tone: 'yellow' },
-      { label: 'Gastos operativos', value: p.gastosOperativos, tone: 'red' },
+      { label: 'Gastos operativos', value: p.gastosOperativos, tone: 'navy' },
       { label: 'Comisiones', value: p.comisiones, tone: 'amber' },
-      { label: 'Pérdidas inventario', value: p.perdidasInventario, tone: 'red' },
-      { label: 'Otros ingresos', value: p.otrosIngresos, tone: 'navy' },
+      { label: 'Pérdidas inventario', value: p.perdidasInventario, tone: 'orange' },
+      { label: 'Otros ingresos', value: p.otrosIngresos, tone: 'blue' },
       { label: 'Otros egresos', value: p.otrosEgresos, tone: 'slate' },
     ];
 
@@ -372,7 +372,7 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
           {
             label: 'Pérdida',
             data: charts.topProductosPerdidas.map((x) => x.monto),
-            backgroundColor: '#c62828',
+            backgroundColor: '#ef6c00',
             borderRadius: 6,
           },
         ],
@@ -546,8 +546,10 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
   }
 
   private palette(n: number, warm = false): string[] {
-    const cool = ['#1976d2', '#2a5298', '#1e3c72', '#42a5f5', '#1565c0', '#ffc107', '#f9a825', '#64b5f6'];
-    const hot = ['#c62828', '#ef6c00', '#ffc107', '#d84315', '#f9a825', '#e53935', '#ff7043', '#b71c1c'];
+    // Gastos / categorías: azules y slate (no rojo; el rojo se reserva para alertas reales)
+    const cool = ['#1976d2', '#2a5298', '#1e3c72', '#42a5f5', '#1565c0', '#5c6bc0', '#78909c', '#64b5f6'];
+    // Pérdidas: naranja/ámbar (alerta), sin rojo puro
+    const hot = ['#ef6c00', '#f9a825', '#ffc107', '#fb8c00', '#ffb300', '#ff8f00', '#ffa726', '#ffcc80'];
     const base = warm ? hot : cool;
     if (n <= 0) return base;
     return Array.from({ length: n }, (_, i) => base[i % base.length]);

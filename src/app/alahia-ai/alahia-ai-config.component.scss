@@ -1,0 +1,59 @@
+.ai-cfg {
+  --background: #f4f6fb;
+}
+
+.ai-cfg__wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ai-cfg__lead {
+  margin: 0 0 0.25rem;
+  color: #445;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.ai-cfg__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #234;
+}
+
+.ai-cfg__field input,
+.ai-cfg__field select {
+  border: 1px solid #c9d2e3;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  font-size: 1rem;
+  background: #fff;
+}
+
+.ai-cfg__check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  color: #234;
+}
+
+.ai-cfg__save {
+  margin-top: 0.5rem;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: #0a3d91;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.ai-cfg__save:disabled {
+  opacity: 0.65;
+}

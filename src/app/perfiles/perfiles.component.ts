@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PerfilesService } from '../servicios/perfiles.service';
-import { ModulosService } from 'src/app/servicios/modulos.service';
+import { EmpresaModulosService } from 'src/app/servicios/empresa-modulos.service';
 import { PerfilCreate } from '../modals/PerfilCreate.models';
 import { PerfilUpdate } from '../models/PerfilUpdate.models';
 import { Perfil } from '../models/Perfil .models';
@@ -45,7 +45,7 @@ export class PerfilesComponent implements OnInit {
 
   constructor(
     private perfilesService: PerfilesService,
-    private modulosService: ModulosService,
+    private empresaModulosService: EmpresaModulosService,
     private parametrosService: ParametrosService,
     private alertCtrl: AlertController
   ) {}
@@ -62,7 +62,7 @@ export class PerfilesComponent implements OnInit {
   // 🚀 INIT
   // =====================================================
   ngOnInit() {
-    this.idEmpresa = this.parametrosService.IdEmpresa;
+    this.idEmpresa = this.parametrosService.IdEmpresa || this.parametrosService.GetIdEmpresa();
     this.cargarPerfiles();
     this.cargarModulos();
   }
@@ -79,19 +79,29 @@ export class PerfilesComponent implements OnInit {
   }
 
   cargarModulos() {
-    this.modulosService.getModulos()
+    if (!this.idEmpresa) return;
+
+    this.empresaModulosService.getByEmpresa(this.idEmpresa)
       .subscribe(resp => {
-        this.modulos = (resp || []).map((m: any) => {
-          const codigo = String(m.codigo ?? m.Codigo ?? '').trim().toUpperCase();
-          return {
-            idModulo: m.idModulo ?? m.id ?? m.Id,
-            codigo,
-            nombre: m.nombre ?? m.Nombre ?? codigo,
-            seleccionado: false,
-            esPermiso: esModuloPermisoSinMenu(codigo)
-          };
-        });
+        this.modulos = (resp || [])
+          .filter((em: any) => em?.activo !== false && em?.Activo !== false)
+          .map((em: any) => {
+            const m = em?.modulo ?? em?.Modulo ?? {};
+            const codigo = String(m.codigo ?? m.Codigo ?? '').trim().toUpperCase();
+            return {
+              idModulo: Number(em.moduloId ?? em.ModuloId ?? m.id ?? m.Id ?? 0),
+              codigo,
+              nombre: m.nombre ?? m.Nombre ?? codigo,
+              seleccionado: false,
+              esPermiso: esModuloPermisoSinMenu(codigo)
+            };
+          })
+          .filter((m) => m.idModulo > 0);
       });
+  }
+
+  toggleModulo(modulo: { seleccionado: boolean }): void {
+    modulo.seleccionado = !modulo.seleccionado;
   }
 
   // =====================================================
@@ -118,11 +128,15 @@ export class PerfilesComponent implements OnInit {
     };
 
     // 🔥 AQUÍ SE USAN LOS MÓDULOS DEL DTO
-    const idsAsignados = perfil.modulos ?? [];
+    const idsAsignados = new Set(
+      (perfil.modulos ?? [])
+        .map((x: any) => Number(x))
+        .filter((n: number) => Number.isFinite(n) && n > 0)
+    );
 
     this.modulos = this.modulos.map(m => ({
       ...m,
-      seleccionado: idsAsignados.includes(m.idModulo)
+      seleccionado: idsAsignados.has(Number(m.idModulo))
     }));
 
     this.modalOpen = true;
@@ -253,10 +267,6 @@ export class PerfilesComponent implements OnInit {
       ...m,
       seleccionado: false
     }));
-  }
-
-  onModuloChange(event: any, modulo: any) {
-    modulo.seleccionado = event.detail.checked;
   }
 
   trackByPerfil(_: number, item: Perfil) {

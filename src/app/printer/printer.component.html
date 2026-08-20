@@ -70,15 +70,22 @@
           TOTAL RD$ {{ factura.total | number:'1.2-2' }}
         </p>
 
-        <p *ngIf="factura.tipoFactura === 'Credito'">
-          <strong>Pendiente:</strong>
-          RD$ {{ factura.pendiente | number:'1.2-2' }}
-        </p>
-
-        <p *ngIf="factura.tipoFactura === 'Contado'">
-          <strong>Pagado:</strong>
-          RD$ {{ (factura.pagado || factura.total) | number:'1.2-2' }}
-        </p>
+        <ng-container *ngIf="(factura.pendiente || 0) > 0.02; else pagadoContado">
+          <p>
+            <strong>Pagado:</strong>
+            RD$ {{ (factura.pagado || 0) | number:'1.2-2' }}
+          </p>
+          <p>
+            <strong>Pendiente:</strong>
+            RD$ {{ factura.pendiente | number:'1.2-2' }}
+          </p>
+        </ng-container>
+        <ng-template #pagadoContado>
+          <p *ngIf="factura.tipoFactura === 'Contado'">
+            <strong>Pagado:</strong>
+            RD$ {{ (factura.pagado || factura.total) | number:'1.2-2' }}
+          </p>
+        </ng-template>
 
       </div>
 
@@ -133,6 +140,17 @@
       <div class="center total">
         TOTAL RD$ {{ factura.total | number:'1.2-2' }}
       </div>
+
+      <ng-container *ngIf="(factura.pendiente || 0) > 0.02">
+        <div class="item-row">
+          <span>PAGADO</span>
+          <span>RD$ {{ (factura.pagado || 0) | number:'1.2-2' }}</span>
+        </div>
+        <div class="item-row">
+          <span>PENDIENTE</span>
+          <span>RD$ {{ factura.pendiente | number:'1.2-2' }}</span>
+        </div>
+      </ng-container>
 
       <div class="line"></div>
 

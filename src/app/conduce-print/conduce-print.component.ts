@@ -1,14 +1,11 @@
 import {
   Component,
-  ElementRef,
   Input,
-  ViewChild,
 } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { EmpresaDto } from '../models/empresadto.models';
 import { ConduceDto, EstadoEntregaFacturaDto } from '../models/conduces.models';
+import { descargarConducePdf } from './conduce-pdf';
 
 @Component({
   selector: 'app-conduce-print',
@@ -16,8 +13,6 @@ import { ConduceDto, EstadoEntregaFacturaDto } from '../models/conduces.models';
   styleUrls: ['./conduce-print.component.scss'],
 })
 export class ConducePrintComponent {
-  @ViewChild('conducePage') conducePage?: ElementRef<HTMLElement>;
-
   @Input() conduce?: ConduceDto;
   @Input() estado?: EstadoEntregaFacturaDto | null;
   @Input() empresa?: EmpresaDto;
@@ -54,60 +49,68 @@ export class ConducePrintComponent {
   }
 
   imprimir(): void {
-    window.print();
+    this.emitir('open');
   }
 
   async exportarPdf(): Promise<void> {
-    await this.generarYDescargarPdf();
+    this.emitir('download');
   }
 
   cerrar(): void {
     this.modalCtrl.dismiss();
   }
 
-  private async generarYDescargarPdf(): Promise<void> {
+  private emitir(modo: 'download' | 'open'): void {
+    if (!this.conduce) {
+      return;
+    }
     try {
       this.exportandoPdf = true;
-      const el = this.conducePage?.nativeElement;
-      if (!el) throw new Error('No se pudo capturar el documento');
-
-      el.classList.add('pdf-capture');
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
+      descargarConducePdf({
+        empresa: this.nombreComercial,
+        direccion: this.empresa?.direccion,
+        telefono: this.empresa?.telefono,
+        rnc: this.empresa?.rnc,
+        numero: this.conduce.numero || 'conduce',
+        fecha: this.conduce.fecha as any,
+        factura: this.conduce.numeroFactura || ('#' + this.conduce.idFacturaHeader),
+        ncf: this.conduce.ncf,
+        cliente: this.conduce.clienteNombre,
+        almacen: this.conduce.almacenNombre,
+        quienEntrega: this.conduce.quienEntrega,
+        quienRecibe: this.conduce.quienRecibe,
+        observacion: this.conduce.observacion,
+        lineas: this.detalles.map(d => ({
+          producto: d.productoNombre,
+          entregada: Number(d.cantidadEntregada || 0),
+          facturada: Number(d.cantidadFacturada || 0),
+          pendiente: Number(d.cantidadPendiente || 0)
+        })),
+        totalEntregado: this.totalEntregadoEste,
+        estado: this.estado
+          ? {
+              facturado: Number(this.estado.totalFacturado || 0),
+              entregado: Number(this.estado.totalEntregado || 0),
+              pendiente: Number(this.estado.totalPendiente || 0),
+              lineas: this.lineasEstado.map(l => ({
+                producto: l.productoNombre,
+                facturada: Number(l.cantidadFacturada || 0),
+                devuelta: Number(l.cantidadDevuelta || 0),
+                entregada: Number(l.cantidadEntregada || 0),
+                pendiente: Number(l.cantidadPendiente || 0)
+              }))
+            }
+          : null,
+        modo
       });
-      el.classList.remove('pdf-capture');
-
-      const img = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'in', format: 'letter' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const imgH = (canvas.height * pageW) / canvas.width;
-      let heightLeft = imgH;
-      let position = 0;
-
-      pdf.addImage(img, 'PNG', 0, position, pageW, imgH);
-      heightLeft -= pageH;
-      while (heightLeft > 0) {
-        position = heightLeft - imgH;
-        pdf.addPage();
-        pdf.addImage(img, 'PNG', 0, position, pageW, imgH);
-        heightLeft -= pageH;
-      }
-
-      const num = this.conduce?.numero || 'conduce';
-      pdf.save(`${num}.pdf`);
     } catch (e: any) {
-      const t = await this.toastCtrl.create({
+      this.toastCtrl.create({
         message: e?.message || 'Error al generar PDF',
         duration: 2500,
         color: 'danger',
-      });
-      await t.present();
+      }).then(t => t.present());
     } finally {
       this.exportandoPdf = false;
-      this.conducePage?.nativeElement?.classList.remove('pdf-capture');
     }
   }
 }

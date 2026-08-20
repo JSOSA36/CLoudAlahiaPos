@@ -105,14 +105,14 @@
           <span class="mm-step">2</span>
           <div>
             <h3 class="mm-section-title">Comprobante</h3>
-            <p class="mm-section-hint">Adjunte la foto o PDF del voucher</p>
+            <p class="mm-section-hint">Foto clara del voucher (JPG/PNG). El sistema lee el monto.</p>
           </div>
         </div>
         <input
           type="file"
           #fileInput
           hidden
-          accept="image/*,.pdf"
+          accept="image/jpeg,image/png,image/webp,image/*"
           capture="environment"
           (change)="onFileSelected($event)"
         />
@@ -123,9 +123,9 @@
           (click)="fileInput.click()">
           <ion-icon [name]="archivo ? 'checkmark-circle' : 'cloud-upload-outline'"></ion-icon>
           <div>
-            <strong *ngIf="!archivo">Adjuntar voucher</strong>
+            <strong *ngIf="!archivo">Adjuntar foto del voucher</strong>
             <strong *ngIf="archivo">{{ archivo.name }}</strong>
-            <small *ngIf="!archivo">Imagen o PDF</small>
+            <small *ngIf="!archivo">JPG o PNG</small>
             <small *ngIf="archivo">Listo · toca para cambiar</small>
           </div>
         </button>
@@ -179,7 +179,7 @@
                   </div>
                   <div>
                     <strong>
-                      Facturación hasta RD${{ plan.limiteFacturacion | number:'1.0-0' }} mensual
+                      Ingresos hasta RD${{ plan.limiteFacturacion | number:'1.0-0' }} mensual
                     </strong>
                   </div>
                 </div>

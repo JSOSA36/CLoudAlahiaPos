@@ -36,6 +36,10 @@
           <ion-icon slot="start" name="refresh-outline"></ion-icon>
           Actualizar
         </ion-button>
+        <ion-button color="medium" (click)="exportarPdf()" [disabled]="cargando || !filtrados.length">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
       </div>
     </section>
 
