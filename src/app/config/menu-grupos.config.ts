@@ -66,7 +66,9 @@ export const CONTABILIDAD_SUBMODULOS_TITULOS: Record<string, string> = {
 export const CONTABILIDAD_REPORTES_FISCALES: string[] = [
   'REPORTE_607',
   'REPORTE_606',
-  'IT1'
+  'IT1',
+  'IR17',
+  'IR3'
 ];
 
 export const MENU_GRUPOS: MenuGrupoConfig[] = [
@@ -86,6 +88,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'POS',
       'ORDENES',
       'CENTRO_PRODUCCION',
+      'PEDIDOS_ONLINE',
       'HISTORICO_FACTURAS',
       'LISTADO_DEVOLUCIONES',
       'NOTAS_CREDITO_APLICADAS',
@@ -119,6 +122,13 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'CONDUCES',
       'REPORTE_PERDIDAS'
     ]
+  },
+  {
+    id: 'manufactura',
+    titulo: 'Producción',
+    icono: 'cogs',
+    orden: 4.5,
+    modulos: ['MANUFACTURA_RECETAS', 'MANUFACTURA_ORDENES']
   },
   {
     id: 'compras',
@@ -212,6 +222,8 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'REPORTE_607',
       'REPORTE_606',
       'IT1',
+      'IR17',
+      'IR3',
       'ANTIGUEDAD_CXC',
       'ANTIGUEDAD_CXP',
       'ACTIVOS_FIJOS',
@@ -242,7 +254,6 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'EMPRESA',
       'IMPRESION_TERMICA',
       'PARAMETROS',
-      'NCF_SECUENCIAS',
       'USUARIOS',
       'PERFILES',
       'ALAHIA_AI',
@@ -292,6 +303,8 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   REPORTE_607: 'Formato 607 (Ventas)',
   CONFIGURACION_DGII: 'Configuración fiscal DGII',
   IT1: 'Declaración IT-1',
+  IR17: 'Declaración IR-17',
+  IR3: 'Declaración IR-3',
   DGII_FISCAL: 'Fiscal DGII',
   FE_CONFIGURACION: 'Configuración',
   FE_SECUENCIAS: 'Secuencias e-CF',
@@ -310,6 +323,9 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   TICKETS_ADMIN: 'Tickets (Admin)',
   CENTRO_PRODUCCION: 'Centro de Producción',
   KDS: 'Centro de Producción',
+  PEDIDOS_ONLINE: 'Pedidos online',
+  MANUFACTURA_RECETAS: 'Recetas',
+  MANUFACTURA_ORDENES: 'Órdenes de producción',
   ALAHIA_AI: 'Alahia AI',
   HORARIO_ESTILISTA: 'Horario Empleados'
 };

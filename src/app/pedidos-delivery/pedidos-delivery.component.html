@@ -1,0 +1,141 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Pedidos online y delivery</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pd-content">
+  <div class="pd-shell">
+    <section class="pd-links">
+      <article class="pd-link">
+        <p class="pd-eyebrow">Para clientes · Alahia Pedir</p>
+        <ng-container *ngIf="urlPedir; else sinCanal">
+          <strong>{{ urlPedir }}</strong>
+          <p class="pd-link-hint">{{ hintPedir }}</p>
+          <div class="pd-link-actions">
+            <button type="button" class="pd-btn" (click)="copiar(urlPedir, 'Link de clientes copiado')">Copiar</button>
+            <button type="button" class="pd-btn pd-btn-ghost" (click)="whatsapp(urlPedir, textoPedir)">WhatsApp</button>
+            <button type="button" class="pd-btn pd-btn-ghost" (click)="abrir(urlPedir)">Abrir</button>
+          </div>
+        </ng-container>
+        <ng-template #sinCanal>
+          <p class="pd-link-hint">Este negocio aún no tiene canal de pedidos en línea. Cuando esté activo, aquí aparecerá el link del menú.</p>
+        </ng-template>
+      </article>
+
+      <article class="pd-link pd-link-reparto">
+        <p class="pd-eyebrow">Para repartidores · Alahia Reparto</p>
+        <strong>{{ urlReparto }}</strong>
+        <p class="pd-link-hint">Envíe este link al repartidor. Entra con su usuario y contraseña del ERP.</p>
+          <div class="pd-link-actions">
+            <button type="button" class="pd-btn" (click)="copiar(urlReparto, 'Link de Reparto copiado')">Copiar</button>
+            <button type="button" class="pd-btn pd-btn-ghost" (click)="whatsapp(urlReparto, textoReparto)">WhatsApp</button>
+            <button type="button" class="pd-btn pd-btn-ghost" (click)="abrir(urlReparto)">Abrir</button>
+          </div>
+      </article>
+    </section>
+
+    <p class="pd-hint">Los pedidos de delivery aparecen aquí apenas entran, también mientras cocina los prepara. Cocina se opera en Centro de producción.</p>
+    <div class="pd-tabs">
+      <button type="button" [class.active]="tab === 'cola'" (click)="tab = 'cola'">
+        Cola delivery <span>{{ cola.length }}</span>
+      </button>
+      <button type="button" [class.active]="tab === 'recoger'" (click)="tab = 'recoger'">
+        Recoger <span>{{ recoger.length }}</span>
+      </button>
+      <button type="button" [class.active]="tab === 'curso'" (click)="tab = 'curso'">
+        En camino <span>{{ enCurso.length }}</span>
+      </button>
+      <button type="button" [class.active]="tab === 'todos'" (click)="tab = 'todos'">Todos</button>
+      <button type="button" [class.active]="tab === 'repartidores'" (click)="tab = 'repartidores'; cargarUsuarios()">
+        Repartidores
+      </button>
+    </div>
+
+    <p class="pd-error" *ngIf="error">{{ error }}</p>
+    <p class="pd-state" *ngIf="loading">Cargando…</p>
+
+    <ng-container *ngIf="!loading">
+      <ng-container *ngIf="tab !== 'repartidores'">
+        <article
+          class="pd-card"
+          *ngFor="let p of (tab === 'cola' ? cola : tab === 'recoger' ? recoger : tab === 'curso' ? enCurso : pedidos)">
+          <header class="pd-card-top">
+            <div class="pd-card-id">
+              <strong>#{{ p.numeroPedido }}</strong>
+              <span class="chip chip-tipo">{{ etiquetaTipo(p) }}</span>
+              <span class="chip chip-estado">{{ p.estadoUnificado }}</span>
+              <span class="chip chip-cocina" *ngIf="p.estadoCocina && p.estadoCocina !== 'LISTA' && !esRecoger(p)">En cocina</span>
+            </div>
+            <time>{{ p.fecha | date:'short' }}</time>
+          </header>
+          <p class="cliente">{{ p.nombreCliente }} · <a class="pd-tel" [href]="'tel:' + p.telefono">{{ p.telefono }}</a></p>
+          <p class="pd-dir" *ngIf="p.direccion">{{ p.direccion }} <span *ngIf="p.referencia">({{ p.referencia }})</span></p>
+          <p class="pd-gps" *ngIf="p.latitud && p.longitud"><span class="chip chip-estado">GPS</span> Ubicación lista para el mapa</p>
+          <ul>
+            <li *ngFor="let it of p.items">
+              <b>{{ it.cantidad | number:'1.0-2' }}×</b> {{ it.nombre }}
+              <em *ngIf="it.observacion"> — {{ it.observacion }}</em>
+            </li>
+          </ul>
+          <p *ngIf="p.observacion" class="obs">{{ p.observacion }}</p>
+          <footer>
+            <strong class="pd-total">{{ money(p.total) }}</strong>
+            <span class="chip chip-tipo">{{ p.metodoPago }}</span>
+            <span class="pd-driver" *ngIf="p.nombreRepartidor">{{ p.nombreRepartidor }}</span>
+            <a class="pd-maps" *ngIf="mapsUrl(p)" [href]="mapsUrl(p)" target="_blank" rel="noopener">Maps</a>
+          </footer>
+          <div class="asignar" *ngIf="!esRecoger(p) && p.estadoLogistico !== 'Entregado' && p.estadoLogistico !== 'Cancelado'">
+            <select #sel [disabled]="asignando === p.idPedidoOnline">
+              <option value="">Asignar a…</option>
+              <option *ngFor="let r of repartidores" [value]="r.idUsuario">
+                {{ r.nombre }} ({{ r.pedidosActivos }} activos)
+              </option>
+            </select>
+            <button
+              type="button"
+              class="pd-btn pd-btn-gold"
+              [disabled]="asignando === p.idPedidoOnline || !sel.value"
+              (click)="asignar(p, +sel.value)">
+              {{ p.idUsuarioRepartidor ? 'Reasignar' : 'Asignar' }}
+            </button>
+          </div>
+        </article>
+        <p class="pd-state" *ngIf="(tab === 'cola' ? cola : tab === 'recoger' ? recoger : tab === 'curso' ? enCurso : pedidos).length === 0">
+          No hay pedidos en esta vista.
+        </p>
+      </ng-container>
+
+      <section *ngIf="tab === 'repartidores'">
+        <div class="alta">
+          <select [(ngModel)]="usuarioNuevo">
+            <option [ngValue]="0">Usuario ERP…</option>
+            <option *ngFor="let u of usuarios" [ngValue]="idUsuarioDe(u)">{{ u.nombre }} ({{ u.correo }})</option>
+          </select>
+          <button type="button" class="pd-btn pd-btn-gold" (click)="altaRepartidor()">Agregar</button>
+        </div>
+        <article class="pd-card pd-card-driver" *ngFor="let r of repartidores">
+          <header class="pd-card-top">
+            <strong>{{ r.nombre }}</strong>
+            <span class="chip" [class.chip-estado]="r.disponible" [class.off]="!r.disponible">
+              {{ r.disponible ? 'Disponible' : 'No disponible' }}
+            </span>
+          </header>
+          <p>{{ r.userName }} · {{ r.pedidosActivos }} pedidos activos</p>
+          <button type="button" class="pd-btn pd-btn-ghost" (click)="toggleDisponible(r)">
+            {{ r.disponible ? 'Marcar no disponible' : 'Marcar disponible' }}
+          </button>
+        </article>
+        <p class="pd-state" *ngIf="!repartidores.length">Agregue al menos un usuario como repartidor.</p>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>

@@ -11,9 +11,14 @@ export class AppConfigService {
 //public readonly apiUrl: string = 'http://localhost:5000/api';
 
   //api de desarrollo (Alahia AI y features nuevas locales)
- public readonly apiUrl: string = 'http://localhost:5039/api';
+  public readonly apiUrl: string = 'http://localhost:5039/api';
 
-  //api de QA (caído: 503 Service Unavailable)
+  /** PWA cliente (proyecto AlahiaPedidos). */
+  public readonly pedirPublicUrl: string = 'http://localhost:4210';
+  /** PWA repartidor (proyecto AlahiaPedidos). */
+  public readonly repartoPublicUrl: string = 'http://localhost:4211';
+
+  //api de QA
   //public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
    
 }

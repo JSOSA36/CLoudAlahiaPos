@@ -1,0 +1,281 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Órdenes de producción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Producción</p>
+        <h1>Órdenes</h1>
+        <p class="sub">Calcule materiales, detecte faltantes y, al completar, descuente materias primas e ingrese el producto terminado al inventario.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="nuevo()">Nueva</button>
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando || !puedeEditarCabecera">
+          {{ guardando ? 'Guardando…' : 'Guardar borrador' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Listado</p>
+          <h2>Órdenes de la empresa</h2>
+        </div>
+        <label class="field" style="min-width: 180px;">
+          <span>Estado</span>
+          <select [(ngModel)]="filtroEstado" name="filtroEst" (change)="cargar()">
+            <option *ngFor="let e of estados" [ngValue]="e.id">{{ e.label }}</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table list-pick">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Producto</th>
+              <th>Planificado</th>
+              <th>Real</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of listado" [class.sel]="form.idOrdenProduccion === o.idOrdenProduccion" (click)="abrir(o)">
+              <td>{{ o.numero }}</td>
+              <td>{{ o.nombreProducto }}</td>
+              <td>{{ o.cantidadPlanificada | number:'1.0-4' }}</td>
+              <td>{{ o.cantidadReal != null ? (o.cantidadReal | number:'1.0-4') : '—' }}</td>
+              <td class="estado" [ngClass]="o.estado">{{ etiquetaEstado(o.estado) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">No hay órdenes con ese filtro.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ form.numero || 'Nueva orden' }}</p>
+          <h2>{{ form.nombreProducto || 'Qué se va a producir' }}</h2>
+        </div>
+        <span class="estado" [ngClass]="form.estado">{{ etiquetaEstado(form.estado) }}</span>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Receta</span>
+          <select [(ngModel)]="form.idReceta" name="opReceta" [disabled]="!puedeEditarCabecera" (change)="onCambioExplosion()">
+            <option [ngValue]="0">Seleccione</option>
+            <option *ngFor="let r of recetas" [ngValue]="r.idReceta">{{ r.nombre }} · {{ r.nombreProducto }} ({{ r.rendimientoBase }})</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Cantidad planificada</span>
+          <input type="number" min="0.0001" step="0.01" [(ngModel)]="form.cantidadPlanificada" name="opCant"
+            [disabled]="!puedeEditarCabecera" (change)="onCambioExplosion()" />
+        </label>
+        <label class="field">
+          <span>Fecha</span>
+          <input type="date" [(ngModel)]="form.fecha" name="opFecha" [disabled]="!puedeEditarCabecera" />
+        </label>
+        <label class="field">
+          <span>Almacén de materias primas</span>
+          <select [(ngModel)]="form.idAlmacenOrigen" name="opOri" [disabled]="!puedeEditarCabecera" (change)="onCambioExplosion()">
+            <option [ngValue]="0">Seleccione</option>
+            <option *ngFor="let a of almacenes" [ngValue]="a.idAlmacen">{{ a.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Almacén del producto terminado</span>
+          <select [(ngModel)]="form.idAlmacenDestino" name="opDes" [disabled]="!puedeEditarCabecera">
+            <option [ngValue]="0">Seleccione</option>
+            <option *ngFor="let a of almacenes" [ngValue]="a.idAlmacen">{{ a.nombre }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Responsable</span>
+          <select [(ngModel)]="form.idUsuarioResponsable" name="opResp" [disabled]="!puedeEditarCabecera">
+            <option [ngValue]="null">Sin asignar</option>
+            <option *ngFor="let u of usuarios" [ngValue]="idUsuario(u)">{{ u.nombre }}</option>
+          </select>
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Observaciones</span>
+          <textarea [(ngModel)]="form.observacion" name="opObs" rows="2" [disabled]="!puedeEditarCabecera"></textarea>
+        </label>
+      </div>
+      <div class="hero-actions" style="margin-top: 0.9rem;" *ngIf="!soloLectura">
+        <button type="button" class="btn btn-outline" (click)="recalcular()" [disabled]="!form.idReceta">Calcular materiales</button>
+        <button type="button" class="btn btn-primary" (click)="planificar()"
+          [disabled]="accionando || !form.idOrdenProduccion || (form.estado !== 'BORRADOR' && form.estado !== 'PLANIFICADA')">
+          Planificar
+        </button>
+        <button type="button" class="btn btn-success" (click)="iniciar()"
+          [disabled]="accionando || form.estado !== 'PLANIFICADA'">
+          Iniciar
+        </button>
+        <button type="button" class="btn btn-outline" (click)="cancelar()"
+          [disabled]="accionando || !form.idOrdenProduccion">
+          Cancelar orden
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Explosión de materiales</p>
+          <h2>Qué se necesita para esta cantidad</h2>
+        </div>
+      </div>
+      <div class="faltantes-banner" *ngIf="faltantes.length" [class.ok]="false">
+        Para completar esta producción faltan {{ faltantes.length }} material(es). Puede crear una orden de compra con esos faltantes.
+      </div>
+      <div class="faltantes-banner ok" *ngIf="materiales.length && !faltantes.length">
+        Hay inventario suficiente en el almacén de origen para iniciar.
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Necesario</th>
+              <th>Disponible</th>
+              <th>Faltante</th>
+              <th>Costo ref.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of materiales">
+              <td>{{ m.nombreProducto }} <span class="muted">{{ m.unidad }}</span></td>
+              <td>{{ m.cantidadTeorica | number:'1.0-4' }}</td>
+              <td>{{ m.disponible | number:'1.0-4' }}</td>
+              <td [class.faltante]="m.faltante > 0" [class.ok-stock]="m.faltante <= 0">
+                {{ m.faltante | number:'1.0-4' }}
+              </td>
+              <td>{{ m.costoLinea | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!materiales.length">Seleccione receta y cantidad, o pulse Calcular materiales.</p>
+    </section>
+
+    <section class="panel" *ngIf="faltantes.length && !soloLectura">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Materiales faltantes</p>
+          <h2>Lo que hay que comprar</h2>
+        </div>
+        <button type="button" class="btn btn-yellow" (click)="crearCompra()" [disabled]="accionando || !form.idOrdenProduccion">
+          Crear orden de compra
+        </button>
+      </div>
+      <p class="muted">Se genera un borrador de orden de compra por proveedor, reutilizando Compras. El producto debe tener proveedor asignado.</p>
+      <div class="table-wrap">
+        <table class="rrhh-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Faltante</th>
+              <th>Proveedor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of faltantes">
+              <td>{{ m.nombreProducto }}</td>
+              <td class="faltante">{{ m.faltante | number:'1.0-4' }} {{ m.unidad }}</td>
+              <td>{{ m.nombreProveedor || 'Sin proveedor' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="form.estado === 'PLANIFICADA' || form.estado === 'EN_PROCESO'">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Ejecución</p>
+          <h2>Cantidad real y consumo</h2>
+        </div>
+        <button type="button" class="btn btn-success" (click)="completar()" [disabled]="accionando">
+          Completar producción
+        </button>
+      </div>
+      <p class="muted">Al completar se genera una salida de materias primas y una entrada del producto terminado. No cree esos movimientos a mano.</p>
+      <div class="grid">
+        <label class="field">
+          <span>Cantidad realmente producida</span>
+          <input type="number" min="0.0001" step="0.01" [(ngModel)]="cantidadReal" name="opReal" />
+        </label>
+        <div class="field">
+          <span>Planificado</span>
+          <strong>{{ form.cantidadPlanificada | number:'1.0-4' }}</strong>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top: 0.9rem;">
+        <table class="rrhh-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Teórico</th>
+              <th>Consumo real</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of consumos">
+              <td>{{ c.nombreProducto }}</td>
+              <td>{{ c.cantidadTeorica | number:'1.0-4' }} {{ c.unidad }}</td>
+              <td>
+                <input class="qty-input" type="number" min="0.0001" step="0.01" [(ngModel)]="c.cantidadReal" [name]="'cons'+c.idProducto" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="form.estado === 'COMPLETADA'">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Resultado</p>
+          <h2>Producción registrada</h2>
+        </div>
+      </div>
+      <div class="costo-box">
+        <div class="pkg-item">
+          <span>Planificado</span>
+          <strong>{{ form.cantidadPlanificada | number:'1.0-4' }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Producido</span>
+          <strong>{{ form.cantidadReal | number:'1.0-4' }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Costo materiales</span>
+          <strong>{{ form.costoMateriales | number:'1.2-2' }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Costo unitario</span>
+          <strong>{{ form.costoUnitario | number:'1.2-4' }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Movimiento salida</span>
+          <strong>#{{ form.idMovimientoSalida }}</strong>
+        </div>
+        <div class="pkg-item">
+          <span>Movimiento entrada</span>
+          <strong>#{{ form.idMovimientoEntrada }}</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+</ion-content>

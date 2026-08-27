@@ -1,0 +1,150 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Recetas de producción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rrhh-page">
+  <div class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Producción</p>
+        <h1>Recetas</h1>
+        <p class="sub">Fórmula del producto terminado. Las cantidades se escalan solas según lo que se desee producir.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-ghost" (click)="nuevo()">Nueva</button>
+        <button type="button" class="btn btn-yellow" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : 'Guardar receta' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Listado</p>
+          <h2>Recetas de la empresa</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="rrhh-table list-pick">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Producto terminado</th>
+              <th>Rendimiento</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of listado" [class.sel]="form.idReceta === r.idReceta" (click)="editar(r)">
+              <td>{{ r.nombre }}</td>
+              <td>{{ r.nombreProducto }}</td>
+              <td>{{ r.rendimientoBase | number:'1.0-4' }} {{ r.unidad || 'und' }}</td>
+              <td class="estado" [ngClass]="r.activa ? 'ACTIVO' : 'RECHAZADA'">{{ r.activa ? 'Activa' : 'Inactiva' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!listado.length">Aún no hay recetas. Cree una para poder planificar producción.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">{{ form.idReceta ? 'Edición' : 'Alta' }}</p>
+          <h2>{{ form.idReceta ? 'Datos de la receta' : 'Nueva receta' }}</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <label class="field">
+          <span>Nombre</span>
+          <input [(ngModel)]="form.nombre" name="recetaNombre" placeholder="Ej. Bizcocho clásico" />
+        </label>
+        <label class="field">
+          <span>Rendimiento base</span>
+          <input type="number" min="0.0001" step="0.01" [(ngModel)]="form.rendimientoBase" name="recetaRend" />
+        </label>
+        <label class="field">
+          <span>Estado</span>
+          <select [(ngModel)]="form.activa" name="recetaActiva">
+            <option [ngValue]="true">Activa</option>
+            <option [ngValue]="false">Inactiva</option>
+          </select>
+        </label>
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Observación</span>
+          <textarea [(ngModel)]="form.observacion" name="recetaObs" rows="2"></textarea>
+        </label>
+      </div>
+
+      <p class="panel-eyebrow" style="margin-top: 1rem;">Producto terminado</p>
+      <label class="field prod-search">
+        <span>Buscar en el catálogo existente</span>
+        <input [(ngModel)]="busquedaProducto" name="buscaTerm" placeholder="Escriba para filtrar productos" />
+      </label>
+      <p class="muted" *ngIf="form.idProductoTerminado">Seleccionado: {{ nombreProducto(form.idProductoTerminado) }}</p>
+      <div class="prod-pick" *ngIf="productosFiltrados.length">
+        <button type="button" *ngFor="let p of productosFiltrados"
+          [class.sel]="form.idProductoTerminado === p.idProducto"
+          (click)="elegirTerminado(p)">{{ p.descripcion }}</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Componentes</p>
+          <h2>Materias primas para el rendimiento base</h2>
+        </div>
+      </div>
+      <p class="muted">Si el rendimiento es 1 bizcocho y pone 5 lb de harina, una orden de 10 bizcochos pedirá 50 lb.</p>
+      <div class="grid">
+        <label class="field">
+          <span>Buscar componente</span>
+          <input [(ngModel)]="busquedaIngrediente" name="buscaIng" placeholder="Harina, azúcar…" />
+        </label>
+        <label class="field">
+          <span>Cantidad para el rendimiento base</span>
+          <input type="number" min="0.0001" step="0.01" [(ngModel)]="cantIngrediente" name="cantIng" />
+        </label>
+      </div>
+      <p class="muted" *ngIf="idIngrediente">Seleccionado: {{ nombreProducto(idIngrediente) }}</p>
+      <div class="prod-pick" *ngIf="ingredientesFiltrados.length">
+        <button type="button" *ngFor="let p of ingredientesFiltrados"
+          [class.sel]="idIngrediente === p.idProducto"
+          (click)="elegirIngrediente(p)">{{ p.descripcion }}</button>
+      </div>
+      <div class="hero-actions" style="margin: 0.7rem 0 1rem;">
+        <button type="button" class="btn btn-outline" (click)="agregarIngrediente()">Agregar a la receta</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="rrhh-table">
+          <thead>
+            <tr>
+              <th>Componente</th>
+              <th>Cantidad</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let i of form.items">
+              <td>{{ i.nombreProducto || nombreProducto(i.idProducto) }}</td>
+              <td>
+                <input class="qty-input" type="number" min="0.0001" step="0.01" [(ngModel)]="i.cantidad" [name]="'cant'+i.idProducto" />
+                <span class="muted">{{ i.unidad }}</span>
+              </td>
+              <td><button type="button" class="btn btn-outline" (click)="quitarIngrediente(i.idProducto)">Quitar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty" *ngIf="!form.items.length">Agregue harina, azúcar y el resto de componentes del catálogo.</p>
+    </section>
+  </div>
+</ion-content>

@@ -112,6 +112,16 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'reporte-ir17',
+    loadChildren: () => import('./Components/reporte-ir17/reporte-ir17.module').then(m => m.ReporteIr17Module),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'reporte-ir3',
+    loadChildren: () => import('./Components/reporte-ir3/reporte-ir3.module').then(m => m.ReporteIr3Module),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'reporteperdidas',
     loadChildren: () => import('./Components/reporte-perdidas/reporte-perdidas.module').then(m => m.ReportePerdidasModule),
     canActivate: [AuthGuard]
@@ -367,6 +377,18 @@ const routes: Routes = [
     .then(m => m.RrhhNominaComponent),
   canActivate: [AuthGuard]
 },
+{
+  path: 'produccion-recetas',
+  loadComponent: () => import('./manufactura/manufactura-recetas.component')
+    .then(m => m.ManufacturaRecetasComponent),
+  canActivate: [AuthGuard]
+},
+{
+  path: 'produccion-ordenes',
+  loadComponent: () => import('./manufactura/manufactura-ordenes.component')
+    .then(m => m.ManufacturaOrdenesComponent),
+  canActivate: [AuthGuard]
+},
 
 {
   path: 'usuarios',
@@ -390,6 +412,19 @@ const routes: Routes = [
     // Cotizador público (web): sin AuthGuard. Solo consume la API.
     path: 'cotizador',
     loadChildren: () => import('./cotizador/cotizador.module').then(m => m.CotizadorModule)
+  },
+  {
+    path: 'pedir/:slug',
+    loadChildren: () => import('./pedir/pedir.module').then(m => m.PedirModule)
+  },
+  {
+    path: 'reparto',
+    loadChildren: () => import('./reparto/reparto.module').then(m => m.RepartoModule)
+  },
+  {
+    path: 'pedidos-delivery',
+    loadChildren: () => import('./pedidos-delivery/pedidos-delivery.module').then(m => m.PedidosDeliveryModule),
+    canActivate: [AuthGuard]
   },
   {
     // Cotización POS pública: clientes de Alahia la envían a sus clientes (WhatsApp/link).

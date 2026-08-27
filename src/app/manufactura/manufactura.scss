@@ -1,0 +1,72 @@
+.estado.COMPLETADA { color: #15803d; }
+.estado.PLANIFICADA { color: #175cd3; }
+.estado.EN_PROCESO { color: #1d4ed8; }
+.estado.BORRADOR { color: #b54708; }
+.estado.CANCELADA { color: #b42318; }
+
+.faltante { color: #b42318; font-weight: 700; }
+.ok-stock { color: #15803d; font-weight: 650; }
+
+.qty-input {
+  width: 7.2rem;
+  min-height: 36px;
+  border: 1px solid var(--rrhh-line);
+  border-radius: 8px;
+  padding: 0.25rem 0.45rem;
+  background: #fff;
+}
+
+.faltantes-banner {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.faltantes-banner.ok {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.prod-search {
+  margin-bottom: 0.55rem;
+}
+
+.prod-pick {
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--rrhh-line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.prod-pick button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--rrhh-line);
+  background: transparent;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.prod-pick button:hover,
+.prod-pick button.sel {
+  background: #eff6ff;
+}
+
+.costo-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--rrhh-line);
+}

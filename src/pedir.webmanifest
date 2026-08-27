@@ -1,0 +1,16 @@
+{
+  "name": "Pedir",
+  "short_name": "Pedir",
+  "description": "Pedidos en línea Alahia",
+  "lang": "es",
+  "start_url": "/pedir/",
+  "scope": "/pedir/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1454B8",
+  "theme_color": "#1454B8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

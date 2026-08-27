@@ -1,0 +1,233 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Declaración IR-3 — Retenciones ISR de asalariados</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rit1-content">
+  <div class="rit1-page">
+
+    <section class="rit1-filtros">
+      <div class="rit1-field">
+        <label>Periodo (mes)</label>
+        <ion-input type="month" [(ngModel)]="periodoMes"></ion-input>
+      </div>
+      <div class="rit1-actions">
+        <ion-button (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button
+          color="warning"
+          fill="solid"
+          [disabled]="!data"
+          (click)="exportarExcel()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Exportar Excel
+        </ion-button>
+        <ion-button
+          color="medium"
+          [disabled]="!data"
+          (click)="exportarPdf()">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rit1-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Calculando IR-3 desde nómina…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando && data">
+      <section class="rit1-resumen">
+        <div class="rit1-kpi">
+          <span>Periodo</span>
+          <strong>{{ data.periodo }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Nóminas</span>
+          <strong>{{ data.cantidadNominas }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Asalariados</span>
+          <strong>{{ data.cantidadEmpleados }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Remuneraciones</span>
+          <strong>{{ data.totalRemuneraciones | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>ISR retenido</span>
+          <strong>{{ data.totalIsrRetenido | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.warn]="data.impuestoAPagar > 0">
+          <span>Impuesto a pagar</span>
+          <strong>{{ data.impuestoAPagar | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.ok]="data.saldoAFavor > 0">
+          <span>Saldo a favor</span>
+          <strong>{{ data.saldoAFavor | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.alert]="data.cantidadAlertas > 0">
+          <span>Alertas</span>
+          <strong>{{ data.cantidadAlertas }}</strong>
+        </div>
+      </section>
+
+      <div class="rit1-alertas" *ngIf="data.alertasGlobales?.length">
+        <div class="rit1-alerta" *ngFor="let a of data.alertasGlobales">{{ a }}</div>
+      </div>
+
+      <p class="rit1-hint">
+        Vista previa de apoyo. Presente el IR-3 en Oficina Virtual (antes cargue la nómina en TSS y valide el IR-4).
+        Vence el día 10 del mes siguiente{{ data.fechaLimitePago ? ' · límite ' + (data.fechaLimitePago | date:'dd/MM/yyyy') : '' }}.
+        RNC {{ data.rncEmpresa || '—' }} · {{ data.razonSocial || data.nombreComercial || '—' }}
+      </p>
+
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionResumenAbierta = !seccionResumenAbierta">
+          <strong>I. Resumen de nómina</strong>
+          <span>{{ seccionResumenAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionResumenAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Cant.</th>
+                <th class="num">Monto</th>
+                <th>Origen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.resumen" [class.tot]="c.esCalculada">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.cantidad != null ? c.cantidad : '—' }}</td>
+                <td class="num">{{ c.monto | number:'1.2-2' }}</td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionLiqAbierta = !seccionLiqAbierta">
+          <strong>II–IV. Liquidación IR-3</strong>
+          <span>{{ seccionLiqAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionLiqAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Monto</th>
+                <th>Origen</th>
+                <th>Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.liquidacion" [class.tot]="c.esCalculada">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.monto | number:'1.2-2' }}</td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+                <td>
+                  <span class="rit1-chip" *ngFor="let al of c.alertas">{{ al }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rit1-panel" *ngIf="data.nominasIncluidas?.length">
+        <button type="button" class="rit1-panel-head" (click)="seccionNominasAbierta = !seccionNominasAbierta">
+          <strong>Nóminas incluidas ({{ data.nominasIncluidas.length }})</strong>
+          <span>{{ seccionNominasAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionNominasAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Periodo</th>
+                <th>Estado</th>
+                <th>Frecuencia</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Pago</th>
+                <th class="num">Empl.</th>
+                <th class="num">Bruto</th>
+                <th class="num">ISR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let n of data.nominasIncluidas">
+                <td>{{ n.idNominaProceso }}</td>
+                <td>{{ n.periodKey }}</td>
+                <td>{{ n.estado }}</td>
+                <td>{{ n.frecuencia }}</td>
+                <td>{{ n.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                <td>{{ n.fechaFin | date:'dd/MM/yyyy' }}</td>
+                <td>{{ n.fechaPago | date:'dd/MM/yyyy' }}</td>
+                <td class="num">{{ n.empleados }}</td>
+                <td class="num">{{ n.totalBruto | number:'1.2-2' }}</td>
+                <td class="num">{{ n.totalIsr | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rit1-panel" *ngIf="data.lineasAsalariados?.length">
+        <button type="button" class="rit1-panel-head" (click)="seccionAsalariadosAbierta = !seccionAsalariadosAbierta">
+          <strong>Detalle asalariados / IR-4 interno ({{ data.lineasAsalariados.length }})</strong>
+          <span>{{ seccionAsalariadosAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionAsalariadosAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>Nómina</th>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th class="num">Bruto</th>
+                <th class="num">AFP</th>
+                <th class="num">SFS</th>
+                <th class="num">Base ISR</th>
+                <th class="num">ISR retenido</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let l of data.lineasAsalariados">
+                <td>{{ l.idNominaProceso }}</td>
+                <td>{{ l.cedula || '—' }}</td>
+                <td>{{ l.nombre || '—' }}</td>
+                <td class="num">{{ l.bruto | number:'1.2-2' }}</td>
+                <td class="num">{{ l.afpEmpleado | number:'1.2-2' }}</td>
+                <td class="num">{{ l.sfsEmpleado | number:'1.2-2' }}</td>
+                <td class="num">{{ l.baseImponibleIsr | number:'1.2-2' }}</td>
+                <td class="num">{{ l.isrRetenido | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>

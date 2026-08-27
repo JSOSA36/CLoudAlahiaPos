@@ -1,0 +1,202 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Declaración IR-17 — Otras retenciones ISR</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rit1-content">
+  <div class="rit1-page">
+
+    <section class="rit1-filtros">
+      <div class="rit1-field">
+        <label>Periodo (mes)</label>
+        <ion-input type="month" [(ngModel)]="periodoMes"></ion-input>
+      </div>
+      <div class="rit1-actions">
+        <ion-button (click)="cargar()" [disabled]="cargando">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Consultar
+        </ion-button>
+        <ion-button
+          color="warning"
+          fill="solid"
+          [disabled]="!data"
+          (click)="exportarExcel()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Exportar Excel
+        </ion-button>
+        <ion-button
+          color="medium"
+          [disabled]="!data"
+          (click)="exportarPdf()">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          Exportar PDF
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="rit1-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Calculando IR-17 2026…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando && data">
+      <section class="rit1-resumen">
+        <div class="rit1-kpi">
+          <span>Periodo</span>
+          <strong>{{ data.periodo }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Retenciones 606</span>
+          <strong>{{ data.cantidadRetenciones }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Base imponible</span>
+          <strong>{{ data.totalMontoImponible | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Otras retenciones</span>
+          <strong>{{ data.totalOtrasRetenciones | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.warn]="data.impuestoAPagar > 0">
+          <span>Impuesto a pagar</span>
+          <strong>{{ data.impuestoAPagar | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.ok]="data.saldoAFavor > 0">
+          <span>Saldo a favor</span>
+          <strong>{{ data.saldoAFavor | number:'1.2-2' }}</strong>
+        </div>
+        <div class="rit1-kpi" [class.alert]="data.cantidadAlertas > 0">
+          <span>Alertas</span>
+          <strong>{{ data.cantidadAlertas }}</strong>
+        </div>
+        <div class="rit1-kpi">
+          <span>Total a pagar</span>
+          <strong>{{ data.totalGeneralAPagar | number:'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <div class="rit1-alertas" *ngIf="data.alertasGlobales?.length">
+        <div class="rit1-alerta" *ngFor="let a of data.alertasGlobales">{{ a }}</div>
+      </div>
+
+      <p class="rit1-hint">
+        Vista previa de apoyo (IR-17-2026, julio 2026 en adelante). Presente el Anexo R9C y luego el IR-17 en Oficina Virtual.
+        Vence el día 10 del mes siguiente{{ data.fechaLimitePago ? ' · límite ' + (data.fechaLimitePago | date:'dd/MM/yyyy') : '' }}.
+        RNC {{ data.rncEmpresa || '—' }} · {{ data.razonSocial || data.nombreComercial || '—' }}
+      </p>
+
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionRetencionesAbierta = !seccionRetencionesAbierta">
+          <strong>II–IV. Otras retenciones (casillas 1–27)</strong>
+          <span>{{ seccionRetencionesAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionRetencionesAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Tasa</th>
+                <th class="num">Cant.</th>
+                <th class="num">Base imponible</th>
+                <th class="num">Impuesto</th>
+                <th>Origen</th>
+                <th>Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.otrasRetenciones" [class.tot]="c.esCalculada">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.tasa != null ? (c.tasa * 100 | number:'1.0-2') + '%' : '—' }}</td>
+                <td class="num">{{ c.cantidad != null ? c.cantidad : '—' }}</td>
+                <td class="num">{{ c.montoImponible | number:'1.2-2' }}</td>
+                <td class="num">{{ c.impuesto | number:'1.2-2' }}</td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+                <td>
+                  <span class="rit1-chip" *ngFor="let al of c.alertas">{{ al }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rit1-panel">
+        <button type="button" class="rit1-panel-head" (click)="seccionLiqAbierta = !seccionLiqAbierta">
+          <strong>V–VIII. Liquidación y pago (casillas 28–37)</strong>
+          <span>{{ seccionLiqAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionLiqAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Casilla</th>
+                <th class="num">Tasa</th>
+                <th class="num">Monto</th>
+                <th>Origen</th>
+                <th>Alertas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of data.liquidacion" [class.tot]="c.esCalculada">
+                <td>{{ c.numero }}</td>
+                <td>
+                  <div class="rit1-etiqueta">{{ c.etiqueta }}</div>
+                  <small *ngIf="c.formulaAplicada">{{ c.formulaAplicada }}</small>
+                </td>
+                <td class="num">{{ c.tasa != null ? (c.tasa * 100 | number:'1.0-2') + '%' : '—' }}</td>
+                <td class="num">{{ c.impuesto | number:'1.2-2' }}</td>
+                <td><span class="rit1-origen" [ngClass]="origenClase(c.origen)">{{ c.origen }}</span></td>
+                <td>
+                  <span class="rit1-chip" *ngFor="let al of c.alertas">{{ al }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rit1-panel" *ngIf="data.lineasOrigen?.length">
+        <button type="button" class="rit1-panel-head" (click)="seccionOrigenAbierta = !seccionOrigenAbierta">
+          <strong>Detalle origen 606 ({{ data.lineasOrigen.length }})</strong>
+          <span>{{ seccionOrigenAbierta ? 'Ocultar' : 'Mostrar' }}</span>
+        </button>
+        <div class="rit1-table-wrap" *ngIf="seccionOrigenAbierta">
+          <table class="rit1-table">
+            <thead>
+              <tr>
+                <th>FACTC</th>
+                <th>NCF</th>
+                <th>606</th>
+                <th>Casilla</th>
+                <th class="num">Base</th>
+                <th class="num">ISR retenido</th>
+                <th>Pago fiscal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let l of data.lineasOrigen">
+                <td>{{ l.idOrdenCompraHeader }}</td>
+                <td>{{ l.ncf || l.numeroDocumento || '—' }}</td>
+                <td>{{ l.tipoRetencionIsr }}</td>
+                <td>{{ l.casilla }}</td>
+                <td class="num">{{ l.montoImponible | number:'1.2-2' }}</td>
+                <td class="num">{{ l.impuesto | number:'1.2-2' }}</td>
+                <td>{{ l.fechaPagoFiscal | date:'dd/MM/yyyy' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>

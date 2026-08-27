@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AlertController, Platform, ToastController } from '@ionic/angular';
@@ -13,6 +13,7 @@ import { PosComponent } from './Pos/pos/pos.component';
 import { PoliticasGateService } from './servicios/politicas-gate.service';
 import { NotificacionesService } from './servicios/notificaciones.service';
 import { EmpresaService } from './servicios/empresa.services';
+import { DgiiConfigService } from './servicios/dgii-config.service';
 import { etiquetaNivelSoporte, iconoNivelSoporte } from './shared/nivel-soporte';
 import {
   MENU_GRUPOS,
@@ -35,6 +36,8 @@ export const MODULO_RUTAS: Record<string, string> = {
   ORDENES: '/Ordenes',
   REPORTE_607: '/reporte607',
   IT1: '/reporte-it1',
+  IR17: '/reporte-ir17',
+  IR3: '/reporte-ir3',
   REPORTE_VENTA: '/reporteventa',
   REPORTE_SERVICIOS: '/reporteservicios',
   REPORTE_COMISIONES: '/comisiones',
@@ -132,7 +135,10 @@ export const MODULO_RUTAS: Record<string, string> = {
   TICKETS_ADMIN: '/tickets-admin',
   CENTRO_PRODUCCION: '/centro-produccion',
   /** Alias histórico (Kitchen Display → Centro de Producción). */
-  KDS: '/centro-produccion'
+  KDS: '/centro-produccion',
+  MANUFACTURA_RECETAS: '/produccion-recetas',
+  MANUFACTURA_ORDENES: '/produccion-ordenes',
+  PEDIDOS_ONLINE: '/pedidos-delivery'
 };
 
 // ===============================
@@ -145,6 +151,8 @@ export const MODULO_ICONOS: Record<string, string> = {
   REPORTE_607: 'file-invoice',
   REPORTE_606: 'file-invoice',
   IT1: 'file-invoice-dollar',
+  IR17: 'file-invoice-dollar',
+  IR3: 'file-invoice-dollar',
   REPORTE_VENTA: 'file-invoice-dollar',
   REPORTE_SERVICIOS: 'chart-line',
   REPORTE_COMISIONES: 'money-bill-wave',
@@ -230,6 +238,9 @@ export const MODULO_ICONOS: Record<string, string> = {
   TICKETS_ADMIN: 'life-ring',
   CENTRO_PRODUCCION: 'industry',
   KDS: 'industry',
+  MANUFACTURA_RECETAS: 'book',
+  MANUFACTURA_ORDENES: 'cogs',
+  PEDIDOS_ONLINE: 'motorcycle',
   ALAHIA_AI: 'robot'
 };
 
@@ -253,10 +264,17 @@ export class AppComponent implements OnInit, OnDestroy {
   public alertaPagoBanner: { tipo: string; mensaje: string } | null = null;
   private destroy$ = new Subject<void>();
 
-  get mostrarCampanaNotificaciones(): boolean {
+  get mostrarChromeErp(): boolean {
+    if (this.esShellPwa()) return false;
     if (this.isPublicRoute()) return false;
-    if (this.router.url.includes('/login')) return false;
-    return !!(localStorage.getItem('token_sesion') || this._Parametro.IdEmpresa);
+    const token = localStorage.getItem('token_sesion');
+    const empresa = this._Parametro.IdEmpresa
+      || Number(localStorage.getItem('IdEmpresa') || 0);
+    return !!(token && empresa);
+  }
+
+  get mostrarCampanaNotificaciones(): boolean {
+    return this.mostrarChromeErp;
   }
 
   // ===============================
@@ -284,6 +302,15 @@ export class AppComponent implements OnInit, OnDestroy {
     this.mostrarSoporte = true;
   }
 
+  private recargarFlagsFiscales(): void {
+    const id = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    if (!id) return;
+    this.dgiiConfig.getFeatures(id).subscribe({
+      next: (f) => this._Parametro.setFiscalFeatures(f),
+      error: () => { /* conserva flags de sesión; no apaga IT-1 / IR-17 / IR-3 */ }
+    });
+  }
+
   private cargarNivelSoporte(): void {
     const id = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
     if (!id) return;
@@ -306,7 +333,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private politicasGate: PoliticasGateService,
     private notificaciones: NotificacionesService,
     private perfilRoles: PerfilRolesService,
-    private empresaSrv: EmpresaService
+    private empresaSrv: EmpresaService,
+    private dgiiConfig: DgiiConfigService
   ) {}
 
   // ===============================
@@ -388,8 +416,16 @@ setInterval(async () => {
 
 
     this._Parametro.ensureSessionFromStorage();
+    this.syncPwaShellClass();
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => this.syncPwaShellClass());
     this.cargarMenu();
     this.cargarNivelSoporte();
+    this.recargarFlagsFiscales();
     void this.refrescarModulosDesdePerfil();
 
     this._Parametro.menuRefreshObservable$
@@ -401,6 +437,7 @@ setInterval(async () => {
       .subscribe(() => {
         this.cargarMenu();
         this.cargarNivelSoporte();
+        this.recargarFlagsFiscales();
         void this.refrescarModulosDesdePerfil();
         this.startIdleWatcher();
         this.iniciarCentroNotificaciones();
@@ -454,17 +491,48 @@ resetTimer() {
   this._Parametro.refreshSession();
   this.startIdleWatcher();
 }
-private isPublicRoute(): boolean {
-  const publicRoutes = [
-    '/catalogo',
-    '/cita',
-    '/citainicio',
-    '/login',
-    '/cotizador',
-    '/cotizacion'
-  ];
+private esShellPwa(): boolean {
+  const url = (this.router.url || '').split('?')[0].split('#')[0].toLowerCase();
+  return url === '/pedir' || url.startsWith('/pedir/')
+    || url === '/reparto' || url.startsWith('/reparto/');
+}
 
-  return publicRoutes.some(r => this.router.url.includes(r));
+private syncPwaShellClass(): void {
+  if (typeof document === 'undefined') return;
+  const url = (this.router.url || '').split('?')[0].split('#')[0].toLowerCase();
+  const pedir = url === '/pedir' || url.startsWith('/pedir/');
+  const reparto = url === '/reparto' || url.startsWith('/reparto/');
+  document.body.classList.toggle('pwa-shell', pedir || reparto);
+  document.body.classList.toggle('pwa-pedir', pedir);
+  document.body.classList.toggle('pwa-reparto', reparto);
+}
+
+private isPublicRoute(): boolean {
+  const url = (this.router.url || '').split('?')[0].split('#')[0].toLowerCase();
+  if (!url || url === '/') return true;
+
+  const publicas = [
+    '/login',
+    '/loginkds',
+    '/citainicio',
+    '/catalogo',
+    '/cotizador',
+    '/cotizacion',
+    '/servicio-suspendido',
+    '/pago-suscripcion',
+    '/pedir'
+  ];
+  if (publicas.some(p => url === p || url.startsWith(p + '/'))) return true;
+
+  // Cita pública de clientes. El módulo interno es /citas.
+  if (url === '/cita' || url.startsWith('/cita/')) return true;
+
+  // PWA repartidor: pública solo sin sesión (el login vive en /reparto).
+  if ((url === '/reparto' || url.startsWith('/reparto/')) && !localStorage.getItem('token_sesion')) {
+    return true;
+  }
+
+  return false;
 }
 
   // ===============================
@@ -654,9 +722,11 @@ private startIdleWatcher() {
       const ruta = MODULO_RUTAS[codigo];
       if (!ruta) return;
 
-      // IT-1 / config fiscal: módulo comercial + flags DgiiConfiguracionEmpresa
+      // IT-1 / IR-17 / IR-3: si el perfil los tiene, se muestran (no los apaga el flag DGII).
       if (
         (codigo === 'IT1' ||
+          codigo === 'IR17' ||
+          codigo === 'IR3' ||
           codigo === 'DGII_FISCAL' ||
           codigo === 'CONFIGURACION_DGII' ||
           codigo === 'CONFIGURACION_FISCAL') &&
@@ -672,12 +742,24 @@ private startIdleWatcher() {
       });
     });
 
-    // IT-1: visible con flag fiscal aunque no exista fila en Empresa_Modulos
-    if (this._Parametro.isGenerarIt1() && !modulosUsuario.has('IT1')) {
-      modulosUsuario.set('IT1', {
-        codigo: 'IT1',
-        title: MODULO_TITULOS_MENU['IT1'] || 'Declaración IT-1'
-      });
+    // Pack fiscal: IT-1 / IR-17 / IR-3 quedan en el menú si hay 606/607 o flags DGII.
+    const packFiscal =
+      this._Parametro.isGenerarIt1()
+      || this._Parametro.isFiscalActivo()
+      || modulosUsuario.has('REPORTE_606')
+      || modulosUsuario.has('REPORTE_607')
+      || modulosUsuario.has('IT1');
+    if (packFiscal) {
+      const titulos: Record<string, string> = {
+        IT1: MODULO_TITULOS_MENU['IT1'] || 'Declaración IT-1',
+        IR17: MODULO_TITULOS_MENU['IR17'] || 'Declaración IR-17',
+        IR3: MODULO_TITULOS_MENU['IR3'] || 'Declaración IR-3'
+      };
+      for (const codigo of ['IT1', 'IR17', 'IR3']) {
+        if (!modulosUsuario.has(codigo)) {
+          modulosUsuario.set(codigo, { codigo, title: titulos[codigo] });
+        }
+      }
     }
 
     const codigosAsignados = new Set<string>();
@@ -701,7 +783,7 @@ private startIdleWatcher() {
 
         if (
           incluirPorHub &&
-          (codigo === 'IT1' || codigo === 'DGII_FISCAL') &&
+          (codigo === 'CONFIGURACION_DGII' || codigo === 'CONFIGURACION_FISCAL') &&
           !this._Parametro.puedeMostrarMenuFiscal(codigo, true)
         ) {
           return;

@@ -1,0 +1,255 @@
+<div class="pedir-page" [class.has-fab]="paso === 'menu' && itemsCount">
+  <header class="pedir-hero">
+    <div class="pedir-brand">
+      <img class="app-logo" src="assets/brand/alahia-pedir-icon.png" alt="Alahia Pedir" />
+      <div>
+        <p class="eyebrow">Alahia Pedir</p>
+        <h1>{{ tituloNegocio }}</h1>
+      </div>
+    </div>
+    <button type="button" class="account-btn" (click)="irCuenta()">
+      {{ cuentaVinculada ? (nombre || 'Mi cuenta') : 'Mi cuenta' }}
+    </button>
+  </header>
+
+  <div class="pedir-body">
+    <div class="alert" *ngIf="error">{{ error }}</div>
+
+    <div class="state" *ngIf="loading">Cargando menú…</div>
+    <div class="state" *ngIf="!loading && !menu && !error">No hay menú disponible.</div>
+
+    <ng-container *ngIf="!loading && menu">
+
+      <section class="en-curso" *ngIf="paso === 'menu' && pedidosEnCurso.length">
+        <p class="en-curso-kicker">Pedido en curso</p>
+        <button type="button" class="en-curso-card" *ngFor="let p of pedidosEnCurso" (click)="abrirPedidoHistorial(p)">
+          <header>
+            <strong>#{{ p.numeroPedido }}</strong>
+            <span class="status-pill" [ngClass]="claseEstado(p.estadoUnificado)">{{ etiquetaEstado(p.estadoUnificado) }}</span>
+          </header>
+          <p class="en-curso-msg">{{ p.mensaje }}</p>
+          <p class="items-preview" *ngIf="previewHistorial(p)">{{ previewHistorial(p) }}</p>
+          <p class="muted">{{ money(p.total) }}</p>
+          <span class="ver">Ver seguimiento →</span>
+        </button>
+      </section>
+
+      <section *ngIf="paso === 'menu'">
+        <div class="cuenta-strip" *ngIf="cuentaVinculada">
+          <div>
+            <strong>{{ nombre || 'Tu cuenta' }}</strong>
+            <p>{{ telefono }}</p>
+            <p *ngIf="direccion">{{ direccion }}</p>
+          </div>
+          <div class="cuenta-strip-actions">
+            <button type="button" class="ghost" (click)="irCuenta()">Dirección</button>
+            <button type="button" class="ghost" (click)="irHistorial()">Pedidos anteriores</button>
+          </div>
+        </div>
+        <div class="cats">
+          <button type="button" [class.active]="categoriaId === null" (click)="seleccionarCategoria(null)">Todos</button>
+          <button
+            type="button"
+            *ngFor="let c of menu.categorias"
+            [class.active]="categoriaId === c.idCategoria"
+            (click)="seleccionarCategoria(c.idCategoria)">
+            {{ c.nombre }}
+          </button>
+        </div>
+        <input class="search" type="search" [(ngModel)]="busqueda" placeholder="Buscar plato o bebida" />
+
+        <div class="grid">
+          <article class="card" *ngFor="let p of productosFiltrados">
+            <div class="thumb" [class.empty]="!p.imagen">
+              <img *ngIf="p.imagen" [src]="p.imagen" [alt]="p.nombre" />
+            </div>
+            <div class="body">
+              <h2>{{ p.nombre }}</h2>
+              <p *ngIf="p.descripcion">{{ p.descripcion }}</p>
+              <strong>{{ money(p.precioConItbis) }}</strong>
+              <div class="qty">
+                <button type="button" (click)="quitar(p.idProducto)" [disabled]="!qtyEnCarrito(p.idProducto)">−</button>
+                <span>{{ qtyEnCarrito(p.idProducto) }}</span>
+                <button type="button" (click)="agregar(p)">+</button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <p class="empty" *ngIf="!productosFiltrados.length">No hay productos en esta categoría.</p>
+      </section>
+
+      <section *ngIf="paso === 'carrito'">
+        <button type="button" class="link" (click)="volverMenu()">← Seguir pidiendo</button>
+        <h2>Tu pedido</h2>
+        <article class="linea" *ngFor="let l of carrito">
+          <div>
+            <strong>{{ l.nombre }}</strong>
+            <p>{{ money(l.precioConItbis) }} c/u</p>
+            <input type="text" [(ngModel)]="l.observacion" placeholder="Nota: sin cebolla, extra salsa…" maxlength="200" />
+          </div>
+          <div class="qty">
+            <button type="button" (click)="quitar(l.idProducto)">−</button>
+            <span>{{ l.cantidad }}</span>
+            <button type="button" (click)="incrementar(l.idProducto)">+</button>
+          </div>
+        </article>
+        <div class="total-bar">
+          <span>Total</span>
+          <strong>{{ money(total) }}</strong>
+        </div>
+        <button type="button" class="primary" (click)="irCheckout()">Continuar</button>
+      </section>
+
+      <section *ngIf="paso === 'checkout'" class="checkout">
+        <button type="button" class="link" (click)="paso = 'carrito'">← Volver al carrito</button>
+        <h2>Datos del pedido</h2>
+
+        <div class="seg">
+          <button type="button" [class.active]="tipoEntrega === 'Delivery'" (click)="setTipoEntrega('Delivery')">Delivery</button>
+          <button type="button" [class.active]="tipoEntrega === 'Recoger'" (click)="setTipoEntrega('Recoger')">Recoger</button>
+        </div>
+
+        <div class="saved-card" *ngIf="datosRecordados && !editandoDatos">
+          <p><strong>{{ nombre }}</strong></p>
+          <p>{{ telefono }}</p>
+          <p *ngIf="tipoEntrega === 'Delivery'">{{ direccion }}</p>
+          <p class="hint" *ngIf="tipoEntrega === 'Delivery' && referencia">Ref: {{ referencia }}</p>
+          <button type="button" class="link" (click)="editandoDatos = true">Cambiar datos</button>
+        </div>
+
+        <ng-container *ngIf="!datosRecordados || editandoDatos">
+          <label>Nombre
+            <input type="text" [(ngModel)]="nombre" autocomplete="name" />
+          </label>
+          <label>Teléfono
+            <input type="tel" [(ngModel)]="telefono" autocomplete="tel" />
+          </label>
+          <label *ngIf="tipoEntrega === 'Delivery'">Dirección
+            <input type="text" [(ngModel)]="direccion" autocomplete="street-address" />
+          </label>
+          <label *ngIf="tipoEntrega === 'Delivery'">Referencia
+            <input type="text" [(ngModel)]="referencia" placeholder="Portón negro, al lado de…" />
+          </label>
+        </ng-container>
+        <div class="geo-box" *ngIf="tipoEntrega === 'Delivery'">
+          <button type="button" class="geo-btn" [disabled]="ubicacionEstado === 'pidiendo'" (click)="pedirUbicacion()">
+            {{ etiquetaUbicacion }}
+          </button>
+          <p class="hint geo-ok" *ngIf="ubicacionEstado === 'ok'">Ubicación lista. El repartidor abrirá este punto en el mapa.</p>
+          <p class="hint" *ngIf="ubicacionEstado === 'denegado'">Sin GPS: el repartidor usará la dirección escrita.</p>
+          <p class="hint" *ngIf="ubicacionEstado === 'error'">No se pudo leer la ubicación. Puede reintentar o dejar la dirección.</p>
+        </div>
+        <label>Pago al {{ tipoEntrega === 'Delivery' ? 'entregar' : 'recoger' }}
+          <select [(ngModel)]="metodoPago">
+            <option *ngFor="let m of metodosPago" [value]="m">{{ m }}</option>
+          </select>
+        </label>
+        <label>Observación
+          <textarea [(ngModel)]="observacion" rows="2" maxlength="500"></textarea>
+        </label>
+
+        <div class="total-bar">
+          <span>{{ itemsCount }} ítems</span>
+          <strong>{{ money(total) }}</strong>
+        </div>
+        <p class="hint">Paga contra entrega / al recoger. El comprobante fiscal se emite en el local.</p>
+        <button type="button" class="primary" [disabled]="enviando" (click)="enviar()">
+          {{ enviando ? 'Enviando…' : 'Confirmar pedido' }}
+        </button>
+      </section>
+
+      <section *ngIf="paso === 'ok'" class="ok">
+        <button type="button" class="link" (click)="volverMenu()">← Menú</button>
+        <p class="eyebrow">Sigue tu pedido</p>
+        <h2>{{ confirmacion?.numeroPedido }}</h2>
+        <p class="status-pill" [ngClass]="claseEstado(seguimiento?.estadoUnificado || confirmacion?.estadoUnificado || '')">
+          {{ etiquetaEstado(seguimiento?.estadoUnificado || confirmacion?.estadoUnificado || confirmacion?.estado || '') }}
+        </p>
+        <p class="track-msg">{{ mensajeSeguimiento }}</p>
+        <p class="cancel-box" *ngIf="(seguimiento?.estadoUnificado || confirmacion?.estadoUnificado) === 'Cancelado'">
+          Este pedido fue cancelado.
+        </p>
+        <ol class="track" *ngIf="(seguimiento?.estadoUnificado || confirmacion?.estadoUnificado) !== 'Cancelado'">
+          <li *ngFor="let p of pasosTrack" [class.done]="p.state === 'done'" [class.now]="p.state === 'now'">
+            {{ p.label }}
+          </li>
+        </ol>
+        <p>Gracias, {{ nombre }}. {{ (seguimiento?.tipoEntrega || confirmacion?.tipoEntrega) === 'Llevar' ? 'Pásalo a recoger cuando esté listo.' : 'Te lo llevamos.' }}</p>
+        <p class="total">{{ money(confirmacion?.total || 0) }} · {{ metodoPago }}</p>
+        <a *ngIf="waHref()" class="primary" [href]="waHref()" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+        <button type="button" class="ghost" (click)="nuevoPedido()">Seguir pidiendo</button>
+      </section>
+
+      <section *ngIf="paso === 'cuenta'" class="cuenta">
+        <button type="button" class="link" (click)="volverMenu()">← Menú</button>
+        <h2>Mi cuenta</h2>
+        <p class="hint">Este celular queda vinculado a este dispositivo. No volveremos a pedirte tus datos.</p>
+
+        <ng-container *ngIf="!cuentaVinculada">
+          <label>Celular
+            <input type="tel" [(ngModel)]="telefonoInput" autocomplete="tel" placeholder="8095550000" (keyup.enter)="vincularTelefono()" />
+          </label>
+          <button type="button" class="primary" [disabled]="cargandoCuenta" (click)="vincularTelefono()">
+            {{ cargandoCuenta ? 'Buscando…' : 'Vincular celular' }}
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="cuentaVinculada">
+          <label>Nombre
+            <input type="text" [(ngModel)]="nombre" autocomplete="name" />
+          </label>
+          <p class="saved-phone">{{ telefono }}</p>
+          <label>Dirección
+            <input type="text" [(ngModel)]="direccion" autocomplete="street-address" />
+          </label>
+          <label>Referencia
+            <input type="text" [(ngModel)]="referencia" placeholder="Portón negro, al lado de…" />
+          </label>
+          <button type="button" class="primary" [disabled]="guardandoDir" (click)="guardarDireccion()">
+            {{ guardandoDir ? 'Guardando…' : 'Guardar dirección' }}
+          </button>
+          <button type="button" class="ghost" (click)="irHistorial()">Pedidos anteriores</button>
+          <button type="button" class="link" (click)="cambiarTelefono()">Usar otro celular</button>
+        </ng-container>
+      </section>
+
+      <section *ngIf="paso === 'historial'" class="historial">
+        <button type="button" class="link" (click)="irCuenta()">← Mi cuenta</button>
+        <h2>Pedidos anteriores</h2>
+        <p class="hint" *ngIf="!cuentaVinculada">Vincula tu celular para ver el historial.</p>
+        <p class="hint" *ngIf="cuentaVinculada">Solo pedidos ya entregados o cancelados.</p>
+        <button
+          type="button"
+          class="hist-card"
+          *ngFor="let p of pedidosAnteriores"
+          (click)="abrirPedidoHistorial(p)">
+          <header>
+            <strong>#{{ p.numeroPedido }}</strong>
+            <span class="status-pill" [ngClass]="claseEstado(p.estadoUnificado)">{{ etiquetaEstado(p.estadoUnificado) }}</span>
+          </header>
+          <p class="muted">{{ p.fecha | date:'dd/MM/yyyy HH:mm' }} · {{ money(p.total) }}</p>
+          <p class="items-preview" *ngIf="previewHistorial(p)">{{ previewHistorial(p) }}</p>
+          <span class="ver">Ver estado →</span>
+        </button>
+        <p class="empty" *ngIf="cuentaVinculada && !pedidosAnteriores.length">Aún no hay pedidos anteriores.</p>
+      </section>
+    </ng-container>
+  </div>
+
+  <button
+    type="button"
+    class="cart-fab"
+    *ngIf="paso === 'menu' && itemsCount"
+    (click)="irCarrito()">
+    <span class="cart-fab__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="9" cy="20" r="1.4"/>
+        <circle cx="18" cy="20" r="1.4"/>
+        <path d="M3 4h2l2.2 11h10.4l1.8-7H7.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <i>{{ itemsCount }}</i>
+    </span>
+    <span>Ver carrito</span>
+    <strong>{{ money(total) }}</strong>
+  </button>
+</div>

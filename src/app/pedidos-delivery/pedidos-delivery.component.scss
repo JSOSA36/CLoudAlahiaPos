@@ -1,0 +1,257 @@
+.pd-content {
+  --background: #eef2f7;
+  --pd-blue: #1454B8;
+  --pd-gold: #F5C518;
+  --pd-navy: #0b2a6b;
+}
+
+.pd-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 12px 32px;
+}
+
+.pd-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pd-link {
+  background: #fff;
+  border: 1px solid #dbe3ee;
+  border-top: 4px solid var(--pd-gold);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.pd-link strong {
+  display: block;
+  margin: 4px 0 6px;
+  word-break: break-all;
+  color: #0f172a;
+  font-size: 0.92rem;
+}
+
+.pd-link-hint {
+  margin: 0 0 10px;
+  color: #475569;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.pd-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pd-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  background: var(--pd-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.pd-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pd-btn-ghost {
+  background: #fff;
+  color: var(--pd-blue);
+  border: 1px solid var(--pd-blue);
+}
+
+.pd-btn-gold {
+  background: var(--pd-gold);
+  color: var(--pd-navy);
+}
+
+.pd-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1454B8;
+  font-weight: 700;
+}
+
+.pd-link-reparto .pd-eyebrow {
+  color: #0b2a6b;
+}
+
+.pd-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.pd-tabs button {
+  border: 0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  white-space: nowrap;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pd-tabs button.active {
+  background: var(--pd-blue);
+  color: #fff;
+}
+
+.pd-tabs span {
+  opacity: 0.75;
+  margin-left: 4px;
+}
+
+.pd-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 16px 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid var(--pd-gold);
+  box-shadow: 0 8px 22px rgba(11, 42, 107, 0.07);
+}
+
+.pd-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pd-card-id {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.pd-card-id strong {
+  color: var(--pd-navy);
+  font-size: 1.05rem;
+}
+
+.pd-card time {
+  color: #64748b;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.chip-tipo {
+  background: #e8f0fb;
+  color: var(--pd-blue);
+}
+
+.chip-estado {
+  background: var(--pd-gold);
+  color: var(--pd-navy);
+}
+
+.chip-cocina {
+  background: #e8f0fb;
+  color: var(--pd-navy);
+}
+
+.chip.off {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pd-card ul {
+  margin: 8px 0 4px;
+  padding: 8px 12px 8px 28px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.pd-card footer, .asignar, .alta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.pd-card footer {
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.pd-total {
+  color: var(--pd-navy);
+  font-size: 1.05rem;
+}
+
+.pd-driver {
+  color: var(--pd-blue);
+  font-weight: 700;
+}
+
+.pd-maps, .pd-tel {
+  color: var(--pd-blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pd-maps {
+  margin-left: auto;
+  background: var(--pd-gold);
+  color: var(--pd-navy);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+}
+
+.pd-gps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.pd-dir {
+  margin: 2px 0 0;
+  color: #334155;
+}
+
+.asignar {
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.asignar select, .alta select {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+}
+
+.pd-error { color: #b91c1c; }
+.pd-state { color: #64748b; text-align: center; padding: 1.5rem 0; }
+.pd-hint { color: #475569; font-size: 0.85rem; margin: 0 0 10px; }
+.obs { color: #475569; font-style: italic; margin: 6px 0 0; }
+.cliente { margin: 10px 0 2px; font-weight: 700; color: #0f172a; }

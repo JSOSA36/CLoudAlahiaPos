@@ -328,7 +328,7 @@ async login() {
         // Flags DGII (sin fila / apagado = fiscal off; no bloquea login)
         this.dgiiConfig.getFeatures(empresa.idEmpresa || 0).subscribe({
           next: (features) => this.parametros.setFiscalFeatures(features),
-          error: () => this.parametros.setFiscalFeatures(null)
+          error: () => { /* no apagar IT-1 / IR-17 / IR-3 si el flag no carga */ }
         });
 
         // 🔔 ONESIGNAL
@@ -388,9 +388,9 @@ async login() {
           !this.yaMostroAlertaCobro(idEmp, diaCobro)
         ) {
           await this.mostrarMensaje(
-            diaCobro === 3 ? 'Último aviso de pago' : 'Renovación de suscripción',
-            resp.alertaPlan.mensaje,
-            diaCobro === 3 ? 'alert-circle-outline' : 'card-outline',
+            'Factura pendiente',
+            'Tiene una factura pendiente por pagar.',
+            'card-outline',
             false,
             true,
             {
@@ -491,6 +491,11 @@ private async redirigirSegunModulos(modulos: any[]) {
 
   if (tieneOrdenes) {
     await this.router.navigateByUrl('/Ordenes', { replaceUrl: true });
+    return;
+  }
+
+  if (tieneCodigo('PEDIDOS_ONLINE')) {
+    await this.router.navigateByUrl('/reparto', { replaceUrl: true });
     return;
   }
 

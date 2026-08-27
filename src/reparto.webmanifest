@@ -1,0 +1,16 @@
+{
+  "name": "Alahia Reparto",
+  "short_name": "Reparto",
+  "description": "Pedidos asignados al repartidor",
+  "lang": "es",
+  "start_url": "/reparto",
+  "scope": "/reparto",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1454B8",
+  "theme_color": "#1454B8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

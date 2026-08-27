@@ -1,0 +1,112 @@
+<div class="reparto">
+  <header class="bar">
+    <div class="brand">
+      <img class="app-logo" src="assets/brand/alahia-reparto-icon.png" alt="Alahia Reparto" />
+      <div>
+        <p class="eyebrow">Alahia</p>
+        <h1>Reparto</h1>
+      </div>
+    </div>
+    <button type="button" class="ghost" *ngIf="haySesion" (click)="salir()">Salir</button>
+  </header>
+
+  <div class="reparto-body">
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <p class="ok" *ngIf="okMsg">{{ okMsg }}</p>
+
+  <section class="login" *ngIf="!haySesion">
+    <img class="login-logo" src="assets/brand/alahia-reparto-logo.png" alt="Alahia Reparto" />
+    <p>Inicie sesión con su usuario de repartidor.</p>
+    <label>Usuario
+      <input type="text" [(ngModel)]="usuario" autocomplete="username" />
+    </label>
+    <label>Contraseña
+      <input type="password" [(ngModel)]="password" autocomplete="current-password" />
+    </label>
+    <button type="button" class="primary" [disabled]="loadingLogin" (click)="login()">
+      {{ loadingLogin ? 'Entrando…' : 'Entrar' }}
+    </button>
+  </section>
+
+  <ng-container *ngIf="haySesion">
+    <p class="state" *ngIf="loading">Cargando pedidos…</p>
+
+    <section class="lista" *ngIf="!detalle">
+      <h2>Mis pedidos</h2>
+      <p class="hint">Toca una tarjeta para ver el detalle, el mapa y marcar el estado.</p>
+      <button type="button" class="card" *ngFor="let p of pedidos" (click)="abrirDetalle(p)">
+        <header>
+          <strong>#{{ p.numeroPedido }}</strong>
+          <span class="chip">{{ p.estadoUnificado }}</span>
+        </header>
+        <p class="cliente">{{ p.nombreCliente }}</p>
+        <p class="muted">{{ p.direccion || 'Sin dirección' }}</p>
+        <p class="items-preview" *ngIf="previewItems(p)">{{ previewItems(p) }}</p>
+        <footer>
+          <div>
+            <span class="chip" *ngIf="p.latitud && p.longitud">GPS</span>
+            <strong>{{ money(p.total) }}</strong>
+          </div>
+          <span class="ver">Ver detalle →</span>
+        </footer>
+      </button>
+      <p class="state" *ngIf="!loading && !pedidos.length">No tiene pedidos asignados.</p>
+    </section>
+
+    <section class="detalle" *ngIf="detalle">
+      <button type="button" class="back" (click)="volverLista()">← Volver a mis pedidos</button>
+      <h2>#{{ detalle.numeroPedido }}</h2>
+      <p class="chip">{{ detalle.estadoUnificado }}</p>
+      <p class="pasos" aria-hidden="true">
+        <span [class.on]="pasoActivo(detalle) >= 1">Asignado</span>
+        <span [class.on]="pasoActivo(detalle) >= 2">Recogido</span>
+        <span [class.on]="pasoActivo(detalle) >= 3">En camino</span>
+        <span [class.on]="pasoActivo(detalle) >= 4">Entregado</span>
+      </p>
+      <p><strong>{{ detalle.nombreCliente }}</strong></p>
+      <p><a [href]="telHref(detalle)">{{ detalle.telefono }}</a></p>
+      <p *ngIf="detalle.direccion">{{ detalle.direccion }}</p>
+      <p *ngIf="detalle.referencia" class="muted">Ref: {{ detalle.referencia }}</p>
+      <p class="muted" *ngIf="detalle.latitud && detalle.longitud">Ubicación GPS lista para el mapa.</p>
+      <a *ngIf="mapsUrl(detalle)" class="maps" [href]="mapsUrl(detalle)" target="_blank" rel="noopener">Abrir en Google Maps</a>
+      <h3>Productos</h3>
+      <ul>
+        <li *ngFor="let it of detalle.items">
+          {{ it.cantidad | number:'1.0-2' }}× {{ it.nombre }}
+          <em *ngIf="it.observacion"> — {{ it.observacion }}</em>
+        </li>
+      </ul>
+      <p *ngIf="detalle.observacion" class="muted">{{ detalle.observacion }}</p>
+      <p><strong>{{ money(detalle.total) }}</strong> · {{ detalle.metodoPago }}</p>
+      <p class="hint-accion" *ngIf="hintAccion(detalle)">{{ hintAccion(detalle) }}</p>
+      <div class="acciones">
+        <button
+          type="button"
+          class="primary"
+          *ngIf="puedeRecoger(detalle)"
+          [disabled]="accionId === detalle.idPedidoOnline"
+          (click)="transicionar(detalle, 'Recogido')">
+          {{ accionId === detalle.idPedidoOnline ? 'Guardando…' : 'Ya recogí el pedido' }}
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          *ngIf="puedeMarcarEnCamino(detalle)"
+          [disabled]="accionId === detalle.idPedidoOnline"
+          (click)="transicionar(detalle, 'EnCamino')">
+          {{ accionId === detalle.idPedidoOnline ? 'Guardando…' : 'Voy en camino' }}
+        </button>
+        <button
+          type="button"
+          class="primary"
+          *ngIf="puedeEntregar(detalle)"
+          [disabled]="accionId === detalle.idPedidoOnline"
+          (click)="transicionar(detalle, 'Entregado')">
+          {{ accionId === detalle.idPedidoOnline ? 'Guardando…' : 'Ya lo entregué' }}
+        </button>
+      </div>
+      <button type="button" class="back back-bottom" (click)="volverLista()">Volver a la lista</button>
+    </section>
+  </ng-container>
+  </div>
+</div>

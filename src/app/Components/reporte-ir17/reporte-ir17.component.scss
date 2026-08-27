@@ -1,0 +1,196 @@
+.rit1-content {
+  --background: #f3f6fb;
+  --rpt-primary: #0a7a3e;
+}
+
+.rit1-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+.rit1-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 18px rgba(10, 122, 62, 0.08);
+  margin-bottom: 14px;
+}
+
+.rit1-field {
+  min-width: 180px;
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+
+  ion-input {
+    --background: #f8fafc;
+    --padding-start: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+  }
+}
+
+.rit1-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rit1-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: #64748b;
+}
+
+.rit1-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rit1-kpi {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+
+  span {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+
+  strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+
+  &.warn strong { color: #b45309; }
+  &.ok strong { color: var(--rpt-primary); }
+  &.alert strong { color: #b91c1c; }
+}
+
+.rit1-alertas {
+  margin-bottom: 12px;
+}
+
+.rit1-alerta {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.rit1-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 14px;
+}
+
+.rit1-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.rit1-panel-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border: 0;
+  background: #0a7a3e;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.rit1-table-wrap {
+  overflow-x: auto;
+}
+
+.rit1-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+
+  th {
+    background: #0a7a3e;
+    color: #fff;
+    text-align: left;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tr.tot td {
+    background: #f0fdf4;
+    font-weight: 600;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  small {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.7rem;
+  }
+}
+
+.rit1-etiqueta {
+  max-width: 520px;
+}
+
+.rit1-origen {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.orig-606 { background: #ffedd5; color: #c2410c; }
+.orig-formula { background: #dcfce7; color: #15803d; }
+.orig-manual { background: #fef3c7; color: #b45309; }
+.orig-na { background: #f1f5f9; color: #94a3b8; }
+.orig-r9c { background: #ede9fe; color: #6d28d9; }
+
+.rit1-chip {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.68rem;
+  max-width: 260px;
+}
