@@ -1,0 +1,344 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-content.page-cargos {
+  --background: linear-gradient(180deg, #eef4ff 0%, #f7f9fc 42%, #f4f7fb 100%);
+}
+
+.intro-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  border: 1px solid #dbe7ff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06);
+}
+
+.intro-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: linear-gradient(145deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.28);
+}
+
+.intro-icon ion-icon {
+  font-size: 22px;
+}
+
+.intro-card h1 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.intro-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.loading-box,
+.empty-box {
+  min-height: 48vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: #64748b;
+}
+
+.empty-visual {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #dbeafe, #eff6ff);
+  border: 1px solid #bfdbfe;
+}
+
+.empty-box ion-icon {
+  font-size: 34px;
+  color: #2563eb;
+}
+
+.reglas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  padding-bottom: 24px;
+}
+
+.regla-card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 22px;
+  padding: 0 0 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 14px 32px rgba(15, 23, 42, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.regla-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--accent, #2563eb);
+}
+
+.regla-card[data-grupo='TARJETA'] {
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+}
+
+.regla-card[data-grupo='EFECTIVO'] {
+  --accent: #059669;
+  --accent-soft: #d1fae5;
+}
+
+.regla-card[data-grupo='TRANSFERENCIA'] {
+  --accent: #7c3aed;
+  --accent-soft: #ede9fe;
+}
+
+.regla-card[data-grupo='CHEQUE'] {
+  --accent: #d97706;
+  --accent-soft: #fef3c7;
+}
+
+.regla-card[data-grupo='TODOS'] {
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+}
+
+.regla-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
+}
+
+.regla-card.inactiva {
+  opacity: 0.78;
+  filter: grayscale(0.15);
+}
+
+.regla-card.borrador {
+  outline: 2px dashed #2563eb;
+  outline-offset: 1px;
+}
+
+.regla-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 18px 14px 22px;
+  background: linear-gradient(135deg, var(--accent-soft, #dbeafe) 0%, #ffffff 68%);
+  border-bottom: 1px solid #eef2f7;
+}
+
+.hero-left {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #fff;
+  background: var(--accent, #2563eb);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.28);
+}
+
+.regla-card[data-grupo='EFECTIVO'] .hero-icon {
+  box-shadow: 0 10px 18px rgba(5, 150, 105, 0.28);
+}
+
+.regla-card[data-grupo='TRANSFERENCIA'] .hero-icon {
+  box-shadow: 0 10px 18px rgba(124, 58, 237, 0.28);
+}
+
+.regla-card[data-grupo='CHEQUE'] .hero-icon {
+  box-shadow: 0 10px 18px rgba(217, 119, 6, 0.28);
+}
+
+.regla-card[data-grupo='TODOS'] .hero-icon {
+  box-shadow: 0 10px 18px rgba(15, 118, 110, 0.28);
+}
+
+.hero-icon ion-icon {
+  font-size: 24px;
+}
+
+.hero-text {
+  min-width: 0;
+}
+
+.hero-text h2 {
+  margin: 0 0 8px;
+  font-size: 1.12rem;
+  color: #0f172a;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.chip.grupo {
+  background: #fff;
+  color: var(--accent, #2563eb);
+  border: 1px solid #bfdbfe;
+}
+
+.regla-card[data-grupo='EFECTIVO'] .chip.grupo {
+  border-color: #a7f3d0;
+}
+
+.regla-card[data-grupo='TRANSFERENCIA'] .chip.grupo {
+  border-color: #ddd6fe;
+}
+
+.regla-card[data-grupo='CHEQUE'] .chip.grupo {
+  border-color: #fde68a;
+}
+
+.regla-card[data-grupo='TODOS'] .chip.grupo {
+  border-color: #99f6e4;
+}
+
+.chip.valor {
+  background: var(--accent, #2563eb);
+  color: #fff;
+}
+
+.chip.estado {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.chip.estado.on {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.chip.borrador {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.preview {
+  margin: 14px 18px 0 22px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.preview-label {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.preview p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.fields {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px 0 22px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.field ion-input,
+.field ion-select {
+  --background: #f8fafc;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --border-radius: 12px;
+  margin: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  min-height: 44px;
+}
+
+.acciones {
+  display: grid;
+  gap: 2px;
+  margin-top: 14px;
+  padding: 0 18px 4px 22px;
+}
+
+@media (max-width: 420px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .regla-hero {
+    flex-direction: column;
+  }
+}

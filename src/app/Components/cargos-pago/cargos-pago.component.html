@@ -1,0 +1,152 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Cargos de cobro</ion-title>
+    <ion-buttons slot="end">
+      <ion-button type="button" (click)="nuevaRegla()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nuevo
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding page-cargos" #content>
+  <div class="intro-card">
+    <div class="intro-icon">
+      <ion-icon name="sparkles-outline"></ion-icon>
+    </div>
+    <div>
+      <h1>Cargos según forma de pago</h1>
+      <p>
+        Si cobran con tarjeta y quieren un 6% extra, crea un cargo de
+        <strong>porcentaje</strong> sobre el grupo <strong>Tarjeta</strong>.
+        El POS lo suma al total al cobrar; no lleva ITBIS.
+      </p>
+    </div>
+  </div>
+
+  <div class="loading-box" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando cargos...</p>
+  </div>
+
+  <div class="empty-box" *ngIf="!cargando && reglas.length === 0">
+    <div class="empty-visual">
+      <ion-icon name="card-outline"></ion-icon>
+    </div>
+    <h2>Sin cargos configurados</h2>
+    <p>Crea el primero: por ejemplo 6% en pagos con tarjeta.</p>
+    <ion-button type="button" color="primary" (click)="nuevaRegla()">Crear cargo</ion-button>
+  </div>
+
+  <div class="reglas-grid" *ngIf="!cargando && reglas.length > 0">
+    <article
+      class="regla-card"
+      *ngFor="let regla of reglas; trackBy: trackRegla"
+      [class.inactiva]="!regla.activo"
+      [class.borrador]="esBorrador(regla)"
+      [attr.data-grupo]="regla.grupoMetodo"
+      [attr.data-temp]="regla._tempKey || null">
+      <header class="regla-hero">
+        <div class="hero-left">
+          <div class="hero-icon" aria-hidden="true">
+            <ion-icon [name]="iconoGrupo(regla.grupoMetodo)"></ion-icon>
+          </div>
+          <div class="hero-text">
+            <h2>{{ regla.nombre || 'Nuevo cargo' }}</h2>
+            <div class="hero-chips">
+              <span class="chip grupo">{{ etiquetaGrupo(regla.grupoMetodo) }}</span>
+              <span class="chip valor">{{ etiquetaValor(regla) }}</span>
+              <span class="chip estado" [class.on]="regla.activo">
+                {{ regla.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+              <span class="chip borrador" *ngIf="esBorrador(regla)">Sin guardar</span>
+            </div>
+          </div>
+        </div>
+        <ion-toggle
+          [checked]="regla.activo"
+          (ionChange)="regla.activo = $any($event).detail.checked"
+          aria-label="Activar cargo">
+        </ion-toggle>
+      </header>
+
+      <div class="preview" *ngIf="regla.activo">
+        <span class="preview-label">Ejemplo</span>
+        <p>
+          En una venta de <strong>RD$ 1,000</strong> con
+          {{ etiquetaGrupo(regla.grupoMetodo).toLowerCase() }}, el cargo sería
+          <strong>{{ ejemploMonto(regla) }}</strong>
+          y el total <strong>{{ ejemploTotal(regla) }}</strong>.
+        </p>
+      </div>
+
+      <div class="fields">
+        <div class="field">
+          <span>Nombre en ticket</span>
+          <ion-input
+            [value]="regla.nombre"
+            (ionInput)="regla.nombre = $any($event).detail.value || ''"
+            placeholder="Cargo por tarjeta">
+          </ion-input>
+        </div>
+
+        <div class="field">
+          <span>Se aplica cuando pagan con</span>
+          <ion-select
+            [value]="regla.grupoMetodo"
+            (ionChange)="regla.grupoMetodo = $any($event).detail.value"
+            interface="popover"
+            placeholder="Método">
+            <ion-select-option *ngFor="let g of grupos" [value]="g.value">
+              {{ g.label }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span>Tipo</span>
+            <ion-select
+              [value]="regla.tipo"
+              (ionChange)="regla.tipo = $any($event).detail.value"
+              interface="popover"
+              placeholder="Tipo">
+              <ion-select-option *ngFor="let t of tipos" [value]="t.value">
+                {{ t.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+
+          <div class="field">
+            <span>{{ regla.tipo === 'MONTO_FIJO' ? 'Monto (RD$)' : 'Porcentaje' }}</span>
+            <ion-input
+              type="number"
+              min="0"
+              [value]="regla.valor"
+              (ionInput)="onValorInput(regla, $event)">
+            </ion-input>
+          </div>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <ion-button
+          type="button"
+          expand="block"
+          color="primary"
+          [disabled]="guardando"
+          (click)="guardar(regla)">
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          {{ esBorrador(regla) ? 'Guardar cargo' : 'Guardar cambios' }}
+        </ion-button>
+        <ion-button type="button" expand="block" fill="clear" color="danger" (click)="eliminar(regla)">
+          Eliminar
+        </ion-button>
+      </div>
+    </article>
+  </div>
+</ion-content>
