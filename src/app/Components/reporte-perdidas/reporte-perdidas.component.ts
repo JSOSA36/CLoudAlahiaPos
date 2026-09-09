@@ -59,6 +59,8 @@ implements OnInit {
 
   totalUnidades = 0;
 
+  idSucursalFiltro = 0;
+
   constructor(
 
     private movimientosService:
@@ -70,6 +72,13 @@ implements OnInit {
 
   ngOnInit(): void {
 
+    this.cargarReporte();
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
     this.cargarReporte();
   }
 
@@ -101,7 +110,13 @@ implements OnInit {
 
         'SALIDA',
 
-        'PERDIDA'
+        'PERDIDA',
+
+        undefined,
+
+        undefined,
+
+        this.idSucursalFiltro
       )
       .subscribe({
 

@@ -186,6 +186,16 @@ cerrarModal(): void {
       && !this.cargaManualCompra;
   }
 
+  get almacenesOrigen(): Almacen[] {
+    const suc = Number(this.parametros.IdSucursal) || 0;
+    if (suc <= 0) {
+      return this.almacenes;
+    }
+    return this.almacenes.filter(
+      x => !x.idSucursal || x.idSucursal === suc
+    );
+  }
+
   get almacenesDestino(): Almacen[] {
     return this.almacenes.filter(
       x =>
@@ -409,7 +419,7 @@ cerrarModal(): void {
   cargarAlmacenes(): void {
 
     this.almacenesService
-      .getAlmacenes(this.idEmpresa)
+      .getAlmacenes(this.idEmpresa, { incluirOtrasSucursales: true })
       .subscribe({
 
         next: (data) => {
@@ -418,8 +428,9 @@ cerrarModal(): void {
             (data || [])
               .filter(x => x.activo);
 
+          const origen = this.almacenesOrigen;
           const principal =
-            this.almacenes
+            origen
               .find(x => x.esPrincipal);
 
           if (principal) {
@@ -427,10 +438,10 @@ cerrarModal(): void {
             this.movimiento.idAlmacen =
               principal.idAlmacen;
           }
-          else if (this.almacenes.length) {
+          else if (origen.length) {
 
             this.movimiento.idAlmacen =
-              this.almacenes[0].idAlmacen;
+              origen[0].idAlmacen;
           }
         },
 

@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError, timer } from 'rxjs';
+import { retry, timeout } from 'rxjs/operators';
+import {
+  PROCESAR_FACTURA_REINTENTOS_RED,
+  PROCESAR_FACTURA_TIMEOUT_MS,
+  esErrorRedCobro
+} from './cobro-idempotencia';
 import { facturaheader } from '../models/facturaheader';
 import { historicoventadto } from '../models/historicoventadto';
 import { cierrecaja } from '../models/cierrecaja';
@@ -37,18 +43,41 @@ export class FacturaHeaderService {
     return this.httpClient.post<facturaheader>(`${this.baseUrl}/`, value, this.httpOptions);
   }
 
+  getSecuenciasDocumento(idEmpresa: number): Observable<Array<{
+    idTipoDocumento: number;
+    prefijo: string;
+    secuenciaActual: number;
+  }>> {
+    return this.httpClient.get<Array<{
+      idTipoDocumento: number;
+      prefijo: string;
+      secuenciaActual: number;
+    }>>(`${this.baseUrl}/secuencias-documento/${idEmpresa}`);
+  }
+
   createFacturaDirecta(dto: any) {
-  return this.httpClient.post(`${this.baseUrl}/ProcesarFactura`, dto);
-}
-  GetListadoOrdenes(IdEmpresa: number): Observable<facturaheader[]> {
+    return this.httpClient.post(`${this.baseUrl}/ProcesarFactura`, dto).pipe(
+      timeout(PROCESAR_FACTURA_TIMEOUT_MS),
+      retry({
+        count: PROCESAR_FACTURA_REINTENTOS_RED,
+        delay: (error) => {
+          if (!esErrorRedCobro(error)) {
+            return throwError(() => error);
+          }
+          return timer(400);
+        }
+      })
+    );
+  }
+  GetListadoOrdenes(IdEmpresa: number, idSucursalFiltro = 0): Observable<facturaheader[]> {
   return this.httpClient.get<facturaheader[]>(
-    `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}`
+    `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}`
   );
 }
 
-  GetListadoCotizaciones(IdEmpresa: number): Observable<facturaheader[]> {
+  GetListadoCotizaciones(IdEmpresa: number, idSucursalFiltro = 0): Observable<facturaheader[]> {
     return this.httpClient.get<facturaheader[]>(
-      `${this.baseUrl}/GetAllCotizaciones?IdEmpresa=${IdEmpresa}`
+    `${this.baseUrl}/GetAllCotizaciones?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}`
     );
   }
  GetListadoFacturas(IdEmpresa: number): Observable<facturaheader[]> {
@@ -59,6 +88,7 @@ export class FacturaHeaderService {
 AnularFactura(payload: {
   idFacturaHeader: number;
   idEmpresa: number;
+  idUsuario?: number;
   motivoAnulacion: string;
   usuarioAnulo?: string;
 }): Observable<any> {
@@ -67,6 +97,7 @@ AnularFactura(payload: {
     {
       idFacturaHeader: payload.idFacturaHeader,
       idEmpresa: payload.idEmpresa,
+      idUsuario: payload.idUsuario || 0,
       motivoAnulacion: payload.motivoAnulacion,
       usuarioAnulo: payload.usuarioAnulo || ''
     },
@@ -91,12 +122,13 @@ GetIngresosCajaActual(
 GetListadoOrdenesByFecha(
   IdEmpresa: number,
   fechaDesde: string,
-  fechaHasta: string
+  fechaHasta: string,
+  idSucursalFiltro = 0
 ): Observable<facturaheader[]> {
 
   return this.httpClient.get<facturaheader[]>(
 
-    `${this.baseUrl}/GetAllOrdenesByFecha?IdEmpresa=${IdEmpresa}&fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`
+    `${this.baseUrl}/GetAllOrdenesByFecha?IdEmpresa=${IdEmpresa}&fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}&idSucursalFiltro=${idSucursalFiltro || 0}`
 
   );
 }
@@ -113,9 +145,13 @@ GetReporte607(
   }
   return this.httpClient.get<Reporte607>(url);
 }
-  GetAllFacturaPendiente(IdCliente: number, IdEmpresa: number): Observable<FacturaHeaderDto[]> {
+  GetAllFacturaPendiente(
+    IdCliente: number,
+    IdEmpresa: number,
+    idSucursalFiltro = 0
+  ): Observable<FacturaHeaderDto[]> {
     return this.httpClient.get<FacturaHeaderDto[]>(
-      `${this.baseUrl}/GetAllFacturaPendiente/${IdCliente}/${IdEmpresa}`
+      `${this.baseUrl}/GetAllFacturaPendiente/${IdCliente}/${IdEmpresa}?idSucursalFiltro=${idSucursalFiltro || 0}`
     );
   }
 GenerarOrdenDesdeCita(idCita: number): Observable<any> {
@@ -178,8 +214,10 @@ GenerarOrdenDesdeCita(idCita: number): Observable<any> {
     );
   }
    
-  GetCuentasPorCobrar(idEmpresa: number): Observable<CuentaPorCobrarDto[]> {
-  return this.httpClient.get<CuentaPorCobrarDto[]>(`${this.baseUrl}/GetCuentasPorCobrar/${idEmpresa}`);
+  GetCuentasPorCobrar(idEmpresa: number, idSucursalFiltro = 0): Observable<CuentaPorCobrarDto[]> {
+  return this.httpClient.get<CuentaPorCobrarDto[]>(
+    `${this.baseUrl}/GetCuentasPorCobrar/${idEmpresa}?idSucursalFiltro=${idSucursalFiltro || 0}`
+  );
 }
 
   /** Link firmado para que el cliente final abra la cotización POS sin login. */

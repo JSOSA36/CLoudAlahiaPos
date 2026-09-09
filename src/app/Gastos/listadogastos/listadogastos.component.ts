@@ -6,6 +6,7 @@ import { GastoFormPage } from '../gastoadd/gastoadd.component';
 import { CategoriasGastoComponent } from '../categorias-gasto/categorias-gasto.component';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { AnularGastoComponent } from 'src/app/Modales/anular-gasto/anular-gasto.component';
+import { TIPO_COMPROBANTE_GASTOS_MENORES } from 'src/app/models/Gastos.models';
 @Component({
   selector: 'app-listadogastos',
   templateUrl: './listadogastos.component.html',
@@ -20,6 +21,7 @@ export class ListadogastosComponent implements OnInit {
   totalGastos: number = 0;
 
   gastosFiltrados: any[] = [];
+  idSucursalFiltro = 0;
 
   constructor(
     private gastosSrv: GastosService,
@@ -43,10 +45,17 @@ export class ListadogastosComponent implements OnInit {
   }
 
   cargarGastos() {
-    this.gastosSrv.getGastos(this.parametro.GetIdEmpresa()).subscribe(data => {
+    this.gastosSrv.getGastos(this.parametro.GetIdEmpresa(), this.idSucursalFiltro).subscribe(data => {
       this.gastos = data;
       this.aplicarFiltroFechas(); // 👈 inicializa filtrando por fechas
     });
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.cargarGastos();
   }
 
   // 📅 Filtro por fechas (estilo Comisiones: usamos split('T')[0])
@@ -109,6 +118,15 @@ export class ListadogastosComponent implements OnInit {
   }
 
   async editarGasto(gasto: any) {
+    if (this.esGastosMenores(gasto)) {
+      (await this.toastCtrl.create({
+        message: 'Un gasto con comprobante de gastos menores no se puede editar.',
+        duration: 2200,
+        color: 'warning'
+      })).present();
+      return;
+    }
+
     const modal = await this.modalCtrl.create({
       component: GastoFormPage,
       cssClass: 'modal-gasto',
@@ -125,6 +143,15 @@ export class ListadogastosComponent implements OnInit {
   }
 
   async anularGasto(gasto: any) {
+    if (this.esGastosMenores(gasto)) {
+      (await this.toastCtrl.create({
+        message: 'Un gasto con comprobante de gastos menores no se puede anular.',
+        duration: 2200,
+        color: 'warning'
+      })).present();
+      return;
+    }
+
     const modal = await this.modalCtrl.create({
       component: AnularGastoComponent,
       cssClass: 'modal-gasto',
@@ -142,6 +169,10 @@ export class ListadogastosComponent implements OnInit {
 
   esNomina(g: any): boolean {
     return (g?.origenModulo || '').toUpperCase() === 'NOMINA';
+  }
+
+  esGastosMenores(g: any): boolean {
+    return (g?.tipoComprobante || '').trim() === TIPO_COMPROBANTE_GASTOS_MENORES;
   }
 
   trackById(index: number, item: any) {

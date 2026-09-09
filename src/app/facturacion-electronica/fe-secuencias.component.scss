@@ -56,11 +56,129 @@
   strong { color: #333; }
 }
 
+.seq-sucursal {
+  font-size: 0.85rem;
+  color: #1a73e8;
+  margin: -4px 0 8px;
+  &.warn { color: #c2410c; }
+}
+
+.seq-rango-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .seq-rango {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   font-family: monospace;
+  margin-bottom: 10px;
+}
+
+.seq-proxima {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  background: #eef4ff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1557b0;
+  strong {
+    font-family: monospace;
+    font-size: 1.15rem;
+    color: #0d47a1;
+  }
+}
+
+.seq-preview {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #555;
+  margin: 6px 0 10px;
+}
+
+.seq-hint {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #eef4ff;
+  border-radius: 8px;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.page-hint {
+  margin-bottom: 16px;
+}
+
+.asig-block {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e8eef7;
+}
+
+.asig-title {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: 8px;
+}
+
+.asig-warn {
+  font-size: 0.82rem;
+  color: #c2410c;
+  background: #fff7ed;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.asig-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  &.inactiva { opacity: 0.55; }
+}
+
+.asig-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  strong { color: #1a73e8; font-size: 0.9rem; }
+}
+
+.asig-rango {
+  font-family: monospace;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.asig-next, .asig-encf, .asig-off {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.asig-encf { font-family: monospace; }
+
+.asig-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.asig-hueco {
+  font-size: 0.8rem;
+  color: #1557b0;
+  margin: 8px 0;
 }
 
 .seq-progress {

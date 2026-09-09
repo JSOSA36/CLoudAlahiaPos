@@ -1,1 +1,104 @@
 @import '../../shared/estilos/reporte-ui.scss';
+
+.rpt-field-search {
+  flex: 2 1 220px;
+}
+
+.rpt-tabs {
+  margin-bottom: 14px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.rpt-group-head,
+.rpt-inv-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.rpt-group-head {
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.rpt-sucursal {
+  margin-top: 10px;
+  align-items: flex-start;
+}
+
+.rpt-sucursal small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.rpt-inv {
+  border-top: 1px solid #eef2f7;
+  padding: 10px 0 6px;
+}
+
+.rpt-inv-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  span {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+}
+
+.rpt-inv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.rpt-inv-tot {
+  text-align: right;
+  white-space: nowrap;
+
+  small {
+    display: block;
+    color: #64748b;
+    font-size: 0.72rem;
+  }
+}
+
+.rpt-inv-body {
+  margin-top: 8px;
+  padding: 8px 0 0 0;
+}
+
+.rpt-inv-kpis,
+.rpt-pagos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.78rem;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.rpt-table-nested {
+  margin-bottom: 0;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+
+.rpt-table td small {
+  color: #94a3b8;
+}

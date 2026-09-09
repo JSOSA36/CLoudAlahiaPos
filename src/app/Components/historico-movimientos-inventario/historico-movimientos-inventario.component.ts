@@ -71,6 +71,8 @@ implements OnInit {
 
   idUsuario?: number;
 
+  idSucursalFiltro = 0;
+
   // ======================================================
   // 🔥 LOADING
   // ======================================================
@@ -245,6 +247,13 @@ async nuevoMovimiento()
     this.buscar();
   }
 
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.buscar();
+  }
+
   // ======================================================
   // 🔥 BUSCAR
   // ======================================================
@@ -277,7 +286,8 @@ async nuevoMovimiento()
 
         this.idProducto > 0
           ? this.idProducto
-          : undefined
+          : undefined,
+        this.idSucursalFiltro
       )
       .subscribe({
 

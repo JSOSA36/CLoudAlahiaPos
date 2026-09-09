@@ -10,6 +10,14 @@ import { UsuariosService } from 'src/app/servicios/usuarios.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { PerfilesService } from 'src/app/servicios/perfiles.service';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
+import { SucursalSesion } from '../models/sucursal-sesion.models';
+
+function esPerfilAdministradorNombre(nombre: string): boolean {
+  const n = (nombre || '').trim();
+  if (!n) return false;
+  return n.toLowerCase() === 'administrador' || n.toUpperCase().includes('ADMIN');
+}
 
 @Component({
   selector: 'app-usuarioform',
@@ -24,9 +32,11 @@ export class UsuarioformComponent implements OnInit {
 
   perfiles: any[] = [];
   empleados: any[] = [];
+  sucursales: SucursalSesion[] = [];
 
   private empleadoIdEdicion: number | null = null;
   private perfilIdEdicion: number | null = null;
+  private sucursalIdEdicion: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -34,6 +44,7 @@ export class UsuarioformComponent implements OnInit {
     private parametrosSrv: ParametrosService,
     private perfilesSrv: PerfilesService,
     private empleadosSrv: EmpleadosService,
+    private sucursalSrv: SucursalService,
     private modalCtrl: ModalController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController
@@ -45,12 +56,14 @@ export class UsuarioformComponent implements OnInit {
       correo: ['', [Validators.required, Validators.email]],
       idEmpleados: [null, Validators.required],
       idPerfil: [null, Validators.required],
+      idSucursal: [null, Validators.required],
       activo: [true],
       password: [''],
       puedeEliminarOrden: [false],
       puedeEliminarItemCarrito: [false],
       puedeDisminuirCantidadCarrito: [false],
-      puedeEditarPrecioCarrito: [false]
+      puedeEditarPrecioCarrito: [false],
+      puedeAnularFactura: [false]
     });
 
     if (this.usuario) {
@@ -69,15 +82,23 @@ export class UsuarioformComponent implements OnInit {
           ?? 0
       ) || null;
 
+      this.sucursalIdEdicion = Number(
+        this.usuario.idSucursal
+          ?? this.usuario.idSucursalActiva
+          ?? 0
+      ) || null;
+
       this.form.patchValue({
         correo: this.usuario.correo,
         idEmpleados: this.empleadoIdEdicion,
         idPerfil: this.perfilIdEdicion,
+        idSucursal: this.sucursalIdEdicion,
         activo: this.usuario.activo ?? this.usuario.estado,
         puedeEliminarOrden: this.usuario.puedeEliminarOrden || false,
         puedeEliminarItemCarrito: this.usuario.puedeEliminarItemCarrito || false,
         puedeDisminuirCantidadCarrito: this.usuario.puedeDisminuirCantidadCarrito || false,
-        puedeEditarPrecioCarrito: this.usuario.puedeEditarPrecioCarrito || false
+        puedeEditarPrecioCarrito: this.usuario.puedeEditarPrecioCarrito || false,
+        puedeAnularFactura: this.usuario.puedeAnularFactura || false
       });
     } else {
       this.form.get('password')?.setValidators([
@@ -86,9 +107,22 @@ export class UsuarioformComponent implements OnInit {
       ]);
     }
 
+    this.form.get('idPerfil')?.valueChanges.subscribe(() => this.aplicarReglaSucursal());
+    this.form.get('idEmpleados')?.valueChanges.subscribe(() => this.aplicarSucursalDesdeEmpleado());
+
     this.cargarEmpleados();
     this.cargarPerfiles();
+    this.cargarSucursales();
   }
+
+  get esPerfilAdministrador(): boolean {
+    const id = Number(this.form?.value?.idPerfil ?? 0);
+    const perfil = this.perfiles.find(
+      (p: any) => Number(p?.idPerfil ?? p?.IdPerfil) === id
+    );
+    return esPerfilAdministradorNombre(String(perfil?.nombre ?? perfil?.Nombre ?? ''));
+  }
+
 compareById = (a: any, b: any) => {
   return Number(a) === Number(b);
 };
@@ -102,6 +136,7 @@ compareById = (a: any, b: any) => {
         if (this.empleadoIdEdicion) {
           this.form.patchValue({ idEmpleados: this.empleadoIdEdicion });
         }
+        this.aplicarSucursalDesdeEmpleado();
       });
   }
 
@@ -117,7 +152,47 @@ compareById = (a: any, b: any) => {
         if (this.perfilIdEdicion) {
           this.form.patchValue({ idPerfil: Number(this.perfilIdEdicion) });
         }
+        this.aplicarReglaSucursal();
       });
+  }
+
+  cargarSucursales() {
+    this.sucursalSrv.listar().subscribe(res => {
+      this.sucursales = res || [];
+      if (this.sucursalIdEdicion) {
+        this.form.patchValue({ idSucursal: this.sucursalIdEdicion });
+      }
+      this.aplicarReglaSucursal();
+    });
+  }
+
+  private aplicarReglaSucursal() {
+    const ctrl = this.form.get('idSucursal');
+    if (!ctrl) return;
+
+    if (this.esPerfilAdministrador) {
+      ctrl.clearValidators();
+      ctrl.setValue(null, { emitEvent: false });
+    } else {
+      ctrl.setValidators([Validators.required]);
+      if (!Number(ctrl.value) && this.sucursales.length === 1) {
+        ctrl.setValue(this.sucursales[0].idSucursal, { emitEvent: false });
+      }
+    }
+    ctrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private aplicarSucursalDesdeEmpleado() {
+    if (this.esPerfilAdministrador) return;
+    const idEmp = Number(this.form.get('idEmpleados')?.value ?? 0);
+    if (!idEmp) return;
+    const emp = this.empleados.find(
+      (e: any) => Number(e?.idEmpleados ?? e?.idEmpleado ?? e?.IdEmpleados) === idEmp
+    );
+    const idSuc = Number(emp?.idSucursal ?? emp?.IdSucursal ?? 0);
+    if (idSuc > 0) {
+      this.form.patchValue({ idSucursal: idSuc }, { emitEvent: false });
+    }
   }
 
   async guardar() {
@@ -126,6 +201,11 @@ compareById = (a: any, b: any) => {
 
   if (this.form.invalid || !Number(this.form.value.idPerfil) || !Number(this.form.value.idEmpleados)) {
     this.toast('Complete los campos obligatorios ❌');
+    return;
+  }
+
+  if (!this.esPerfilAdministrador && !Number(this.form.value.idSucursal)) {
+    this.toast('Indique la sucursal del usuario ❌');
     return;
   }
 
@@ -149,13 +229,17 @@ compareById = (a: any, b: any) => {
     idUsuario,
     idEmpleado: Number(this.form.value.idEmpleados) || 0,
     idPerfil: Number(this.form.value.idPerfil) || 0,
+    idSucursal: this.esPerfilAdministrador
+      ? null
+      : Number(this.form.value.idSucursal) || null,
     correo: this.form.value.correo,
     userName: this.form.value.correo,
     activo: this.form.value.activo,
     puedeEliminarOrden: this.form.value.puedeEliminarOrden,
     puedeEliminarItemCarrito: this.form.value.puedeEliminarItemCarrito,
     puedeDisminuirCantidadCarrito: this.form.value.puedeDisminuirCantidadCarrito,
-    puedeEditarPrecioCarrito: this.form.value.puedeEditarPrecioCarrito
+    puedeEditarPrecioCarrito: this.form.value.puedeEditarPrecioCarrito,
+    puedeAnularFactura: this.form.value.puedeAnularFactura
   };
 
   if (this.form.value.password) {

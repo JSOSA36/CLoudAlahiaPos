@@ -55,7 +55,9 @@ export class CajaCierreService {
 
     desde: string,
 
-    hasta: string
+    hasta: string,
+
+    idSucursalFiltro = 0
 
   ): Observable<any[]> {
 
@@ -67,7 +69,9 @@ export class CajaCierreService {
 
       `&desde=${desde}` +
 
-      `&hasta=${hasta}`
+      `&hasta=${hasta}` +
+
+      `&idSucursalFiltro=${idSucursalFiltro || 0}`
     );
   }
 
@@ -145,5 +149,22 @@ export class CajaCierreService {
 
       `${this.baseUrl}/ImprimirCierre/${idCajaCierre}`
     );
+  }
+
+  cruceStockVsVentas(
+    idEmpresa: number,
+    desde: string,
+    hasta: string,
+    idProducto?: number
+  ): Observable<any[]> {
+    let url =
+      `${this.baseUrl}/CruceStockVsVentas` +
+      `?idEmpresa=${idEmpresa}` +
+      `&desde=${encodeURIComponent(desde)}` +
+      `&hasta=${encodeURIComponent(hasta)}`;
+    if (idProducto && idProducto > 0) {
+      url += `&idProducto=${idProducto}`;
+    }
+    return this.http.get<any[]>(url);
   }
 }

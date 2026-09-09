@@ -34,6 +34,17 @@ export class PrinterComponent implements OnInit {
     this.vistaPos = !this.vistaPos;
   }
 
+  get formaPagoTicket(): string {
+    const f = this.factura || {};
+    const raw =
+      f.formaPago ||
+      f.metodoPago ||
+      f.tipoPago ||
+      (Array.isArray(f.pagos) && f.pagos[0]?.metodo) ||
+      '';
+    return String(raw || '').trim();
+  }
+
   nombreItem(item: any): string {
     return (
       item?.productos?.nombre ||

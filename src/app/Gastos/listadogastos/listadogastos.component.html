@@ -59,6 +59,11 @@
         </ion-button>
       </div>
 
+      <app-filtro-sucursal-consulta
+        [valor]="idSucursalFiltro"
+        (valorChange)="onFiltroSucursal($event)">
+      </app-filtro-sucursal-consulta>
+
       <ion-modal [keepContentsMounted]="true">
         <ng-template>
           <ion-datetime
@@ -135,7 +140,7 @@
           </p>
         </div>
 
-        <div class="lg-actions" *ngIf="!g.estaAnulado && !g.estaCerrada && !esNomina(g)">
+        <div class="lg-actions" *ngIf="!g.estaAnulado && !g.estaCerrada && !esNomina(g) && !esGastosMenores(g)">
           <ion-button size="small" fill="solid" color="primary" (click)="editarGasto(g)">
             <ion-icon slot="start" name="create-outline"></ion-icon>
             Editar
@@ -144,6 +149,10 @@
             <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
           </ion-button>
         </div>
+        <p class="lg-locked" *ngIf="esGastosMenores(g) && !g.estaAnulado">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Comprobante E43: no se edita ni se anula (Formato 606).
+        </p>
         <ion-badge *ngIf="esNomina(g) && !g.estaAnulado" color="tertiary">Nómina</ion-badge>
         <ion-badge *ngIf="g.estaAnulado" color="medium">Anulado</ion-badge>
       </article>

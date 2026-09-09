@@ -217,6 +217,8 @@
 
     <div class="conteo-grid">
 
+      <ng-container *ngIf="controlPorDenominacion">
+
       <div class="card">
 
         <div class="card-header">
@@ -279,6 +281,27 @@
           <strong>{{ totalBilletes | currency:'DOP' }}</strong>
         </div>
 
+      </div>
+
+      </ng-container>
+
+      <div class="card observacion-card" *ngIf="!controlPorDenominacion">
+        <div class="card-header">
+          <h2>💵 Efectivo contado</h2>
+        </div>
+        <p class="empty-text" style="margin: 0 0 12px; padding: 0 4px;">
+          Cierre simplificado: no se pide conteo por billetes/monedas.
+          El efectivo se cuadra al esperado del sistema.
+        </p>
+        <ion-item lines="none">
+          <ion-label position="stacked">Efectivo contado</ion-label>
+          <ion-input
+            type="number"
+            fill="outline"
+            min="0"
+            [(ngModel)]="efectivoContadoIngresado">
+          </ion-input>
+        </ion-item>
       </div>
 
       <div class="card observacion-card">

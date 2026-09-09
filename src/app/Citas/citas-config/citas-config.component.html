@@ -1,0 +1,82 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button color="light"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Configuración de citas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-spinner *ngIf="cargando" name="crescent" class="spinner"></ion-spinner>
+
+  <ng-container *ngIf="!cargando">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>App del cliente</ion-card-subtitle>
+        <ion-card-title>Reserva / voucher</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">
+          Si está activo, el cliente debe depositar el monto y subir el voucher al agendar en línea.
+          El salón puede seguir creando citas aquí sin voucher.
+        </p>
+
+        <ion-item lines="none">
+          <ion-label class="ion-text-wrap">Pedir voucher al cliente</ion-label>
+          <ion-toggle slot="end" color="primary" [(ngModel)]="pedirVoucherCitas"></ion-toggle>
+        </ion-item>
+
+        <ion-item *ngIf="pedirVoucherCitas">
+          <ion-label position="stacked">Monto de reserva (RD$)</ion-label>
+          <ion-input
+            type="number"
+            inputmode="decimal"
+            min="1"
+            [(ngModel)]="montoReservaCitas"
+            placeholder="500">
+          </ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Cliente</ion-card-subtitle>
+        <ion-card-title>WhatsApp automático</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">
+          Alahia Citas avisa al cliente por WhatsApp Business: reserva recibida, confirmación, cancelación y recordatorio el día de la cita.
+          Sale desde el número de Alahia, con el nombre de tu salón.
+        </p>
+        <ion-item lines="none">
+          <ion-label class="ion-text-wrap">Enviar avisos de citas por WhatsApp</ion-label>
+          <ion-toggle slot="end" color="primary" [(ngModel)]="notificarCitasWhatsApp"></ion-toggle>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Información para agendar</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">
+          Se muestra en la app del cliente (cuentas, políticas, instrucciones de depósito).
+        </p>
+        <ion-item lines="none">
+          <ion-textarea
+            rows="10"
+            [(ngModel)]="infoAgendar"
+            placeholder="Cuentas, políticas, notas para el cliente…">
+          </ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="primary" [disabled]="guardando" (click)="guardar()">
+      {{ guardando ? 'Guardando…' : 'Guardar' }}
+    </ion-button>
+  </ng-container>
+</ion-content>

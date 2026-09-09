@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { ModalController, AlertController, ToastController } from '@ionic/angular';
 import { CitasService } from 'src/app/servicios/citas.service';
 import { Cita, EstadoCita } from 'src/app/models/cita';
@@ -7,6 +8,7 @@ import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { EmpresaDto } from 'src/app/models/empresadto.models';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
+import { AppConfigService } from 'src/app/servicios/app-config.service';
 import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-citas',
@@ -107,8 +109,20 @@ cantidadConfirmadasHoy: number = 0;
     private toast: ToastController,
     private parametro: ParametrosService,
     private empleadosSrv: EmpleadosService,
-    private facturaHeaderSrv: FacturaHeaderService
+    private facturaHeaderSrv: FacturaHeaderService,
+    private config: AppConfigService,
+    private router: Router
   ) {}
+
+  get urlCitasCliente(): string {
+    const guid = (this.empresa?.guidPublico || this.parametro._Empresa?.guidPublico || '').toString().trim();
+    if (!guid) return '';
+    return `${this.config.citasPublicUrl.replace(/\/$/, '')}/${guid}`;
+  }
+
+  irConfiguracion(): void {
+    this.router.navigate(['/citas-config']);
+  }
 
 
  esCitaSeguimiento(c:any){
@@ -745,8 +759,10 @@ actualizarEstado(cita: Cita, estado: EstadoCita) {
         this.aplicarFiltros();
 
         const t = await this.toast.create({
-          message: 'Estado actualizado',
-          duration: 1500,
+          message: (Number(cita.abono) || 0) > 0
+            ? 'Cita confirmada. El depósito quedó como ingreso y saldo a favor del cliente.'
+            : 'Estado actualizado',
+          duration: 2200,
           color: 'success'
         });
         t.present();
@@ -762,6 +778,22 @@ actualizarEstado(cita: Cita, estado: EstadoCita) {
     });
 }
 
+
+  async copiarUrlCitas() {
+    if (!this.urlCitasCliente) {
+      (await this.toast.create({ message: 'No hay link de citas todavía', duration: 1500, color: 'warning' })).present();
+      return;
+    }
+    await navigator.clipboard.writeText(this.urlCitasCliente);
+    (await this.toast.create({ message: 'Link de citas copiado ✅', duration: 1500, color: 'success' })).present();
+  }
+
+  compartirCitasWhatsapp() {
+    if (!this.urlCitasCliente) return;
+    const nombre = this.empresa?.nombreComercial || this.parametro._Empresa?.nombreComercial || 'nuestro salón';
+    const texto = encodeURIComponent(`Reserva tu cita en ${nombre}: ${this.urlCitasCliente}`);
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
+  }
 
   trackById = (_: number, c: Cita) => c?.idCita ?? _;
 

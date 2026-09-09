@@ -490,6 +490,33 @@ ion-footer {
   box-shadow: 0 10px 24px rgba(20, 84, 184, 0.22);
 }
 
+.cargo-pago-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 2px 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff8e6;
+  border: 1px solid rgba(251, 185, 1, 0.45);
+  color: #7a5a00;
+  font-size: 0.9rem;
+}
+
+.cargo-pago-line strong {
+  color: #1454b8;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cargo-pago-footer {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .total-label {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.72rem;

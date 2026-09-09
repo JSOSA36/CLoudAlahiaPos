@@ -17,9 +17,18 @@ import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { PosOfflineService, NOTA_TICKET_LOCAL } from 'src/app/servicios/pos-offline.service';
 import { DevolucionFacturaComponent } from 'src/app/Modales/devolucion-factura/devolucion-factura.component';
 import { NotaCreditoComercialComponent } from 'src/app/Modales/nota-credito-comercial/nota-credito-comercial.component';
 import { AnularFacturaComponent } from 'src/app/Modales/anular-factura/anular-factura.component';
+
+function fechaLocalYmd(d = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 @Component({
   selector: 'app-historicofact',
   templateUrl: './historicofact.component.html',
@@ -42,20 +51,16 @@ facturasOriginal:
   CodigoEmpleado: string = "";
   accordionActivo: string | number | null = null;
 puedeEliminarOrden: boolean = false;
+puedeAnularFactura: boolean = false;
 cargando: boolean = false;
 comisionEmpleado = false;
 printTicketLavador = false;
-// 🔥 FILTRO FECHA
+// 🔥 FILTRO FECHA (calendario local, no UTC: de noche toISOString() ya es el día siguiente)
 
-desde: string =
-  new Date()
-  .toISOString()
-  .split('T')[0];
+desde: string = fechaLocalYmd();
 
-hasta: string =
-  new Date()
-  .toISOString()
-  .split('T')[0];
+hasta: string = fechaLocalYmd();
+  idSucursalFiltro = 0;
 
   constructor(
     private modal: ModalController,
@@ -68,7 +73,8 @@ hasta: string =
       private toastCtrl: ToastController,
       private printService: PrintService,
       private parametroConfig: ParametroConfigService,
-      private loadingCtrl: LoadingController
+      private loadingCtrl: LoadingController,
+      private offline: PosOfflineService
       
   ) {}
  loading?: HTMLIonLoadingElement;
@@ -136,6 +142,7 @@ actualizarPrecio(idDetalle:number, precio:number){
     ]);
 
     this.puedeEliminarOrden = this._Parametro.puedeEliminarOrden;
+    this.puedeAnularFactura = this._Parametro.PuedeAnularFactura;
     this.cargarParametroComision();
 
   } catch (error) {
@@ -297,48 +304,30 @@ async RefreshOrdenes(
 
     this.accordionActivo = null;
 
-    const c =
-      await firstValueFrom(
-
-        this._FacturaHeader
-        .GetListadoOrdenesByFecha(
-
+    let servidor: facturaheader[] = [];
+    try {
+      servidor = await firstValueFrom(
+        this._FacturaHeader.GetListadoOrdenesByFecha(
           this._Parametro.GetIdEmpresa(),
-
           this.desde,
-
-          this.hasta
+          this.hasta,
+          this.idSucursalFiltro
         )
+      ) || [];
+    } catch (error) {
+      console.error(error);
+    }
 
-      );
-
-    // 🔥 ORDER
-
-    this._Parametro.ListadoFacturas =
-
-      [...(c || [])]
-      .sort(
-
-        (a, b) =>
-
-          b.idFacturaHeader -
-          a.idFacturaHeader
-      );
-
-    // 🔥 BACKUP
-
-    this.facturasOriginal =
-
-      [
-        ...this._Parametro
-        .ListadoFacturas
-      ];
-
-    console.log(
-      "📦 Facturas cargadas:",
-      this._Parametro
-      .ListadoFacturas
+    const locales = await this.offline.listarFacturasLocales(
+      this._Parametro.GetIdEmpresa()
     );
+
+    this._Parametro.ListadoFacturas = [
+      ...locales,
+      ...[...servidor].sort((a, b) => b.idFacturaHeader - a.idFacturaHeader)
+    ];
+
+    this.facturasOriginal = [...this._Parametro.ListadoFacturas];
 
   } catch (error) {
 
@@ -401,6 +390,12 @@ filtrarLocal() {
       ||
 
       (x.formaPago || '')
+      .toLowerCase()
+      .includes(value)
+
+      ||
+
+      (x.nombreUsuario || '')
       .toLowerCase()
       .includes(value)
     );
@@ -578,6 +573,7 @@ getPendiente(iten: any): number {
   }
 
   CallCategorias() {
+    this._Parametro.IdFacturaHeader = 0;
     this._Parametro.NombreCliente = this.NombreCliente;
     this._Router.navigateByUrl('/Categoria');
     this._modal.dismiss();
@@ -587,6 +583,10 @@ getPendiente(iten: any): number {
   async abrirAnulacion(
     factura: facturaheader
   ): Promise<void> {
+
+    if (!this.puedeAnularFactura) {
+      return;
+    }
 
     if (factura.estaCancelada) {
       return;
@@ -610,6 +610,15 @@ getPendiente(iten: any): number {
   }
 
   async SendPrintAccount(IdFact: number) {
+    const factura = this._Parametro.ListadoFacturas
+      .find(x => x.idFacturaHeader === IdFact) as any;
+    if (factura?._offlineLocal || IdFact < 0) {
+      await this.printService.openTicketPosPreview(IdFact, {
+        ...factura,
+        notaLocal: NOTA_TICKET_LOCAL
+      });
+      return;
+    }
     const apiPrint = (this._Parametro.ApiPrint || '').trim();
     if (!apiPrint) {
       const t = await this.toastCtrl.create({
@@ -839,4 +848,11 @@ getPendiente(iten: any): number {
  async LoadListaFactura() {
   await this.RefreshOrdenes(true);
 }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    void this.LoadListaFactura();
+  }
 }

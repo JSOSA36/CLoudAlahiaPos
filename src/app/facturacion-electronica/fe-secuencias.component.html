@@ -11,6 +11,11 @@
 <ion-content class="ion-padding">
   <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
 
+  <p class="seq-hint page-hint" *ngIf="!loading">
+    La autorización DGII es de la <b>empresa</b>. Luego se parte el rango y se asigna a cada sucursal
+    para que no usen los mismos e-NCF. Ejemplo: empresa <b>1–10000</b> → sucursal A <b>1–5000</b>, sucursal B <b>5001–10000</b>.
+  </p>
+
   <div class="secuencias-grid" *ngIf="!loading">
     <div class="seq-card" *ngFor="let s of secuencias" [class.inactiva]="!s.activo">
       <div class="seq-header">
@@ -22,10 +27,9 @@
       </div>
 
       <div class="seq-body">
-        <div class="seq-serie">Serie: <strong>{{ s.serie }}</strong></div>
-        <div class="seq-rango">
-          <span>{{ s.secuenciaActual }}</span> / <span>{{ s.secuenciaFinal }}</span>
-        </div>
+        <div class="seq-serie">Serie: <strong>{{ s.serie }}</strong> · Autorización de la empresa</div>
+        <div class="seq-rango-label">Rango autorizado</div>
+        <div class="seq-rango">{{ s.secuenciaInicial }} — {{ s.secuenciaFinal }}</div>
         <div class="seq-progress">
           <div class="seq-bar" [style.width.%]="porcentajeUso(s)"
                [class.bajo]="porcentajeUso(s) < 50"
@@ -38,11 +42,46 @@
           <span *ngIf="s.fechaVencimiento">Vence: {{ s.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
         </div>
         <div class="seq-ambiente">{{ s.ambiente || 'PRODUCCIÓN' }}</div>
+
+        <div class="asig-block">
+          <div class="asig-title">Rangos por sucursal</div>
+
+          <div class="asig-warn" *ngIf="exigeSucursal && asignacionesActivas(s).length === 0 && s.activo">
+            Asigne un tramo a cada sucursal. Sin eso no se puede emitir.
+          </div>
+
+          <div class="asig-row" *ngFor="let a of asignacionesDe(s)" [class.inactiva]="!a.activo">
+            <div class="asig-main">
+              <strong>{{ a.nombreSucursal || ('Sucursal ' + a.idSucursal) }}</strong>
+              <span class="asig-rango">{{ a.secuenciaInicial }} — {{ a.secuenciaFinal }}</span>
+              <span class="asig-next" *ngIf="a.activo">Próxima {{ proximaAsignacion(a) }}</span>
+              <span class="asig-encf" *ngIf="a.activo && s.serie">{{ previewEncf(s.serie, proximaAsignacion(a)) }}</span>
+              <span class="asig-off" *ngIf="!a.activo">Inactivo</span>
+            </div>
+            <div class="asig-actions" *ngIf="a.activo">
+              <ion-button size="small" fill="clear" (click)="openAsignar(s, a)">Editar</ion-button>
+              <ion-button size="small" fill="clear" color="danger" (click)="desactivarAsignacion(a)">Quitar</ion-button>
+            </div>
+          </div>
+
+          <div class="asig-hueco" *ngIf="s && numerosSinAsignarDe(s) > 0">
+            Sin asignar: {{ numerosSinAsignarDe(s) }} números
+            <span *ngIf="s.siguienteHuecoInicial && s.siguienteHuecoFinal">
+              (siguiente hueco {{ s.siguienteHuecoInicial }}–{{ s.siguienteHuecoFinal }})
+            </span>
+          </div>
+
+          <ion-button size="small" fill="outline" color="primary" (click)="openAsignar(s)"
+                      *ngIf="s.activo && sucursalesDisponiblesPara(s).length > 0">
+            <ion-icon name="storefront-outline" slot="start"></ion-icon>
+            Asignar rango a sucursal
+          </ion-button>
+        </div>
       </div>
 
       <div class="seq-actions">
         <ion-button size="small" fill="outline" color="primary" (click)="edit(s)">
-          <ion-icon name="create-outline" slot="start"></ion-icon> Editar
+          <ion-icon name="create-outline" slot="start"></ion-icon> Editar autorización
         </ion-button>
         <ion-button size="small" fill="outline" color="danger" (click)="desactivar(s)" *ngIf="s.activo">
           <ion-icon name="close-circle-outline" slot="start"></ion-icon> Desactivar
@@ -53,22 +92,24 @@
     <div class="empty-state" *ngIf="secuencias.length === 0">
       <ion-icon name="document-text-outline"></ion-icon>
       <p>No hay secuencias e-CF configuradas</p>
-      <ion-button (click)="openNew()">Crear primera secuencia</ion-button>
+      <ion-button (click)="openNew()">Crear primera autorización</ion-button>
     </div>
   </div>
 
-  <!-- Modal crear/editar -->
   <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
     <ng-template>
       <ion-header>
         <ion-toolbar color="primary">
-          <ion-title>{{ editMode ? 'Editar' : 'Nueva' }} Secuencia e-CF</ion-title>
+          <ion-title>{{ editMode ? 'Editar' : 'Nueva' }} autorización e-CF</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="isModalOpen = false">Cerrar</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
+        <p class="seq-hint">
+          Este rango es de la <b>empresa</b> (autorización DGII). Después asígnelo a las sucursales.
+        </p>
         <ion-list>
           <ion-item *ngIf="!editMode">
             <ion-label position="stacked">Tipo e-CF</ion-label>
@@ -84,23 +125,38 @@
             <ion-input [(ngModel)]="form.serie" readonly></ion-input>
           </ion-item>
 
-          <ion-item *ngIf="!editMode">
-            <ion-label position="stacked">Secuencia Inicial</ion-label>
-            <ion-input type="number" [(ngModel)]="form.secuenciaInicial"></ion-input>
+          <ion-item *ngIf="editMode">
+            <ion-label position="stacked">Tipo / Serie</ion-label>
+            <ion-input [value]="'e' + form.tipoEcfDgii + ' · ' + form.serie" readonly></ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Secuencia Final</ion-label>
-            <ion-input type="number" [(ngModel)]="form.secuenciaFinal"></ion-input>
+            <ion-label position="stacked">Secuencia inicial</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="form.secuenciaInicial" (ionInput)="onInicialChange()"></ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Fecha Vencimiento</ion-label>
+            <ion-label position="stacked">Próxima secuencia</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="form.proximaSecuencia"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Secuencia final</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="form.secuenciaFinal"></ion-input>
+          </ion-item>
+
+          <ion-item *ngIf="form.serie && form.proximaSecuencia">
+            <ion-label position="stacked">Siguiente e-NCF (si no hay asignaciones)</ion-label>
+            <ion-input [value]="previewFormEncf()" readonly></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Fecha vencimiento</ion-label>
             <ion-input type="date" [(ngModel)]="form.fechaVencimiento"></ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="stacked">Stock Mínimo (alerta)</ion-label>
+            <ion-label position="stacked">Stock mínimo (alerta)</ion-label>
             <ion-input type="number" [(ngModel)]="form.stockMinimo"></ion-input>
           </ion-item>
 
@@ -119,7 +175,63 @@
         </ion-list>
 
         <ion-button expand="block" color="primary" (click)="save()" class="ion-margin-top">
-          {{ editMode ? 'Actualizar' : 'Crear Secuencia' }}
+          {{ editMode ? 'Actualizar' : 'Guardar autorización' }}
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="isAsignarOpen" (didDismiss)="isAsignarOpen = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>{{ asignacionEditando ? 'Editar rango de sucursal' : 'Asignar rango a sucursal' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="isAsignarOpen = false">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" *ngIf="secuenciaAsignar as seq">
+        <p class="seq-hint">
+          Autorización e{{ seq.tipoEcfDgii }} de la empresa: <b>{{ seq.secuenciaInicial }}–{{ seq.secuenciaFinal }}</b>.
+          El tramo de esta sucursal no puede cruzarse con el de otra.
+        </p>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Sucursal</ion-label>
+            <ion-select [(ngModel)]="formAsignar.idSucursal" interface="popover" [disabled]="!!asignacionEditando">
+              <ion-select-option *ngFor="let suc of sucursalesDisponiblesPara(seq)" [value]="suc.idSucursal">
+                {{ suc.nombre }}
+              </ion-select-option>
+              <ion-select-option *ngIf="asignacionEditando" [value]="asignacionEditando.idSucursal">
+                {{ asignacionEditando.nombreSucursal }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Desde</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="formAsignar.secuenciaInicial" (ionInput)="onAsignarInicialChange()"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Próxima a emitir</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="formAsignar.proximaSecuencia"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Hasta</ion-label>
+            <ion-input type="number" min="1" [(ngModel)]="formAsignar.secuenciaFinal"></ion-input>
+          </ion-item>
+
+          <ion-item *ngIf="previewAsignarEncf()">
+            <ion-label position="stacked">Siguiente e-NCF de esta sucursal</ion-label>
+            <ion-input [value]="previewAsignarEncf()" readonly></ion-input>
+          </ion-item>
+        </ion-list>
+
+        <ion-button expand="block" color="primary" (click)="saveAsignacion()" class="ion-margin-top">
+          {{ asignacionEditando ? 'Actualizar rango' : 'Asignar rango' }}
         </ion-button>
       </ion-content>
     </ng-template>

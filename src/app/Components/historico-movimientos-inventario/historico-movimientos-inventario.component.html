@@ -149,6 +149,13 @@
 
             </ion-col>
 
+            <ion-col size="12" size-md="2">
+              <app-filtro-sucursal-consulta
+                [valor]="idSucursalFiltro"
+                (valorChange)="onFiltroSucursal($event)">
+              </app-filtro-sucursal-consulta>
+            </ion-col>
+
             <!-- ===================================== -->
             <!-- 🔥 TIPO -->
             <!-- ===================================== -->
@@ -592,6 +599,10 @@
             👤
             {{ nombreUsuario(item) }}
 
+          </p>
+
+          <p *ngIf="item.nombreSucursal">
+            🏢 {{ item.nombreSucursal }}
           </p>
 
           <p *ngIf="item.nombreAlmacen">

@@ -37,6 +37,13 @@
       show-clear-button="focus">
     </ion-searchbar>
   </ion-toolbar>
+
+  <ion-toolbar class="toolbar-sucursal">
+    <app-filtro-sucursal-consulta
+      [valor]="idSucursalFiltro"
+      (valorChange)="onFiltroSucursal($event)">
+    </app-filtro-sucursal-consulta>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
@@ -92,6 +99,11 @@
               {{ iten.numeroDocumento || iten.idFacturaHeader }} {{ iten.clientes?.nombreComercial }}
             </strong>
             <span
+              *ngIf="$any(iten)._offlineLocal"
+              class="badge-estatus badge-local">
+              Local
+            </span>
+            <span
               *ngIf="mostrarEstatusOrdenes && tipoDocumento === 'Orden'"
               class="badge-estatus"
               [ngClass]="claseEstatus(iten.idFacturaHeader)">
@@ -108,6 +120,10 @@
           <div>
             <ion-icon name="calendar-outline"></ion-icon>
             {{ iten.fechaBencimiento | date:'dd/MM/yyyy' }} {{iten.hora}}
+          </div>
+          <div class="badge-sucursal" *ngIf="mostrarSucursalEnFila && iten.nombreSucursal">
+            <ion-icon name="storefront-outline"></ion-icon>
+            {{ iten.nombreSucursal }}
           </div>
         </ion-label>
 
@@ -169,7 +185,7 @@
         <!-- DETALLES -->
         <ion-row 
           class="ion-no-padding" 
-          *ngFor="let itenDetalle of iten.facturaDetalles; let j = index"
+          *ngFor="let itenDetalle of (iten.facturaDetalles || []); let j = index"
         >
 
           <!-- INFO -->

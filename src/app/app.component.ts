@@ -14,6 +14,8 @@ import { PoliticasGateService } from './servicios/politicas-gate.service';
 import { NotificacionesService } from './servicios/notificaciones.service';
 import { EmpresaService } from './servicios/empresa.services';
 import { DgiiConfigService } from './servicios/dgii-config.service';
+import { PosDeviceService } from './servicios/pos-device.service';
+import { SucursalService } from './servicios/sucursal.service';
 import { etiquetaNivelSoporte, iconoNivelSoporte } from './shared/nivel-soporte';
 import {
   MENU_GRUPOS,
@@ -44,6 +46,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   MOVIMIENTO_INVENTARIO: '/movimientosinventario',
   CONDUCES: '/conduces',
   REPORTE_PERDIDAS: '/reporteperdidas',
+  REPORTE_CRUCE_STOCK: '/reportecrucestock',
   CATEGORIAS: '/Listadocategorias',
   PRODUCTOS: '/listproducto',
   CLIENTES: '/clientemodal',
@@ -173,6 +176,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   MOVIMIENTO_INVENTARIO: 'box-open',
   CONDUCES: 'truck',
   REPORTE_PERDIDAS: 'exclamation-triangle',
+  REPORTE_CRUCE_STOCK: 'balance-scale',
   GASTOS: 'wallet',
   INGRESOS: 'cash-register',
   HISTORICO_FACTURAS: 'file-invoice',
@@ -334,8 +338,30 @@ export class AppComponent implements OnInit, OnDestroy {
     private notificaciones: NotificacionesService,
     private perfilRoles: PerfilRolesService,
     private empresaSrv: EmpresaService,
-    private dgiiConfig: DgiiConfigService
+    private dgiiConfig: DgiiConfigService,
+    private posDevice: PosDeviceService,
+    private sucursalSrv: SucursalService
   ) {}
+
+  onSucursalChange(ev: Event): void {
+    if (!this._Parametro.esAdministrador) return;
+    const value = Number((ev.target as HTMLSelectElement)?.value || 0);
+    if (!value || value === this._Parametro.IdSucursal) return;
+    this.sucursalSrv.cambiar(value).subscribe({
+      next: (res) => {
+        this._Parametro.setSucursalSesion(res.idSucursal, res.sucursales);
+        if (res.apiPrint) this._Parametro.ApiPrint = res.apiPrint;
+      },
+      error: async () => {
+        const toast = await this.toastCtrl.create({
+          message: 'No se pudo cambiar de sucursal.',
+          duration: 2500,
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    });
+  }
 
   // ===============================
   // 🔄 INIT
@@ -343,6 +369,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this._Parametro.setAlertaPago(null);
     this.alertaPagoBanner = null;
+    void this.posDevice.obtenerInfo();
 
   this.citasService.nuevaCita$
   .pipe(takeUntil(this.destroy$))

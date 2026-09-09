@@ -45,10 +45,39 @@
         <ion-select-option value="Doctor">Doctor</ion-select-option>
         <ion-select-option value="Doctora">Doctora</ion-select-option>
         <ion-select-option value="Cajero">Cajero</ion-select-option>
+        <ion-select-option value="Repartidor">Repartidor</ion-select-option>
         <ion-select-option value="Administrador">Administrador</ion-select-option>
 
       </ion-select>
     </ion-item>
+
+
+    <!-- ========================= -->
+    <!-- SUCURSAL -->
+    <!-- ========================= -->
+    <ion-item *ngIf="!esOcupacionAdmin && sucursales.length">
+      <ion-label>Sucursal *</ion-label>
+      <ion-select
+        formControlName="idSucursal"
+        interface="popover"
+        placeholder="Seleccione una sucursal"
+        [compareWith]="compareById">
+
+        <ion-select-option
+          *ngFor="let s of sucursales"
+          [value]="s.idSucursal">
+          {{ s.nombre }}{{ s.esPrincipal ? ' (Principal)' : '' }}
+        </ion-select-option>
+
+      </ion-select>
+    </ion-item>
+
+    <ion-item *ngIf="esOcupacionAdmin" lines="none">
+      <ion-note>
+        El administrador no se asigna a una sucursal; puede consultar y operar en todas.
+      </ion-note>
+    </ion-item>
+
 
     <!-- ========================= -->
     <!-- CELULAR -->

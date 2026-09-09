@@ -1,0 +1,203 @@
+<ion-header class="no-print">
+
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>
+      Cruce stock vs ventas
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="imprimir()"
+        [disabled]="!lineas.length">
+        <ion-icon
+          slot="icon-only"
+          name="print-outline">
+        </ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="ion-padding reporte-cruce-content">
+
+  <ion-card class="card-filtros no-print">
+
+    <ion-card-header>
+      <ion-card-title>
+        Filtros
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-grid>
+
+        <ion-row>
+
+          <ion-col size="12" size-md="3">
+            <ion-item lines="none">
+              <ion-label position="stacked">Desde</ion-label>
+              <ion-input type="date" [(ngModel)]="desde"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12" size-md="3">
+            <ion-item lines="none">
+              <ion-label position="stacked">Hasta</ion-label>
+              <ion-input type="date" [(ngModel)]="hasta"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12" size-md="3">
+            <ion-item lines="none">
+              <ion-label position="stacked">Producto (opcional)</ion-label>
+              <ion-input
+                [(ngModel)]="filtroProducto"
+                (ionInput)="filtrarProductos()"
+                placeholder="Nombre o código">
+              </ion-input>
+            </ion-item>
+
+            <div class="sugerencias" *ngIf="productosFiltrados.length">
+              <button
+                type="button"
+                class="sugerencia"
+                *ngFor="let p of productosFiltrados"
+                (click)="seleccionarProducto(p)">
+                {{ p.nombre }}
+              </button>
+            </div>
+
+            <ion-button
+              *ngIf="idProducto > 0 || filtroProducto"
+              size="small"
+              fill="clear"
+              color="medium"
+              (click)="limpiarProducto()">
+              Quitar producto
+            </ion-button>
+          </ion-col>
+
+          <ion-col size="12" size-md="3" class="col-botones">
+            <ion-button
+              expand="block"
+              color="primary"
+              (click)="cargarReporte()">
+              <ion-icon slot="start" name="search-outline"></ion-icon>
+              Consultar
+            </ion-button>
+
+            <ion-button
+              expand="block"
+              fill="outline"
+              color="medium"
+              (click)="limpiarFiltros()">
+              Limpiar
+            </ion-button>
+          </ion-col>
+
+        </ion-row>
+
+      </ion-grid>
+
+      <p class="hint">
+        Fórmula: stock al abrir − vendido + otros movimientos = esperado.
+        Se compara con el stock al cerrar el turno.
+      </p>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <div *ngIf="cargando" class="loading-area no-print">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div id="area-reporte" class="area-reporte" *ngIf="!cargando">
+
+    <div class="reporte-encabezado">
+      <h1>Cruce stock vs ventas</h1>
+      <p>Por turno de caja (productos vendidos)</p>
+      <p class="rango-fechas">
+        Del {{ formatearFecha(desde) }} al {{ formatearFecha(hasta) }}
+      </p>
+    </div>
+
+    <div class="resumen-totales" *ngIf="lineas.length">
+      <div class="tarjeta-total">
+        <span class="etiqueta">Líneas</span>
+        <strong>{{ totalLineas }}</strong>
+      </div>
+      <div class="tarjeta-total">
+        <span class="etiqueta">Unidades vendidas</span>
+        <strong>{{ totalVendidos | number:'1.0-2' }}</strong>
+      </div>
+      <div class="tarjeta-total" [class.tarjeta-alerta]="totalDescuadres > 0">
+        <span class="etiqueta">Descuadres</span>
+        <strong>{{ totalDescuadres }}</strong>
+      </div>
+    </div>
+
+    <ion-card *ngIf="!lineas.length" class="card-empty">
+      <ion-card-content class="ion-text-center">
+        No hay ventas con stock para cruzar en el rango seleccionado.
+      </ion-card-content>
+    </ion-card>
+
+    <div class="tabla-wrapper" *ngIf="lineas.length">
+      <table class="tabla-cruce">
+        <thead>
+          <tr>
+            <th>Cierre</th>
+            <th>Turno</th>
+            <th>Usuario</th>
+            <th>Producto</th>
+            <th class="col-num">Al abrir</th>
+            <th class="col-num">Vendido</th>
+            <th class="col-num">Otros</th>
+            <th class="col-num">Esperado</th>
+            <th class="col-num">Al cerrar</th>
+            <th class="col-num">Dif.</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let item of lineas"
+            [class.fila-descuadre]="!item.cuadra">
+            <td>#{{ item.idCajaCierre }}</td>
+            <td>
+              {{ item.fechaApertura | date:'dd/MM HH:mm' }}
+              →
+              {{ item.fechaCierre | date:'dd/MM HH:mm' }}
+            </td>
+            <td>{{ item.usuario }}</td>
+            <td>{{ item.producto }}</td>
+            <td class="col-num">{{ item.stockAlAbrir | number:'1.0-2' }}</td>
+            <td class="col-num">{{ item.cantidadVendida | number:'1.0-2' }}</td>
+            <td class="col-num">{{ item.otrosMovimientos | number:'1.0-2' }}</td>
+            <td class="col-num">{{ item.stockEsperado | number:'1.0-2' }}</td>
+            <td class="col-num">{{ item.stockAlCerrar | number:'1.0-2' }}</td>
+            <td class="col-num" [class.dif-mala]="!item.cuadra">
+              {{ item.diferencia | number:'1.0-2' }}
+            </td>
+            <td>
+              <span class="badge" [class.ok]="item.cuadra" [class.bad]="!item.cuadra">
+                {{ item.cuadra ? 'Cuadra' : 'Revisar' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</ion-content>

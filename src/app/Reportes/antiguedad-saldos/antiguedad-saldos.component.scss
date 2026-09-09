@@ -55,6 +55,11 @@
   box-shadow: 0 4px 18px rgba(25, 118, 210, 0.06);
 }
 
+.as-field-sucursal,
+.as-actions {
+  grid-column: 1 / -1;
+}
+
 .as-field label {
   display: block;
   font-size: 0.7rem;

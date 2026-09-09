@@ -162,18 +162,23 @@
           <p class="cobro-hero-title">Cobro</p>
         </div>
 
-        <ion-item lines="none" class="cobro-check" *ngIf="restanteTrasNc > 0">
-          <ion-checkbox slot="start" [(ngModel)]="_PagoMixto"></ion-checkbox>
+        <ion-item lines="none" class="cobro-check" *ngIf="restanteTrasNc > 0 || montoCargoPago > 0">
+          <ion-checkbox
+            slot="start"
+            [(ngModel)]="_PagoMixto"
+            (ionChange)="onMetodoPagoChange()">
+          </ion-checkbox>
           <ion-label>
             Pago mixto <span *ngIf="_UsarNotaCredito">(del restante)</span>
           </ion-label>
         </ion-item>
 
-        <div class="cobro-fields" *ngIf="!_PagoMixto && restanteTrasNc > 0">
+        <div class="cobro-fields" *ngIf="!_PagoMixto && (restanteTrasNc > 0 || montoCargoPago > 0)">
           <ion-item lines="none" class="cobro-field">
             <ion-label position="stacked">Forma de pago</ion-label>
             <ion-select
               [(ngModel)]="_FormaPago"
+              (ionChange)="onMetodoPagoChange()"
               interface="modal"
               cssClass="select-pago-modal"
               placeholder="Seleccione método">
@@ -184,6 +189,11 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
+
+          <div class="cargo-pago-line" *ngIf="montoCargoPago > 0">
+            <span>{{ etiquetaCargoPago || 'Cargo por método' }}</span>
+            <strong>RD$ {{ montoCargoPago | number:'1.2-2' }}</strong>
+          </div>
 
           <ion-item lines="none" class="cobro-field cobro-field-monto">
             <ion-label position="stacked">
@@ -210,7 +220,7 @@
           [(ngModel)]="_UsarNotaCredito"
           (ionChange)="onToggleNotaCredito()">
         </ion-checkbox>
-        <ion-label>Aplicar nota de crédito</ion-label>
+        <ion-label>Aplicar saldo a favor / nota de crédito</ion-label>
       </ion-item>
 
       <div *ngIf="_TipoFactura === 'Contado' && _UsarNotaCredito" class="nc-pago-box">
@@ -270,6 +280,11 @@
 
         class="multi-pago">
 
+        <div class="cargo-pago-line" *ngIf="montoCargoPago > 0">
+          <span>{{ etiquetaCargoPago || 'Cargo por método' }}</span>
+          <strong>RD$ {{ montoCargoPago | number:'1.2-2' }}</strong>
+        </div>
+
         <!-- =====================================
         🔥 MÉTODO 1
         ====================================== -->
@@ -285,6 +300,8 @@
           <ion-select
 
             [(ngModel)]="_MetodoPago1"
+
+            (ionChange)="onMetodoPagoChange()"
 
             interface="modal"
 
@@ -344,6 +361,8 @@
           <ion-select
 
             [(ngModel)]="_MetodoPago2"
+
+            (ionChange)="onMetodoPagoChange()"
 
             interface="modal"
 
@@ -462,6 +481,11 @@
 
       {{ _TipoFactura === 'Credito' ? 'TOTAL FACTURA' : 'TOTAL A PAGAR' }}
 
+    </div>
+
+    <div class="cargo-pago-footer" *ngIf="_TipoFactura === 'Contado' && montoCargoPago > 0">
+      Incluye {{ etiquetaCargoPago || 'cargo' }}:
+      RD$ {{ montoCargoPago | number:'1.2-2' }}
     </div>
 
     <div class="total-value">

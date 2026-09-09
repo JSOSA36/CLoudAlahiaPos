@@ -9,6 +9,25 @@ export interface SecuenciaEcfDisponible {
   fechaVencimiento: string | null;
 }
 
+export interface SecuenciaEcfAsignacionDto {
+  idAsignacion: number;
+  idSecuencia: number;
+  idSucursal: number;
+  nombreSucursal?: string | null;
+  secuenciaInicial: number;
+  secuenciaActual: number;
+  proximaSecuencia?: number;
+  secuenciaFinal: number;
+  activo: boolean;
+}
+
+export interface SecuenciaEcfAsignarDto {
+  idSucursal: number;
+  secuenciaInicial: number;
+  secuenciaFinal: number;
+  proximaSecuencia?: number;
+}
+
 export interface SecuenciaEcfDto {
   idSecuencia: number;
   idEmpresa: number;
@@ -18,12 +37,19 @@ export interface SecuenciaEcfDto {
   serie: string;
   secuenciaInicial: number;
   secuenciaActual: number;
+  proximaSecuencia?: number;
   secuenciaFinal: number;
   fechaVencimiento: string | null;
   stockMinimo: number;
   activo: boolean;
   ambiente: string;
   fechaCreacion: string;
+  idSucursal?: number | null;
+  nombreSucursal?: string | null;
+  asignaciones?: SecuenciaEcfAsignacionDto[];
+  numerosSinAsignar?: number;
+  siguienteHuecoInicial?: number | null;
+  siguienteHuecoFinal?: number | null;
 }
 
 export interface SecuenciaEcfCreateDto {
@@ -31,7 +57,9 @@ export interface SecuenciaEcfCreateDto {
   tipoEcfDgii: number;
   descripcion?: string;
   serie: string;
-  secuenciaInicial?: number;
+  secuenciaInicial: number;
+  proximaSecuencia?: number;
+  secuenciaActual?: number;
   secuenciaFinal: number;
   fechaVencimiento?: string;
   stockMinimo?: number;
@@ -40,6 +68,9 @@ export interface SecuenciaEcfCreateDto {
 }
 
 export interface SecuenciaEcfUpdateDto {
+  secuenciaInicial?: number;
+  proximaSecuencia?: number;
+  secuenciaActual?: number;
   secuenciaFinal?: number;
   fechaVencimiento?: string;
   stockMinimo?: number;
@@ -52,6 +83,7 @@ export interface EmisionEcfRequest {
   origenDocumento: number;
   idOrigen: number;
   idUsuario: number;
+  idSucursal?: number | null;
 }
 
 export interface EmisionEcfResultado {

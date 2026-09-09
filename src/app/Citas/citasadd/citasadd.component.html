@@ -49,19 +49,12 @@
 
 <!-- CORREO -->
 <ion-item lines="inset">
-  <ion-label position="floating">Correo electrónico *</ion-label>
+  <ion-label position="floating">Correo electrónico</ion-label>
   <ion-input
     type="email"
     [(ngModel)]="form.correo">
   </ion-input>
 </ion-item>
-
-<div class="alerta-warning">
-  <ion-icon name="warning-outline"></ion-icon>
-  <span>
-    Asegúrese de ingresar un correo válido para recibir la confirmación de su cita.
-  </span>
-</div>
 
 <!-- SERVICIO -->
 <div class="servicio-wrapper">
@@ -107,23 +100,6 @@
   </ion-label>
 </ion-item>
 
-<!-- SEGUIMIENTO -->
-<ion-item lines="none">
-  <ion-checkbox slot="start"
-    [(ngModel)]="form.esSeguimiento">
-  </ion-checkbox>
-
-  <ion-label>
-    Cita de seguimiento (no requiere abono)
-  </ion-label>
-</ion-item>
-
-<div class="alerta-info">
-  <ion-icon name="information-circle-outline"></ion-icon>
-  <span>
-    Si no está realizando un procedimiento continuo, no seleccione esta opción.
-  </span>
-</div>
 
 <!-- ESTILISTA -->
 <ion-item lines="inset">
@@ -189,50 +165,6 @@
 
 </div>
 
-<!-- BANCO -->
-<ion-item lines="inset" *ngIf="!form.esSeguimiento">
-  <ion-label position="stacked">Banco</ion-label>
-
-  <ion-select [(ngModel)]="form.banco">
-    <ion-select-option value="BHD">Banco BHD</ion-select-option>
-    <ion-select-option value="Banreservas">Banreservas</ion-select-option>
-    <ion-select-option value="Popular">Popular</ion-select-option>
-    <ion-select-option value="QIK">QIK</ion-select-option>
-  </ion-select>
-</ion-item>
-
-<!-- ABONO -->
-<ion-item lines="inset" *ngIf="!form.esSeguimiento">
-  <ion-label position="stacked">Monto abonado</ion-label>
-  <ion-input type="number"
-    [(ngModel)]="form.abono">
-  </ion-input>
-</ion-item>
-
-<div class="alerta-danger" *ngIf="!form.esSeguimiento">
-  <ion-icon name="alert-circle-outline"></ion-icon>
-  <span>
-    Si el monto abonado no cumple con la política establecida, no podrá agendar la cita.
-  </span>
-</div>
-
-<!-- RECIBO -->
-<ion-item lines="full" *ngIf="!form.esSeguimiento">
-  <ion-label position="stacked">
-    Recibo / Volante de pago
-  </ion-label>
-
-  <input type="file"
-    accept="image/*"
-    (change)="onSeleccionarRecibo($event)" />
-</ion-item>
-
-<ion-item *ngIf="previewRecibo && !form.esSeguimiento">
-  <ion-thumbnail slot="start">
-    <img [src]="previewRecibo" />
-  </ion-thumbnail>
-  <ion-label>Imagen cargada</ion-label>
-</ion-item>
 
 <!-- NOTA -->
 <ion-item lines="inset">

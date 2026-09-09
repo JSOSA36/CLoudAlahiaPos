@@ -12,6 +12,14 @@
 
 <ion-content class="ion-padding">
 
+  <div class="usuarios-cupo" [class.limite]="!puedeAgregarUsuario">
+    <strong>{{ usuariosRegistrados }} / {{ maxUsuariosPermitidos }}</strong>
+    <span *ngIf="puedeAgregarUsuario">usuarios del plan</span>
+    <span *ngIf="!puedeAgregarUsuario">
+      límite de usuarios alcanzado. Para agregar más, MacroBits debe ampliar el cupo.
+    </span>
+  </div>
+
   <!-- 🔹 Listado de usuarios -->
   <ng-container *ngIf="usuarios.length > 0; else vacio">
 
@@ -26,6 +34,7 @@
       <ion-card-content>
         <p><strong>Correo:</strong> {{ u.correo }}</p>
         <p><strong>Perfil:</strong> {{ u.rol || 'Sin perfil' }}</p>
+        <p><strong>Sucursal:</strong> {{ u.sucursalNombre || 'Sin sucursal' }}</p>
 
         <p>
           <strong>Estado:</strong>
@@ -59,12 +68,11 @@
     </div>
   </ng-template>
 
-  <!-- 🔹 Agregar usuario -->
-  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+  <!-- 🔹 Agregar usuario: oculto al llegar al cupo -->
+  <ion-fab *ngIf="puedeAgregarUsuario" vertical="bottom" horizontal="center" slot="fixed">
     <ion-fab-button
       color="primary"
-      (click)="abrirModal()"
-      [disabled]="!puedeAgregarUsuario">
+      (click)="abrirModal()">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>

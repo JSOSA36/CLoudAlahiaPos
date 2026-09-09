@@ -72,6 +72,7 @@ export interface AntiguedadSaldosFiltro {
   soloVencidas?: boolean;
   soloPendientes?: boolean;
   fechaCorte?: string;
+  idSucursalFiltro?: number;
 }
 
 export type AntiguedadModo = 'cxc' | 'cxp';

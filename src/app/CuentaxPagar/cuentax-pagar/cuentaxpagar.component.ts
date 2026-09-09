@@ -12,11 +12,18 @@ import {
 } from 'src/app/servicios/notas-credito.service';
 import { RncCLienteDGIIService } from 'src/app/servicios/RncCLienteDGII.services';
 import { RrhhService } from 'src/app/servicios/rrhh.service';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
 import {
   PLAZOS_CREDITO,
   PlazoCreditoOpcion,
   resolverDiasPlazo
 } from 'src/app/shared/plazo-credito.util';
+import {
+  CargoPagoAplicado,
+  CargoPagoRegla,
+  CargoPagoService
+} from 'src/app/servicios/cargo-pago.service';
 
 @Component({
   selector: 'app-cuentax-pagar',
@@ -133,10 +140,65 @@ export class CuentaxPagarComponent implements OnInit {
 
   readonly METODO_NC = 'NotaCredito';
 
-  get totalAPagar(): number {
+  cargoReglas: CargoPagoRegla[] = [];
+  cargosPagoHabilitado = false;
+
+  /** Total de la venta sin cargo por método de pago. */
+  get baseSinCargo(): number {
     const t = Number(this.TotalFactura) || 0;
     const desc = this.montoDescuentoColaborador;
     return Math.round((t - desc) * 100) / 100;
+  }
+
+  get omitirCargoPorEcf(): boolean {
+    if (this.tipoEcfDgii != null) return true;
+    const t = (this._TipoComprobante || '').trim().toLowerCase();
+    return t === 'crédito fiscal'
+      || t === 'credito fiscal'
+      || t === 'consumidor final'
+      || t === 'gubernamental';
+  }
+
+  get metodosParaCargo(): string[] {
+    if (this._TipoFactura !== 'Contado') return [];
+    if (this._PagoMixto) {
+      return [this._MetodoPago1, this._MetodoPago2].filter(m => !!m);
+    }
+    return this._FormaPago ? [this._FormaPago] : [];
+  }
+
+  get cargoCalculo() {
+    if (!this.cargosPagoHabilitado || this.omitirCargoPorEcf) {
+      return {
+        baseCalculo: this.baseSinCargo,
+        montoCargo: 0,
+        totalConCargo: this.baseSinCargo,
+        cargos: [] as CargoPagoAplicado[]
+      };
+    }
+    return this.cargoPagoService.calcularLocal(
+      this.cargoReglas,
+      this.metodosParaCargo,
+      this.baseSinCargo
+    );
+  }
+
+  get cargosAplicados(): CargoPagoAplicado[] {
+    return this.cargoCalculo.cargos;
+  }
+
+  get montoCargoPago(): number {
+    return this.cargoCalculo.montoCargo;
+  }
+
+  get etiquetaCargoPago(): string {
+    const cargos = this.cargosAplicados;
+    if (!cargos.length) return '';
+    return cargos.map(c => c.nombre).join(' + ');
+  }
+
+  get totalAPagar(): number {
+    return Math.round((this.baseSinCargo + this.montoCargoPago) * 100) / 100;
   }
 
   get montoDescuentoColaborador(): number {
@@ -233,7 +295,10 @@ export class CuentaxPagarComponent implements OnInit {
     private metodoPagoCuentaService: MetodoPagoCuentaService,
     private notasCreditoService: NotasCreditoService,
     private rncService: RncCLienteDGIIService,
-    private rrhh: RrhhService
+    private rrhh: RrhhService,
+    private parametroConfig: ParametroConfigService,
+    private feService: FacturacionElectronicaService,
+    private cargoPagoService: CargoPagoService
   ) {}
 
   ngOnInit() {
@@ -251,6 +316,8 @@ export class CuentaxPagarComponent implements OnInit {
     this.onPlazoCreditoChange();
 
     this.CargarMetodosPago();
+    this.cargarCargosPago();
+    this.asegurarFacturacionElectronica();
     if (Number(this.IdFactPay) > 0 || !this._Parametro.tieneModuloRrhh()) {
       this.mostrarConsumoColaborador = false;
     }
@@ -262,7 +329,96 @@ export class CuentaxPagarComponent implements OnInit {
         idCliente: this.IdCliente,
         nombre: this.NombreCliente
       };
+      this.precargarSaldoCliente();
     }
+  }
+
+  private cargarCargosPago(): void {
+    this.cargosPagoHabilitado = this._Parametro.tieneModulo('CARGOS_PAGO');
+    if (!this.cargosPagoHabilitado) {
+      this.cargoReglas = [];
+      return;
+    }
+    const idEmpresa = this._Parametro.GetIdEmpresa();
+    if (!idEmpresa) return;
+    this.cargoPagoService.listar(idEmpresa).subscribe({
+      next: (rows) => {
+        this.cargoReglas = rows || [];
+        this.sincronizarMontoCobroTrasCargo();
+      },
+      error: () => {
+        this.cargoReglas = [];
+      }
+    });
+  }
+
+  /** Recalcula total (con cargo) y ajusta el monto a cobrar si seguía el total anterior. */
+  onMetodoPagoChange(): void {
+    this.sincronizarMontoCobroTrasCargo();
+  }
+
+  private sincronizarMontoCobroTrasCargo(): void {
+    if (this._TipoFactura !== 'Contado') return;
+    if (this._PagoMixto) {
+      this.calcularPagoMixto();
+      return;
+    }
+    this.EfectivoRecibido = this.restanteTrasNc;
+    this.calcularPagoNormal();
+  }
+
+  /** Órdenes/mesas no pasan FE; el POS sí. Carga param + secuencias si hace falta. */
+  private asegurarFacturacionElectronica() {
+    const idEmpresa = this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa();
+    if (!idEmpresa) return;
+
+    const aplicarSecuencias = () => {
+      if (this.TiposComprobante?.length) return;
+      this.feService.getSecuenciasDisponibles(idEmpresa).subscribe({
+        next: (secuencias) => {
+          this.TiposComprobante = [
+            { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
+          ];
+          for (const s of secuencias || []) {
+            const disabled = !!s.agotada || !!s.vencida;
+            const alertaBaja = !disabled && s.restantes <= s.stockMinimo;
+            let label = `e${s.tipoEcfDgii} - ${s.descripcion}`;
+            if (disabled) label += ' (No disponible)';
+            else if (alertaBaja) label += ` (${s.restantes} restantes)`;
+            this.TiposComprobante.push({
+              value: s.tipoEcfDgii,
+              label,
+              disabled,
+              alertaBaja,
+              restantes: s.restantes
+            });
+          }
+        },
+        error: () => {
+          this.TiposComprobante = [
+            { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
+          ];
+        }
+      });
+    };
+
+    if (this.FacturacionElectronica) {
+      aplicarSecuencias();
+      return;
+    }
+
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const fe = (params || []).find(
+          (x: any) => (x.clave || x.Clave) === 'FACTURACION_ELECTRONICA'
+        );
+        const valor = (fe?.valor ?? '').toString().toLowerCase();
+        if (valor === 'true') {
+          this.FacturacionElectronica = true;
+          aplicarSecuencias();
+        }
+      }
+    });
   }
 
   onTipoFacturaChange() {
@@ -312,6 +468,8 @@ export class CuentaxPagarComponent implements OnInit {
       this.mensajeRnc = '';
       this.estadoRnc = '';
     }
+
+    this.sincronizarMontoCobroTrasCargo();
   }
 
   consultarRnc() {
@@ -379,6 +537,34 @@ export class CuentaxPagarComponent implements OnInit {
     if (!this._UsarNotaCredito) {
       this.limpiarNc();
     }
+  }
+
+  precargarSaldoCliente() {
+    const idCliente = this.IdCliente || this._ClienteSeleccionado?.idCliente || 0;
+    if (!idCliente || this._TipoFactura !== 'Contado') return;
+
+    this.notasCreditoService
+      .listarSaldosAFavor(this._Parametro.GetIdEmpresa(), idCliente)
+      .subscribe({
+        next: (rows) => {
+          const disponible = (rows || []).filter(s =>
+            (Number(s.saldoDisponible) || 0) > 0.009
+            && String(s.estado || '').toLowerCase() !== 'agotado'
+            && String(s.estado || '').toLowerCase() !== 'anulado'
+          );
+          if (!disponible.length) return;
+          const saldo = disponible[0];
+          this._UsarNotaCredito = true;
+          this.saldoNc = saldo;
+          this.ncfBusqueda = saldo.numeroDocumentoNotaCredito || saldo.ncfNotaCredito || '';
+          this.montoNc = Math.min(Number(saldo.saldoDisponible) || 0, this.totalAPagar);
+          this.calcularCambio();
+          this.calcularPagoMixto();
+          this.EfectivoRecibido = this.restanteTrasNc;
+          this.calcularPagoNormal();
+        },
+        error: () => { /* sin saldo, el cobro sigue normal */ }
+      });
   }
 
   limpiarNc() {
@@ -887,6 +1073,7 @@ export class CuentaxPagarComponent implements OnInit {
     }
 
     this.modalPagoAbierto = false;
+    this.onMetodoPagoChange();
 
     if (pago === 'UberEats' || pago === 'PedidosYa') {
       this.EfectivoRecibido = this.restanteTrasNc;

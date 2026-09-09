@@ -4,12 +4,15 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { productos } from '../models/productos';
 import { zonas } from '../models/zonas';
 import { Mesas } from '../models/mesas';
+import { SalonMesa } from '../models/salon-mesa.models';
 import { facturaheader } from '../models/facturaheader';
 import { categorias } from '../models/categorias';
 import { EmpresaDto } from '../models/empresadto.models';
+import { SucursalSesion, normalizarSucursalesSesion } from '../models/sucursal-sesion.models';
 
 import { ZonasService } from './zonas.service';
 import { FacturaHeaderService } from './factura-header.service';
+import { PosOfflineService } from './pos-offline.service';
 import { clientes } from '../models/clientes';
 import { FiscalFeatureFlags } from './dgii-config.service';
 import { normalizarNivelSoporte } from '../shared/nivel-soporte';
@@ -47,11 +50,14 @@ public puedeEliminarOrden: boolean = false;
 PoliticasAceptadas: boolean = false;
   public _Cat: categorias = new categorias();
   public _Mesa: Mesas = new Mesas();
+  public salonMesa: SalonMesa | null = null;
+  public Comensales = 1;
 public PuedeEliminarItemCarrito: boolean = false;
 
 public PuedeDisminuirCantidadCarrito: boolean = false;
 
 public PuedeEditarPrecioCarrito: boolean = false;
+public PuedeAnularFactura: boolean = false;
   public NombreCliente = '';
   public NombreEmpresa = '';
   public NumeroMesa = '';
@@ -64,7 +70,7 @@ public PuedeEditarPrecioCarrito: boolean = false;
     localStorage.setItem('nivelSoporte', this.nivelSoporte);
   }
 
-  /** Aviso de cobro SaaS (gracia día 30→3). Null si no aplica. */
+  /** Aviso SaaS: modal de cobro el día 30 (o el siguiente si no trabaja domingo). Null si no aplica. */
   public alertaPago: {
     tipo: string;
     mensaje: string;
@@ -110,7 +116,11 @@ public PuedeEditarPrecioCarrito: boolean = false;
   public IdUsuario = 0;
   public IdEmpleados = 0;
   public IdEmpresa = 0;
+  public IdSucursal = 0;
+  public sucursales: SucursalSesion[] = [];
+  public nombreSucursal = '';
   public IdPerfil = 0;
+  public esAdministrador = false;
 
   public UserName = '';
   public Rol = '';
@@ -157,7 +167,8 @@ public PuedeEditarPrecioCarrito: boolean = false;
 
   constructor(
     private _Zonas: ZonasService,
-    private _FacturaHeader: FacturaHeaderService
+    private _FacturaHeader: FacturaHeaderService,
+    private posOffline: PosOfflineService
   ) {
     this.ensureSessionFromStorage();
   }
@@ -212,6 +223,15 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.fiscalFeatures = features
       ? { ...FISCAL_FEATURES_OFF, ...features, idEmpresa: features.idEmpresa || this.IdEmpresa }
       : { ...FISCAL_FEATURES_OFF, idEmpresa: this.IdEmpresa };
+    try {
+      if (features) {
+        localStorage.setItem('fiscal_features', JSON.stringify(this.fiscalFeatures));
+      } else {
+        localStorage.removeItem('fiscal_features');
+      }
+    } catch {
+      /* ignore quota */
+    }
     this.fiscalFeatures$.next(this.fiscalFeatures);
     this.refrescarMenu();
   }
@@ -233,13 +253,13 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   }
 
   /**
-   * IT-1 / config fiscal: módulo comercial (Empresa_Modulos) + flag DGII.
-   * REPORTE_606 / REPORTE_607 no usan este filtro (siguen solo por módulo).
+   * IT-1 / IR-17 / IR-3: si el perfil tiene el módulo, el menú lo muestra.
+   * El flag DGII no oculta pantallas ya licenciadas (se pierde al recargar).
    */
   puedeMostrarMenuFiscal(codigoModulo: string, tieneModuloComercial: boolean): boolean {
     if (!tieneModuloComercial) return false;
-    if (codigoModulo === 'IT1' || codigoModulo === 'DGII_FISCAL') {
-      return this.isGenerarIt1();
+    if (codigoModulo === 'IT1' || codigoModulo === 'IR17' || codigoModulo === 'IR3' || codigoModulo === 'DGII_FISCAL') {
+      return true;
     }
     if (codigoModulo === 'CONFIGURACION_DGII' || codigoModulo === 'CONFIGURACION_FISCAL') {
       return this.isFiscalActivo() || (this.Rol || '').toLowerCase() === 'admin';
@@ -274,7 +294,7 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     rawUsuario?: any
   ) {
     localStorage.setItem('Usuario', usuario);
-    localStorage.setItem('Password', password);
+    localStorage.removeItem('Password');
     localStorage.setItem('IdEmpresa', idEmpresa.toString());
     localStorage.setItem('IdUsuario', idUsuario.toString());
     const idEmp = Number(rawUsuario?.idEmpleado ?? rawUsuario?.IdEmpleado ?? 0) || 0;
@@ -294,6 +314,7 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.IdUsuario = idUsuario;
     this.IdEmpresa = idEmpresa;
     this.IdPerfil = Number(rawUsuario?.idPerfil ?? rawUsuario?.IdPerfil ?? 0) || 0;
+    this.esAdministrador = this.resolverEsAdministrador(rawUsuario, rol);
     if (this.IdPerfil) {
       localStorage.setItem('IdPerfil', String(this.IdPerfil));
     }
@@ -322,7 +343,11 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.IdUsuario = 0;
     this.IdEmpleados = 0;
     this.IdEmpresa = 0;
+    this.IdSucursal = 0;
+    this.sucursales = [];
+    this.nombreSucursal = '';
     this.IdPerfil = 0;
+    this.esAdministrador = false;
 
     // estado negocio
     this.ListadoProductosCate = [];
@@ -356,6 +381,8 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
 
     this._Cat = new categorias();
     this._Mesa = new Mesas();
+    this.salonMesa = null;
+    this.Comensales = 1;
 
     this.modulosActivos.clear();
     this.modulosCodigos.clear();
@@ -381,30 +408,105 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     return parseInt(localStorage.getItem('IdEmpresa') ?? '0', 10);
   }
 
+  get mostrarSelectorSucursal(): boolean {
+    if (!this.esAdministrador) return false;
+    return (this.sucursales || []).filter(s => s?.activa !== false).length > 1;
+  }
+
+  setSucursalSesion(idSucursal: number, lista?: SucursalSesion[] | null): void {
+    if (Array.isArray(lista)) {
+      this.sucursales = normalizarSucursalesSesion(lista);
+      try {
+        localStorage.setItem('sucursales', JSON.stringify(lista));
+      } catch { /* ignore */ }
+    }
+    this.IdSucursal = Number(idSucursal) || 0;
+    const actual = this.sucursales.find(s => s.idSucursal === this.IdSucursal);
+    this.nombreSucursal = actual?.nombre || this.nombreSucursal || '';
+    if (actual?.apiPrint) {
+      this.ApiPrint = actual.apiPrint;
+    }
+    if (this.IdSucursal) {
+      localStorage.setItem('IdSucursal', String(this.IdSucursal));
+    }
+    if (this.nombreSucursal) {
+      localStorage.setItem('NombreSucursal', this.nombreSucursal);
+    }
+  }
+
   /** Restaura empresa/usuario/perfil desde localStorage (refresh de página). */
   ensureSessionFromStorage(): void {
+    localStorage.removeItem('Password');
     if (this.IdUsuario && this.IdEmpresa) return;
 
     this.IdEmpresa = parseInt(localStorage.getItem('IdEmpresa') ?? '0', 10) || 0;
+    this.IdSucursal = parseInt(localStorage.getItem('IdSucursal') ?? '0', 10) || 0;
     this.IdUsuario = parseInt(localStorage.getItem('IdUsuario') ?? '0', 10) || 0;
     this.IdEmpleados = parseInt(localStorage.getItem('IdEmpleados') ?? '0', 10) || 0;
     this.IdPerfil = parseInt(localStorage.getItem('IdPerfil') ?? '0', 10) || 0;
     this.UserName = localStorage.getItem('Usuario') || this.UserName;
     this.NombreEmpresa = localStorage.getItem('NombreEmpresa') || this.NombreEmpresa;
+    this.nombreSucursal = localStorage.getItem('NombreSucursal') || this.nombreSucursal;
     this.nombrePlan = localStorage.getItem('nombrePlan') || this.nombrePlan;
     this.setNivelSoporte(localStorage.getItem('nivelSoporte') || this.nivelSoporte);
 
     try {
       const raw = localStorage.getItem('usuario');
-      if (!raw) return;
-      const u = JSON.parse(raw);
-      this.IdPerfil = Number(u?.idPerfil ?? u?.IdPerfil ?? this.IdPerfil) || this.IdPerfil;
-      this.Rol = String(u?.nombrePerfil ?? u?.NombrePerfil ?? u?.rol ?? this.Rol ?? '');
-      if (!this.UserName) this.UserName = String(u?.userName ?? u?.UserName ?? '');
-      if (this.IdPerfil) localStorage.setItem('IdPerfil', String(this.IdPerfil));
+      if (raw) {
+        const u = JSON.parse(raw);
+        this.IdPerfil = Number(u?.idPerfil ?? u?.IdPerfil ?? this.IdPerfil) || this.IdPerfil;
+        this.Rol = String(u?.nombrePerfil ?? u?.NombrePerfil ?? u?.rol ?? this.Rol ?? '');
+        this.esAdministrador = this.resolverEsAdministrador(u, this.Rol);
+        if (!this.UserName) this.UserName = String(u?.userName ?? u?.UserName ?? '');
+        if (this.IdPerfil) localStorage.setItem('IdPerfil', String(this.IdPerfil));
+      }
     } catch {
       /* ignore */
     }
+
+    try {
+      const rawFiscal = localStorage.getItem('fiscal_features');
+      if (rawFiscal) {
+        const f = JSON.parse(rawFiscal) as FiscalFeatureFlags;
+        if (f && (f.idEmpresa === this.IdEmpresa || !f.idEmpresa)) {
+          this.fiscalFeatures = { ...FISCAL_FEATURES_OFF, ...f, idEmpresa: this.IdEmpresa };
+          this.fiscalFeatures$.next(this.fiscalFeatures);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      const rawSuc = localStorage.getItem('sucursales');
+      if (rawSuc) {
+        const lista = JSON.parse(rawSuc) as SucursalSesion[];
+        if (Array.isArray(lista)) {
+          this.sucursales = lista;
+          const actual = lista.find(s => s.idSucursal === this.IdSucursal);
+          if (actual?.nombre) this.nombreSucursal = actual.nombre;
+          if (actual?.apiPrint) this.ApiPrint = actual.apiPrint;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private resolverEsAdministrador(rawUsuario?: any, rol?: string): boolean {
+    if (rawUsuario?.esAdministrador === true || rawUsuario?.EsAdministrador === true) {
+      return true;
+    }
+    const nombre = String(
+      rol
+      || rawUsuario?.nombrePerfil
+      || rawUsuario?.NombrePerfil
+      || rawUsuario?.rol
+      || this.Rol
+      || ''
+    ).trim();
+    if (!nombre) return false;
+    return nombre.toLowerCase() === 'administrador' || nombre.toUpperCase().includes('ADMIN');
   }
 
   // ==================================================
@@ -422,15 +524,25 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
 
   LoadListaFactura() {
     this.Carga = true;
+    const idEmpresa = this.GetIdEmpresa();
+
+    const aplicar = async (servidor: facturaheader[]) => {
+      const locales = await this.posOffline.listarOrdenesLocales(idEmpresa);
+      this.ListadoOrdenes = [...locales, ...(servidor || [])];
+      this.ExistCuenta = this.ListadoOrdenes.length > 0;
+      this.Carga = false;
+      this.OrdenesActualizadas$.next();
+    };
 
     this._FacturaHeader
-      .GetListadoOrdenes(this.GetIdEmpresa())
-      .subscribe(c => {
-        console.log('Órdenes cargadas:', c);
-        this.ListadoOrdenes = [...c];
-        this.ExistCuenta = c.length > 0;
-        this.Carga = false;
-        this.OrdenesActualizadas$.next();
+      .GetListadoOrdenes(idEmpresa, this.IdSucursal)
+      .subscribe({
+        next: (c) => {
+          void aplicar(c || []);
+        },
+        error: () => {
+          void aplicar([]);
+        }
       });
   }
 

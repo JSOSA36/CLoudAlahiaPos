@@ -45,6 +45,29 @@ export class EmpresaService {
       apiPrint
     });
   }
+
+  getCitasConfig(idEmpresa: number): Observable<{
+    pedirVoucherCitas: boolean;
+    montoReservaCitas: number;
+    infoAgendar?: string;
+    notificarCitasWhatsApp?: boolean;
+  }> {
+    return this.httpClient.get<{
+      pedirVoucherCitas: boolean;
+      montoReservaCitas: number;
+      infoAgendar?: string;
+      notificarCitasWhatsApp?: boolean;
+    }>(`${this.baseUrl}/${idEmpresa}/citas-config`);
+  }
+
+  updateCitasConfig(idEmpresa: number, body: {
+    pedirVoucherCitas: boolean;
+    montoReservaCitas: number;
+    infoAgendar?: string;
+    notificarCitasWhatsApp?: boolean;
+  }): Observable<any> {
+    return this.httpClient.put(`${this.baseUrl}/${idEmpresa}/citas-config`, body);
+  }
   // 🔥 MARCAR PAGO (ADMIN)
 marcarPago(empresaId: number) {
   return this.httpClient.post(`${this.baseUrl}/MarcarPago/${empresaId}`, {});

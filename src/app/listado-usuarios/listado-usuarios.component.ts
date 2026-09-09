@@ -8,8 +8,27 @@ import {
 
 import { UsuariosService } from 'src/app/servicios/usuarios.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { UsuarioformComponent } from '../usuarioform/usuarioform.component';
 import { UsuarioDto } from '../models/usuariodto.model';
+import { SucursalSesion } from '../models/sucursal-sesion.models';
+import { forkJoin } from 'rxjs';
+
+function esPerfilAdministradorNombre(nombre: string): boolean {
+  const n = (nombre || '').trim();
+  if (!n) return false;
+  return n.toLowerCase() === 'administrador' || n.toUpperCase().includes('ADMIN');
+}
+
+function etiquetaSucursal(
+  rol: string,
+  idSucursal: number | null,
+  sucursales: SucursalSesion[]
+): string {
+  if (esPerfilAdministradorNombre(rol)) return 'Todas';
+  const suc = sucursales.find(s => s.idSucursal === idSucursal);
+  return suc?.nombre ?? (idSucursal ? `Sucursal ${idSucursal}` : 'Sin sucursal');
+}
 
 @Component({
   selector: 'app-listado-usuarios',
@@ -19,11 +38,14 @@ import { UsuarioDto } from '../models/usuariodto.model';
 export class ListadoUsuariosComponent implements OnInit {
 
   usuarios: UsuarioDto[] = [];
-  maxUsuariosPermitidos = 0;
+  maxUsuariosPermitidos = 1;
+  usuariosRegistrados = 0;
+  puedeAgregarUsuario = true;
 
   constructor(
     private usuariosSrv: UsuariosService,
     private parametrosSrv: ParametrosService,
+    private sucursalSrv: SucursalService,
     private modalCtrl: ModalController,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
@@ -43,36 +65,42 @@ export class ListadoUsuariosComponent implements OnInit {
     });
     await loading.present();
 
-    this.usuariosSrv
-      .getUsuarios(this.parametrosSrv.IdEmpresa)
-      .subscribe({
-        next: async (res: any) => {
+    forkJoin({
+      cupo: this.usuariosSrv.getUsuariosConCupo(this.parametrosSrv.IdEmpresa),
+      sucursales: this.sucursalSrv.listar()
+    }).subscribe({
+        next: async ({ cupo: res, sucursales }) => {
+          this.maxUsuariosPermitidos = res.limiteUsuario;
+          this.usuariosRegistrados = res.usuariosRegistrados;
+          this.puedeAgregarUsuario = res.puedeAgregar;
 
-          console.log('Usuarios cargados:', res);
+          const lista = res.usuarios ?? [];
 
-          this.maxUsuariosPermitidos = res.maxUsuarios ?? 0;
-
-          const lista = res.usuarios ?? res;
-
-          // 🔥 SIN FILTROS POR ROL
-          this.usuarios = lista.map((u: any): UsuarioDto => ({
+          this.usuarios = lista.map((u: any): UsuarioDto => {
+            const rol = u.perfil?.nombre ?? 'Sin perfil';
+            const idSucursal = Number(u.idSucursalActiva ?? u.idSucursal ?? 0) || null;
+            return {
             idusuario: u.idUsuario,
             nombre: u.empleadoNombre ?? u.empleado?.nombre ?? u.userName,
             correo: u.correo ?? u.userName,
-            rol: u.perfil?.nombre ?? 'Sin perfil',
+            rol,
             estado: u.estado,
             activo: u.estado,
             idEmpresa: u.idEmpresa,
             idEmpleado: u.idEmpleado,
             idPerfil: u.idPerfil,
+            idSucursal,
+            sucursalNombre: etiquetaSucursal(rol, idSucursal, sucursales),
             direccion: u.direccion,
             celular: u.celular,
             password: '',
             puedeEliminarOrden: u.puedeEliminarOrden || false,
             puedeEliminarItemCarrito: u.puedeEliminarItemCarrito || false,
             puedeDisminuirCantidadCarrito: u.puedeDisminuirCantidadCarrito || false,
-            puedeEditarPrecioCarrito: u.puedeEditarPrecioCarrito || false
-          }));
+            puedeEditarPrecioCarrito: u.puedeEditarPrecioCarrito || false,
+            puedeAnularFactura: u.puedeAnularFactura || false
+          };
+          });
 
           await loading.dismiss();
         },
@@ -81,14 +109,6 @@ export class ListadoUsuariosComponent implements OnInit {
           this.toast('Error cargando usuarios ❌');
         }
       });
-  }
-
-  // =====================================================
-  // 🔐 LÍMITE DE PLAN
-  // =====================================================
-  get puedeAgregarUsuario(): boolean {
-    if (this.maxUsuariosPermitidos === 0) return true;
-    return this.usuarios.length < this.maxUsuariosPermitidos;
   }
 
   // =====================================================

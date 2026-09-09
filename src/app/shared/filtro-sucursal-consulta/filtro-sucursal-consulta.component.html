@@ -1,0 +1,26 @@
+<div class="filtro-sucursal-consulta" *ngIf="visible">
+  <span class="fsc-label">Sucursal</span>
+  <div class="fsc-tabs" role="tablist" aria-label="Filtrar por sucursal">
+    <button
+      type="button"
+      class="fsc-tab"
+      role="tab"
+      [class.activa]="valor === 0"
+      [attr.aria-selected]="valor === 0"
+      (click)="seleccionar(0)">
+      <ion-icon [name]="valor === 0 ? 'layers' : 'layers-outline'"></ion-icon>
+      <span>Todas</span>
+    </button>
+    <button
+      type="button"
+      class="fsc-tab"
+      role="tab"
+      *ngFor="let s of sucursales"
+      [class.activa]="valor === s.idSucursal"
+      [attr.aria-selected]="valor === s.idSucursal"
+      (click)="seleccionar(s.idSucursal)">
+      <ion-icon [name]="icono(s, valor === s.idSucursal)"></ion-icon>
+      <span>{{ etiqueta(s) }}</span>
+    </button>
+  </div>
+</div>

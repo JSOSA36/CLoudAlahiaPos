@@ -19,6 +19,13 @@
 
   <div class="dg-shell">
 
+    <div class="dg-filtro-bar">
+      <app-filtro-sucursal-consulta
+        [valor]="idSucursalFiltro"
+        (valorChange)="onFiltroSucursal($event)">
+      </app-filtro-sucursal-consulta>
+    </div>
+
     <div class="dg-state" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Cargando indicadores del mes…</p>
@@ -50,7 +57,7 @@
           <div class="dg-hoy-strip">
             <div class="dg-hoy-metric">
               <span>Ventas hoy</span>
-              <strong>RD$ {{ plHoy.ventasBrutas | number:'1.0-0':'es-DO' }}</strong>
+              <strong>RD$ {{ ventasHoy | number:'1.0-0':'es-DO' }}</strong>
             </div>
             <div class="dg-hoy-metric">
               <span>Gastos hoy</span>
@@ -85,6 +92,90 @@
             </div>
           </div>
         </article>
+      </section>
+
+      <section
+        class="dg-section"
+        *ngIf="data.esConsolidado && data.porSucursal?.length">
+        <div class="dg-section-head">
+          <h2>Por sucursal</h2>
+          <p>Compara ventas de hoy, del mes y el inventario de cada sucursal a la que tienes acceso</p>
+        </div>
+
+        <div class="dg-sucursales">
+          <article class="dg-suc-card" *ngFor="let s of data.porSucursal">
+            <header class="dg-suc-head">
+              <span
+                class="dg-suc-icon"
+                [class.principal]="esPrincipalSucursal(s.idSucursal)">
+                <ion-icon
+                  [name]="esPrincipalSucursal(s.idSucursal) ? 'business' : 'storefront'">
+                </ion-icon>
+              </span>
+              <div class="dg-suc-name">
+                <strong>{{ etiquetaSucursal(s.nombre) }}</strong>
+                <small *ngIf="esPrincipalSucursal(s.idSucursal)">Casa matriz</small>
+              </div>
+              <span class="dg-suc-share" *ngIf="totalVentasPorSucursal > 0">
+                {{ pctMesSucursal(s.ventasNetas) | number:'1.0-0':'es-DO' }}%
+                <em>del mes</em>
+              </span>
+            </header>
+
+            <div class="dg-suc-bar" *ngIf="totalVentasPorSucursal > 0">
+              <span [style.width.%]="pctMesSucursal(s.ventasNetas)"></span>
+            </div>
+
+            <div class="dg-suc-metrics" [class.con-cxc]="mostrarCxcSucursal">
+              <div class="dg-suc-metric hoy">
+                <span class="dg-suc-label">Ventas hoy</span>
+                <strong>RD$ {{ s.ventasHoy | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric mes">
+                <span class="dg-suc-label">Ventas del mes</span>
+                <strong>RD$ {{ s.ventasNetas | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric inv">
+                <span class="dg-suc-label">Inventario</span>
+                <strong>RD$ {{ s.valorInventario | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric cxc" *ngIf="mostrarCxcSucursal">
+                <span class="dg-suc-label">Por cobrar</span>
+                <strong>RD$ {{ s.cuentasPorCobrar | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="dg-suc-card dg-suc-total">
+            <header class="dg-suc-head">
+              <span class="dg-suc-icon total">
+                <ion-icon name="layers"></ion-icon>
+              </span>
+              <div class="dg-suc-name">
+                <strong>Total consolidado</strong>
+                <small>{{ (data.porSucursal?.length || 0) }} sucursales</small>
+              </div>
+            </header>
+            <div class="dg-suc-metrics" [class.con-cxc]="mostrarCxcSucursal">
+              <div class="dg-suc-metric hoy">
+                <span class="dg-suc-label">Ventas hoy</span>
+                <strong>RD$ {{ totalHoyPorSucursal | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric mes">
+                <span class="dg-suc-label">Ventas del mes</span>
+                <strong>RD$ {{ totalVentasPorSucursal | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric inv">
+                <span class="dg-suc-label">Inventario</span>
+                <strong>RD$ {{ totalInventarioPorSucursal | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+              <div class="dg-suc-metric cxc" *ngIf="mostrarCxcSucursal">
+                <span class="dg-suc-label">Por cobrar</span>
+                <strong>RD$ {{ totalCxcPorSucursal | number:'1.0-0':'es-DO' }}</strong>
+              </div>
+            </div>
+          </article>
+        </div>
       </section>
 
       <!-- COMISIONES: debajo de utilidad operativa (clave para el cliente) -->

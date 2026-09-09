@@ -16,8 +16,22 @@ export class AlmacenesService {
     this.baseUrl = `${this.config.apiUrl}/Almacenes`;
   }
 
-  getAlmacenes(idEmpresa: number): Observable<Almacen[]> {
-    return this.http.get<Almacen[]>(`${this.baseUrl}/${idEmpresa}`);
+  getAlmacenes(
+    idEmpresa: number,
+    opts?: { incluirOtrasSucursales?: boolean; idSucursal?: number }
+  ): Observable<Almacen[]> {
+    let url = `${this.baseUrl}/${idEmpresa}`;
+    const params: string[] = [];
+    if (opts?.incluirOtrasSucursales) {
+      params.push('incluirOtrasSucursales=true');
+    }
+    if (opts?.idSucursal) {
+      params.push(`idSucursal=${opts.idSucursal}`);
+    }
+    if (params.length) {
+      url += `?${params.join('&')}`;
+    }
+    return this.http.get<Almacen[]>(url);
   }
 
   getAlmacenById(id: number): Observable<Almacen> {

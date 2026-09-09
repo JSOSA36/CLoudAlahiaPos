@@ -15,7 +15,7 @@
     </div>
   </div>
   <ion-split-pane contentId="main-content" when="false">
-    <ion-menu contentId="main-content" type="overlay">
+    <ion-menu *ngIf="mostrarChromeErp" contentId="main-content" type="overlay">
       
       <!-- 🔹 HEADER MENÚ -->
       <ion-header class="menu-header">
@@ -27,6 +27,26 @@
             <h2 class="app-title">Alahia ERP</h2>
             <h3 class="empresa-nombre">{{ _Parametro.NombreEmpresa }}</h3>
             <p class="usuario-info">{{ _Parametro.UserName }}</p>
+            <p
+              class="sucursal-fija"
+              *ngIf="!_Parametro.mostrarSelectorSucursal && _Parametro.nombreSucursal">
+              {{ _Parametro.nombreSucursal }}
+            </p>
+            <label
+              class="sucursal-select-wrap"
+              *ngIf="_Parametro.mostrarSelectorSucursal">
+              <span>Sucursal</span>
+              <select
+                class="sucursal-select"
+                [value]="_Parametro.IdSucursal"
+                (change)="onSucursalChange($event)">
+                <option
+                  *ngFor="let s of _Parametro.sucursales"
+                  [value]="s.idSucursal">
+                  {{ s.nombre }}
+                </option>
+              </select>
+            </label>
           </div>
           <div
             class="plan-card-menu"
@@ -124,7 +144,7 @@
 
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
-  <app-alahia-ai-fab></app-alahia-ai-fab>
+  <app-alahia-ai-fab *ngIf="mostrarChromeErp"></app-alahia-ai-fab>
   <app-nivel-soporte-modal
     *ngIf="mostrarSoporte"
     [nivel]="_Parametro.nivelSoporte"

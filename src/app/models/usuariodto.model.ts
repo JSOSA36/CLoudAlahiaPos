@@ -18,8 +18,11 @@ export interface UsuarioDto {
   puedeEliminarItemCarrito?: boolean;
   puedeDisminuirCantidadCarrito?: boolean;
   puedeEditarPrecioCarrito?: boolean;
+  puedeAnularFactura?: boolean;
   idEmpleado?: number;
   idPerfil?: number;
+  idSucursal?: number | null;
+  sucursalNombre?: string;
   // 🔹 nuevo campo para FCM
   
 }

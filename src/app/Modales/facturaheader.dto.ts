@@ -23,6 +23,8 @@ export class FacturaHeaderDto {
   total: number = 0;
   totalItbis: number = 0;
   totalDescuento: number = 0;
+  montoCargo: number = 0;
+  nombreCargo: string = "";
   idEmpresa: number = 0;
   estaCancelada: boolean = false;
   estaCerrada: boolean = false;
@@ -37,4 +39,6 @@ export class FacturaHeaderDto {
   ajustadoInventario: boolean = false;
   facturaDetalles: facturadetalles[] = [];
   clientes:clientes=new clientes();
+  idSucursal?: number;
+  nombreSucursal?: string;
 }

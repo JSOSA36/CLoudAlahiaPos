@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Reporte de venta</ion-title>
+    <ion-title>Reporte de ventas</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -19,48 +19,271 @@
         <label>Hasta</label>
         <ion-input type="date" [(ngModel)]="fechaFin"></ion-input>
       </div>
+      <app-filtro-sucursal-consulta
+        [valor]="idSucursalFiltro"
+        (valorChange)="onFiltroSucursal($event)">
+      </app-filtro-sucursal-consulta>
+      <div class="rpt-field rpt-field-search">
+        <label>Buscar</label>
+        <ion-input
+          [(ngModel)]="busqueda"
+          placeholder="NCF, documento, cliente o producto">
+        </ion-input>
+      </div>
       <div class="rpt-actions">
-        <ion-button color="primary" (click)="CargarIngresosPorLinea()">
+        <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
           <ion-icon slot="start" name="search-outline"></ion-icon>
           Consultar
+        </ion-button>
+        <ion-button
+          color="success"
+          [disabled]="vista === 'resumen' || (!facturas?.cantidadFacturas && !productos?.cantidadProductos)"
+          (click)="exportarExcel()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Excel
+        </ion-button>
+        <ion-button
+          color="medium"
+          [disabled]="vista === 'resumen' || (!facturas?.cantidadFacturas && !productos?.cantidadProductos)"
+          (click)="exportarPdf()">
+          <ion-icon slot="start" name="document-outline"></ion-icon>
+          PDF
         </ion-button>
       </div>
     </section>
 
-    <section class="rpt-resumen" *ngIf="ingresosAgrupados?.length">
-      <div>
-        <span class="label">Líneas de negocio</span>
-        <strong>{{ ingresosAgrupados.length }}</strong>
-      </div>
-      <div class="accent">
-        <span class="label">Total general</span>
-        <strong>{{ totalLinea | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
-      </div>
-    </section>
+    <ion-segment [(ngModel)]="vista" mode="ios" class="rpt-tabs">
+      <ion-segment-button value="facturas">Por factura</ion-segment-button>
+      <ion-segment-button value="productos">Por producto</ion-segment-button>
+      <ion-segment-button value="resumen">Resumen por línea</ion-segment-button>
+    </ion-segment>
 
-    <p class="rpt-hint">
-      Ingresos agrupados por área de negocio y método de pago en el rango indicado.
-    </p>
-
-    <div class="rpt-empty" *ngIf="!ingresosAgrupados?.length">
-      No hay ventas en este rango.
+    <div class="rpt-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      Generando reporte…
     </div>
 
-    <article
-      class="rpt-list-card"
-      *ngFor="let linea of ingresosAgrupados">
-      <div class="rpt-card-title">{{ linea.areaNegocio }}</div>
+    <!-- POR FACTURA -->
+    <ng-container *ngIf="!cargando && vista === 'facturas'">
+      <section class="rpt-resumen" *ngIf="facturas">
+        <div>
+          <span class="label">Facturas</span>
+          <strong>{{ facturas.cantidadFacturas }}</strong>
+        </div>
+        <div>
+          <span class="label">Con NCF</span>
+          <strong>{{ facturas.conNcf }}</strong>
+        </div>
+        <div>
+          <span class="label">Sin NCF</span>
+          <strong>{{ facturas.sinNcf }}</strong>
+        </div>
+        <div>
+          <span class="label">Descuento</span>
+          <strong>{{ facturas.totalDescuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">ITBIS</span>
+          <strong>{{ facturas.totalItbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Total</span>
+          <strong>{{ facturas.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
 
-      <div class="rpt-row" *ngFor="let m of linea.metodos">
-        <span>{{ m.metodo || 'N/A' }}</span>
-        <strong>{{ m.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      <section class="rpt-resumen rpt-sucursal" *ngIf="facturas?.esConsolidado && facturas?.gruposSucursal?.length">
+        <div *ngFor="let g of (facturas?.gruposSucursal || [])">
+          <span class="label">{{ g.nombreSucursal }}</span>
+          <strong>{{ g.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+          <small>{{ g.cantidadFacturas }} factura{{ g.cantidadFacturas === 1 ? '' : 's' }}</small>
+        </div>
+      </section>
+
+      <p class="rpt-hint">
+        Facturas del período agrupadas por forma de pago. Pulse una factura para ver sus líneas.
+      </p>
+
+      <div class="rpt-empty" *ngIf="!gruposFiltrados.length">
+        No hay facturas en este rango.
       </div>
 
-      <div class="rpt-row total">
-        <span>Total área</span>
-        <strong>{{ linea.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      <article class="rpt-list-card" *ngFor="let g of gruposFiltrados">
+        <button type="button" class="rpt-group-head" (click)="toggleGrupo(g.formaPago)">
+          <div>
+            <div class="rpt-card-title">{{ g.formaPago }}</div>
+            <small>{{ g.cantidadFacturas }} factura{{ g.cantidadFacturas === 1 ? '' : 's' }}</small>
+          </div>
+          <strong>{{ g.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </button>
+
+        <div *ngIf="grupoAbierto[g.formaPago]">
+          <div class="rpt-inv" *ngFor="let f of g.facturas">
+            <button type="button" class="rpt-inv-head" (click)="toggleFactura(f.idFacturaHeader)">
+              <div class="rpt-inv-meta">
+                <strong>{{ f.numeroDocumento }}</strong>
+                <span>{{ f.fecha | date:'dd/MM/yyyy' }} · {{ f.cliente }}<ng-container *ngIf="f.nombreSucursal"> · {{ f.nombreSucursal }}</ng-container></span>
+                <span class="rpt-inv-tags">
+                  <span class="rpt-badge" [class.primary]="f.tieneNcf">{{ f.ncf || 'Sin NCF' }}</span>
+                  <span class="rpt-badge" [class.primary]="f.tieneItbis">
+                    {{ f.tieneItbis ? 'Con ITBIS' : 'Exento' }}
+                  </span>
+                  <span class="rpt-badge">{{ f.tipoFactura || 'Contado' }}</span>
+                </span>
+              </div>
+              <div class="rpt-inv-tot">
+                <small>Desc. {{ f.totalDescuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</small>
+                <strong>{{ f.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+              </div>
+            </button>
+
+            <div class="rpt-inv-body" *ngIf="facturaAbierta[f.idFacturaHeader]">
+              <div class="rpt-inv-kpis">
+                <span>Subtotal {{ f.subTotal | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+                <span>Descuento {{ f.totalDescuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+                <span>ITBIS {{ f.totalItbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+                <span>Total {{ f.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+              </div>
+              <div class="rpt-pagos" *ngIf="f.pagos?.length">
+                <span *ngFor="let p of f.pagos">
+                  {{ p.formaPago }} {{ p.monto | currency:'DOP':'symbol-narrow':'1.2-2' }}
+                </span>
+              </div>
+              <div class="rpt-table-wrap rpt-table-nested">
+                <table class="rpt-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th class="num">Cant.</th>
+                      <th class="num">Precio</th>
+                      <th class="num">Desc.</th>
+                      <th class="num">ITBIS</th>
+                      <th class="num">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let l of f.lineas">
+                      <td>
+                        {{ l.producto }}
+                        <small *ngIf="l.codigo"> · {{ l.codigo }}</small>
+                      </td>
+                      <td class="num">{{ l.cantidad | number:'1.0-2' }}</td>
+                      <td class="num">{{ l.precioUnitario | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                      <td class="num">{{ l.descuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                      <td class="num">{{ l.itbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                      <td class="num">{{ l.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+                    </tr>
+                    <tr *ngIf="!f.lineas?.length">
+                      <td colspan="6">Sin líneas</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </ng-container>
+
+    <!-- POR PRODUCTO -->
+    <ng-container *ngIf="!cargando && vista === 'productos'">
+      <section class="rpt-resumen" *ngIf="productos">
+        <div>
+          <span class="label">Productos</span>
+          <strong>{{ productos.cantidadProductos }}</strong>
+        </div>
+        <div>
+          <span class="label">Unidades</span>
+          <strong>{{ productos.cantidadVendida | number:'1.0-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">Descuento</span>
+          <strong>{{ productos.totalDescuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div>
+          <span class="label">ITBIS</span>
+          <strong>{{ productos.totalItbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Total</span>
+          <strong>{{ productos.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <p class="rpt-hint">
+        Consolidado de lo vendido por producto o servicio en el período.
+      </p>
+
+      <div class="rpt-empty" *ngIf="!productosFiltrados.length">
+        No hay productos vendidos en este rango.
       </div>
-    </article>
+
+      <div class="rpt-table-wrap" *ngIf="productosFiltrados.length">
+        <table class="rpt-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th class="num">Cantidad</th>
+              <th class="num">Facturas</th>
+              <th class="num">P. promedio</th>
+              <th class="num">Descuento</th>
+              <th class="num">ITBIS</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of productosFiltrados">
+              <td>
+                {{ p.nombre }}
+                <small *ngIf="p.codigo"> · {{ p.codigo }}</small>
+              </td>
+              <td>{{ p.esServicio ? 'Servicio' : 'Producto' }}</td>
+              <td class="num">{{ p.cantidad | number:'1.0-2' }}</td>
+              <td class="num">{{ p.cantidadFacturas }}</td>
+              <td class="num">{{ p.precioPromedio | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ p.descuento | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ p.itbis | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+              <td class="num">{{ p.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <!-- RESUMEN POR LÍNEA (existente) -->
+    <ng-container *ngIf="!cargando && vista === 'resumen'">
+      <section class="rpt-resumen" *ngIf="ingresosAgrupados?.length">
+        <div>
+          <span class="label">Líneas de negocio</span>
+          <strong>{{ ingresosAgrupados.length }}</strong>
+        </div>
+        <div class="accent">
+          <span class="label">Total general</span>
+          <strong>{{ totalLinea | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <p class="rpt-hint">
+        Ingresos agrupados por área de negocio y método de pago.
+      </p>
+
+      <div class="rpt-empty" *ngIf="!ingresosAgrupados?.length">
+        No hay ventas en este rango.
+      </div>
+
+      <article class="rpt-list-card" *ngFor="let linea of ingresosAgrupados">
+        <div class="rpt-card-title">{{ linea.areaNegocio }}</div>
+        <div class="rpt-row" *ngFor="let m of linea.metodos">
+          <span>{{ m.metodo || 'N/A' }}</span>
+          <strong>{{ m.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+        <div class="rpt-row total">
+          <span>Total área</span>
+          <strong>{{ linea.total | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </article>
+    </ng-container>
 
   </div>
 </ion-content>

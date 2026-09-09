@@ -1243,6 +1243,15 @@ async abrirOrdenesModal() {
   }
 }
 
+/** Acceso directo desde el POS (menú / botón), sin depender de buscarlo en el drawer. */
+get puedeCerrarCajaDesdePos(): boolean {
+  return this.parametro.tieneModulo('CIERRE_CAJA');
+}
+
+abrirCierreCaja(): void {
+  void this.router.navigate(['/cierrecaja']);
+}
+
 async abrirCotizacionesModal() {
 
   const modal = await this.modal.create({
@@ -1404,7 +1413,7 @@ cargarTiposComprobante() {
   const idEmpresa = this.parametro.IdEmpresa;
   if (!idEmpresa) return;
 
-  this.feService.getSecuenciasDisponibles(idEmpresa).subscribe({
+  this.feService.getSecuenciasDisponibles(idEmpresa, this.parametro.IdSucursal || undefined).subscribe({
     next: (secuencias) => {
       this.tiposComprobante = [
         { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }

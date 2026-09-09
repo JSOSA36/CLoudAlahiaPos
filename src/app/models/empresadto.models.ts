@@ -12,7 +12,9 @@ export interface EmpresaDto {
   logoUrl?: string;       // proxy seguro desde la API
   urlCatalogo?: string;
   urlCitas: string;
-  infoAgendar?: string; // texto personalizado para el botón "Agendar Cita" en el catálogo público
+  infoAgendar?: string;
+  pedirVoucherCitas?: boolean;
+  montoReservaCitas?: number;
   // 🎨 Colores dinámicos
   primaryColor?: string;
   secondaryColor?: string;

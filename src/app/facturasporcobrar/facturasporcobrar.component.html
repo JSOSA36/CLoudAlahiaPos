@@ -25,6 +25,10 @@
 
   <div class="cxc-page" [class.has-selection-bar]="cantidadSeleccionada > 0">
     <div class="cxc-toolbar">
+      <app-filtro-sucursal-consulta
+        [valor]="idSucursalFiltro"
+        (valorChange)="onFiltroSucursal($event)">
+      </app-filtro-sucursal-consulta>
       <ion-searchbar
         [(ngModel)]="filtro"
         placeholder="Buscar por factura, cliente o NCF..."
@@ -103,6 +107,9 @@
                     <strong>{{ f.numeroDocumento || ('FACT-' + f.idFacturaHeader) }}</strong>
                     <span class="fecha" *ngIf="f.fechaBencimiento">
                       Vence {{ f.fechaBencimiento | date:'dd/MM/yyyy' }}
+                    </span>
+                    <span class="fecha" *ngIf="f.nombreSucursal && idSucursalFiltro === 0">
+                      {{ f.nombreSucursal }}
                     </span>
                   </div>
                 </div>

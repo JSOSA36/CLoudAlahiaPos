@@ -27,9 +27,11 @@ export class GastosService {
     return this.http.post<any>(`${this.baseUrl}`, gasto, this.httpOptions);
   }
 
-  /** 🔹 Obtener todos los gastos de una empresa */
-  getGastos(idEmpresa: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/${idEmpresa}`);
+  /** 🔹 Obtener todos los gastos de una empresa (filtro consulta: 0 = Todas accesibles) */
+  getGastos(idEmpresa: number, idSucursalFiltro = 0): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/${idEmpresa}`, {
+      params: { idSucursalFiltro: String(idSucursalFiltro || 0) }
+    });
   }
 
   /** 🔹 Anular un gasto con motivo */

@@ -1,0 +1,160 @@
+.reporte-cruce-content {
+  --background: #f8fafc;
+}
+
+.card-filtros {
+  border-radius: 18px;
+  border: 2px solid #f4c542;
+  margin-bottom: 16px;
+}
+
+.col-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.hint {
+  margin: 8px 4px 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.sugerencias {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 0;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.sugerencia {
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.sugerencia:hover {
+  background: #f1f5f9;
+}
+
+.loading-area {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.area-reporte {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.reporte-encabezado h1 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+}
+
+.reporte-encabezado p {
+  margin: 0;
+  color: #64748b;
+}
+
+.rango-fechas {
+  margin-top: 6px !important;
+  font-weight: 600;
+  color: #334155 !important;
+}
+
+.resumen-totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.tarjeta-total {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 140px;
+}
+
+.tarjeta-total .etiqueta {
+  display: block;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.tarjeta-alerta {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.tabla-wrapper {
+  overflow: auto;
+}
+
+.tabla-cruce {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.tabla-cruce th,
+.tabla-cruce td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.tabla-cruce th {
+  background: #f8fafc;
+  color: #334155;
+  position: sticky;
+  top: 0;
+}
+
+.col-num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.fila-descuadre {
+  background: #fff7ed;
+}
+
+.dif-mala {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge.ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge.bad {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.card-empty {
+  margin-top: 12px;
+}

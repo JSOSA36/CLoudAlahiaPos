@@ -107,6 +107,12 @@
   box-shadow: 0 8px 22px rgba(20, 84, 184, 0.07);
 }
 
+.li-toolbar app-filtro-sucursal-consulta {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+}
+
 .li-dates {
   display: grid;
   grid-template-columns: 1fr 1fr auto;

@@ -1,5 +1,6 @@
 export interface AlmacenExistenciaDetalle {
   idAlmacen: number;
+  idSucursal?: number | null;
   nombreAlmacen: string;
   cantidad: number;
   esPrincipal: boolean;

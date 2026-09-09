@@ -64,10 +64,11 @@ export class IngresosService {
   getIngresosByFecha(
     idEmpresa: number,
     fechaInicio: string,
-    fechaFin: string
+    fechaFin: string,
+    idSucursalFiltro = 0
   ): Observable<Ingresos[]> {
     return this.httpClient.get<Ingresos[]>(
-      `${this.baseUrl}/GetIngresosByFecha/${idEmpresa}/${fechaInicio}/${fechaFin}`
+      `${this.baseUrl}/GetIngresosByFecha/${idEmpresa}/${fechaInicio}/${fechaFin}?idSucursalFiltro=${idSucursalFiltro || 0}`
     );
   }
 

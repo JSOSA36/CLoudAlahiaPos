@@ -81,6 +81,13 @@
         </ion-item>
       </div>
 
+      <div class="as-field as-field-sucursal">
+        <app-filtro-sucursal-consulta
+          [valor]="idSucursalFiltro"
+          (valorChange)="onFiltroSucursal($event)">
+        </app-filtro-sucursal-consulta>
+      </div>
+
       <div class="as-actions">
         <ion-button color="primary" (click)="consultar()" [disabled]="cargando">
           <ion-icon slot="start" name="search-outline"></ion-icon>

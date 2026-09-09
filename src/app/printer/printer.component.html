@@ -109,14 +109,15 @@
 
       <div class="line"></div>
 
-      <div class="center bold">TICKET DE VENTA</div>
+      <div class="center bold">FACTURA CLIENTE</div>
 
       <div class="line"></div>
 
-      <div>#{{ factura.numeroDocumento || factura.idFacturaHeader }}</div>
-      <div>{{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</div>
-      <div>Cliente: {{ factura.clientes?.nombreComercial || 'Al Portador' }}</div>
-      <div *ngIf="factura.tipoFactura">Pago: {{ factura.tipoFactura }}</div>
+      <div>Documento: {{ factura.numeroDocumento || ('Fact-' + (factura.idFacturaHeader || '')) }}</div>
+      <div>Fecha: {{ factura.fechaInseccion | date:'dd/MM/yyyy hh:mm a' }}</div>
+      <div>Cliente: {{ factura.clientes?.nombreComercial || factura.nombreCliente || 'Al Portador' }}</div>
+      <div *ngIf="factura.tipoFactura">Tipo: {{ factura.tipoFactura }}</div>
+      <div *ngIf="formaPagoTicket">Forma Pago: {{ formaPagoTicket }}</div>
 
       <div class="line"></div>
 
@@ -132,9 +133,19 @@
 
       <div class="line"></div>
 
+      <div class="item-row" *ngIf="factura.subTotal || factura.subtotal">
+        <span>SubTotal</span>
+        <span>RD$ {{ (factura.subTotal || factura.subtotal) | number:'1.2-2' }}</span>
+      </div>
+
       <div class="item-row" *ngIf="factura.totalItbis || factura.itbis">
         <span>ITBIS</span>
         <span>RD$ {{ (factura.totalItbis || factura.itbis) | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="item-row" *ngIf="(factura.montoCargo || 0) > 0.009">
+        <span>{{ factura.nombreCargo || 'Cargo por tarjeta' }}</span>
+        <span>RD$ {{ factura.montoCargo | number:'1.2-2' }}</span>
       </div>
 
       <div class="center total">

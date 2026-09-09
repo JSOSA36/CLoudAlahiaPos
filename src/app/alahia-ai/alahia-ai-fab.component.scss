@@ -1,4 +1,4 @@
-/* Debajo de la campana de notificaciones (arriba derecha) */
+/* Debajo de la campana en desktop; en móvil baja para no chocar con el header */
 .ai-fab-root {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 52px);
@@ -24,6 +24,21 @@
   box-shadow: 0 8px 20px rgba(7, 42, 102, 0.28);
   cursor: pointer;
   flex-shrink: 0;
+}
+
+@media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
+  .ai-fab-root {
+    top: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+    right: 12px;
+    max-height: calc(100vh - env(safe-area-inset-bottom, 0px) - 100px);
+  }
+
+  .ai-fab-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 0.75rem;
+  }
 }
 
 .ai-fab-panel {

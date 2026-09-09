@@ -127,6 +127,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'reportecrucestock',
+    loadChildren: () => import('./Components/reporte-cruce-stock/reporte-cruce-stock.module').then(m => m.ReporteCruceStockModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'bizcocho',
     loadChildren: () => import('./bizcocho/listado-encargos/listado-encargos.module').then(m => m.ListadoEncargosModule),
     canActivate: [AuthGuard]
@@ -195,6 +200,11 @@ const routes: Routes = [
   {
     path: 'citas',
     loadChildren: () => import('./Citas/citas/citas.module').then(m => m.CitasModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'citas-config',
+    loadChildren: () => import('./Citas/citas-config/citas-config.module').then(m => m.CitasConfigModule),
     canActivate: [AuthGuard]
   },
   {

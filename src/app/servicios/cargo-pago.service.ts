@@ -9,7 +9,8 @@ export type CargoPagoGrupo =
   | 'EFECTIVO'
   | 'TRANSFERENCIA'
   | 'CHEQUE'
-  | 'TODOS';
+  | 'TODOS'
+  | 'PERSONALIZADO';
 
 export interface CargoPagoRegla {
   idCargoPagoRegla: number;
@@ -18,6 +19,8 @@ export interface CargoPagoRegla {
   tipo: CargoPagoTipo;
   valor: number;
   grupoMetodo: CargoPagoGrupo;
+  /** Nombres exactos de MetodoPagoCuenta (API: lista o string pipe). */
+  metodosVinculados?: string[] | string | null;
   activo: boolean;
   orden: number;
 }
@@ -91,7 +94,9 @@ export class CargoPagoService {
       .sort((a, b) => (a.orden || 0) - (b.orden || 0) || a.idCargoPagoRegla - b.idCargoPagoRegla);
 
     for (const regla of activas) {
-      const disparador = medios.find(m => coincideGrupoMetodo(regla.grupoMetodo, m));
+      const disparador = medios.find(m =>
+        coincideRegla(regla.grupoMetodo, regla.metodosVinculados, m)
+      );
       if (!disparador) continue;
 
       const monto = regla.tipo === 'MONTO_FIJO'
@@ -117,10 +122,22 @@ export class CargoPagoService {
   }
 }
 
+/** Igual que CargoPagoMetodoMatcher.CoincideRegla en API. */
+export function coincideRegla(
+  grupoMetodo: string,
+  metodosVinculados: string[] | string | null | undefined,
+  metodoPago: string
+): boolean {
+  if (coincideVinculado(metodosVinculados, metodoPago)) return true;
+  const grupo = (grupoMetodo || '').trim().toUpperCase();
+  if (grupo === 'PERSONALIZADO') return false;
+  return coincideGrupoMetodo(grupoMetodo, metodoPago);
+}
+
 export function coincideGrupoMetodo(grupoMetodo: string, metodoPago: string): boolean {
   const grupo = (grupoMetodo || '').trim().toUpperCase();
   const metodo = (metodoPago || '').trim().toUpperCase();
-  if (!grupo) return false;
+  if (!grupo || grupo === 'PERSONALIZADO') return false;
   if (grupo === 'TODOS') return metodo.length > 0 && metodo !== 'NOTACREDITO';
   if (!metodo) return false;
 
@@ -138,12 +155,38 @@ export function coincideGrupoMetodo(grupoMetodo: string, metodoPago: string): bo
   }
 }
 
+function splitVinculados(raw: string[] | string | null | undefined): string[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw.map(s => (s || '').trim()).filter(s => s.length > 0);
+  }
+  return String(raw)
+    .split(/[|\n;]/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+}
+
+function coincideVinculado(
+  metodosVinculados: string[] | string | null | undefined,
+  metodoPago: string
+): boolean {
+  const metodo = (metodoPago || '').trim().toUpperCase();
+  if (!metodo) return false;
+  return splitVinculados(metodosVinculados).some(
+    v => v.trim().toUpperCase() === metodo
+  );
+}
+
 function esTarjeta(metodo: string): boolean {
   if (esTransferencia(metodo)) return false;
   return metodo.includes('TARJETA')
     || metodo.includes('VISA')
     || metodo.includes('MASTER')
-    || metodo.includes('CARD');
+    || metodo.includes('CARD')
+    || metodo.includes('BILLET')
+    || metodo.includes('AZUL')
+    || metodo.includes('CARDNET')
+    || metodo.includes('TDC');
 }
 
 function esTransferencia(metodo: string): boolean {

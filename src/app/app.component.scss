@@ -127,6 +127,36 @@ ion-menu ion-content {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.sucursal-fija {
+  font-size: 0.8rem;
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sucursal-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 10px 0;
+}
+
+.sucursal-select-wrap span {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sucursal-select {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
 /* 🔹 Lista del menú */
 ion-menu ion-list {
   padding-top: 8px;

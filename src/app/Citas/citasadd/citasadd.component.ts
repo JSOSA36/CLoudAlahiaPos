@@ -507,16 +507,9 @@ private setServicioTextoSiAplica() {
 
 async guardar() {
 
-  const esSeguimiento = this.form.esSeguimiento === true;
-
-  // ✅ Diferenciar si es edición
-  const editando = !!this.cita;
-
-  // ✅ Voucher existente en BD (si estamos editando)
-  const yaTieneVoucher = !!this.rutaReciboActual;
-
-  // ✅ El usuario subió uno nuevo ahora mismo
-  const subioNuevoVoucher = !!this.imagenRecibo;
+  // El salón agenda solo con los datos del cliente. Sin voucher ni abono.
+  const esSeguimiento = this.fromInicio ? this.form.esSeguimiento === true : true;
+  this.form.esSeguimiento = esSeguimiento;
 
   if (this.guardando) return;
 
@@ -534,26 +527,6 @@ async guardar() {
 
   if (!this.form.fecha || !this.form.hora)
     return this.mensaje('Fecha y hora obligatorias', 'warning');
-
-  // 🔥 SOLO SI NO ES SEGUIMIENTO
-  if (!esSeguimiento) {
-
-    // ✅ Voucher obligatorio SOLO si:
-    // - es NUEVA cita, y no subió voucher
-    // - o es EDITAR pero no existe voucher previo y tampoco subió uno nuevo
-    const debeExigirVoucher =
-      (!editando && !subioNuevoVoucher) ||
-      (editando && !yaTieneVoucher && !subioNuevoVoucher);
-
-    if (debeExigirVoucher)
-      return this.mensaje('Adjunta el comprobante de pago', 'warning');
-
-    if (!this.form.banco)
-      return this.mensaje('Selecciona el banco del pago', 'warning');
-
-    if (!this.form.abono || this.form.abono < 500)
-      return this.mensaje('Ingresa el monto abonado (mínimo 500)', 'warning');
-  }
 
   if (!this.form.estado) {
     this.form.estado = 'Programada';
@@ -576,6 +549,7 @@ async guardar() {
     DuracionMinutos: this.form.duracionMinutos ?? 0,
     HoraFin: this.form.horaFin,
     Estado: this.form.estado,
+    esSeguimiento,
     Nota: this.form.nota,
     IdCliente: this.form.idCliente ?? 0,
     Costo: this.form.costo ?? 0,
@@ -596,7 +570,9 @@ async guardar() {
     next: async () => {
       this.guardando = false;
 
-      await this.mostrarConfirmacionCliente();
+      if (this.fromInicio) {
+        await this.mostrarConfirmacionCliente();
+      }
 
       this.modalCtrl.dismiss(true, 'ok');
     },

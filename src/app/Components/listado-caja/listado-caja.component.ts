@@ -45,6 +45,8 @@ implements OnInit {
 
   fechaHasta:string = '';
 
+  idSucursalFiltro = 0;
+
   constructor(
 
     private cajaCierreService:
@@ -89,6 +91,7 @@ implements OnInit {
       this.fechaDesde,
 
       this.fechaHasta,
+      this.idSucursalFiltro
     
 
     )
@@ -115,6 +118,13 @@ implements OnInit {
         this.cargando = false;
       }
     });
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.CargarListadoCaja();
   }
 
   /* =====================================

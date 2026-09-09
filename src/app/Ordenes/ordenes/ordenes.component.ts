@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { facturaheader, idClienteDeFactura, normalizarIdClienteFactura } from 'src/app/models/facturaheader';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { PosOfflineService, NOTA_TICKET_LOCAL } from 'src/app/servicios/pos-offline.service';
+import { crearGuidCobro, esErrorRedCobro } from 'src/app/servicios/cobro-idempotencia';
 import { Input } from '@angular/core';
 import { FactDetalleService } from 'src/app/servicios/fact-detalle.service';
 import { CuentaxPagarComponent } from 'src/app/CuentaxPagar/cuentax-pagar/cuentaxpagar.component';
@@ -41,6 +43,7 @@ procesandoPago = false;
   puedeEliminarOrden: boolean = false;
   cargando = false;
   filtroCliente = '';
+  idSucursalFiltro = 0;
 
   /** Parámetro ESTATUS_ORDENES: muestra estado del Centro de Producción (HTTP, sin SignalR). */
   mostrarEstatusOrdenes = false;
@@ -67,6 +70,18 @@ procesandoPago = false;
       .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
   }
 
+  get mostrarSucursalEnFila(): boolean {
+    return this.idSucursalFiltro === 0
+      && (this._Parametro.sucursales || []).filter(s => s?.activa !== false).length > 1;
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.RefreshOrdenes();
+  }
+
   indiceOrden(item: facturaheader): number {
     return (this._Parametro.ListadoOrdenes || [])
       .findIndex(o => o.idFacturaHeader === item.idFacturaHeader);
@@ -83,7 +98,8 @@ procesandoPago = false;
       private printService: PrintService,
       private parametroConfig: ParametroConfigService,
       private produccion: ProduccionService,
-      private cdr: ChangeDetectorRef
+      private cdr: ChangeDetectorRef,
+      private offline: PosOfflineService
       
   ) {}
   seleccionarOrden(orden: any) {
@@ -246,11 +262,14 @@ actualizarPrecio(idDetalle:number, precio:number){
 
 }
 async seleccionarTipoDocumento() {
-
-  
+  // Nueva orden: nunca reutilizar una IdFacturaHeader de una edición previa
+  // (si no, el carrito agrega ítems a la orden vieja).
+  this._Parametro.IdFacturaHeader = 0;
+  this._Parametro.ListadoProductosCate = [];
+  this._Parametro.Cart = 0;
+  this._Parametro.Total = 0;
   this._Parametro.TipoDocumento = 'ORDEN';
   this.openModalVoz();
-      
 }
   // ==============================
   // MODAL CLIENTE POR VOZ
@@ -391,6 +410,17 @@ imprimirOrden(idFactura: number, event?: Event) {
   }
 
   const apiPrint = (this._Parametro.ApiPrint || '').trim();
+  const ordenLocal = this._Parametro.ListadoOrdenes
+    .find(x => x.idFacturaHeader === idFactura);
+
+  if (this.esLocal(ordenLocal)) {
+    void this.printService.openTicketPosPreview(idFactura, {
+      ...ordenLocal,
+      notaLocal: NOTA_TICKET_LOCAL
+    });
+    return;
+  }
+
   if (!apiPrint) {
     this.toast('No hay impresora configurada (ApiPrint). Configure el agente de impresión.');
     return;
@@ -424,41 +454,65 @@ imprimirOrden(idFactura: number, event?: Event) {
   this.cargando = true;
   this._Parametro.ListadoOrdenes = [];
 
+  const aplicar = async (servidor: facturaheader[]) => {
+    const idPrincipal = (this._Parametro.sucursales || []).find(s => s.esPrincipal)?.idSucursal
+      || this._Parametro.IdSucursal;
+    const idsPermitidos = new Set(
+      (this._Parametro.sucursales || [])
+        .filter(s => s?.activa !== false)
+        .map(s => s.idSucursal)
+    );
+    let locales: facturaheader[] = [];
+    try {
+      locales = (await this.offline.listarOrdenesLocales(this._Parametro.IdEmpresa))
+        .filter(x => this.tipoDocumento === 'Cotizacion'
+          ? Number(x.idTipoDocumentos) === 2
+          : Number(x.idTipoDocumentos) !== 2)
+        .filter(x => {
+          const id = Number((x as any).idSucursal) > 0
+            ? Number((x as any).idSucursal)
+            : Number(idPrincipal) || 0;
+          if (this.idSucursalFiltro > 0) return id === this.idSucursalFiltro;
+          return idsPermitidos.size === 0 || idsPermitidos.has(id);
+        });
+    } catch {
+      locales = [];
+    }
+    this._Parametro.ListadoOrdenes = [...locales, ...(servidor || [])]
+      .map(normalizarIdClienteFactura)
+      .map(o => {
+        if (!Array.isArray(o.facturaDetalles)) {
+          o.facturaDetalles = [];
+        }
+        return o;
+      });
+
+    if (this.tipoDocumento !== 'Cotizacion') {
+      this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
+      if (this.mostrarEstatusOrdenes) {
+        this.cargarEstatusProduccion();
+      }
+    }
+    this.cargando = false;
+    this.cdr.markForCheck();
+  };
+
   const peticion =
     this.tipoDocumento === 'Cotizacion'
-      ? this._FacturaHeader.GetListadoCotizaciones(this._Parametro.IdEmpresa)
-      : this._FacturaHeader.GetListadoOrdenes(this._Parametro.IdEmpresa);
+      ? this._FacturaHeader.GetListadoCotizaciones(this._Parametro.IdEmpresa, this.idSucursalFiltro)
+      : this._FacturaHeader.GetListadoOrdenes(this._Parametro.IdEmpresa, this.idSucursalFiltro);
 
   peticion.subscribe({
       next: c => {
-         console.log(
-           this.tipoDocumento === 'Cotizacion'
-             ? '📦 Cotizaciones recibidas:'
-             : '📦 Órdenes recibidas:',
-           c
-         );
-        this._Parametro.ListadoOrdenes = [...c].map(normalizarIdClienteFactura);
-
-        if (this.tipoDocumento !== 'Cotizacion') {
-          this._Parametro.ListadoOrdenes.forEach((_, i) => this.GetTotal(i));
-          if (this.mostrarEstatusOrdenes) {
-            this.cargarEstatusProduccion();
-          }
-        }
-        this.cargando = false;
-        this.cdr.markForCheck();
+        void aplicar(c || []);
       },
       error: (err) => {
+        if (esErrorRedCobro(err)) {
+          void aplicar([]);
+          return;
+        }
         const tipo = this.tipoDocumento === 'Cotizacion' ? 'cotizaciones' : 'órdenes';
-        console.error(`❌ Error cargando ${tipo}`, {
-          status: err?.status,
-          statusText: err?.statusText,
-          url: err?.url,
-          message: err?.message,
-          error: err?.error,
-          name: err?.name,
-          full: err
-        });
+        console.error(`❌ Error cargando ${tipo}`, err);
         this.cargando = false;
         this.cdr.markForCheck();
         this.toast(
@@ -521,6 +575,14 @@ async presentAlert(mensaje: string) {
   // ACCIONES SOBRE ÓRDENES
   // ==============================
   EliminarFactura(IdFactura: number) {
+    const factura = this._Parametro.ListadoOrdenes
+      .find(c => c.idFacturaHeader == IdFactura);
+    if (this.esLocal(factura)) {
+      void this.offline.eliminarLocal(this._Parametro.IdEmpresa, IdFactura).then(() => {
+        this.RefreshOrdenes();
+      });
+      return;
+    }
     this._FacturaHeader.DeleteIten(IdFactura).subscribe(() => {
       this._Parametro.LoadListaFactura();
     });
@@ -529,6 +591,79 @@ getPendiente(iten: any): number {
   const total = Number(iten?.total ?? 0);
   const pagado = Number(iten?.pagado ?? 0);
   return Math.max(0, total - pagado);
+}
+
+private esLocal(f: any): boolean {
+  return !!f?._offlineLocal || Number(f?.idFacturaHeader) < 0;
+}
+
+private dtoCobroDesdeOrden(factura: any, data: any) {
+  return {
+    idempotencyKey: crearGuidCobro(),
+    header: {
+      idEmpresa: this._Parametro.IdEmpresa,
+      idUsuario: this._Parametro.IdUsuario,
+      idCliente: data.idCliente || idClienteDeFactura(factura) || null,
+      iDCliente: data.idCliente || idClienteDeFactura(factura) || null,
+      tipoFactura: data.tipoFactura || 'Contado',
+      tipoComprobante: 'FACT',
+      idFacturaHeader: this.esLocal(factura) ? 0 : factura.idFacturaHeader,
+      idTipoDocumentos: 1,
+      nombreEmpresa: data.nombreFiscal
+        || factura.nombreEmpresa
+        || factura.nombreCuenta
+        || factura.clientes?.nombreComercial
+        || 'Al Portador',
+      nombreCuenta: factura.nombreCuenta
+        || factura.clientes?.nombreComercial
+        || 'Al Portador',
+      subTotal: factura.subTotal,
+      totalDescuento: factura.totalDescuento,
+      totalItbis: factura.totalItbis,
+      total: factura.total,
+      facturaDetalles: (factura.facturaDetalles || []).map((d: any) => ({
+        idProducto: d.idProducto,
+        cantidad: d.cantidad,
+        idEmpleadoComision: d.idEmpleadoComision || 0,
+        precioOferta: d.precioOferta || d.precio,
+        descuento: d.descuento || 0,
+        itbis: d.itbis || 0
+      }))
+    },
+    pagos: (data.pagos || []).map((p: any) => ({
+      metodo: p.metodo,
+      monto: p.monto,
+      idSaldoAFavor: p.idSaldoAFavor ?? null,
+      idNotaCredito: p.idNotaCredito ?? null,
+      ncfNotaCredito: p.ncfNotaCredito ?? null
+    }))
+  };
+}
+
+private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise<void> {
+  const dto = this.dtoCobroDesdeOrden(factura, data);
+  const ticket = {
+    ...factura,
+    notaLocal: NOTA_TICKET_LOCAL,
+    tipoFactura: data.tipoFactura || 'Contado',
+    pagado: Number(data.pagado ?? factura.total),
+    pendiente: Number(data.pendiente ?? 0)
+  };
+  if (this.esLocal(factura)) {
+    await this.offline.eliminarLocal(this._Parametro.IdEmpresa, factura.idFacturaHeader);
+  }
+  const item = await this.offline.encolarFactura(this._Parametro.IdEmpresa, dto, ticket);
+  ticket.numeroDocumento = item.ticket?.numeroDocumento || ticket.numeroDocumento;
+  if (data.imprimir) {
+    await this.printService.openTicketPosPreview(item.idLocal, ticket);
+  }
+  const index = this._Parametro.ListadoOrdenes
+    .findIndex(c => c.idFacturaHeader == IdFact);
+  if (index !== -1) {
+    this._Parametro.ListadoOrdenes.splice(index, 1);
+  }
+  this.toast('Cobro local sin NCF ni e-CF. Se registrará en el ERP al reconectar.');
+  this.procesandoPago = false;
 }
 
  async PagarFact(IdFact: number) {
@@ -549,19 +684,21 @@ getPendiente(iten: any): number {
   const total = Number(factura.total ?? 0);
   const pagado = Number(factura.pagado ?? 0);
   const pendiente = Math.max(0, total - pagado);
+  const local = this.esLocal(factura);
 
   const modal = await this.modal.create({
     component: CuentaxPagarComponent,
     cssClass: 'modal-factura-full',
     componentProps: {
-      IdFactPay: factura.idFacturaHeader,
+      IdFactPay: local ? 0 : factura.idFacturaHeader,
       TotalFactura: pendiente,
       IdCliente: idClienteDeFactura(factura) || null,
       NombreCliente: factura.nombreCuenta
         || factura.nombreEmpresa
         || factura.clientes?.nombreComercial
         || null,
-      UsaCxC: this._Parametro.tieneModulo('CUENTAS_COBRAR')
+      UsaCxC: this._Parametro.tieneModulo('CUENTAS_COBRAR'),
+      FacturacionElectronica: false
     }
   });
 
@@ -576,6 +713,11 @@ getPendiente(iten: any): number {
     if (tipo === 'contado' && (!data.pagos || data.pagos.length === 0)) {
       console.warn("⚠️ No hay pagos");
       this.procesandoPago = false;
+      return;
+    }
+
+    if (local) {
+      await this.cobrarOrdenLocal(factura, data, IdFact);
       return;
     }
 
@@ -620,7 +762,6 @@ getPendiente(iten: any): number {
                 });
             }
        
-            // 🔥 NUEVO → abrir modal de impresión
             if (dto.imprimirFactura) {
 
               this.printService.printTicket(dto.idFactura, this._Parametro.IdEmpresa)
@@ -628,23 +769,12 @@ getPendiente(iten: any): number {
                 next: () => console.log("🧾 Factura impresa"),
                 error: err => console.error("❌ Error factura", err)
               });
-
-              // const modalPrint = await this.modal.create({
-              //   component: PrinterComponent,
-              //   cssClass: 'modal-print',
-              //   componentProps: {
-              //     factura: resp?.factura || factura // 🔥 fallback seguro
-              //   }
-              // });
-
-             // await modalPrint.present();
             }
 
           } catch (error) {
             console.error("❌ Error impresión:", error);
           }
 
-          // limpiar lista
           const index = this._Parametro.ListadoOrdenes
             .findIndex(c => c.idFacturaHeader == IdFact);
 
@@ -664,17 +794,14 @@ getPendiente(iten: any): number {
         },
 
         error: async (err) => {
-
           console.error("❌ Error:", err);
-
+          // Modo local apagado: no cobrar en el teléfono si el API falla.
           const toast = await this.toastCtrl.create({
             message: 'Error procesando la factura',
             duration: 1500,
             color: 'danger'
           });
-
           await toast.present();
-
           this.procesandoPago = false;
         }
       });
@@ -691,6 +818,9 @@ getPendiente(iten: any): number {
     let descuentoItems = 0;
 
     const factura = this._Parametro.ListadoOrdenes[indexH];
+    if (!factura?.facturaDetalles?.length) {
+      return;
+    }
     const descuentoHeaderOriginal =
       Number(factura.totalDescuento ?? 0);
     const totalOriginal =
@@ -698,7 +828,7 @@ getPendiente(iten: any): number {
     const itbisOriginal =
       Number(factura.totalItbis ?? 0);
 
-    factura.facturaDetalles.forEach(det => {
+    factura.facturaDetalles?.forEach(det => {
       const precioUnit =
         det.precioOferta ||
         det.productos?.precioVenta ||
@@ -754,6 +884,10 @@ getPendiente(iten: any): number {
   AumetarCantidad(indexHeader: number, indexdetalle: number, IdFactDetalle: number) {
 
   if (this.modo === 'seleccionar') return; // 🔥 protección
+  if (this.esLocal(this._Parametro.ListadoOrdenes[indexHeader])) {
+    this.toast('Para editar una orden local, ábrala en el POS.');
+    return;
+  }
 
   const detalle = this._Parametro.ListadoOrdenes[indexHeader].facturaDetalles[indexdetalle];
   detalle.cantidad++;
@@ -762,6 +896,10 @@ getPendiente(iten: any): number {
 }
 
  DisminuirCantidad(indexHeader: number, indexdetalle: number, IdFactDetalle: number) {
+  if (this.esLocal(this._Parametro.ListadoOrdenes[indexHeader])) {
+    this.toast('Para editar una orden local, ábrala en el POS.');
+    return;
+  }
   const detalle = this._Parametro.ListadoOrdenes[indexHeader].facturaDetalles[indexdetalle];
   if (detalle.cantidad > 1) {
     detalle.cantidad--;
@@ -776,6 +914,11 @@ getPendiente(iten: any): number {
   }
 
   RemoverItem(IndexHeader: number, IndexDetalle: number, idFacturaDetalle: number, idFacturaHeader: number) {
+    const factura = this._Parametro.ListadoOrdenes[IndexHeader];
+    if (this.esLocal(factura)) {
+      this.toast('Para editar una orden local, ábrala en el POS.');
+      return;
+    }
     this._Parametro.ListadoOrdenes[IndexHeader].facturaDetalles.splice(IndexDetalle, 1);
     this._FactDetalle.DeleteIten(idFacturaDetalle).subscribe(() => {
       this._Parametro.LoadListaFactura();
@@ -783,6 +926,8 @@ getPendiente(iten: any): number {
   }
 
   CallCategorias() {
+    // Continuar a categorías para orden NUEVA (no editar existente).
+    this._Parametro.IdFacturaHeader = 0;
     this._Parametro.NombreCliente = this.NombreCliente;
     this._Router.navigateByUrl('/Categoria');
     this._modal.dismiss();
@@ -790,7 +935,15 @@ getPendiente(iten: any): number {
   }
 
   AddNewItem(Id: number) {
-    this._Parametro.IdFacturaHeader = Id;
+    const id = Number(Id) || 0;
+    if (id <= 0) {
+      this.toast('Orden inválida.');
+      return;
+    }
+    this._Parametro.IdFacturaHeader = id;
+    this._Parametro.ListadoProductosCate = [];
+    this._Parametro.Cart = 0;
+    this._Parametro.Total = 0;
     this._Router.navigateByUrl('/Categoria');
   }
 

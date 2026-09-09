@@ -22,6 +22,7 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
   filtro = '';
   cargando = false;
   procesando = false;
+  idSucursalFiltro = 0;
   /** Ids de facturas seleccionadas para cobro múltiple (mismo cliente). */
   seleccionadas = new Set<number>();
   /** Fuerza re-render del checkbox si se rechaza una selección. */
@@ -61,7 +62,7 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
     const idCliente = this.clienteSeleccionado || 0;
     const idEmpresa = this._parametro.IdEmpresa;
 
-    this._facturaSrv.GetAllFacturaPendiente(idCliente, idEmpresa).subscribe({
+    this._facturaSrv.GetAllFacturaPendiente(idCliente, idEmpresa, this.idSucursalFiltro).subscribe({
       next: (res) => {
         this.facturas = (res || []).map((f) => this.normalizarFactura(f));
         this.actualizarClientesConDeuda();
@@ -75,6 +76,13 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
         this.toast('Error cargando facturas pendientes', 'danger');
       },
     });
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.cargarFacturas();
   }
 
   /** El API serializa IDCliente como idCliente; el DTO usa iDCliente. */

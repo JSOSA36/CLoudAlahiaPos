@@ -90,6 +90,15 @@
 
       </ion-row>
 
+      <ion-row>
+        <ion-col size="12">
+          <app-filtro-sucursal-consulta
+            [valor]="idSucursalFiltro"
+            (valorChange)="onFiltroSucursal($event)">
+          </app-filtro-sucursal-consulta>
+        </ion-col>
+      </ion-row>
+
       <!-- 🔥 BOTON -->
 
       <ion-row>
@@ -122,7 +131,7 @@
 
       placeholder="
         Buscar cliente,
-        RNC, e-CF o factura
+        RNC, e-CF, factura o usuario
       "
 
       [(ngModel)]="searchText"
@@ -217,6 +226,11 @@
                   iten.numeroDocumento ||
                   ('FACT-' + iten.idFacturaHeader)
                 }}
+                <span
+                  *ngIf="$any(iten)._offlineLocal"
+                  class="badge-local-fact">
+                  Local
+                </span>
 
               </div>
 
@@ -239,6 +253,10 @@
 
                 </span>
 
+                <span class="badge-sucursal" *ngIf="iten.nombreSucursal">
+                  {{ iten.nombreSucursal }}
+                </span>
+
               </div>
 
             </div>
@@ -256,7 +274,7 @@
                <strong>
   RD$
   {{
-    (iten.total - (iten.totalDescuento || 0))
+    iten.total
     | number:'1.2-2'
   }}
 </strong>
@@ -324,6 +342,24 @@
                   iten.formaPago ||
                   'Efectivo'
                 }}
+
+              </strong>
+
+            </div>
+
+            <!-- 🔥 USUARIO QUE FACTURÓ -->
+
+            <div
+              class="mini-info"
+              *ngIf="iten.nombreUsuario">
+
+              <span class="mini-label">
+                Usuario
+              </span>
+
+              <strong class="usuario-factura">
+
+                {{ iten.nombreUsuario }}
 
               </strong>
 
@@ -521,6 +557,7 @@
                 size="small"
                 color="danger"
                 fill="solid"
+                *ngIf="puedeAnularFactura"
                 (click)="abrirAnulacion(iten)"
                 [disabled]="iten.estaCancelada">
 

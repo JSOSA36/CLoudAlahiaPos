@@ -118,6 +118,9 @@ import { NcfSecuenciasComponent } from './ncf-secuencias/ncf-secuencias.componen
 import { Reporte607Component } from './Components/reporte607/reporte607.component';
 import { ReporteIt1Component } from './Components/reporte-it1/reporte-it1.component';
 import { ReportePerdidasComponent } from './Components/reporte-perdidas/reporte-perdidas.component';
+import { ReporteCruceStockComponent } from './Components/reporte-cruce-stock/reporte-cruce-stock.component';
+import { ReporteIr3Component } from './Components/reporte-ir3/reporte-ir3.component';
+import { ReporteIr17Component } from './Components/reporte-ir17/reporte-ir17.component';
 import { PagosListComponent } from './pagos/pagos-list/pagos-list.component';
 import { CierreCajaComponent } from './Components/cierre-caja/cierre-caja.component';
 import { ListadoEncargosComponent } from './bizcocho/listado-encargos/listado-encargos.component';
@@ -184,9 +187,11 @@ import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.com
 import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
 import { AlahiaAiConfigComponent } from './alahia-ai/alahia-ai-config.component';
 import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
+import { FiltroSucursalConsultaComponent } from './shared/filtro-sucursal-consulta/filtro-sucursal-consulta.component';
 @NgModule({
   declarations: [
     AppComponent,
+    FiltroSucursalConsultaComponent,
     LoginComponent,
     CajasComponent,
     ResetPasswordComponent,
@@ -215,6 +220,9 @@ import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
     Reporte607Component,
     ReporteIt1Component,
     ReportePerdidasComponent,
+    ReporteCruceStockComponent,
+    ReporteIr3Component,
+    ReporteIr17Component,
     PagosListComponent,
     ListadoCajaComponent,
     ClienteVozComponent,

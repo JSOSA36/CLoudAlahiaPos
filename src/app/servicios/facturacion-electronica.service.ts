@@ -7,6 +7,8 @@ import {
   SecuenciaEcfDto,
   SecuenciaEcfCreateDto,
   SecuenciaEcfUpdateDto,
+  SecuenciaEcfAsignarDto,
+  SecuenciaEcfAsignacionDto,
   EmisionEcfRequest,
   EmisionEcfResultado,
   EmisionEcfResultadoCompleto
@@ -36,9 +38,10 @@ export class FacturacionElectronicaService {
     );
   }
 
-  getSecuenciasDisponibles(idEmpresa: number): Observable<SecuenciaEcfDisponible[]> {
+  getSecuenciasDisponibles(idEmpresa: number, idSucursal?: number | null): Observable<SecuenciaEcfDisponible[]> {
+    const suc = idSucursal && idSucursal > 0 ? `?idSucursal=${idSucursal}` : '';
     return this.http.get<SecuenciaEcfDisponible[]>(
-      `${this.baseUrl}/secuencias-disponibles/${idEmpresa}`
+      `${this.baseUrl}/secuencias-disponibles/${idEmpresa}${suc}`
     );
   }
 
@@ -72,6 +75,24 @@ export class FacturacionElectronicaService {
     );
   }
 
+  asignarRango(idSecuencia: number, dto: SecuenciaEcfAsignarDto): Observable<SecuenciaEcfAsignacionDto> {
+    return this.http.post<SecuenciaEcfAsignacionDto>(
+      `${this.baseUrl}/secuencias/${idSecuencia}/asignaciones`, dto
+    );
+  }
+
+  actualizarAsignacion(idAsignacion: number, dto: SecuenciaEcfAsignarDto): Observable<void> {
+    return this.http.put<void>(
+      `${this.baseUrl}/secuencias/asignaciones/${idAsignacion}`, dto
+    );
+  }
+
+  desactivarAsignacion(idAsignacion: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/secuencias/asignaciones/${idAsignacion}/desactivar`, {}
+    );
+  }
+
   peek(idEmpresa: number, tipoEcf: number): Observable<{ encf: string }> {
     return this.http.get<{ encf: string }>(
       `${this.baseUrl}/peek/${idEmpresa}/${tipoEcf}`
@@ -90,6 +111,8 @@ export class FacturacionElectronicaService {
     nombre?: string;
     baseUrl?: string;
     usuario?: string;
+    password?: string;
+    apiKey?: string;
     apiKeyConfigurado: boolean;
     passwordConfigurado: boolean;
     endpointEfectivo?: string;
@@ -124,6 +147,7 @@ export class FacturacionElectronicaService {
     usable?: boolean;
     subject?: string;
     thumbprint?: string;
+    password?: string;
   }> {
     return this.http.get<any>(`${this.baseUrl}/certificado/${idEmpresa}`);
   }
@@ -207,5 +231,46 @@ export class FacturacionElectronicaService {
     return this.http.get<any>(
       `${this.baseUrl}/dashboard/${idEmpresa}`
     );
+  }
+
+  getCertecfEstado(idEmpresa: number): Observable<any> {
+    return this.http.get<any>(`${this.config.apiUrl}/CertecfCertificacion/estado/${idEmpresa}`);
+  }
+
+  uploadCertecfExcel(idEmpresa: number, archivo: File, idUsuario?: number): Observable<any> {
+    const form = new FormData();
+    form.append('archivo', archivo, archivo.name);
+    if (idUsuario) form.append('idUsuario', String(idUsuario));
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/excel/${idEmpresa}`, form);
+  }
+
+  getCertecfSesion(idEmpresa: number, idSesion: number): Observable<any> {
+    return this.http.get<any>(`${this.config.apiUrl}/CertecfCertificacion/sesion/${idEmpresa}/${idSesion}`);
+  }
+
+  enviarCertecfCaso(idEmpresa: number, idCaso: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.config.apiUrl}/CertecfCertificacion/caso/${idEmpresa}/${idCaso}/enviar`, {});
+  }
+
+  consultarCertecfCaso(idEmpresa: number, idCaso: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.config.apiUrl}/CertecfCertificacion/caso/${idEmpresa}/${idCaso}/consultar`, {});
+  }
+
+  guardarCertecfPostulacion(idEmpresa: number, dto: any): Observable<any> {
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/postulacion/${idEmpresa}`, dto);
+  }
+
+  marcarCertecfPaso(idEmpresa: number, paso: number, estado = 'Hecho', nota?: string): Observable<any> {
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/paso/${idEmpresa}`, { paso, estado, nota });
+  }
+
+  generarCertecfSimulacion(idEmpresa: number): Observable<any> {
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/simulacion/${idEmpresa}`, {});
+  }
+
+  descargarCertecfArchivo(path: string): Observable<Blob> {
+    return this.http.get(`${this.config.apiUrl}/CertecfCertificacion/${path}`, { responseType: 'blob' });
   }
 }

@@ -120,7 +120,8 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
       'ALMACENES',
       'MOVIMIENTO_INVENTARIO',
       'CONDUCES',
-      'REPORTE_PERDIDAS'
+      'REPORTE_PERDIDAS',
+      'REPORTE_CRUCE_STOCK'
     ]
   },
   {
@@ -301,6 +302,7 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   METODO_PAGO_CUENTAS: 'Métodos de pago → cuenta',
   REPORTE_606: 'Formato 606 (Compras)',
   REPORTE_607: 'Formato 607 (Ventas)',
+  REPORTE_CRUCE_STOCK: 'Cruce stock vs ventas',
   CONFIGURACION_DGII: 'Configuración fiscal DGII',
   IT1: 'Declaración IT-1',
   IR17: 'Declaración IR-17',

@@ -28,6 +28,7 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
   loading = false;
   errorMsg = '';
   data: DashboardGerencialDto | null = null;
+  idSucursalFiltro = 0;
 
   plCards: { label: string; value: number; tone: string }[] = [];
   indCards: { label: string; value: number; icon: IconName; tone: string }[] = [];
@@ -43,7 +44,7 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
 
   constructor(
     private dashboardService: DashboardGerencialService,
-    private parametros: ParametrosService,
+    public parametros: ParametrosService,
     private alahiaAi: AlahiaAiService,
     private router: Router
   ) {}
@@ -69,6 +70,8 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
   private emptyPl(): DashboardGerencialPlDto {
     return {
       ventasBrutas: 0,
+      descuentos: 0,
+      ventasNetas: 0,
       costoVenta: 0,
       utilidadBruta: 0,
       gastosOperativos: 0,
@@ -88,6 +91,18 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
 
   get plHoy(): DashboardGerencialPlDto {
     return this.data?.plHoy ?? this.emptyPl();
+  }
+
+  /** Ventas del día ya netas de descuento de factura. */
+  get ventasHoy(): number {
+    return this.ventasNetasDe(this.plHoy);
+  }
+
+  private ventasNetasDe(p: DashboardGerencialPlDto): number {
+    if (typeof p.ventasNetas === 'number') {
+      return p.ventasNetas;
+    }
+    return (p.ventasBrutas || 0) - (p.descuentos || 0);
   }
 
   get ind(): DashboardGerencialIndicadoresDto {
@@ -119,6 +134,41 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
     return neto?.monto ?? 0;
   }
 
+  get mostrarCxcSucursal(): boolean {
+    return this.parametros.tieneModulo('CUENTAS_COBRAR');
+  }
+
+  get totalVentasPorSucursal(): number {
+    return (this.data?.porSucursal || []).reduce((s, x) => s + (x.ventasNetas || 0), 0);
+  }
+
+  get totalHoyPorSucursal(): number {
+    return (this.data?.porSucursal || []).reduce((s, x) => s + (x.ventasHoy || 0), 0);
+  }
+
+  get totalInventarioPorSucursal(): number {
+    return (this.data?.porSucursal || []).reduce((s, x) => s + (x.valorInventario || 0), 0);
+  }
+
+  get totalCxcPorSucursal(): number {
+    return (this.data?.porSucursal || []).reduce((s, x) => s + (x.cuentasPorCobrar || 0), 0);
+  }
+
+  etiquetaSucursal(nombre: string): string {
+    return (nombre || '').replace(/^sucursal\s+/i, '').trim() || nombre || 'Sucursal';
+  }
+
+  esPrincipalSucursal(id: number): boolean {
+    const s = (this.parametros.sucursales || []).find(x => x.idSucursal === id);
+    return !!s?.esPrincipal;
+  }
+
+  pctMesSucursal(ventasNetas: number): number {
+    const total = this.totalVentasPorSucursal;
+    if (total <= 0) return 0;
+    return Math.max(0, Math.min(100, (Number(ventasNetas) || 0) * 100 / total));
+  }
+
   private buildEstadoResultadosLocal(pl: DashboardGerencialPlDto): EstadoResultadosPasoDto[] {
     const pasos: EstadoResultadosPasoDto[] = [];
     let acum = 0;
@@ -138,6 +188,9 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
     };
 
     push('Ventas brutas', pl.ventasBrutas || 0, 'base');
+    if ((pl.descuentos || 0) > 0) {
+      push('Descuentos', pl.descuentos || 0, 'resta');
+    }
     push('Costo de venta', pl.costoVenta || 0, 'resta');
     push('Utilidad bruta', pl.utilidadBruta || 0, 'subtotal');
     push('Gastos operativos', pl.gastosOperativos || 0, 'resta');
@@ -156,6 +209,13 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
       }
       event?.target?.complete?.();
     });
+  }
+
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.cargar();
   }
 
   cargarResumenAi(): void {
@@ -188,7 +248,7 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.errorMsg = '';
 
-    this.dashboardService.getMesActual(idEmpresa).subscribe({
+    this.dashboardService.getMesActual(idEmpresa, this.idSucursalFiltro).subscribe({
       next: (res) => {
         // Compat: APIs viejas sin plHoy → objeto vacío (no romper pantalla)
         this.data = {
@@ -204,7 +264,10 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error(err);
         this.loading = false;
-        this.errorMsg = 'No se pudo cargar el Panel Gerencial.';
+        const detalle = err?.error?.detalle || err?.error?.message;
+        this.errorMsg = detalle
+          ? `No se pudo cargar el Panel Gerencial. ${detalle}`
+          : 'No se pudo cargar el Panel Gerencial.';
         done?.();
       },
     });
@@ -216,14 +279,20 @@ export class DashboardGerencialComponent implements OnInit, OnDestroy {
 
     this.plCards = [
       { label: 'Ventas brutas', value: p.ventasBrutas, tone: 'blue' },
+    ];
+    if ((p.descuentos || 0) > 0) {
+      this.plCards.push({ label: 'Descuentos', value: p.descuentos || 0, tone: 'orange' });
+      this.plCards.push({ label: 'Ventas netas', value: this.ventasNetasDe(p), tone: 'blue' });
+    }
+    this.plCards.push(
       { label: 'Costo de venta', value: p.costoVenta, tone: 'orange' },
       { label: 'Utilidad bruta', value: p.utilidadBruta, tone: 'yellow' },
       { label: 'Gastos operativos', value: p.gastosOperativos, tone: 'navy' },
       { label: 'Comisiones', value: p.comisiones, tone: 'amber' },
       { label: 'Pérdidas inventario', value: p.perdidasInventario, tone: 'orange' },
       { label: 'Otros ingresos', value: p.otrosIngresos, tone: 'blue' },
-      { label: 'Otros egresos', value: p.otrosEgresos, tone: 'slate' },
-    ];
+      { label: 'Otros egresos', value: p.otrosEgresos, tone: 'slate' }
+    );
 
     this.margenCards = [
       {

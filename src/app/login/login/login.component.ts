@@ -14,6 +14,7 @@ import { WhatsappPlanesComponent } from 'src/app/whatsapp-planes/whatsapp-planes
 import { PoliticasGateService } from 'src/app/servicios/politicas-gate.service';
 import { NotificacionesService } from 'src/app/servicios/notificaciones.service';
 import { TicketDesdeLoginComponent } from 'src/app/tickets/ticket-desde-login.component';
+import { PosDeviceService } from 'src/app/servicios/pos-device.service';
 // OneSignal
 declare const OneSignal: any;
 
@@ -38,7 +39,8 @@ export class LoginComponent implements OnInit {
     private modalCtrl: ModalController,
     private platform: Platform,
     private politicasGate: PoliticasGateService,
-    private notificaciones: NotificacionesService
+    private notificaciones: NotificacionesService,
+    private posDevice: PosDeviceService
   ) {}
 
   // ❌ NO limpiar sesión aquí
@@ -181,7 +183,8 @@ async login() {
 
   await loading.present();
 
-  const deviceId = this.obtenerDeviceId();
+  const deviceInfo = await this.posDevice.obtenerInfo();
+  const deviceId = deviceInfo.deviceId;
 
   this.authService.login(this.Usuario, this.PassWord, deviceId)
     .subscribe({
@@ -194,7 +197,8 @@ async login() {
 
           await this.mostrarMensaje(
             'Sesión activa',
-            'Este usuario ya está conectado en otro dispositivo.',
+            resp?.mensaje ||
+              'Este usuario ya tiene una sesión activa en otro equipo. Cierre esa sesión para entrar aquí.',
             'alert-circle-outline',
             false
           );
@@ -285,6 +289,7 @@ async login() {
         this.parametros.PuedeEliminarItemCarrito = usuario.puedeEliminarItemCarrito || false;
         this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false;
         this.parametros.PuedeEditarPrecioCarrito = usuario.puedeEditarPrecioCarrito || false;
+        this.parametros.PuedeAnularFactura = usuario.puedeAnularFactura || false;
 
         // Cabecera de documentos (cotización, conduce, etc.)
         this.parametros._Empresa = {
@@ -319,6 +324,10 @@ async login() {
           usuario.idUsuario || 0,
           usuario
         );
+
+        const sucursalesLogin = Array.isArray(resp?.sucursales) ? resp.sucursales : [];
+        const idSucursalLogin = Number(resp?.idSucursalActiva ?? usuario.idSucursal ?? 0) || 0;
+        this.parametros.setSucursalSesion(idSucursalLogin, sucursalesLogin);
 
         this.parametros.setModulosActivos(
           modulos.map((m: any) => m.moduloId).filter((id: any) => id != null),
@@ -374,7 +383,6 @@ async login() {
 
         await this.redirigirSegunModulos(modulos);
 
-        // Aviso de cobro solo día 30 / día 3. Nunca si admin ya aprobó (ACTIVA / pagado).
         const diaCobro = Number(resp?.alertaPlan?.diaCobro);
         const idEmp = empresa.idEmpresa || 0;
         const estadoServ = String(empresa?.estadoServicio || '').toUpperCase();
@@ -384,13 +392,15 @@ async login() {
         if (
           !yaPagadoOActivo &&
           resp?.alertaPlan?.mensaje &&
-          (diaCobro === 30 || diaCobro === 3) &&
+          diaCobro === 30 &&
           !this.yaMostroAlertaCobro(idEmp, diaCobro)
         ) {
           await this.mostrarMensaje(
-            'Factura pendiente',
-            'Tiene una factura pendiente por pagar.',
-            'card-outline',
+            'Aviso de pago pendiente',
+            'Estimado cliente, su factura se encuentra pendiente de pago.\n\n' +
+              'Le recomendamos realizar su pago a la mayor brevedad posible para evitar la suspensión del servicio.\n\n' +
+              'Gracias por preferir Alahia ERP.',
+            'notifications-outline',
             false,
             true,
             {
@@ -514,14 +524,12 @@ private async redirigirSegunModulos(modulos: any[]) {
   // ===============================
   private claveAlertaCobro(idEmpresa: number, diaCobro: number): string {
     const now = new Date();
-    // Ciclo: día 30 usa mes actual; día 3 usa el ciclo abierto el 30 del mes anterior
-    const ref = diaCobro === 30 ? now : new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const periodo = `${ref.getFullYear()}${String(ref.getMonth() + 1).padStart(2, '0')}`;
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     return `cobro_alerta_vista_${idEmpresa}_${periodo}_${diaCobro}`;
   }
 
   private yaMostroAlertaCobro(idEmpresa: number, diaCobro: number): boolean {
-    if (!idEmpresa || (diaCobro !== 30 && diaCobro !== 3)) return true;
+    if (!idEmpresa || diaCobro !== 30) return true;
     try {
       return localStorage.getItem(this.claveAlertaCobro(idEmpresa, diaCobro)) === '1';
     } catch {
@@ -534,14 +542,5 @@ private async redirigirSegunModulos(modulos: any[]) {
     try {
       localStorage.setItem(this.claveAlertaCobro(idEmpresa, diaCobro), '1');
     } catch { /* ignore */ }
-  }
-
-  private obtenerDeviceId(): string {
-    let id = localStorage.getItem('device_id');
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem('device_id', id);
-    }
-    return id;
   }
 }

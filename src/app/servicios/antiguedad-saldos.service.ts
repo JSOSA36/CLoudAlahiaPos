@@ -42,6 +42,7 @@ export class AntiguedadSaldosService {
     if (filtro.fechaCorte) params = params.set('fechaCorte', filtro.fechaCorte);
     params = params.set('soloVencidas', String(!!filtro.soloVencidas));
     params = params.set('soloPendientes', String(filtro.soloPendientes !== false));
+    params = params.set('idSucursalFiltro', String(filtro.idSucursalFiltro || 0));
     return params;
   }
 }

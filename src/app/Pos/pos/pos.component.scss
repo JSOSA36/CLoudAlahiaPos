@@ -2948,32 +2948,94 @@ ion-buttons[slot="end"] {
 /* =========================================
 TABLET UX: header con mismas etiquetas + grid + footer cobro
 ========================================= */
+
+/* Labels cortos solo en móvil; desktop usa el texto completo */
+.btn-header-pos .btn-label-short {
+  display: none;
+}
+
+.pos-toolbar {
+  --min-height: 52px;
+}
+
+.pos-header-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+}
+
+.pos-header-actions .btn-header-pos {
+  margin: 0;
+  height: 34px;
+  min-height: 34px;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 10px;
+  --padding-end: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pos-header-actions .btn-header-pos ion-icon {
+  font-size: 16px;
+  margin-inline-end: 4px;
+}
+
 @media (max-width: 767px), ((max-width: 1100px) and (hover: none) and (pointer: coarse)) {
-  /* Misma info que desktop: no ocultar textos */
-  .btn-header-pos .btn-label {
+  .pos-toolbar {
+    --min-height: 48px;
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
+
+  .pos-toolbar::part(native),
+  .pos-toolbar .toolbar-container {
+    align-items: center;
+  }
+
+  /* Espacio para campana fija; una sola fila alineada */
+  .pos-header-actions,
+  ion-toolbar.pos-toolbar ion-buttons[slot='end'] {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end;
+    max-width: none !important;
+    width: auto;
+    margin-right: 44px;
+    gap: 4px !important;
+    height: 40px;
+    overflow: visible;
+  }
+
+  .btn-header-pos .btn-label-full {
+    display: none;
+  }
+
+  .btn-header-pos .btn-label-short {
     display: inline;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 800;
+    letter-spacing: 0.01em;
     white-space: nowrap;
   }
 
+  .pos-header-actions .btn-header-pos,
   .btn-header-pos {
-    --padding-start: 8px;
-    --padding-end: 10px;
-    height: 36px;
-    margin-inline: 2px;
+    --padding-start: 6px;
+    --padding-end: 7px;
+    height: 28px !important;
+    min-height: 28px !important;
+    margin: 0 !important;
+    margin-inline: 0 !important;
   }
 
   .btn-header-pos ion-icon {
-    font-size: 16px;
-    margin-inline-end: 4px;
-  }
-
-  ion-toolbar ion-buttons[slot='end'] {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 72%;
-    gap: 4px;
+    font-size: 14px !important;
+    margin-inline-end: 2px !important;
   }
 
   /* 3 columnas en tablet landscape / ancha */

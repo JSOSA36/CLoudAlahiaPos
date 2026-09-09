@@ -66,6 +66,10 @@ export class MovimientosInventario {
 
   nombreAlmacenDestino?: string;
 
+  idSucursal?: number;
+
+  nombreSucursal?: string;
+
   // =========================================
   // 🔥 ACTIVO
   // =========================================

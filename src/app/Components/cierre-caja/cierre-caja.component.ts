@@ -28,6 +28,8 @@ import {
 import {
   CajaAperturaService
 } from 'src/app/servicios/caja-apertura.service';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { firstValueFrom } from 'rxjs';
 
 type Denominacion = {
 
@@ -69,6 +71,12 @@ implements OnInit {
 
   totalGastosCaja = 0;
 
+  /** Si true, pide billetes/monedas. Si false, cierre simplificado (Sena). */
+  controlPorDenominacion = true;
+
+  /** Monto contado cuando el cierre NO usa denominaciones. */
+  efectivoContadoIngresado = 0;
+
   /* =====================================
   🔥 OUTPUT
   ====================================== */
@@ -100,7 +108,8 @@ implements OnInit {
     private cajaAperturaService:
       CajaAperturaService,
       private _facturaHeaderService:
-      FacturaHeaderService
+      FacturaHeaderService,
+    private parametroConfig: ParametroConfigService
 
   ){}
 
@@ -110,7 +119,38 @@ implements OnInit {
 
   ngOnInit(){
 
-    this.ValidarCajaAbierta();
+    void this.cargarControlEfectivo().then(() => this.ValidarCajaAbierta());
+  }
+
+  /** Lee ControlEfectivoPorDenominacion (false = sin grilla de billetes). */
+  private async cargarControlEfectivo(): Promise<void> {
+    const idEmpresa = this.parametrosService.GetIdEmpresa();
+    if (!idEmpresa) {
+      this.controlPorDenominacion = true;
+      return;
+    }
+    try {
+      const params = await firstValueFrom(
+        this.parametroConfig.getParametrosEmpresa(idEmpresa)
+      );
+      const row = (params || []).find(
+        (x: any) =>
+          String(x.clave || x.Clave || '')
+            .trim()
+            .toLowerCase() === 'controlefectivopordenominacion'
+      ) as any;
+      const valor = String(row?.valor ?? row?.Valor ?? 'true')
+        .trim()
+        .toLowerCase();
+      this.controlPorDenominacion = valor === 'true' || valor === '1';
+    } catch {
+      this.controlPorDenominacion = true;
+    }
+  }
+
+  private sincronizarContadoSimplificado(): void {
+    if (this.controlPorDenominacion) return;
+    this.efectivoContadoIngresado = this.efectivoEsperadoFisico;
   }
 
   /* =====================================
@@ -290,6 +330,7 @@ CargarIngresos(): void {
           this.salidasEfectivo
         );
 
+        this.sincronizarContadoSimplificado();
         this.validandoCaja = false;
       },
 
@@ -305,6 +346,7 @@ CargarIngresos(): void {
 
         this.salidasEfectivo = 0;
 
+        this.sincronizarContadoSimplificado();
         this.validandoCaja = false;
       }
 
@@ -528,6 +570,10 @@ get metodosPagoResumen(): any[] {
   ====================================== */
 
   get efectivoContado(): number {
+
+    if (!this.controlPorDenominacion) {
+      return Math.round((Number(this.efectivoContadoIngresado) || 0) * 100) / 100;
+    }
 
     return (
 

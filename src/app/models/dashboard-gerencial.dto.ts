@@ -10,10 +10,26 @@ export interface DashboardGerencialDto {
   pl: DashboardGerencialPlDto;
   indicadores: DashboardGerencialIndicadoresDto;
   charts: DashboardGerencialChartsDto;
+  esConsolidado?: boolean;
+  porSucursal?: DashboardGerencialSucursalMontoDto[];
+}
+
+export interface DashboardGerencialSucursalMontoDto {
+  idSucursal: number;
+  nombre: string;
+  ventasNetas: number;
+  ventasHoy: number;
+  valorInventario: number;
+  cuentasPorCobrar: number;
+  cuentasPorPagar: number;
 }
 
 export interface DashboardGerencialPlDto {
   ventasBrutas: number;
+  /** Descuentos de cabecera de factura. */
+  descuentos?: number;
+  /** Total − ITBIS (ya neto de descuento). */
+  ventasNetas?: number;
   costoVenta: number;
   utilidadBruta: number;
   gastosOperativos: number;

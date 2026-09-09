@@ -6,4 +6,6 @@ export interface Empleado {
   celular?: string;
   estado: boolean;
   idEmpresa: number;
+  idSucursal?: number | null;
+  sucursalNombre?: string;
 }

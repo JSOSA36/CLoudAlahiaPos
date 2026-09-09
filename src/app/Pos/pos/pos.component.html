@@ -1,10 +1,9 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar color="primary" class="pos-toolbar">
 
     <!-- IZQUIERDA -->
     <ion-buttons slot="start">
       <ion-menu-button style="color:white;"></ion-menu-button>
- 
     </ion-buttons>
 
     <!-- CENTRO -->
@@ -20,87 +19,63 @@
       (keydown.enter)="procesarEnter()">
     </ion-searchbar>
 
-    <!-- DERECHA 🔥 -->
-   <ion-buttons slot="end">
+    <!-- DERECHA -->
+    <ion-buttons slot="end" class="pos-header-actions">
 
-    
-  <ion-button
+      <ion-button
+        *ngIf="usaOrdenes"
+        class="btn-amarillo btn-header-pos"
+        (click)="abrirOrdenesModal()"
+        shape="round"
+        title="Órdenes">
+        <ion-icon name="cart-outline" slot="start"></ion-icon>
+        <span class="btn-label btn-label-full">Órdenes</span>
+        <span class="btn-label btn-label-short">Ord.</span>
+      </ion-button>
 
-  *ngIf="usaOrdenes"
+      <ion-button
+        *ngIf="usaCotizaciones"
+        class="btn-amarillo btn-header-pos"
+        (click)="abrirCotizacionesModal()"
+        shape="round"
+        title="Cotizaciones">
+        <ion-icon name="receipt-outline" slot="start"></ion-icon>
+        <span class="btn-label btn-label-full">Cotizaciones</span>
+        <span class="btn-label btn-label-short">Cot.</span>
+      </ion-button>
 
-  class="btn-amarillo btn-header-pos"
+      <ion-button
+        *ngIf="facturarITBIS"
+        class="btn-header-pos"
+        [class.btn-amarillo]="aplicarITBIS"
+        [class.btn-itbis-off]="!aplicarITBIS"
+        shape="round"
+        (click)="setITBIS(!aplicarITBIS)"
+        title="ITBIS">
+        <ion-icon
+          [name]="aplicarITBIS ? 'checkmark-circle' : 'close-circle'"
+          slot="start">
+        </ion-icon>
+        <span class="btn-label btn-label-full">
+          ITBIS: {{ aplicarITBIS ? 'ON' : 'OFF' }}
+        </span>
+        <span class="btn-label btn-label-short">
+          {{ aplicarITBIS ? 'ITBIS' : 'OFF' }}
+        </span>
+      </ion-button>
 
-  (click)="abrirOrdenesModal()"
+      <ion-button
+        *ngIf="puedeCerrarCajaDesdePos"
+        class="btn-amarillo btn-header-pos"
+        (click)="abrirCierreCaja()"
+        shape="round"
+        title="Cerrar caja">
+        <ion-icon name="cash-outline" slot="start"></ion-icon>
+        <span class="btn-label btn-label-full">Cerrar caja</span>
+        <span class="btn-label btn-label-short">Cierre</span>
+      </ion-button>
 
-  shape="round">
-
-  <ion-icon
-    name="cart-outline"
-    slot="start">
-  </ion-icon>
-
-  <span class="btn-label">Órdenes</span>
-
-</ion-button>
-
- <ion-button
-
-  *ngIf="usaCotizaciones"
-
-  class="btn-amarillo btn-header-pos"
-
-  (click)="abrirCotizacionesModal()"
-
-  shape="round">
-
-  <ion-icon
-    name="receipt-outline"
-    slot="start">
-  </ion-icon>
-
-  <span class="btn-label">Cotizaciones</span>
-
-</ion-button>
-    
-   
-  <!-- 🔥 TOGGLE ITBIS -->
-<!-- 🔥 BOTÓN ITBIS -->
-<ion-button *ngIf="facturarITBIS"
-  class="btn-header-pos"
-
-  [class.btn-amarillo]="aplicarITBIS"
-
-  [class.btn-itbis-off]="!aplicarITBIS"
-
-  shape="round"
-
-  (click)="setITBIS(!aplicarITBIS)">
-
-  <ion-icon
-
-    [name]="
-      aplicarITBIS
-        ? 'checkmark-circle'
-        : 'close-circle'
-    "
-
-    slot="start">
-  </ion-icon>
-
-  <span class="btn-label">
-  ITBIS:
-  {{
-    aplicarITBIS
-      ? 'ON'
-      : 'OFF'
-  }}
-  </span>
-
-</ion-button>
-
-  
-
-</ion-buttons>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar *ngIf="!isCartOpen" class="search-toolbar mobile-only">
   <ion-searchbar

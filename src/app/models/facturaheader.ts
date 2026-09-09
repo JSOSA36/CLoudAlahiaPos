@@ -32,6 +32,7 @@ export class facturaheader
     idEmpleados:number=0;
     idMoso:number=0;
     idMesa:number=0;
+    comensales?: number | null;
     idTipoDocumentos:number=0;
     nCF:string="";
     formaPago:string="";
@@ -45,6 +46,8 @@ export class facturaheader
     total:number=0;
     totalItbis:number=0;
     totalDescuento:number=0;
+    montoCargo:number=0;
+    nombreCargo:string="";
     idEmpresa:number=0;
     estaCancelada:boolean=false;
     motivoAnulacion:string="";
@@ -66,5 +69,10 @@ export class facturaheader
     /** Llevar | ComerAqui | Delivery | DeliveryExterno */
     tipoOrden:string="";
     clientes?: clientes;
+    idSucursal?: number;
+    nombreSucursal?: string;
+    idUsuario?: number;
+    /** Usuario que hizo/cobró la factura */
+    nombreUsuario?: string;
     
 }

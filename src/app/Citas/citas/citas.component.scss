@@ -141,3 +141,28 @@
 .header-cancelada { background:#dc3545; color:white; }
 .header-programada { background:#ffc107; color:black; }
 .header-default { background:var(--ion-color-primary); color:white; }
+
+.citas-link-cliente {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.citas-link-cliente p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  word-break: break-all;
+  color: #4b5563;
+}
+
+.citas-link-acciones {
+  display: flex;
+  gap: 8px;
+}

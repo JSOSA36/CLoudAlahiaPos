@@ -93,6 +93,9 @@ export class ListadoAlmacenesComponent implements OnInit {
     this.form.nombre = this.form.nombre.trim();
     this.form.descripcion = this.form.descripcion?.trim() || '';
     this.form.idEmpresa = this.para.IdEmpresa;
+    if (!this.form.idSucursal) {
+      this.form.idSucursal = this.para.IdSucursal || null;
+    }
 
     if (this.editingAlmacen) {
       this.almacenesService
@@ -136,6 +139,7 @@ export class ListadoAlmacenesComponent implements OnInit {
       nombre: '',
       descripcion: '',
       idEmpresa: this.para.IdEmpresa,
+      idSucursal: this.para.IdSucursal || null,
       esPrincipal: false,
       activo: true,
     };

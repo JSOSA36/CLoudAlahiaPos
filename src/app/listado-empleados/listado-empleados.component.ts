@@ -8,8 +8,28 @@ import {
 
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { Empleado } from 'src/app/models/empleado.models';
 import { EmpleadoFormComponent } from './empleado-form/empleado-form.component';
+import { SucursalSesion } from '../models/sucursal-sesion.models';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+function esOcupacionAdministrador(nombre: string): boolean {
+  const n = (nombre || '').trim();
+  if (!n) return false;
+  return n.toLowerCase() === 'administrador' || n.toUpperCase().includes('ADMIN');
+}
+
+function etiquetaSucursal(
+  ocupacion: string,
+  idSucursal: number | null,
+  sucursales: SucursalSesion[]
+): string {
+  if (esOcupacionAdministrador(ocupacion)) return 'Todas';
+  const suc = sucursales.find(s => s.idSucursal === idSucursal);
+  return suc?.nombre ?? (idSucursal ? `Sucursal ${idSucursal}` : 'Sin sucursal');
+}
 
 @Component({
   selector: 'app-listado-empleados',
@@ -19,10 +39,12 @@ import { EmpleadoFormComponent } from './empleado-form/empleado-form.component';
 export class ListadoEmpleadosComponent implements OnInit {
 
   empleados: Empleado[] = [];
+  private sucursalesCache: SucursalSesion[] = [];
 
   constructor(
     private empleadosSrv: EmpleadosService,
     private parametros: ParametrosService,
+    private sucursalSrv: SucursalService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
@@ -31,6 +53,14 @@ export class ListadoEmpleadosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarEmpleados();
+  }
+
+  sucursalDe(emp: Empleado): string {
+    return etiquetaSucursal(
+      emp?.ocupacion ?? '',
+      emp?.idSucursal ?? null,
+      this.sucursalesCache
+    );
   }
 
   // =====================================================
@@ -42,11 +72,24 @@ export class ListadoEmpleadosComponent implements OnInit {
     });
     await loading.present();
 
-    this.empleadosSrv
-      .getByEmpresa(this.parametros.IdEmpresa)
-      .subscribe({
-        next: async (res) => {
-          this.empleados = res || [];
+    this.parametros.ensureSessionFromStorage();
+
+    forkJoin({
+      empleados: this.empleadosSrv.getByEmpresa(this.parametros.IdEmpresa),
+      sucursales: this.sucursalSrv.listar().pipe(catchError(() => of([] as SucursalSesion[])))
+    }).subscribe({
+        next: async ({ empleados, sucursales }) => {
+          this.sucursalesCache = sucursales || [];
+          this.empleados = (empleados || []).map((e: any): Empleado => {
+            const ocupacion = e.ocupacion ?? e.Ocupacion ?? '';
+            const idSucursal = Number(e.idSucursal ?? e.IdSucursal ?? 0) || null;
+            return {
+              ...e,
+              ocupacion,
+              idSucursal,
+              sucursalNombre: etiquetaSucursal(ocupacion, idSucursal, sucursales)
+            };
+          });
           await loading.dismiss();
         },
         error: async () => {
@@ -125,3 +168,4 @@ export class ListadoEmpleadosComponent implements OnInit {
     await t.present();
   }
 }
+

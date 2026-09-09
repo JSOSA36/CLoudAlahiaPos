@@ -19,6 +19,7 @@ export class IngresosListComponent implements OnInit {
 
   fechaInicio: string = new Date().toISOString().split('T')[0];
   fechaFin: string = new Date().toISOString().split('T')[0];
+  idSucursalFiltro = 0;
 
   constructor(
     private ingresoSrv: IngresosService,
@@ -55,6 +56,13 @@ export class IngresosListComponent implements OnInit {
     this.cargarIngresos();
   }
 
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.cargarIngresos();
+  }
+
   cargarIngresos(): void {
     const desde = this.fechaInicio ? this.fechaInicio.split('T')[0] : '';
     const hasta = this.fechaFin ? this.fechaFin.split('T')[0] : '';
@@ -71,7 +79,7 @@ export class IngresosListComponent implements OnInit {
 
     this.cargando = true;
     this.ingresoSrv
-      .getIngresosByFecha(this.parametro.GetIdEmpresa(), desde, hasta)
+      .getIngresosByFecha(this.parametro.GetIdEmpresa(), desde, hasta, this.idSucursalFiltro)
       .subscribe({
         next: (data) => {
           this.ingresos = data || [];

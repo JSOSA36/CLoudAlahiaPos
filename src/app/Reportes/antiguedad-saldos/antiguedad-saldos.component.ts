@@ -43,6 +43,7 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
   fechaCorte = '';
   soloVencidas = false;
   soloPendientes = true;
+  idSucursalFiltro = 0;
 
   clientes: clientes[] = [];
   proveedores: Proveedor[] = [];
@@ -134,6 +135,13 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
     }
   }
 
+  onFiltroSucursal(id: number): void {
+    const next = Number(id) || 0;
+    if (next === this.idSucursalFiltro) return;
+    this.idSucursalFiltro = next;
+    this.consultar();
+  }
+
   consultar(): void {
     this.cargando = true;
     const idEmpresa = this.parametros.GetIdEmpresa();
@@ -145,6 +153,7 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
       fechaCorte: this.fechaCorte || undefined,
       soloVencidas: this.soloVencidas,
       soloPendientes: this.soloPendientes,
+      idSucursalFiltro: this.idSucursalFiltro,
     };
 
     const req =
@@ -180,6 +189,7 @@ export class AntiguedadSaldosComponent implements OnInit, OnDestroy {
     this.fechaCorte = new Date().toISOString().substring(0, 10);
     this.soloVencidas = false;
     this.soloPendientes = true;
+    this.idSucursalFiltro = 0;
     this.consultar();
   }
 

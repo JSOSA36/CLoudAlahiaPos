@@ -251,7 +251,9 @@ FiltrarHistorial(
 
   idUsuario?: number,
 
-  idProducto?: number
+  idProducto?: number,
+
+  idSucursalFiltro = 0
 
 ): Observable<MovimientosInventario[]> {
 
@@ -259,7 +261,9 @@ FiltrarHistorial(
 
     `${this.baseUrl}/FiltrarHistorial?` +
 
-    `idEmpresa=${idEmpresa}`;
+    `idEmpresa=${idEmpresa}` +
+
+    `&idSucursalFiltro=${idSucursalFiltro || 0}`;
 
   // =============================================
   // 🔥 DESDE
