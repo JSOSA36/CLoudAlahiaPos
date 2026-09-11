@@ -241,6 +241,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     orden: 12,
     modulos: [
       'FE_CONFIGURACION',
+      'FE_CERTIFICACION',
       'FE_SECUENCIAS',
       'FE_HISTORIAL',
       'FE_MONITOREO'
@@ -309,6 +310,7 @@ export const MODULO_TITULOS_MENU: Record<string, string> = {
   IR3: 'Declaración IR-3',
   DGII_FISCAL: 'Fiscal DGII',
   FE_CONFIGURACION: 'Configuración',
+  FE_CERTIFICACION: 'Certificación e-CF',
   FE_SECUENCIAS: 'Secuencias e-CF',
   FE_CERTIFICADO: 'Certificado Digital',
   FE_ESTADO_DGII: 'Estado DGII',

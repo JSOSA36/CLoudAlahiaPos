@@ -9,6 +9,7 @@ import { FeEstadoDgiiComponent } from './facturacion-electronica/fe-estado-dgii.
 import { FeHistorialComponent } from './facturacion-electronica/fe-historial.component';
 import { FeReprocesarComponent } from './facturacion-electronica/fe-reprocesar.component';
 import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.component';
+import { FeCertificacionComponent } from './facturacion-electronica/fe-certificacion.component';
 import { PoliticasAdminComponent } from './politicas/politicas-admin.component';
 import { PoliticasAceptacionesComponent } from './politicas/politicas-aceptaciones.component';
 import { ServicioSuspendidoComponent } from './suscripciones/servicio-suspendido.component';
@@ -640,6 +641,11 @@ const routes: Routes = [
   {
     path: 'fe-monitoreo',
     component: FeMonitoreoComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'fe-certificacion',
+    component: FeCertificacionComponent,
     canActivate: [AuthGuard]
   },
   {

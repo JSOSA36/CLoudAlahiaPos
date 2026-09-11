@@ -184,6 +184,7 @@ import { FeEstadoDgiiComponent } from './facturacion-electronica/fe-estado-dgii.
 import { FeHistorialComponent } from './facturacion-electronica/fe-historial.component';
 import { FeReprocesarComponent } from './facturacion-electronica/fe-reprocesar.component';
 import { FeMonitoreoComponent } from './facturacion-electronica/fe-monitoreo.component';
+import { FeCertificacionComponent } from './facturacion-electronica/fe-certificacion.component';
 import { AlahiaAiComponent } from './alahia-ai/alahia-ai.component';
 import { AlahiaAiConfigComponent } from './alahia-ai/alahia-ai-config.component';
 import { AlahiaAiFabComponent } from './alahia-ai/alahia-ai-fab.component';
@@ -354,6 +355,7 @@ import { FiltroSucursalConsultaComponent } from './shared/filtro-sucursal-consul
     FeHistorialComponent,
     FeReprocesarComponent,
     FeMonitoreoComponent,
+    FeCertificacionComponent,
     AlahiaAiComponent,
     AlahiaAiConfigComponent,
     AlahiaAiFabComponent
@@ -371,7 +373,7 @@ import { FiltroSucursalConsultaComponent } from './shared/filtro-sucursal-consul
     QRCodeModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000'
+      registrationStrategy: 'registerImmediately'
     })
   ],
   providers: [

@@ -244,6 +244,10 @@ export class FacturacionElectronicaService {
     return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/excel/${idEmpresa}`, form);
   }
 
+  reiniciarCertecfSet(idEmpresa: number): Observable<any> {
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/set/${idEmpresa}/reiniciar`, {});
+  }
+
   getCertecfSesion(idEmpresa: number, idSesion: number): Observable<any> {
     return this.http.get<any>(`${this.config.apiUrl}/CertecfCertificacion/sesion/${idEmpresa}/${idSesion}`);
   }
@@ -262,12 +266,26 @@ export class FacturacionElectronicaService {
     return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/postulacion/${idEmpresa}`, dto);
   }
 
+  firmarCertecfPostulacion(idEmpresa: number, archivo: File): Observable<Blob> {
+    const form = new FormData();
+    form.append('archivo', archivo, archivo.name);
+    return this.http.post(
+      `${this.config.apiUrl}/CertecfCertificacion/postulacion/${idEmpresa}/firmar`,
+      form,
+      { responseType: 'blob' }
+    );
+  }
+
   marcarCertecfPaso(idEmpresa: number, paso: number, estado = 'Hecho', nota?: string): Observable<any> {
     return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/paso/${idEmpresa}`, { paso, estado, nota });
   }
 
   generarCertecfSimulacion(idEmpresa: number): Observable<any> {
     return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/simulacion/${idEmpresa}`, {});
+  }
+
+  generarCertecfRiLote(idEmpresa: number): Observable<any> {
+    return this.http.get<any>(`${this.config.apiUrl}/CertecfCertificacion/ri/${idEmpresa}/lote`);
   }
 
   descargarCertecfArchivo(path: string): Observable<Blob> {

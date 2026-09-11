@@ -1,0 +1,536 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-menu-button></ion-menu-button></ion-buttons>
+    <ion-title>Certificación e-CF · CerteCF</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargar()" [disabled]="cargando">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Actualizar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="lab-page">
+
+  <div class="hint-box" *ngIf="!lab && !cargando">
+    Entre con MacroBits, elija la empresa del cliente y en el paso 1 cargue el certificado .p12.
+  </div>
+  <div class="center" *ngIf="cargando"><ion-spinner name="crescent"></ion-spinner></div>
+
+  <div class="lab-layout" *ngIf="lab && !cargando">
+
+    <aside class="lab-steps">
+      <div class="aside-brand">
+        <span class="aside-kicker">DGII · CerteCF</span>
+        <p class="aside-h">Proceso de certificación</p>
+        <p class="aside-sub">15 pasos oficiales</p>
+      </div>
+      <label class="empresa-lab" *ngIf="empresas.length">
+        Empresa
+        <select [ngModel]="idEmpresa" (ngModelChange)="onEmpresaLab($event)">
+          <option *ngFor="let e of empresas" [ngValue]="e.idEmpresa">
+            {{ e.nombreComercial }}
+          </option>
+        </select>
+      </label>
+      <div class="aside-progress">
+        <div class="bar"><i [style.width.%]="progresoPct"></i></div>
+        <span>{{ hechos }} de {{ lab.pasos?.length || 15 }} completados</span>
+      </div>
+      <button
+        type="button"
+        class="step"
+        *ngFor="let p of lab.pasos"
+        [class.actual]="p.numero === pasoSel"
+        [class.ok]="clasePaso(p) === 'ok'"
+        [class.bad]="clasePaso(p) === 'bad'"
+        [class.wait]="clasePaso(p) === 'wait'"
+        (click)="seleccionarPaso(p.numero)">
+        <span class="n">{{ p.numero }}</span>
+        <span class="meta">
+          <strong>{{ p.titulo }}</strong>
+          <em>{{ p.estado }}</em>
+        </span>
+      </button>
+    </aside>
+
+    <section class="lab-detail" *ngIf="paso">
+      <div class="lab-hero">
+        <div class="hero-left">
+          <h1>{{ lab.nombreEmpresa }}</h1>
+          <p>RNC {{ lab.rnc }} · Ambiente <strong>{{ lab.ambiente }}</strong> · Proceso DGII 1–15</p>
+        </div>
+        <ion-badge [color]="lab.certificadoOk && !lab.certificadoVencido ? 'success' : 'danger'">
+          {{ lab.certificadoOk ? (lab.certificadoVencido ? 'Certificado vencido' : 'Certificado listo') : 'Falta certificado .p12' }}
+        </ion-badge>
+      </div>
+      <p class="aviso" *ngIf="lab.aviso">{{ lab.aviso }}</p>
+      <header class="detail-head">
+        <div>
+          <span class="kicker">Paso {{ paso.numero }} de 15</span>
+          <h2>{{ paso.titulo }}</h2>
+        </div>
+        <ion-badge [color]="badgePaso(paso.estado)">{{ paso.estado }}</ion-badge>
+      </header>
+
+      <div class="dgii-info">
+        <p class="dgii-info-kicker">Portal CerteCF · {{ paso.titulo }}</p>
+        <p>{{ paso.quePideNorma }}</p>
+      </div>
+      <div class="guia">
+        <article>
+          <h3>En el portal DGII</h3>
+          <p>{{ paso.quePidePortal }}</p>
+        </article>
+        <article>
+          <h3>En Alahia</h3>
+          <p>{{ paso.queHaceAlahia }}</p>
+        </article>
+      </div>
+
+      <!-- PASO 1 -->
+      <div class="panel" *ngIf="pasoSel === 1 && lab.postulacion">
+        <h3>1. Certificado digital del contribuyente</h3>
+        <p class="hint">El .p12/.pfx y la contraseña de <strong>{{ lab.nombreEmpresa }}</strong>. Se usa para firmar la postulación y todos los e-CF del laboratorio.</p>
+        <div class="cert-box" *ngIf="lab.certificadoOk && !lab.certificadoVencido">
+          <span class="pill ok">Listo</span>
+          <span>{{ lab.certificadoNombre }}</span>
+          <span class="muted" *ngIf="lab.certificadoExpira">vence {{ lab.certificadoExpira | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="form-grid">
+          <label class="file-field">Archivo .p12 / .pfx
+            <input type="file" accept=".p12,.pfx" (change)="onCertFile($event)" />
+          </label>
+          <label>Contraseña
+            <input type="password" [(ngModel)]="certPassword" autocomplete="off" />
+          </label>
+        </div>
+        <div class="actions">
+          <ion-button color="primary" (click)="guardarCertificado()" [disabled]="guardandoCert || !certArchivo">
+            {{ guardandoCert ? 'Guardando…' : (lab.certificadoOk ? 'Reemplazar certificado' : 'Guardar certificado') }}
+          </ion-button>
+        </div>
+
+        <h3 class="subh">2. Pegar en el portal CerteCF (igual que DGII)</h3>
+        <p class="hint">
+          Tipo <strong>PROPIO</strong>. En cada recuadro del medio copie solo lo verde.
+          El portal ya pone <code>https://</code> y el sufijo. Host público: <code>ecf.alahiapos.com</code>.
+        </p>
+        <div class="url-field">
+          <span>URL de recepción</span>
+          <div class="url-portal">
+            <em>https://</em>
+            <input type="text" readonly [ngModel]="hostPortal(lab.postulacion.urlRecepcion, '/fe/recepcion/api/ecf')" />
+            <em>/fe/recepcion/api/ecf</em>
+            <button type="button" (click)="copiar(hostPortal(lab.postulacion.urlRecepcion, '/fe/recepcion/api/ecf'), 'Recepción')">Copiar</button>
+          </div>
+        </div>
+        <div class="url-field">
+          <span>URL de aprobación comercial</span>
+          <div class="url-portal">
+            <em>https://</em>
+            <input type="text" readonly [ngModel]="hostPortal(lab.postulacion.urlAprobacion, '/fe/aprobacioncomercial/api/ecf')" />
+            <em>/fe/aprobacioncomercial/api/ecf</em>
+            <button type="button" (click)="copiar(hostPortal(lab.postulacion.urlAprobacion, '/fe/aprobacioncomercial/api/ecf'), 'Aprobación')">Copiar</button>
+          </div>
+        </div>
+        <div class="url-field">
+          <span>URL de autenticación</span>
+          <div class="url-portal">
+            <em>https://</em>
+            <input type="text" readonly [ngModel]="hostPortal(lab.postulacion.urlAutenticacion, '/fe/autenticacion')" />
+            <em>/fe/autenticacion/api/[semilla|validacioncertificado]</em>
+            <button type="button" (click)="copiar(hostPortal(lab.postulacion.urlAutenticacion, '/fe/autenticacion'), 'Autenticación')">Copiar</button>
+          </div>
+        </div>
+        <div class="actions">
+          <ion-button color="primary" fill="outline" (click)="guardarPostulacion()" [disabled]="guardando">
+            Guardar URLs en Alahia
+          </ion-button>
+        </div>
+
+        <h3 class="subh">3. Firmar el XML del portal</h3>
+        <p class="hint">En CerteCF: <strong>GENERAR ARCHIVO</strong> → aquí <strong>Firmar XML</strong> → en DGII <strong>ENVIAR ARCHIVO</strong> con el firmado. Cuando DGII lo reciba, pulse <strong>Hecho en el portal</strong>.</p>
+        <div class="file-row">
+          <input type="file" accept=".xml,text/xml" (change)="onPostulacionXml($event)" />
+          <ion-button color="primary" (click)="firmarPostulacion()" [disabled]="firmandoXml || !postulacionXml">
+            {{ firmandoXml ? 'Firmando…' : 'Firmar XML' }}
+          </ion-button>
+          <ion-button color="success" *ngIf="!esHecho(paso.estado)" (click)="marcarPaso(1)">
+            Hecho en el portal
+          </ion-button>
+        </div>
+        <p class="hint firmado-ok" *ngIf="xmlFirmadoNombre">Firmado: {{ xmlFirmadoNombre }}. Si ya lo subió en DGII, pulse <strong>Hecho en el portal</strong>.</p>
+      </div>
+
+      <!-- PASO 2 -->
+      <div class="panel" *ngIf="pasoSel === 2">
+        <h3>Set de pruebas (DESCARGAR COMPROBANTES)</h3>
+        <ol class="proceso">
+          <li>En CerteCF: <strong>DESCARGAR COMPROBANTES</strong>. Un rechazo en DGII <strong>borra el set entero</strong>: hay que enviar otra vez desde el primer E31.</li>
+          <li>Si el portal DGII volvió atrás, pulse <strong>Reiniciar set</strong> y cargue el Excel (el nuevo si DGII lo volvió a generar).</li>
+          <li>Alahia copia el archivo al pie de la letra (celda vacía = no sale el nodo; el número sale con el mismo formato).</li>
+          <li><strong>Un comprobante a la vez</strong> hasta Aceptado. <strong>Enviar todo</strong> recorre el mismo orden, espera a DGII y se detiene si hay rechazo. Orden: E31 y E32 ≥ 250 mil, luego notas E33/E34, luego E41–E47, al final RFCE.</li>
+          <li>DGII muestra <strong>tres</strong> contadores: el 21 (Recepción e-CF), los resúmenes RFCE (RecepcionFC) y el 0/4 de XML <em>íntegros</em> en Browse + ENVIAR. Un Aceptado en Alahia no cuenta si DGII reinició el set.</li>
+        </ol>
+        <div class="file-row">
+          <input type="file" accept=".xlsx,.xls" (change)="onExcel($event)" />
+          <ion-button color="primary" (click)="subirExcel()" [disabled]="subiendo || !excelFile">
+            {{ subiendo ? 'Cargando…' : 'Cargar Excel e-CF' }}
+          </ion-button>
+          <ion-button color="warning" fill="outline" (click)="reiniciarSet()" [disabled]="reiniciando || enviandoTodo || !lab?.sesionActiva">
+            {{ reiniciando ? 'Reiniciando…' : 'Reiniciar set' }}
+          </ion-button>
+        </div>
+        <ng-container *ngIf="lab.sesionActiva as sesion">
+          <div class="kpi-dgii">
+            <div>
+              <strong>{{ aceptadosEcf(sesion) }}/{{ totalEcf(sesion) }}</strong>
+              <span>Comprobantes e-CF aceptados</span>
+            </div>
+            <div>
+              <strong>{{ aceptadosRfce(sesion) }}/{{ totalRfce(sesion) }}</strong>
+              <span>Resúmenes de consumo (RFCE) aceptados</span>
+            </div>
+          </div>
+          <div class="sesion-head">
+            <strong>{{ sesion.nombreArchivo }}</strong>
+            <span>{{ etiquetaOleada(sesion) }} · {{ sesion.estado }}</span>
+          </div>
+          <p class="hint aviso-dgii" *ngIf="casoActual(sesion) as actual" [class.bad]="esRechazo(actual.estado) && !esHechoCaso(actual)">
+            <ng-container *ngIf="esEnProceso(actual.estado)">
+              <strong>En proceso</strong> no es un error: DGII recibió {{ actual.encf }} y lo está validando.
+              Pulse <strong>Consultar TrackId</strong> hasta que pase a Aceptado o Rechazado.
+            </ng-container>
+            <ng-container *ngIf="esRechazo(actual.estado) && !esHechoCaso(actual)">
+              <strong>{{ actual.encf }} fue rechazado.</strong>
+              DGII reinicia el set con cada fallo. Corrija, vuelva a cargar el Excel si hace falta y reenvíe <em>este</em> e-NCF. No mande el siguiente.
+            </ng-container>
+            <ng-container *ngIf="!esEnProceso(actual.estado) && !esHechoCaso(actual) && !esRechazo(actual.estado)">
+              Siguiente: {{ actual.encf }} (E{{ actual.tipoEcf }}).
+              <ng-container *ngIf="actual.ncfModificado">
+                Esta nota modifica {{ actual.ncfModificado }}; ese e-NCF ya debe estar Aceptado.
+              </ng-container>
+              <ng-container *ngIf="!actual.ncfModificado">
+                Un comprobante a la vez. Si DGII rechaza, se corrige y se reenvía este.
+              </ng-container>
+            </ng-container>
+          </p>
+          <div class="card-consumo" *ngIf="totalRfce(sesion)">
+            <div class="card-consumo-h">
+              <div>
+                <strong>Resúmenes de consumo (RFCE)</strong>
+                <span>EncApi → RecepcionFC. Eso es el 3/4 (o 4/4) de <em>resúmenes</em> en DGII, no el 0/4 de XML íntegros.</span>
+              </div>
+              <em>{{ aceptadosRfce(sesion) }}/{{ totalRfce(sesion) }}</em>
+            </div>
+            <ion-button color="success"
+              (click)="enviarConsumo250(sesion)"
+              [disabled]="!puedeEnviarConsumo250(sesion)">
+              {{ etiquetaEnviarConsumo250(sesion) }}
+            </ion-button>
+            <p class="hint" *ngIf="bloqueoConsumo250(sesion) as bloqueo">{{ bloqueo }}</p>
+          </div>
+          <ng-container *ngTemplateOutlet="rutaConsumo; context: { $implicit: sesion }"></ng-container>
+          <p class="hint aviso-dgii" *ngIf="enviandoTodo">
+            Enviando uno a uno: <strong>{{ enviandoTodoEncf || '…' }}</strong>.
+            Si DGII rechaza, se detiene aquí. Pulse Detener para cortar después del actual.
+          </p>
+          <ng-container *ngTemplateOutlet="barraEnvio; context: { $implicit: sesion }"></ng-container>
+          <table class="casos">
+            <thead>
+              <tr><th>#</th><th>Oleada DGII</th><th>Tipo</th><th>Canal</th><th>e-NCF</th><th>Monto</th><th>Estado</th><th>Mensaje</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of sesion.casos"
+                  [class.sel]="logActivo?.idCaso === c.idCaso"
+                  [class.actual]="casoActual(sesion)?.idCaso === c.idCaso"
+                  (click)="verRespuesta(c)">
+                <td>{{ c.orden }}</td>
+                <td>{{ c.oleada }}</td>
+                <td>E{{ c.tipoEcf }}</td>
+                <td>{{ canalCaso(c) }}</td>
+                <td>{{ c.encf }}</td>
+                <td>{{ c.montoTotal | number:'1.2-2' }}</td>
+                <td><ion-badge [color]="badgePaso(esHechoCaso(c) ? 'Aceptado' : c.estado)">{{ etiquetaEstadoCaso(c) }}</ion-badge></td>
+                <td class="msg" [class.err]="(c.estado === 'Error' || c.estado === 'Rechazado') && !esHechoCaso(c)" [title]="c.mensaje || ''">{{ c.mensaje }}</td>
+                <td>
+                  <ion-button size="small" fill="clear"
+                    (click)="enviarCaso(c.idCaso); $event.stopPropagation()"
+                    [disabled]="enviandoTodo || enviandoRfce || enviandoId === c.idCaso || casoActual(sesion)?.idCaso !== c.idCaso || esHechoCaso(c) || esEnProceso(c.estado)">
+                    Enviar
+                  </ion-button>
+                  <ion-button size="small" fill="clear"
+                    (click)="consultarCaso(c.idCaso); $event.stopPropagation()"
+                    [disabled]="enviandoTodo || consultandoId === c.idCaso || !c.trackId">
+                    Consultar
+                  </ion-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+      </div>
+
+      <!-- PASO 3 -->
+      <div class="panel" *ngIf="pasoSel === 3">
+        <h3>Set ACECF (aprobación comercial)</h3>
+        <p class="hint">Excel de aprobaciones o rechazos comerciales del portal. Mismo cargador: Alahia detecta ACECF.</p>
+        <div class="file-row">
+          <input type="file" accept=".xlsx,.xls" (change)="onExcel($event)" />
+          <ion-button color="primary" (click)="subirExcel()" [disabled]="subiendo || !excelFile">
+            {{ subiendo ? 'Cargando…' : 'Cargar Excel ACECF' }}
+          </ion-button>
+        </div>
+        <ng-container *ngIf="lab.sesionAcecf as sesion">
+          <div class="sesion-head">
+            <strong>{{ sesion.nombreArchivo }}</strong>
+            <span>{{ sesion.aceptados }}/{{ sesion.total }} · {{ sesion.estado }}</span>
+          </div>
+          <p class="hint aviso-dgii" *ngIf="enviandoTodo">
+            Enviando uno a uno: <strong>{{ enviandoTodoEncf || '…' }}</strong>.
+          </p>
+          <ng-container *ngTemplateOutlet="barraEnvio; context: { $implicit: sesion }"></ng-container>
+          <table class="casos">
+            <tr *ngFor="let c of sesion.casos"
+                [class.sel]="logActivo?.idCaso === c.idCaso"
+                (click)="verRespuesta(c)">
+              <td>{{ c.encf }}</td>
+              <td><ion-badge [color]="badgePaso(c.estado)">{{ c.estado }}</ion-badge></td>
+              <td>
+                <ion-button size="small" fill="clear" (click)="enviarCaso(c.idCaso); $event.stopPropagation()">Enviar</ion-button>
+              </td>
+            </tr>
+          </table>
+        </ng-container>
+      </div>
+
+      <!-- PASO 4 -->
+      <div class="panel" *ngIf="pasoSel === 4">
+        <h3>Simulación e-CF</h3>
+        <p class="hint">Clona cada e-CF aceptado del paso 2 (mismas cantidades del portal) con e-NCF nuevos. No reutiliza secuencias del paso 2. E32 &lt; 250 mil: primero el RFCE; cuando esté Aceptado, sube el XML íntegro en el recuadro del portal.</p>
+        <ion-button color="primary" (click)="generarSimulacion()" [disabled]="simulando">
+          <ion-icon name="flask-outline" slot="start"></ion-icon>
+          {{ simulando ? 'Generando…' : 'Generar simulación' }}
+        </ion-button>
+        <ng-container *ngIf="lab.sesionSimulacion as sesion">
+          <div class="sesion-head">
+            <strong>Simulación</strong>
+            <span>{{ sesion.aceptados }}/{{ sesion.total }}</span>
+          </div>
+          <div class="card-consumo" *ngIf="totalRfce(sesion)">
+            <div class="card-consumo-h">
+              <div>
+                <strong>Resúmenes de consumo (RFCE)</strong>
+                <span>Alahia los envía a RecepcionFC. Después sube los XML íntegros de la carpeta de abajo en el portal.</span>
+              </div>
+              <em>{{ aceptadosRfce(sesion) }}/{{ totalRfce(sesion) }}</em>
+            </div>
+            <ion-button color="success"
+              (click)="enviarConsumo250(sesion)"
+              [disabled]="!puedeEnviarConsumo250(sesion)">
+              {{ etiquetaEnviarConsumo250(sesion) }}
+            </ion-button>
+          </div>
+          <ng-container *ngTemplateOutlet="rutaConsumo; context: { $implicit: sesion }"></ng-container>
+          <p class="hint aviso-dgii" *ngIf="enviandoTodo">
+            Enviando uno a uno: <strong>{{ enviandoTodoEncf || '…' }}</strong>.
+          </p>
+          <ng-container *ngTemplateOutlet="barraEnvio; context: { $implicit: sesion }"></ng-container>
+          <table class="casos">
+            <tr *ngFor="let c of sesion.casos"
+                [class.sel]="logActivo?.idCaso === c.idCaso"
+                (click)="verRespuesta(c)">
+              <td>E{{ c.tipoEcf }}</td>
+              <td>{{ c.encf }}</td>
+              <td>{{ canalCaso(c) }}</td>
+              <td><ion-badge [color]="badgePaso(c.estado)">{{ c.estado }}</ion-badge></td>
+            </tr>
+          </table>
+        </ng-container>
+      </div>
+
+      <!-- PASO 5 -->
+      <div class="panel" *ngIf="pasoSel === 5">
+        <h3>Representación impresa</h3>
+        <p class="hint">
+          El portal pide <strong>11 PDF</strong> (un recuadro por tipo), no una foto y no los 25 e-CF.
+          Es la factura impresa del e-CF del paso 4, con título «Electrónica», e-NCF y QR ConsultaTimbre.
+        </p>
+        <ng-container *ngIf="lab.sesionSimulacion">
+          <div class="card-ruta">
+            <div class="card-ruta-h">
+              <div>
+                <strong>PDF para el portal</strong>
+                <span>Genere las 11 RI, ábralas en Chrome → Imprimir → Guardar como PDF. Suma ≤ 10 MB.</span>
+              </div>
+              <ion-button size="small" color="primary" (click)="generarLoteRi()" [disabled]="generandoRi">
+                {{ generandoRi ? 'Generando…' : 'Generar las 11 RI' }}
+              </ion-button>
+            </div>
+            <code class="ruta-path">{{ rutaRi() }}</code>
+            <ion-button size="small" fill="outline" color="primary" (click)="copiar(rutaRi(), 'Ruta RI')">
+              Copiar ruta
+            </ion-button>
+          </div>
+          <table class="casos">
+            <tr *ngFor="let s of slotsRi()">
+              <td>{{ s.etiqueta }}</td>
+              <td>{{ s.caso?.encf || '—' }}</td>
+              <td>
+                <ion-badge *ngIf="s.caso" [color]="s.qrListo ? 'success' : 'warning'">
+                  {{ s.qrListo ? 'QR listo' : 'Sin QR' }}
+                </ion-badge>
+              </td>
+              <td>
+                <ion-button size="small" color="primary" fill="outline"
+                  [disabled]="!s.caso"
+                  (click)="descargarRi(s.caso.idCaso, s.caso.encf)">
+                  Descargar HTML
+                </ion-button>
+              </td>
+            </tr>
+          </table>
+        </ng-container>
+        <p class="hint" *ngIf="!lab.sesionSimulacion">Primero genere y envíe la simulación del paso 4.</p>
+      </div>
+
+      <!-- PASO 7 / 12 URLs -->
+      <div class="panel" *ngIf="pasoSel === 7 || pasoSel === 12">
+        <h3>{{ pasoSel === 7 ? 'URLs de prueba' : 'URLs de producción' }}</h3>
+        <div class="form-grid" *ngIf="lab.postulacion">
+          <ng-container *ngIf="pasoSel === 7">
+            <label class="wide">Recepción <input [(ngModel)]="lab.postulacion.urlRecepcion" /></label>
+            <label class="wide">Aprobación <input [(ngModel)]="lab.postulacion.urlAprobacion" /></label>
+            <label class="wide">Autenticación <input [(ngModel)]="lab.postulacion.urlAutenticacion" /></label>
+          </ng-container>
+          <ng-container *ngIf="pasoSel === 12">
+            <label class="wide">Recepción prod <input [(ngModel)]="lab.postulacion.urlRecepcionProd" /></label>
+            <label class="wide">Aprobación prod <input [(ngModel)]="lab.postulacion.urlAprobacionProd" /></label>
+            <label class="wide">Auth prod <input [(ngModel)]="lab.postulacion.urlAutenticacionProd" /></label>
+          </ng-container>
+        </div>
+        <ion-button color="primary" (click)="guardarPostulacion()" [disabled]="guardando">Guardar URLs</ion-button>
+      </div>
+
+      <!-- PASO 9 / 11 inbound -->
+      <div class="panel" *ngIf="pasoSel === 9 || pasoSel === 11">
+        <h3>Recepción desde DGII</h3>
+        <p class="hint" *ngIf="pasoSel === 9">Listener de e-CF. Debe responder ARECF firmado (estado 0 = Recibido).</p>
+        <p class="hint" *ngIf="pasoSel === 11">Listener de aprobación comercial. Responder OK o Error.</p>
+        <div class="inbound" *ngFor="let i of inboundDe(pasoSel === 9 ? 'ECF' : 'ACECF')">
+          <span>{{ i.fecha | date:'short' }}</span>
+          <strong>{{ i.encf || i.tipo }}</strong>
+          <ion-badge [color]="badgePaso(i.estado)">{{ i.estado }}</ion-badge>
+          <span>{{ i.mensaje }}</span>
+        </div>
+        <p class="hint" *ngIf="!inboundDe(pasoSel === 9 ? 'ECF' : 'ACECF').length">
+          Aún no llega prueba de DGII. En el portal marque que está listo (paso {{ pasoSel === 9 ? 8 : 10 }}).
+        </p>
+      </div>
+
+      <!-- PASO 13 -->
+      <div class="panel" *ngIf="pasoSel === 13">
+        <h3>Declaración jurada</h3>
+        <p class="hint">Alahia genera el XML. El representante lo firma con la App Firma Digital DGII y lo carga en el portal.</p>
+        <ion-button color="primary" (click)="descargar('declaracion/' + idEmpresa + '/xml', 'declaracion-jurada.xml')">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Descargar XML declaración
+        </ion-button>
+      </div>
+
+      <div class="detail-foot">
+        <ion-button
+          fill="outline"
+          color="medium"
+          [disabled]="pasoSel <= 1"
+          (click)="seleccionarPaso(pasoSel - 1)">
+          Anterior
+        </ion-button>
+        <ion-button
+          color="primary"
+          fill="outline"
+          *ngIf="paso.accionEnPortal && !esHecho(paso.estado)"
+          (click)="marcarPaso(paso.numero)">
+          Hecho en el portal
+        </ion-button>
+        <ion-button
+          color="primary"
+          *ngIf="!paso.accionEnPortal && !esHecho(paso.estado) && pasoSel !== 2 && pasoSel !== 3 && pasoSel !== 4"
+          (click)="marcarPaso(paso.numero)">
+          Marcar paso hecho
+        </ion-button>
+        <ion-button
+          color="primary"
+          [disabled]="pasoSel >= 15"
+          (click)="seleccionarPaso(pasoSel + 1)">
+          Siguiente
+        </ion-button>
+      </div>
+    </section>
+
+    <ng-template #barraEnvio let-sesion>
+      <div class="actions">
+        <ion-button color="primary" (click)="enviarSiguiente(sesion)" [disabled]="!puedeEnviarActual(sesion) || enviandoId || enviandoRfce || enviandoTodo">
+          {{ etiquetaEnviarActual(sesion) }}
+        </ion-button>
+        <ion-button color="secondary" (click)="enviarTodo(sesion)" [disabled]="enviandoTodo || !puedeEnviarTodo(sesion)">
+          {{ etiquetaEnviarTodo(sesion) }}
+        </ion-button>
+        <ion-button color="medium" fill="outline" *ngIf="enviandoTodo" (click)="detenerEnviarTodo()">
+          Detener
+        </ion-button>
+        <ion-button color="primary" fill="outline" (click)="consultarActual(sesion)" [disabled]="!puedeConsultarActual(sesion) || consultandoId || enviandoTodo">
+          Consultar TrackId
+        </ion-button>
+      </div>
+    </ng-template>
+
+    <ng-template #rutaConsumo let-sesion>
+      <div class="card-ruta" *ngIf="totalRfce(sesion)">
+        <div class="card-ruta-h">
+          <div>
+            <strong>XML íntegros para el portal</strong>
+            <span>CerteCF → Facturas de consumo &lt; 250Mil → Browse + ENVIAR. Solo estos archivos, después de que el RFCE esté Aceptado.</span>
+          </div>
+          <ion-button size="small" fill="outline" color="primary" (click)="copiar(rutaXmlConsumo(), 'Ruta')">
+            Copiar ruta
+          </ion-button>
+        </div>
+        <code class="ruta-path">{{ rutaXmlConsumo() }}</code>
+        <ul class="ruta-files">
+          <li *ngFor="let c of casosRfce(sesion)">
+            <code>{{ nombreXmlConsumo(c) }}</code>
+            <ion-badge [color]="badgePaso(c.estado)">{{ c.estado }}</ion-badge>
+          </li>
+        </ul>
+      </div>
+    </ng-template>
+
+    <aside class="dgii">
+      <div class="dgii-h">
+        <div>
+          <span class="dgii-kicker">DGII</span>
+          <h3>Respuesta por envío</h3>
+        </div>
+        <button type="button" *ngIf="logActivo?.texto"
+                (click)="copiar(logActivo?.texto, 'Respuesta DGII')">Copiar</button>
+      </div>
+      <div class="dgii-tabs" *ngIf="logDgii.length">
+        <button type="button" *ngFor="let e of logDgii"
+                [class.on]="logActivo?.idCaso === e.idCaso"
+                [class.bad]="claseEstado(e.estado) === 'bad'"
+                [class.ok]="claseEstado(e.estado) === 'ok'"
+                (click)="seleccionarLog(e)">
+          <span>{{ e.encf || '—' }}</span>
+          <small>{{ e.hora }}</small>
+        </button>
+      </div>
+      <pre class="dgii-body" *ngIf="logActivo?.texto as textoDgii">{{ textoDgii }}</pre>
+      <p class="dgii-empty" *ngIf="!logActivo?.texto">
+        Envíe un e-CF o ACECF. La respuesta de DGII (TrackId, estado, mensajes y XML) aparece aquí.
+      </p>
+    </aside>
+  </div>
+</ion-content>
