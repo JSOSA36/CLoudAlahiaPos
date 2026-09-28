@@ -219,6 +219,25 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
     return map[raw] || raw;
   }
 
+  observacionCocina(raw: string | null | undefined): string {
+    const texto = (raw || '').trim();
+    if (!texto || !/^pedido online\b/i.test(texto)) return texto;
+    const partes = texto.split(' · ').map(p => p.trim()).filter(Boolean);
+    const tieneLogistica = partes.some(p => /^ref:/i.test(p) || /^gps:/i.test(p));
+    const resto: string[] = [];
+    let omitirDireccion = tieneLogistica;
+    for (const p of partes) {
+      if (/^pedido online$/i.test(p) || /^(delivery|recoger)$/i.test(p)) continue;
+      if (/^ref:/i.test(p) || /^gps:/i.test(p)) continue;
+      if (omitirDireccion) {
+        omitirDireccion = false;
+        continue;
+      }
+      resto.push(p);
+    }
+    return resto.join(' · ');
+  }
+
   async avanzar(t: ProduccionTrabajo): Promise<void> {
     const next = this.siguiente(t);
     if (!next) return;

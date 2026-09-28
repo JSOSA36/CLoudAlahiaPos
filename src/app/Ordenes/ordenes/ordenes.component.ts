@@ -21,6 +21,7 @@ import { PrintService } from 'src/app/servicios/print.services';
 import { PrinterComponent } from 'src/app/printer/printer.component';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
 import { ProduccionService } from 'src/app/servicios/produccion.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -71,8 +72,16 @@ procesandoPago = false;
   }
 
   get mostrarSucursalEnFila(): boolean {
-    return this.idSucursalFiltro === 0
-      && (this._Parametro.sucursales || []).filter(s => s?.activa !== false).length > 1;
+    return (this._Parametro.sucursales || []).filter(s => s?.activa !== false).length > 1;
+  }
+
+  nombreSucursalDe(orden: any): string {
+    const directo = String(orden?.nombreSucursal || orden?.NombreSucursal || '').trim();
+    if (directo) return directo;
+    const id = Number(orden?.idSucursal ?? orden?.IdSucursal ?? 0);
+    if (id <= 0) return '';
+    const suc = (this._Parametro.sucursales || []).find(s => Number(s.idSucursal) === id);
+    return String(suc?.nombre || '').trim();
   }
 
   onFiltroSucursal(id: number): void {
@@ -99,7 +108,8 @@ procesandoPago = false;
       private parametroConfig: ParametroConfigService,
       private produccion: ProduccionService,
       private cdr: ChangeDetectorRef,
-      private offline: PosOfflineService
+      private offline: PosOfflineService,
+      private sucursalesApi: SucursalService
       
   ) {}
   seleccionarOrden(orden: any) {
@@ -143,14 +153,34 @@ actualizarPrecio(idDetalle:number, precio:number){
 
 }
   ngOnInit() {
+    if (!this._Parametro.esAdministrador) {
+      this.idSucursalFiltro = Number(this._Parametro.IdSucursal) || 0;
+    }
+    this.asegurarCatalogoSucursales();
     this.RefreshOrdenes();
     this.cargarEmpleadosEmpresa();
      this.puedeEliminarOrden =
-    this._Parametro.puedeEliminarOrden;
+    this._Parametro.puedeEliminarOrden || this._Parametro.esAdministrador;
     this.cargarFlagPrintTicketLavador();
     if (this.tipoDocumento === 'Orden') {
       this.cargarFlagEstatusOrdenes();
     }
+  }
+
+  private asegurarCatalogoSucursales(): void {
+    const ya = (this._Parametro.sucursales || []).filter(s => s?.activa !== false && s.idSucursal > 0);
+    if (ya.length > 1) return;
+    this.sucursalesApi.listar().subscribe({
+      next: (lista) => {
+        if (!lista?.length) return;
+        const id = this._Parametro.IdSucursal
+          || (lista.length === 1
+            ? lista[0].idSucursal
+            : (lista.find(s => s.esDefault)?.idSucursal || 0));
+        this._Parametro.setSucursalSesion(id, lista);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   private cargarFlagPrintTicketLavador(): void {
@@ -455,26 +485,30 @@ imprimirOrden(idFactura: number, event?: Event) {
   this._Parametro.ListadoOrdenes = [];
 
   const aplicar = async (servidor: facturaheader[]) => {
-    const idPrincipal = (this._Parametro.sucursales || []).find(s => s.esPrincipal)?.idSucursal
-      || this._Parametro.IdSucursal;
-    const idsPermitidos = new Set(
-      (this._Parametro.sucursales || [])
-        .filter(s => s?.activa !== false)
-        .map(s => s.idSucursal)
-    );
     let locales: facturaheader[] = [];
     try {
-      locales = (await this.offline.listarOrdenesLocales(this._Parametro.IdEmpresa))
+      locales = this._Parametro.documentosDeMiSucursal(
+        (await this.offline.listarOrdenesLocales(this._Parametro.IdEmpresa))
         .filter(x => this.tipoDocumento === 'Cotizacion'
           ? Number(x.idTipoDocumentos) === 2
           : Number(x.idTipoDocumentos) !== 2)
-        .filter(x => {
+      );
+      if (this._Parametro.esAdministrador) {
+        const idPrincipal = (this._Parametro.sucursales || []).find(s => s.esPrincipal)?.idSucursal
+          || this._Parametro.IdSucursal;
+        const idsPermitidos = new Set(
+          (this._Parametro.sucursales || [])
+            .filter(s => s?.activa !== false)
+            .map(s => s.idSucursal)
+        );
+        locales = locales.filter(x => {
           const id = Number((x as any).idSucursal) > 0
             ? Number((x as any).idSucursal)
             : Number(idPrincipal) || 0;
           if (this.idSucursalFiltro > 0) return id === this.idSucursalFiltro;
           return idsPermitidos.size === 0 || idsPermitidos.has(id);
         });
+      }
     } catch {
       locales = [];
     }
@@ -583,8 +617,15 @@ async presentAlert(mensaje: string) {
       });
       return;
     }
-    this._FacturaHeader.DeleteIten(IdFactura).subscribe(() => {
-      this._Parametro.LoadListaFactura();
+    this._FacturaHeader.DeleteIten(IdFactura).subscribe({
+      next: () => this._Parametro.LoadListaFactura(),
+      error: err => {
+        const raw = err?.error;
+        const mensaje = typeof raw === 'string'
+          ? raw
+          : (raw?.message || 'No se pudo eliminar la orden');
+        void this.toast(String(mensaje));
+      }
     });
   }
 getPendiente(iten: any): number {

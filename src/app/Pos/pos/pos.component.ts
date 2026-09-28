@@ -1,12 +1,12 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { PrinterComponent } from 'src/app/printer/printer.component';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, NgZone } from '@angular/core';
 import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
-import { EmisionEcfRequest, EmisionEcfResultadoCompleto } from 'src/app/models/facturacion-electronica.models';
-import { IonModal, ModalController,AlertController,IonSearchbar, ToastController } from '@ionic/angular';
+import { EmisionEcfRequest } from 'src/app/models/facturacion-electronica.models';
+import { IonModal, ModalController,AlertController,IonSearchbar, ToastController, LoadingController } from '@ionic/angular';
 import { CategoriasService } from 'src/app/servicios/categorias.service';
 import { ProductosService } from 'src/app/servicios/productos.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { DescuentoHeaderService } from 'src/app/servicios/descuento-header.service';
 import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
@@ -21,6 +21,8 @@ import { RncCLienteDGIIService }
 from '../../servicios/RncCLienteDGII.services';
 import { CajaAperturaService }
 from 'src/app/servicios/caja-apertura.service';
+import { CajaCierreService }
+from 'src/app/servicios/caja-cierre.service';
 import { OrdenesComponent } from 'src/app/Ordenes/ordenes/ordenes.component';
 import { AperturaCajaComponent } from 'src/app/Components/apertura-caja/apertura-caja.component';
 import { facturaheader } from 'src/app/models/facturaheader';
@@ -32,6 +34,9 @@ import {
   resolverDiasPlazo,
 } from 'src/app/shared/plazo-credito.util';
 import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
+import { GuarnicionesService } from 'src/app/servicios/guarniciones.service';
+import { Guarnicion } from 'src/app/models/guarnicion.model';
 import { TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
 type ItemCarrito = {
   idProducto: number;
@@ -46,6 +51,8 @@ type ItemCarrito = {
   descuentoUnitario?: number;
   
   idEmpleadoComision?: number;
+  guarnicion?: string;
+  manejaGuarniciones?: boolean;
 };
 
 @Component({
@@ -93,6 +100,8 @@ aplicarITBIS: boolean = true;
 = "FACT";
   comisionEmpleado: boolean = false;
   printTicketLavador = false;
+  usarGuarniciones = false;
+  guarniciones: Guarnicion[] = [];
   carrito: ItemCarrito[] = [];
 
 
@@ -167,8 +176,13 @@ tipoEcfDgii: number | null = null;
       private rncService: RncCLienteDGIIService,
       private _CajaApertura:
   CajaAperturaService,
+  private _cajaCierre: CajaCierreService,
   private feService: FacturacionElectronicaService,
   private ecfPreview: EcfPreviewLauncherService,
+  private sucursales: SucursalService,
+  private loadingCtrl: LoadingController,
+  private guarnicionesService: GuarnicionesService,
+  private ngZone: NgZone,
   ) {
 
     
@@ -391,6 +405,10 @@ cargarParametrosPOS() {
         x => x.clave === 'PrintTicketLavador'
       );
 
+      const usarGuarniciones = params.find(
+        x => x.clave === 'USAR_GUARNICIONES'
+      );
+
       // =====================================
       // 🔥 ASIGNAR
       // =====================================
@@ -434,6 +452,11 @@ cargarParametrosPOS() {
         printTicketLavador?.valor === '1';
       this.printTicketLavador = lavadorOn;
       this.parametro.PrintTicketLavador = lavadorOn;
+
+      this.usarGuarniciones =
+        usarGuarniciones?.valor === 'true' ||
+        usarGuarniciones?.valor === '1';
+      this.cargarGuarniciones();
 
       // =====================================
       // 🔥 LOG
@@ -617,6 +640,8 @@ async openModalCobro(imprimirCotizacion = false) {
 
   if (!this.carrito.length) return;
 
+  await this.alinearUsuarioCobro();
+
   if (this.tipoDocumento === 'Cotizacion' && this.esClienteAlPortador()) {
     const alert = await this.alertCtrl.create({
       header: 'Cliente requerido',
@@ -646,8 +671,10 @@ async openModalCobro(imprimirCotizacion = false) {
     header.iDCliente = this.clienteSeleccionado?.id || 0;
     header.moneda = this.parametro.Moneda;
     header.idEmpresa = this.parametro.IdEmpresa;
+    header.idSucursal = Number(this.parametro.IdSucursal) || undefined;
     header.idMesa = 1;
     header.idMoso = this.parametro.IdUsuario;
+    header.idUsuario = this.parametro.IdUsuario;
     header.nombreCuenta = this.clienteSeleccionado?.nombre || 'Al Portador';
     header.nota = this.clienteSeleccionado?.nombre || '';
     header.idTipoDocumentos =
@@ -670,6 +697,7 @@ async openModalCobro(imprimirCotizacion = false) {
       det.itbis = item.itbisProducto || 0;
       det.idEmpresa = this.parametro.IdEmpresa;
       det.idEmpleadoComision = item.idEmpleadoComision || 0;
+      det.comentario = item.guarnicion || '';
       // Solo IdProducto: no enviar Productos anidado (API validaba Almacen.Nombre).
       delete det.productos;
 
@@ -692,7 +720,6 @@ async openModalCobro(imprimirCotizacion = false) {
             resp?.numeroDocumento ?? '';
 
           if (this.tipoDocumento === 'Cotizacion' && idOrden) {
-            // Al guardar siempre abrir el recibo (igual que desde el listado).
             await this._printService.openCotizacionCarta(
               this.armarCotizacionParaImprimir(
                 header,
@@ -700,24 +727,26 @@ async openModalCobro(imprimirCotizacion = false) {
                 numeroDocumento
               )
             );
-          } else if (this.imprimirOrden && idOrden) {
-            void this.imprimirTicketDocumento(
-              idOrden,
-              this.cantidadCopiasOrden,
-              this.armarTicketDesdeCarrito(idOrden, {
-                numeroDocumento: numeroDocumento,
-                tipoFactura: 'Orden'
-              }),
-              'orden'
-            );
           }
 
           this.resetPOS();
 
         },
 
-        error: (err) => {
+        error: async (err) => {
           console.error(err);
+          const msg =
+            err?.error?.message ||
+            err?.message ||
+            'No se pudo guardar la orden. Intente de nuevo.';
+          (
+            await this.toastCtrl.create({
+              message: msg,
+              duration: 4000,
+              color: 'danger',
+              position: 'top'
+            })
+          ).present();
         }
 
       });
@@ -788,6 +817,8 @@ async openModalCobro(imprimirCotizacion = false) {
   const { data, role } = await modal.onDidDismiss();
 
   if (role !== 'ok') return;
+
+  await this.alinearUsuarioCobro();
 
   // Sincronizar facturación elegida en el modal
   if (data?.plazoCreditoCodigo != null) {
@@ -862,6 +893,10 @@ async openModalCobro(imprimirCotizacion = false) {
 
   const facturaDTO = this.armarFacturaDTO(data);
 
+  const loadingDgii = this.tipoEcfDgii
+    ? await this.presentarLoadingDgii()
+    : undefined;
+
   const pagadoSnap = Number(data?.pagado);
   const pendienteSnap = Number(data?.pendiente);
   const tipoFactSnap =
@@ -916,31 +951,34 @@ async openModalCobro(imprimirCotizacion = false) {
             this.nombreFiscal = nombreFiscalSnap;
             this.tipoEcfDgii = ecfTipoSnap;
 
-            await this.procesarEcfYPreview(idFactura);
+            const impresa = await this.procesarEcfYPreview(idFactura, loadingDgii);
 
             this.resetPOS();
-            } else {
-              if (data?.imprimir) {
-                ticketSnap.idFacturaHeader = idFactura;
-                ticketSnap.numeroDocumento =
-                  resp?.numeroDocumento || idFactura;
-                void this.imprimirTicketDocumento(
-                  idFactura,
-                  1,
-                  ticketSnap
-                );
-              }
+            if (impresa) {
+              this.enviarTicketLavadorSiAplica(Number(idFactura));
             }
-
-            this.enviarTicketLavadorSiAplica(Number(idFactura));
+            } else {
+              await this.cerrarLoadingDgii(loadingDgii);
+              ticketSnap.idFacturaHeader = idFactura;
+              ticketSnap.numeroDocumento =
+                resp?.numeroDocumento || idFactura;
+              void this.imprimirTicketDocumento(
+                idFactura,
+                1,
+                ticketSnap
+              );
+              this.enviarTicketLavadorSiAplica(Number(idFactura));
+            }
+          } else {
+            await this.cerrarLoadingDgii(loadingDgii);
           }
 
           this.parametro.IdFacturaHeader = 0;
 
         },
 
-        error: (err) => {
-
+        error: async (err) => {
+          await this.cerrarLoadingDgii(loadingDgii);
           console.error(
             '❌ Error creando factura',
             err
@@ -956,14 +994,17 @@ async openModalCobro(imprimirCotizacion = false) {
     if (!idFactura || !this.printTicketLavador) {
       return;
     }
-    const api = (this.parametro.ApiPrint || '').trim();
-    if (!api) {
-      return;
-    }
+    this.asegurarApiPrint();
     this._printService.printLavador(idFactura).subscribe({
       next: () => console.log('Ticket lavador enviado'),
       error: err => console.error('Error ticket lavador', err)
     });
+  }
+
+  private asegurarApiPrint(): void {
+    if (!(this.parametro.ApiPrint || '').trim()) {
+      this.parametro.ApiPrint = 'http://localhost:5045';
+    }
   }
 
   /**
@@ -978,6 +1019,7 @@ async openModalCobro(imprimirCotizacion = false) {
     facturaLocal?: any,
     modo: 'factura' | 'orden' = 'factura'
   ): Promise<boolean> {
+    this.asegurarApiPrint();
     const api = (this.parametro.ApiPrint || '').trim();
     const copias = Math.max(1, cantidadCopias || 1);
 
@@ -1024,22 +1066,15 @@ async openModalCobro(imprimirCotizacion = false) {
       }
     }
 
-    // Sin ApiPrint: solo entonces vista previa (tablet / sin servidor de impresión)
-    try {
-      await this._printService.openTicketPosPreview(idDocumento, facturaLocal);
-      return true;
-    } catch (err) {
-      console.error('Error abriendo vista previa del ticket', err);
-      (
-        await this.toastCtrl.create({
-          message: 'No hay impresora configurada y no se pudo abrir la vista previa',
-          duration: 2500,
-          color: 'danger',
-          position: 'top'
-        })
-      ).present();
-      return false;
-    }
+    (
+      await this.toastCtrl.create({
+        message: 'No hay impresora configurada (ApiPrint). El ticket no se envió al POS.',
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      })
+    ).present();
+    return false;
   }
 
 
@@ -1086,9 +1121,12 @@ async openModalCobro(imprimirCotizacion = false) {
         precio: item.precioBase ?? item.precio,
         subTotal: item.subtotal,
         itbis: item.itbisProducto || 0,
+        comentario: item.guarnicion || '',
         productos: {
           nombre: item.nombre,
-          descripcion: item.nombre
+          descripcion: item.guarnicion
+            ? `${item.nombre} — ${item.guarnicion}`
+            : item.nombre
         }
       }))
     };
@@ -1171,6 +1209,8 @@ this.parametro.IdFacturaHeader =
       idEmpleadoComision: d.idEmpleadoComision || 0,
       subtotal: d.subTotal,
       descuentoUnitario: d.descuento > 0 ? d.descuento : undefined,
+      guarnicion: d.comentario || '',
+      manejaGuarniciones: !!d.productos?.manejaGuarniciones,
       precioVentaOriginal:
         d.descuento > 0
           ? +(
@@ -1252,6 +1292,58 @@ abrirCierreCaja(): void {
   void this.router.navigate(['/cierrecaja']);
 }
 
+reimprimiendoCierre = false;
+
+async reimprimirUltimoCierre(): Promise<void> {
+  if (this.reimprimiendoCierre) return;
+
+  this.reimprimiendoCierre = true;
+
+  try {
+    const cierre = await firstValueFrom(
+      this._cajaCierre.getUltimoCierre(
+        this.parametro.GetIdEmpresa(),
+        this.parametro.IdUsuario
+      )
+    );
+
+    const id = Number(
+      cierre?.idCajaCierre ?? cierre?.IdCajaCierre ?? 0
+    ) || 0;
+
+    if (!id) {
+      const toast = await this.toastCtrl.create({
+        message: 'No hay un cierre reciente tuyo para reimprimir.',
+        duration: 3200,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+      return;
+    }
+
+    await firstValueFrom(this._printService.printCierre(id));
+
+    const ok = await this.toastCtrl.create({
+      message: 'Cierre enviado a la impresora.',
+      duration: 2500,
+      color: 'success',
+      position: 'top'
+    });
+    await ok.present();
+  } catch {
+    const toast = await this.toastCtrl.create({
+      message: 'No se pudo imprimir. Verifica el agente de impresión.',
+      duration: 4000,
+      color: 'warning',
+      position: 'top'
+    });
+    await toast.present();
+  } finally {
+    this.reimprimiendoCierre = false;
+  }
+}
+
 async abrirCotizacionesModal() {
 
   const modal = await this.modal.create({
@@ -1272,7 +1364,28 @@ async abrirCotizacionesModal() {
     this.cargarOrdenEnPOS(data.ordenSeleccionada);
   }
 }
+
+private async alinearUsuarioCobro(): Promise<void> {
+  this.parametro.aplicarUsuarioPersistido();
+  try {
+    const yo = await firstValueFrom(this.sucursales.yo());
+    const id = Number(yo?.idUsuario) || 0;
+    if (id > 0) {
+      this.parametro.IdUsuario = id;
+      localStorage.setItem('IdUsuario', String(id));
+    }
+    const nombre = (yo?.userName || '').trim();
+    if (nombre) {
+      this.parametro.UserName = nombre;
+      localStorage.setItem('Usuario', nombre);
+    }
+  } catch {
+    /* El API sella la factura con el token aunque esto falle. */
+  }
+}
+
 private armarFacturaDTO(dataModal: any) {
+  this.parametro.aplicarUsuarioPersistido();
 
   const idTipoDocumento =
     this.tipoDocumento === 'Factura'
@@ -1321,6 +1434,7 @@ private armarFacturaDTO(dataModal: any) {
     header: {
       idEmpresa: this.parametro.IdEmpresa,
       idUsuario: this.parametro.IdUsuario,
+      idSucursal: Number(this.parametro.IdSucursal) || undefined,
 
       idCliente: this.clienteSeleccionado?.id
         || this.clienteSeleccionado?.idCliente
@@ -1338,7 +1452,7 @@ private armarFacturaDTO(dataModal: any) {
       nombreEmpresa: nombreClienteFactura,
       nombreCuenta: nombreClienteFactura,
       idFacturaHeader: this.parametro.IdFacturaHeader,
-      idMoso: 1,
+      idMoso: this.parametro.IdUsuario,
       idEmpleadoConsumo: this.idEmpleadoConsumo || dataModal.idEmpleadoConsumo || null,
       porcentajeDescuentoEmpleado: this.porcentajeDescuentoEmpleado
         || Number(dataModal.porcentajeDescuentoEmpleado)
@@ -1366,7 +1480,8 @@ private armarFacturaDTO(dataModal: any) {
         idEmpleadoComision: item.idEmpleadoComision || 0,
         precioOferta: item.precioBase ?? item.precio,
         descuento: item.descuentoUnitario ?? 0,
-        itbis: item.itbisProducto ?? 0
+        itbis: item.itbisProducto ?? 0,
+        comentario: item.guarnicion || ''
       }))
     },
 
@@ -1375,7 +1490,8 @@ private armarFacturaDTO(dataModal: any) {
       monto: p.monto,
       idSaldoAFavor: p.idSaldoAFavor ?? null,
       idNotaCredito: p.idNotaCredito ?? null,
-      ncfNotaCredito: p.ncfNotaCredito ?? null
+      ncfNotaCredito: p.ncfNotaCredito ?? null,
+      idArs: p.idArs ?? null
     }))
   };
 }
@@ -1467,8 +1583,39 @@ onTipoEcfChange() {
   this.recalcularTotales();
 }
 
-private async procesarEcfYPreview(idFactura: number) {
-  if (!this.tipoEcfDgii) return;
+private async presentarLoadingDgii(): Promise<HTMLIonLoadingElement> {
+  const top = await this.loadingCtrl.getTop();
+  if (top?.classList?.contains('ecf-dgii-loading')) {
+    return top;
+  }
+
+  const loading = await this.loadingCtrl.create({
+    spinner: 'crescent',
+    message: 'Enviando a DGII. Espere…',
+    backdropDismiss: false,
+    cssClass: 'ecf-dgii-loading'
+  });
+  await loading.present();
+  return loading;
+}
+
+private async cerrarLoadingDgii(loading?: HTMLIonLoadingElement | null) {
+  try {
+    if (loading) {
+      await loading.dismiss();
+      return;
+    }
+    const top = await this.loadingCtrl.getTop();
+    if (top?.classList?.contains('ecf-dgii-loading')) {
+      await top.dismiss();
+    }
+  } catch {
+    /* overlay ya cerrado */
+  }
+}
+
+private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonLoadingElement): Promise<boolean> {
+  if (!this.tipoEcfDgii) return false;
 
   const request: EmisionEcfRequest = {
     idEmpresa: this.parametro.IdEmpresa,
@@ -1478,12 +1625,16 @@ private async procesarEcfYPreview(idFactura: number) {
     idUsuario: this.parametro.IdUsuario
   };
 
+  const emp = this.parametro._Empresa as any;
   const armarFacturaPreview = (resultado?: any) => ({
     empresa: resultado?.razonSocialEmisor || this.parametro.NombreEmpresa,
+    direccion: emp?.direccion || emp?.Direccion || '',
+    telefono: emp?.telefono || emp?.Telefono || '',
     fecha: new Date(),
     tipoDocumentoFiscal: this.ecfPreview.labelTipoEcf(this.tipoEcfDgii),
     cliente: this.nombreFiscal || this.clienteSeleccionado?.nombre || 'Consumidor',
     rnc: this.rncFiscal || this.clienteSeleccionado?.cedulaRNC || null,
+    numeroDocumento: idFactura,
     items: this.carrito.map(item => ({
       nombre: item.nombre,
       cantidad: item.cantidad,
@@ -1496,8 +1647,20 @@ private async procesarEcfYPreview(idFactura: number) {
     total: this.total,
   });
 
+  const abrirModalFiscal = async (resultado: any) => {
+    await this.ecfPreview.openFromEmision({
+      resultado: resultado || {},
+      factura: armarFacturaPreview(resultado),
+      tipo: 'factura',
+      tipoEcfDgii: this.tipoEcfDgii
+    });
+  };
+
+  const loading = loadingExistente || await this.presentarLoadingDgii();
+
   try {
     const resultado = await this.feService.emitirYEnviar(request).toPromise();
+    await this.cerrarLoadingDgii(loading);
 
     if (!resultado || !resultado.exitoso) {
       const toast = await this.toastCtrl.create({
@@ -1507,31 +1670,14 @@ private async procesarEcfYPreview(idFactura: number) {
         position: 'top',
       });
       await toast.present();
-
-      // Falló emisión: preview para revisar / reintentar impresión
-      await this.ecfPreview.openFromEmision({
-        resultado: resultado || {},
-        factura: armarFacturaPreview(resultado),
-        tipo: 'factura',
-        tipoEcfDgii: this.tipoEcfDgii
-      });
-      return;
+      return false;
     }
 
-    // Éxito emisión: intentar ticket térmico
-    const printed = await this.imprimirTicketDocumento(idFactura, 1);
-
-    const ok = await this.toastCtrl.create({
-      message: printed
-        ? 'Comprobante electrónico emitido e enviado a imprimir'
-        : 'Comprobante emitido, pero el ticket no se imprimió. Reimprima desde el historial.',
-      duration: printed ? 2200 : 4500,
-      color: printed ? 'success' : 'warning',
-      position: 'top',
-    });
-    await ok.present();
+    await this.imprimirTicketDocumento(idFactura, 1);
+    return true;
 
   } catch (err: any) {
+    await this.cerrarLoadingDgii(loading);
     console.error('Error emisión e-CF', err);
     const toast = await this.toastCtrl.create({
       message: `Error al emitir e-CF: ${err?.error?.mensajeError || err?.message || 'Error'}`,
@@ -1540,13 +1686,7 @@ private async procesarEcfYPreview(idFactura: number) {
       position: 'top',
     });
     await toast.present();
-
-    await this.ecfPreview.openFromEmision({
-      resultado: err?.error || {},
-      factura: armarFacturaPreview(),
-      tipo: 'factura',
-      tipoEcfDgii: this.tipoEcfDgii
-    });
+    return false;
   }
 }
 
@@ -1952,7 +2092,64 @@ recalcularTotales() {
     this.indiceSeleccionado = 0;
   }
 
-addToCart(
+  cargarGuarniciones() {
+    this.guarnicionesService.listar(this.parametro.IdEmpresa).subscribe({
+      next: (res) => {
+        this.guarniciones = (res || []).filter(g => g.activo !== false && !!g.nombre);
+      },
+      error: () => {
+        this.guarniciones = [];
+      }
+    });
+  }
+
+  asignarGuarnicion(item: ItemCarrito, nombre: string) {
+    item.guarnicion = (nombre || '').trim();
+  }
+
+  private async elegirGuarnicion(prod: productos): Promise<string | null> {
+    const opciones = (this.guarniciones || []).filter(g => g.activo !== false && !!g.nombre);
+    if (!prod?.manejaGuarniciones || !opciones.length) {
+      return '';
+    }
+
+    let confirmo = false;
+    let elegido = '';
+    const alert = await this.alertCtrl.create({
+      header: 'Guarnición',
+      inputs: [
+        ...opciones.map((g, i) => ({
+          type: 'radio' as const,
+          label: g.nombre,
+          value: g.nombre,
+          checked: i === 0
+        })),
+        { type: 'radio' as const, label: 'Sin guarnición', value: '' }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Aceptar',
+          handler: (value: unknown) => {
+            confirmo = true;
+            elegido = value == null ? '' : String(value).trim();
+          }
+        }
+      ]
+    });
+    await alert.present();
+    const cerrado = await alert.onDidDismiss();
+    if (cerrado.role === 'cancel' || cerrado.role === 'backdrop') {
+      return null;
+    }
+    if (confirmo) {
+      return elegido;
+    }
+    const valor = cerrado.data?.values;
+    return valor == null ? '' : String(valor);
+  }
+
+async addToCart(
   prod: productos,
   event?: MouseEvent
 ) {
@@ -1980,19 +2177,21 @@ if (
   return;
 }
 
-  // =====================================
-  // 🔥 ANIMACIÓN
-  // =====================================
-
-  if (event) {
-    const card = event.currentTarget as HTMLElement;
-    this.animarAlCarrito(card);
+  const card = (event?.currentTarget as HTMLElement) || null;
+  const guarnicion = await this.elegirGuarnicion(prod);
+  if (guarnicion === null) {
+    return;
   }
 
-  // =====================================
-  // 🔥 PRECIO VENTA
-  // =====================================
+  this.ngZone.run(() => {
+    if (card) {
+      this.animarAlCarrito(card);
+    }
+    this.agregarLineaCarrito(prod, guarnicion);
+  });
+}
 
+private agregarLineaCarrito(prod: productos, guarnicion: string) {
   const precioVenta = prod.precioVenta;
   const precioVentaOriginal =
     prod._precioOriginal && prod._precioOriginal > precioVenta
@@ -2046,6 +2245,7 @@ if (
 
   const item = this.carrito.find(
     i => i.idProducto === prod.idProducto
+      && (i.guarnicion || '') === (guarnicion || '')
   );
 
   // =====================================
@@ -2105,7 +2305,10 @@ if (
       descuentoUnitario > 0 ? precioVentaOriginal : undefined,
 
     descuentoUnitario:
-      descuentoUnitario > 0 ? descuentoUnitario : undefined
+      descuentoUnitario > 0 ? descuentoUnitario : undefined,
+
+    guarnicion: guarnicion || '',
+    manejaGuarniciones: !!prod.manejaGuarniciones
   });
 
   this.recalcularTotales();

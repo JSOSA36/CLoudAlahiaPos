@@ -1,0 +1,19 @@
+---
+description: Antes de un pase, mapear impacto cruzado y probar en ambiente controlado (incluye módulos colaterales)
+alwaysApply: true
+---
+
+# Pases: impacto cruzado y pruebas antes de publicar
+
+Antes de un **pase a prod**, identificar qué más puede romper el cambio y probarlo en ambiente controlado.
+
+## Obligatorio
+
+1. **Mapear impacto** — módulos, flujos compartidos (login, menú, POS, caja, facturación, inventario, reportes, sucursal) y empresas sensibles si aplica.
+2. **Probar en controlado** — Dev/local primero; SQL de prueba solo en `AlahiaPos_Dev` salvo autorización Prod.
+3. **Probar colaterales** — no solo el feature: ejercitar lo que comparte código/datos (shell, POS/cobro, cierre, reportes, etc.).
+4. **Publicar solo si** el pedido funciona y los colaterales críticos no regresionan.
+
+Si el radio de impacto no está claro o un colateral falla: **no publicar**.
+
+Ver también: `pases-no-tocar-config-empresas`.

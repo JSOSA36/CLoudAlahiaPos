@@ -79,6 +79,16 @@
     text-transform: none;
     letter-spacing: 0;
   }
+
+  em {
+    font-style: normal;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.72rem;
+    color: #d1fae5;
+    line-height: 1.35;
+  }
 }
 
 .aside-progress {
@@ -564,6 +574,54 @@
   background: #fef2f2;
   border-color: #fecaca;
   color: #991b1b;
+}
+
+.ri-preview {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #ecfdf3;
+  border: 1px solid #86efac;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ri-preview span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #166534;
+}
+
+.ri-preview strong {
+  font-size: 1.05rem;
+  color: #14532d;
+}
+
+.ri-preview em {
+  font-style: normal;
+  font-size: 0.82rem;
+  color: #3f6212;
+}
+
+.ri-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #78350f;
+}
+
+.ri-check input {
+  margin-top: 3px;
 }
 
 .firmado-ok {

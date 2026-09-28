@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <title>Cloud AlahiaPos</title>
+  <title>Alahia ERP</title>
 
   <base href="/"/>
 
@@ -15,11 +15,12 @@
   <link rel="icon" type="image/png" href="/icon-192.png"/> 
 
   <!-- ✅ PWA manifest -->
-  <link rel="manifest" href="/manifest.webmanifest"/>
+  <link rel="manifest" href="/manifest.json"/>
   <meta name="theme-color" content="#1454B8"/>
 
   <!-- ✅ iOS settings -->
   <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Alahia ERP"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 
   <!-- ✅ iOS App Icon -->
@@ -54,31 +55,6 @@
   </script>
 
 </head>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw-custom.js')
-    .then(reg => {
-      console.log('✅ SW takeover registrado');
-
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
-              console.log('🆕 Nueva versión instalada');
-
-              if (navigator.serviceWorker.controller) {
-                console.log('🚀 Activando takeover inmediato...');
-                newWorker.postMessage({ action: 'skipWaiting' });
-              }
-            }
-          });
-        }
-      });
-    });
-}
-</script>
-
 <body>
   <!-- 👇 Host root Angular -->
   <app-root></app-root>

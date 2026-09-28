@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Guarniciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrir()">
+        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card *ngFor="let row of lista">
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-label>
+          <h2>{{ row.nombre }}</h2>
+        </ion-label>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" color="primary" (click)="abrir(row)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="danger" (click)="eliminar(row)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-text *ngIf="lista.length === 0" color="medium">
+    <p class="ion-text-center">No hay guarniciones registradas.</p>
+  </ion-text>
+</ion-content>
+
+<ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrar()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>{{ editando ? 'Editar guarnición' : 'Nueva guarnición' }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrar()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input [(ngModel)]="nombre" placeholder="Yuca, frito, papa, vegetales"></ion-input>
+      </ion-item>
+      <ion-button expand="block" (click)="guardar()" style="margin-top: 20px;">
+        Guardar
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>

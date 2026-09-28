@@ -191,21 +191,24 @@ export class FichaClinicaComponent {
     );
   }
 
-  tipoDiente(numero: string): 'molar' | 'premolar' | 'canino' | 'incisivoL' | 'incisivoC' {
-    const pos = (numero || '').slice(-1);
-    if (pos === '1') return 'incisivoC';
-    if (pos === '2') return 'incisivoL';
-    if (pos === '3') return 'canino';
-    if (pos === '4' || pos === '5') return 'premolar';
-    return 'molar';
-  }
-
-  esInferior(numero: string): boolean {
-    return numero.startsWith('3') || numero.startsWith('4');
-  }
-
   esFlip(numero: string): boolean {
     return numero.startsWith('2') || numero.startsWith('3');
+  }
+
+  piezaFoto(numero: string): string {
+    const q = (numero || '')[0];
+    const p = (numero || '').slice(1);
+    if (q === '2') return '1' + p;
+    if (q === '3') return '4' + p;
+    return numero;
+  }
+
+  fotoVestibular(numero: string): string {
+    return `assets/odontograma/v-${this.piezaFoto(numero)}.png`;
+  }
+
+  fotoOclusal(numero: string): string {
+    return `assets/odontograma/o-${this.piezaFoto(numero)}.png`;
   }
 
   seleccionarDiente(numero: string) {

@@ -1,0 +1,72 @@
+<ion-header class="pf-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEdit ? 'Editar ARS' : 'Nueva ARS' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pf-content">
+  <div class="pf-page">
+    <div class="pf-hero">
+      <div class="pf-avatar">{{ iniciales }}</div>
+      <div>
+        <h2>{{ isEdit ? 'Actualizar aseguradora' : 'Registrar ARS' }}</h2>
+        <p>Quedará como deudor de las coberturas de servicios del cliente.</p>
+      </div>
+    </div>
+
+    <section class="pf-card">
+      <h3>Identificación</h3>
+      <div class="pf-field">
+        <label>Nombre de la ARS <span>*</span></label>
+        <ion-input [(ngModel)]="ars.nombre" placeholder="Ej. Humano, Senasa, Universal"></ion-input>
+      </div>
+      <div class="pf-grid">
+        <div class="pf-field">
+          <label>RNC</label>
+          <ion-input [(ngModel)]="ars.rnc" placeholder="000000000"></ion-input>
+        </div>
+        <div class="pf-field">
+          <label>Teléfono</label>
+          <ion-input [(ngModel)]="ars.telefono" placeholder="809-000-0000"></ion-input>
+        </div>
+      </div>
+      <div class="pf-field">
+        <label>Correo electrónico</label>
+        <ion-input type="email" [(ngModel)]="ars.email" placeholder="correo@ars.com"></ion-input>
+      </div>
+    </section>
+
+    <section class="pf-card">
+      <h3>Contacto y notas</h3>
+      <div class="pf-field">
+        <label>Contacto</label>
+        <ion-input [(ngModel)]="ars.contacto" placeholder="Persona de contacto"></ion-input>
+      </div>
+      <div class="pf-field">
+        <label>Dirección</label>
+        <ion-textarea [(ngModel)]="ars.direccion" autoGrow="true" rows="2" placeholder="Calle, sector, ciudad"></ion-textarea>
+      </div>
+      <div class="pf-field">
+        <label>Observaciones</label>
+        <ion-textarea [(ngModel)]="ars.observaciones" autoGrow="true" rows="2" placeholder="Notas internas"></ion-textarea>
+      </div>
+      <div class="pf-toggle" *ngIf="isEdit">
+        <div>
+          <strong>Activa</strong>
+          <p>Si la desactivas no aparecerá en cobros nuevos.</p>
+        </div>
+        <ion-toggle [(ngModel)]="ars.activo"></ion-toggle>
+      </div>
+    </section>
+
+    <ion-button expand="block" class="pf-save" (click)="guardar()">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      {{ isEdit ? 'Guardar cambios' : 'Crear ARS' }}
+    </ion-button>
+  </div>
+</ion-content>

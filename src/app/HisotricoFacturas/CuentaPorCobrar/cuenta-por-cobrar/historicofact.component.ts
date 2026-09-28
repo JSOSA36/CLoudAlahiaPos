@@ -132,6 +132,10 @@ actualizarPrecio(idDetalle:number, precio:number){
 }
  async ngOnInit() {
 
+  if (!this._Parametro.esAdministrador) {
+    this.idSucursalFiltro = Number(this._Parametro.IdSucursal) || 0;
+  }
+
   await this.mostrarLoading('Cargando datos...');
 
   try {
@@ -141,8 +145,8 @@ actualizarPrecio(idDetalle:number, precio:number){
       this.cargarEmpleadosEmpresa()
     ]);
 
-    this.puedeEliminarOrden = this._Parametro.puedeEliminarOrden;
-    this.puedeAnularFactura = this._Parametro.PuedeAnularFactura;
+    this.puedeEliminarOrden = this._Parametro.puedeEliminarOrden || this._Parametro.esAdministrador;
+    this.puedeAnularFactura = this._Parametro.PuedeAnularFactura || this._Parametro.esAdministrador;
     this.cargarParametroComision();
 
   } catch (error) {
@@ -318,8 +322,10 @@ async RefreshOrdenes(
       console.error(error);
     }
 
-    const locales = await this.offline.listarFacturasLocales(
-      this._Parametro.GetIdEmpresa()
+    const locales = this._Parametro.documentosDeMiSucursal(
+      await this.offline.listarFacturasLocales(
+        this._Parametro.GetIdEmpresa()
+      )
     );
 
     this._Parametro.ListadoFacturas = [

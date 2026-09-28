@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Odontograma Alahia</title>
+  <style>
+    body { margin: 0; background: #eef3f8; font-family: Segoe UI, sans-serif; }
+    .wrap { max-width: 980px; margin: 24px auto; background: #fff; border-radius: 12px; padding: 20px 24px 28px; box-shadow: 0 8px 24px rgba(27,79,114,.12); }
+    h1 { margin: 0 0 6px; font-size: 1.25rem; color: #1b4f72; }
+    .hint { margin: 0 0 14px; color: #5b6b7c; font-size: .9rem; }
+    .odontograma { border: 1px solid #c5d0dc; border-radius: 8px; padding: 10px 8px 12px; background: #f8fbfd; overflow-x: auto; }
+    .fila { display: flex; justify-content: center; align-items: stretch; min-width: 720px; }
+    .cuadrante { display: flex; gap: 2px; flex: 1; justify-content: center; }
+    .sep { width: 2px; background: #1b4f72; margin: 0 8px; }
+    .numeros { border-top: 1px solid #c5d0dc; border-bottom: 1px solid #c5d0dc; background: #fff; margin: 4px 0; }
+    .celda { width: 2.7rem; height: 5.55rem; background: transparent; border: 0; padding: 0; }
+    .celda.oclusal { height: 2.45rem; }
+    .celda svg { width: 100%; height: 100%; display: block; }
+    .flip { transform: scaleX(-1); }
+    .inf { transform: rotate(180deg); }
+    .inf.flip { transform: scaleX(-1) rotate(180deg); }
+    .num { width: 2.7rem; text-align: center; font-size: .72rem; font-weight: 700; color: #1d2b3a; padding: .2rem 0; }
+    .fila.oclusales { margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Odontograma</h1>
+    <p class="hint">Vista previa local. Mismo dibujo que la ficha clínica.</p>
+    <div class="odontograma" id="od"></div>
+  </div>
+  <svg width="0" height="0">
+    <defs>
+      <linearGradient id="od-esmalte" x1="0.2" y1="0.15" x2="0.85" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#f7f4ee"/><stop offset="100%" stop-color="#e6ddd0"/>
+      </linearGradient>
+      <linearGradient id="od-raiz" x1="0.3" y1="0" x2="0.7" y2="1">
+        <stop offset="0%" stop-color="#f4ead6"/><stop offset="55%" stop-color="#ead9bc"/><stop offset="100%" stop-color="#ddc7a6"/>
+      </linearGradient>
+      <linearGradient id="od-oclusal" x1="0.25" y1="0.2" x2="0.8" y2="1">
+        <stop offset="0%" stop-color="#f8f6f1"/><stop offset="55%" stop-color="#e4ddd0"/><stop offset="100%" stop-color="#cfc5b4"/>
+      </linearGradient>
+      <radialGradient id="od-brillo" cx="32%" cy="48%" r="52%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+  </svg>
+<script>
+const supDer = ['18','17','16','15','14','13','12','11'];
+const supIzq = ['21','22','23','24','25','26','27','28'];
+const infDer = ['48','47','46','45','44','43','42','41'];
+const infIzq = ['31','32','33','34','35','36','37','38'];
+function tipo(n){ const p=n.slice(-1); if(p==='1')return 'incisivoC'; if(p==='2')return 'incisivoL'; if(p==='3')return 'canino'; if(p==='4'||p==='5')return 'premolar'; return 'molar'; }
+function inf(n){ return n[0]==='3'||n[0]==='4'; }
+function flip(n){ return n[0]==='2'||n[0]==='3'; }
+const V = {
+  'molar-sup': `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M10 54 C8 40 10 24 18 14 C24 8 30 14 32 26 C34 12 38 6 40 6 C42 6 46 12 48 26 C50 14 56 8 62 14 C70 24 72 40 70 54 C74 66 74 88 68 100 C62 110 50 114 40 112 C30 114 18 110 12 100 C6 88 6 66 10 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M10 54 C8 68 8 86 13 98 C18 108 28 114 40 113 C52 114 62 108 67 98 C72 86 72 68 70 54 Q40 48 10 54Z"/><path fill="url(#od-brillo)" d="M16 62 C18 80 22 94 30 102 C24 86 18 72 16 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M12 55 Q40 49 68 55"/><path fill="none" stroke="#d7cbb8" stroke-width="0.9" d="M22 86 Q40 98 58 86"/><path fill="none" stroke="#d7cbb8" stroke-width="0.7" d="M40 68 L40 104"/>`,
+  'molar-inf': `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M12 54 C8 38 12 20 24 12 C32 8 36 18 38 30 C42 16 48 8 56 12 C68 20 72 38 68 54 C74 66 74 88 68 100 C62 110 50 114 40 113 C30 114 18 110 12 100 C6 88 6 66 12 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M12 54 C8 68 8 86 14 98 C20 108 30 114 40 113 C50 114 60 108 66 98 C72 86 72 68 68 54 Q40 48 12 54Z"/><path fill="url(#od-brillo)" d="M16 62 C18 82 24 96 32 104 C26 88 18 72 16 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M14 55 Q40 49 66 55"/><path fill="none" stroke="#d7cbb8" stroke-width="0.9" d="M22 88 Q40 100 58 88"/>`,
+  premolar: `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M20 54 C16 38 20 20 30 12 C36 8 40 16 40 28 C40 16 44 8 50 12 C60 20 64 38 60 54 C66 66 66 86 60 98 C54 108 46 112 40 112 C34 112 26 108 20 98 C14 86 14 66 20 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M20 54 C16 68 16 86 22 98 C28 108 34 112 40 112 C46 112 52 108 58 98 C64 86 64 68 60 54 Q40 48 20 54Z"/><path fill="url(#od-brillo)" d="M24 62 C26 80 30 94 36 102 C30 86 26 72 24 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M22 55 Q40 49 58 55"/><path fill="none" stroke="#d7cbb8" stroke-width="0.85" d="M28 86 Q40 96 52 86"/>`,
+  canino: `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M24 54 C18 36 24 14 40 8 C56 14 62 36 56 54 C64 66 64 88 54 102 C46 112 42 118 40 122 C38 118 34 112 26 102 C16 88 16 66 24 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M24 54 C18 68 18 88 26 102 C34 114 38 120 40 122 C42 120 46 114 54 102 C62 88 62 68 56 54 Q40 48 24 54Z"/><path fill="url(#od-brillo)" d="M28 62 C30 82 34 100 40 112 C34 94 30 76 28 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M26 55 Q40 49 54 55"/><path fill="none" stroke="#d2c4ae" stroke-width="0.8" d="M40 70 L40 114"/>`,
+  incisivoL: `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M26 54 C22 38 26 18 40 10 C54 18 58 38 54 54 C60 64 60 86 56 100 C52 110 46 114 40 115 C34 114 28 110 24 100 C20 86 20 64 26 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M26 54 C22 68 22 86 26 100 C30 110 36 114 40 115 C44 114 50 110 54 100 C58 86 58 68 54 54 Q40 48 26 54Z"/><path fill="url(#od-brillo)" d="M30 62 C32 80 35 96 40 106 C35 88 32 72 30 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M28 55 Q40 49 52 55"/>`,
+  incisivoC: `<path fill="url(#od-raiz)" stroke="#cbb89a" stroke-width="0.65" d="M22 54 C16 38 22 16 40 8 C58 16 64 38 58 54 C66 64 68 86 62 102 C56 112 48 116 40 116 C32 116 24 112 18 102 C12 86 14 64 22 54Z"/><path fill="url(#od-esmalte)" stroke="#d2c6b4" stroke-width="0.55" d="M22 54 C16 68 16 86 20 102 C24 112 32 116 40 116 C48 116 56 112 60 102 C64 86 64 68 58 54 Q40 48 22 54Z"/><path fill="url(#od-brillo)" d="M26 62 C28 82 32 98 40 108 C32 90 28 74 26 62Z"/><path fill="none" stroke="#c2b49a" stroke-width="1.1" d="M24 55 Q40 48 56 55"/><path fill="none" stroke="#e8ddcc" stroke-width="0.7" d="M26 84 L54 84"/><path fill="none" stroke="#d7cbb8" stroke-width="0.7" d="M28 111 L28 115 M40 111 L40 115 M52 111 L52 115"/>`
+};
+const O = {
+  molar: `<rect x="8" y="8" width="56" height="56" rx="16" fill="url(#od-oclusal)" stroke="#c4b6a0" stroke-width="1.1"/><ellipse cx="24" cy="24" rx="9" ry="8" fill="#fff" fill-opacity="0.45"/><ellipse cx="48" cy="24" rx="9" ry="8" fill="#fff" fill-opacity="0.38"/><ellipse cx="24" cy="48" rx="9" ry="8" fill="#fff" fill-opacity="0.28"/><ellipse cx="48" cy="48" rx="9" ry="8" fill="#fff" fill-opacity="0.22"/><path fill="none" stroke="#b6a890" stroke-width="1.4" d="M36 16 L36 56 M16 36 L56 36"/><circle cx="36" cy="36" r="4.5" fill="#d2c8b6"/>`,
+  premolar: `<ellipse cx="36" cy="36" rx="22" ry="26" fill="url(#od-oclusal)" stroke="#c4b6a0" stroke-width="1.1"/><ellipse cx="36" cy="24" rx="10" ry="9" fill="#fff" fill-opacity="0.4"/><ellipse cx="36" cy="48" rx="10" ry="9" fill="#fff" fill-opacity="0.25"/><path fill="none" stroke="#b6a890" stroke-width="1.3" d="M36 16 L36 56"/>`,
+  canino: `<path fill="url(#od-oclusal)" stroke="#c4b6a0" stroke-width="1.1" d="M36 8 L58 34 L36 64 L14 34 Z"/><path fill="#fff" fill-opacity="0.35" d="M36 16 L46 34 L36 38 L26 34 Z"/>`,
+  incisivoL: `<rect x="22" y="10" width="28" height="52" rx="8" fill="url(#od-oclusal)" stroke="#c4b6a0" stroke-width="1.1"/><path fill="none" stroke="#d4c8b6" stroke-width="1" d="M28 16 L44 16"/>`,
+  incisivoC: `<rect x="16" y="10" width="40" height="52" rx="8" fill="url(#od-oclusal)" stroke="#c4b6a0" stroke-width="1.1"/><path fill="none" stroke="#d4c8b6" stroke-width="1.1" d="M22 16 L50 16"/><path fill="none" stroke="#cfc3b0" stroke-width="0.8" d="M28 14 L28 20 M36 14 L36 20 M44 14 L44 20"/>`
+};
+function vestInner(n){ const t=tipo(n); if(t==='molar') return inf(n)?V['molar-inf']:V['molar-sup']; return V[t]; }
+function cls(n, extra){ return [extra, inf(n)?'inf':'', flip(n)?'flip':''].filter(Boolean).join(' '); }
+function celdaV(n){ return `<div class="celda"><svg viewBox="0 0 80 118" class="${cls(n)}">${vestInner(n)}</svg></div>`; }
+function celdaO(n){ return `<div class="celda oclusal"><svg viewBox="0 0 72 72" class="${flip(n)?'flip':''}">${O[tipo(n)]}</svg></div>`; }
+function nums(arr){ return arr.map(n=>`<div class="num">${n}</div>`).join(''); }
+function fila(arr, fn){ return `<div class="cuadrante">${arr.map(fn).join('')}</div>`; }
+document.getElementById('od').innerHTML = `
+  <div class="fila oclusales">${fila(supDer,celdaO)}<span class="sep"></span>${fila(supIzq,celdaO)}</div>
+  <div class="fila">${fila(supDer,celdaV)}<span class="sep"></span>${fila(supIzq,celdaV)}</div>
+  <div class="numeros">
+    <div class="fila">${fila(supDer,n=>`<div class="num">${n}</div>`)}<span class="sep"></span>${fila(supIzq,n=>`<div class="num">${n}</div>`)}</div>
+    <div class="fila">${fila(infDer,n=>`<div class="num">${n}</div>`)}<span class="sep"></span>${fila(infIzq,n=>`<div class="num">${n}</div>`)}</div>
+  </div>
+  <div class="fila">${fila(infDer,celdaV)}<span class="sep"></span>${fila(infIzq,celdaV)}</div>
+  <div class="fila oclusales">${fila(infDer,celdaO)}<span class="sep"></span>${fila(infIzq,celdaO)}</div>`;
+</script>
+</body>
+</html>

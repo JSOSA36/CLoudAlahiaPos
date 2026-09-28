@@ -123,7 +123,10 @@
           <div class="ambiente-badge" [class.produccion]="!certVencido" [class.pruebas]="certVencido">
             {{ certVencido ? 'Vencido' : 'Activo' }}
           </div>
-          <div class="info-row"><span>Archivo:</span><strong>{{ certNombre }}</strong></div>
+          <div class="info-row"><span>Archivo adjunto:</span><strong>{{ certNombre }}</strong></div>
+          <div class="info-row">
+            <span>Clave:</span><strong>{{ certPassword ? 'Adjuntada' : 'Falta' }}</strong>
+          </div>
           <div class="info-row" *ngIf="certFechaExp">
             <span>Expira:</span><strong>{{ certFechaExp | date:'dd/MM/yyyy' }}</strong>
           </div>
@@ -132,6 +135,10 @@
         <p class="hint" *ngIf="!cargandoCertificado && !certConfigurado">
           Obligatorio para emitir e-CF con DGII directo. Suba el archivo <code>.p12</code> / <code>.pfx</code>
           y la contraseña del certificado.
+        </p>
+        <p class="hint" *ngIf="!cargandoCertificado && certConfigurado">
+          El <code>.p12</code> y su clave ya están guardados. El selector de archivo del navegador
+          siempre sale vacío; no hay que volver a subirlo salvo que lo reemplace.
         </p>
 
         <div class="proveedor-form" *ngIf="!cargandoCertificado">

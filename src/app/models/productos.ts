@@ -37,7 +37,8 @@ _descuentoValor?: number
         imagen1 :string="";
        _precioOriginal:number=0;
        duracionServicio?: number;        // Duración en minutos
-        disponibleEnCitas?: boolean; 
+        disponibleEnCitas?: boolean;
+        manejaGuarniciones?: boolean; 
         nota :string="";
         seCompra:boolean=false;
         seAlquila :boolean=false;

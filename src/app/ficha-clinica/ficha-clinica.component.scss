@@ -118,6 +118,7 @@ textarea {
 }
 
 .odontograma {
+  position: relative;
   border: 1px solid #c5d0dc;
   border-radius: 8px;
   padding: 0.6rem 0.5rem 0.75rem;
@@ -137,6 +138,14 @@ textarea {
   justify-content: center;
   align-items: stretch;
   min-width: 720px;
+}
+
+.fila.oclusales {
+  margin: 0.1rem 0 0.05rem;
+}
+
+.fila.oclusales.inf {
+  margin: 0.05rem 0 0.15rem;
 }
 
 .cuadrante {
@@ -162,7 +171,7 @@ textarea {
 
 .celda {
   width: 2.7rem;
-  height: 5.4rem;
+  height: 5.55rem;
   padding: 0;
   border: 0;
   background: transparent;
@@ -170,23 +179,20 @@ textarea {
   border-radius: 6px;
 }
 
+.celda.oclusal {
+  height: 2.45rem;
+}
+
 .celda .dibujo {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: contain;
   overflow: visible;
 }
 
 .dibujo.flip {
   transform: scaleX(-1);
-}
-
-.dibujo.inf {
-  transform: rotate(180deg);
-}
-
-.dibujo.inf.flip {
-  transform: scaleX(-1) rotate(180deg);
 }
 
 .celda.marcado .dibujo {
@@ -527,7 +533,11 @@ td.empty {
 
   .celda {
     width: 1.65rem;
-    height: 3.35rem;
+    height: 3.45rem;
+  }
+
+  .celda.oclusal {
+    height: 1.45rem;
   }
 
   .num {

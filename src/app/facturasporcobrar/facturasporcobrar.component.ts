@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FacturaHeaderService } from 'src/app/servicios/factura-header.service';
 import { ClienteService } from 'src/app/servicios/cliente.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
 import { clientes } from 'src/app/models/clientes';
 import { ToastController, ModalController, ViewWillEnter } from '@ionic/angular';
 import { PagoFacturaComponent } from '../pago-factura/pago-factura.component';
@@ -27,6 +28,7 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
   seleccionadas = new Set<number>();
   /** Fuerza re-render del checkbox si se rechaza una selección. */
   seleccionTick = 0;
+  usarArs = false;
 
   constructor(
     private _facturaSrv: FacturaHeaderService,
@@ -34,11 +36,21 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
     private _parametro: ParametrosService,
     private toastCtrl: ToastController,
     private modalCtrl: ModalController,
-    private router: Router
+    private router: Router,
+    private parametroConfig: ParametroConfigService
   ) {}
 
   ngOnInit() {
     this.cargarClientes();
+    this.parametroConfig.getParametrosEmpresa(this._parametro.GetIdEmpresa()).subscribe({
+      next: (params) => {
+        const p = (params || []).find((x: any) =>
+          String(x?.clave ?? x?.Clave ?? '') === 'UTILIZAR_ARS'
+        );
+        const valor = String(p?.valor ?? (p as any)?.Valor ?? '').toLowerCase();
+        this.usarArs = valor === 'true' || valor === '1';
+      }
+    });
   }
 
   ionViewWillEnter() {
@@ -298,6 +310,10 @@ export class FacturasporcobrarComponent implements OnInit, ViewWillEnter {
 
   irEstadoCuenta() {
     this.router.navigate(['/cuentaxcobrar/estado-cuenta']);
+  }
+
+  irCuentasArs() {
+    this.router.navigate(['/cuentaxcobrar/ars']);
   }
 
   async efectuarPago(factura: FacturaHeaderDto, event?: Event) {

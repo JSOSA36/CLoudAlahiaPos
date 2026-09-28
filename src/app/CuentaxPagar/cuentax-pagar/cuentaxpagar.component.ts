@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnDestroy, OnInit, Input } from '@angular/core';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { ClienteService } from 'src/app/servicios/cliente.service';
@@ -24,14 +24,19 @@ import {
   CargoPagoRegla,
   CargoPagoService
 } from 'src/app/servicios/cargo-pago.service';
+import { ArsAseguradoraService } from 'src/app/servicios/ars-aseguradora.service';
+import { ArsAseguradora } from 'src/app/models/ars-aseguradora';
+
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-cuentax-pagar',
   templateUrl: './cuentaxpagar.component.html',
   styleUrls: ['./cuentaxpagar.component.scss'],
 })
-export class CuentaxPagarComponent implements OnInit {
+export class CuentaxPagarComponent implements OnInit, OnDestroy {
   procesandoFactura = false;
+  private destroy$ = new Subject<void>();
 
   modalPagoAbierto = false;
   campoPagoActual: 'pago1' | 'pago2' = 'pago1';
@@ -139,6 +144,12 @@ export class CuentaxPagarComponent implements OnInit {
   mensajeRnc = '';
 
   readonly METODO_NC = 'NotaCredito';
+  readonly METODO_ARS = 'ARS';
+
+  usarArsEmpresa = false;
+  arsList: ArsAseguradora[] = [];
+  idArs = 0;
+  montoCubiertoArs = 0;
 
   cargoReglas: CargoPagoRegla[] = [];
   cargosPagoHabilitado = false;
@@ -214,6 +225,34 @@ export class CuentaxPagarComponent implements OnInit {
     return Math.round((total - nc) * 100) / 100;
   }
 
+  get coberturaArsAplicar(): number {
+    if (!this.usarArsEmpresa || !this.idArs) return 0;
+    const cub = Math.max(0, Number(this.montoCubiertoArs) || 0);
+    return Math.min(this.restanteTrasNc, Math.round(cub * 100) / 100);
+  }
+
+  get restanteCliente(): number {
+    return Math.max(0, Math.round((this.restanteTrasNc - this.coberturaArsAplicar) * 100) / 100);
+  }
+
+  get etiquetaTotalFooter(): string {
+    if (this._TipoFactura === 'Credito' && this.coberturaArsAplicar <= 0.009) {
+      return 'TOTAL FACTURA';
+    }
+    if (this.coberturaArsAplicar > 0.009) {
+      return 'TOTAL A PAGAR CLIENTE';
+    }
+    return 'TOTAL A PAGAR';
+  }
+
+  get totalFooterMostrar(): number {
+    return this.coberturaArsAplicar > 0.009 ? this.restanteCliente : this.totalAPagar;
+  }
+
+  get arsSeleccionada(): ArsAseguradora | undefined {
+    return this.arsList.find(a => Number(a.idArs) === Number(this.idArs));
+  }
+
   get requiereDatosFiscales(): boolean {
     return (
       this._TipoComprobante === 'Crédito Fiscal' ||
@@ -234,7 +273,7 @@ export class CuentaxPagarComponent implements OnInit {
     if (!this.esAbonoParcialCredito) return 0;
     return Math.max(
       0,
-      Math.round((this.restanteTrasNc - this.montoRecibidoAplicar) * 100) / 100
+      Math.round((this.restanteCliente - this.montoRecibidoAplicar) * 100) / 100
     );
   }
 
@@ -242,7 +281,7 @@ export class CuentaxPagarComponent implements OnInit {
     this._MontoPago1 = Number(this.MontoPago1) || 0;
     this._MontoPago2 = Number(this.MontoPago2) || 0;
     this.totalPagado = this._MontoPago1 + this._MontoPago2;
-    this.restante = this.restanteTrasNc - this.totalPagado;
+    this.restante = this.restanteCliente - this.totalPagado;
   }
 
   puedeProcesar(): boolean {
@@ -267,7 +306,7 @@ export class CuentaxPagarComponent implements OnInit {
 
   /** Monto que realmente se aplica como pago (sin NC). */
   get montoRecibidoAplicar(): number {
-    const restante = this.restanteTrasNc;
+    const restante = this.restanteCliente;
     if (restante <= 0) return 0;
 
     if (!this._PagoMixto) {
@@ -281,7 +320,7 @@ export class CuentaxPagarComponent implements OnInit {
   }
 
   get esAbonoParcialCredito(): boolean {
-    const restante = this.restanteTrasNc;
+    const restante = this.restanteCliente;
     const recibido = this.montoRecibidoAplicar;
     return restante > 0.02 && recibido > 0.009 && recibido < restante - 0.02;
   }
@@ -298,10 +337,19 @@ export class CuentaxPagarComponent implements OnInit {
     private rrhh: RrhhService,
     private parametroConfig: ParametroConfigService,
     private feService: FacturacionElectronicaService,
-    private cargoPagoService: CargoPagoService
+    private cargoPagoService: CargoPagoService,
+    private arsService: ArsAseguradoraService
   ) {}
 
+  get usuarioSesionCobro(): string {
+    return (this._Parametro.UserName || '').trim();
+  }
+
   ngOnInit() {
+    this._Parametro.aplicarUsuarioPersistido();
+    this._Parametro.sessionStarted$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this._Parametro.aplicarUsuarioPersistido());
     this.plazosCredito = this.PlazosCredito?.length
       ? this.PlazosCredito
       : PLAZOS_CREDITO;
@@ -316,13 +364,14 @@ export class CuentaxPagarComponent implements OnInit {
     this.onPlazoCreditoChange();
 
     this.CargarMetodosPago();
+    this.cargarArs();
     this.cargarCargosPago();
     this.asegurarFacturacionElectronica();
     if (Number(this.IdFactPay) > 0 || !this._Parametro.tieneModuloRrhh()) {
       this.mostrarConsumoColaborador = false;
     }
     this.cargarColaboradores();
-    this.EfectivoRecibido = this.restanteTrasNc;
+    this.EfectivoRecibido = this.restanteCliente;
     this.calcularPagoNormal();
     if (this.IdCliente && this.IdCliente > 0) {
       this._ClienteSeleccionado = {
@@ -331,6 +380,11 @@ export class CuentaxPagarComponent implements OnInit {
       };
       this.precargarSaldoCliente();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private cargarCargosPago(): void {
@@ -363,7 +417,7 @@ export class CuentaxPagarComponent implements OnInit {
       this.calcularPagoMixto();
       return;
     }
-    this.EfectivoRecibido = this.restanteTrasNc;
+    this.EfectivoRecibido = this.restanteCliente;
     this.calcularPagoNormal();
   }
 
@@ -373,8 +427,12 @@ export class CuentaxPagarComponent implements OnInit {
     if (!idEmpresa) return;
 
     const aplicarSecuencias = () => {
-      if (this.TiposComprobante?.length) return;
-      this.feService.getSecuenciasDisponibles(idEmpresa).subscribe({
+      const yaTieneEcf = (this.TiposComprobante || []).some(t => t.value != null);
+      if (yaTieneEcf) return;
+      this.feService.getSecuenciasDisponibles(
+        idEmpresa,
+        this._Parametro.IdSucursal || undefined
+      ).subscribe({
         next: (secuencias) => {
           this.TiposComprobante = [
             { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
@@ -436,7 +494,7 @@ export class CuentaxPagarComponent implements OnInit {
       this._ConAbonoCredito = false;
       this.onPlazoCreditoChange();
     } else {
-      this.EfectivoRecibido = this.restanteTrasNc;
+      this.EfectivoRecibido = this.restanteCliente;
       this.calcularPagoNormal();
     }
   }
@@ -494,7 +552,7 @@ export class CuentaxPagarComponent implements OnInit {
 
   calcularCambio() {
     const recibido = Number(this.EfectivoRecibido) || 0;
-    const total = Number(this.restanteTrasNc) || 0;
+    const total = Number(this.restanteCliente) || 0;
     this.cambio = recibido - total;
     if (this.cambio < 0) this.cambio = 0;
   }
@@ -504,10 +562,65 @@ export class CuentaxPagarComponent implements OnInit {
       .getByEmpresa(this._Parametro.GetIdEmpresa())
       .subscribe({
         next: (resp: any[]) => {
-          this.metodosPago = (resp || []).filter(x => x.activo);
+          const metodos = (resp || []).filter(x => x.activo);
+          this.metodosPago = metodos.filter(
+            (x: any) => !this.esMetodoArs(x.metodoPago || x.MetodoPago)
+          );
         },
         error: (err) => console.error(err)
       });
+  }
+
+  private cargarArs(): void {
+    const idEmpresa = this._Parametro.GetIdEmpresa();
+    if (!idEmpresa) return;
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find((x: any) =>
+          String(x?.clave ?? x?.Clave ?? '') === 'UTILIZAR_ARS'
+        );
+        const valor = String(p?.valor ?? (p as any)?.Valor ?? '').toLowerCase();
+        this.usarArsEmpresa = valor === 'true' || valor === '1';
+        if (!this.usarArsEmpresa) {
+          this.idArs = 0;
+          this.montoCubiertoArs = 0;
+          this.CargarMetodosPago();
+          return;
+        }
+        this.arsService.listar(idEmpresa, true).subscribe({
+          next: (rows) => {
+            this.arsList = (rows || []).map(raw => {
+              const a = new ArsAseguradora();
+              a.idArs = Number((raw as any).idArs ?? (raw as any).IdArs ?? 0);
+              a.nombre = String((raw as any).nombre ?? (raw as any).Nombre ?? '');
+              a.activo = (raw as any).activo ?? (raw as any).Activo ?? true;
+              return a;
+            });
+            this.CargarMetodosPago();
+          }
+        });
+      }
+    });
+  }
+
+  esMetodoArs(metodo?: string | null): boolean {
+    return String(metodo || '').trim().toUpperCase() === this.METODO_ARS;
+  }
+
+  onCoberturaArsChange(ev?: any): void {
+    const crudo = ev?.detail?.value ?? ev?.target?.value;
+    if (crudo !== undefined && crudo !== null && crudo !== '') {
+      this.montoCubiertoArs = Number(crudo);
+    }
+    const max = this.restanteTrasNc;
+    if (this.montoCubiertoArs > max) this.montoCubiertoArs = max;
+    if (this.montoCubiertoArs < 0 || !Number.isFinite(this.montoCubiertoArs)) {
+      this.montoCubiertoArs = 0;
+    }
+    if (!this.idArs) this.montoCubiertoArs = 0;
+    this.EfectivoRecibido = this.restanteCliente;
+    this.calcularPagoNormal();
+    this.calcularPagoMixto();
   }
 
   cargarColaboradores(): void {
@@ -528,7 +641,7 @@ export class CuentaxPagarComponent implements OnInit {
     this.descontarNominaColaborador = !!row?.descontarNomina;
     this.nombreColaborador = row?.nombre || '';
     if (this._TipoFactura === 'Contado') {
-      this.EfectivoRecibido = this.restanteTrasNc;
+      this.EfectivoRecibido = this.restanteCliente;
       this.calcularPagoNormal();
     }
   }
@@ -560,7 +673,7 @@ export class CuentaxPagarComponent implements OnInit {
           this.montoNc = Math.min(Number(saldo.saldoDisponible) || 0, this.totalAPagar);
           this.calcularCambio();
           this.calcularPagoMixto();
-          this.EfectivoRecibido = this.restanteTrasNc;
+          this.EfectivoRecibido = this.restanteCliente;
           this.calcularPagoNormal();
         },
         error: () => { /* sin saldo, el cobro sigue normal */ }
@@ -646,7 +759,7 @@ export class CuentaxPagarComponent implements OnInit {
   }
 
   pagoExacto() {
-    this.EfectivoRecibido = this.restanteTrasNc;
+    this.EfectivoRecibido = this.restanteCliente;
     this.calcularCambio();
     this.cerrarModalEfectivo();
   }
@@ -702,6 +815,7 @@ export class CuentaxPagarComponent implements OnInit {
     const total = this.totalAPagar;
     const montoNc = this._UsarNotaCredito ? (Number(this.montoNc) || 0) : 0;
     const restante = Math.round((total - montoNc) * 100) / 100;
+    const cobertura = this.coberturaArsAplicar;
 
     if (montoNc > 0 && this.saldoNc) {
       pagos.push({
@@ -715,15 +829,27 @@ export class CuentaxPagarComponent implements OnInit {
       });
     }
 
-    if (restante <= 0) {
+    if (cobertura > 0.009 && this.idArs) {
+      pagos.push({
+        metodo: this.METODO_ARS,
+        monto: cobertura,
+        idArs: this.idArs
+      });
+    }
+
+    const restanteCliente = Math.max(0, Math.round((restante - cobertura) * 100) / 100);
+    if (restanteCliente <= 0) {
       return pagos;
     }
 
     if (!this._PagoMixto) {
+      if (this.esMetodoArs(this._FormaPago)) {
+        return pagos;
+      }
       const recibido = Number(this.EfectivoRecibido);
       const monto = (!Number.isFinite(recibido) || recibido <= 0)
         ? 0
-        : Math.min(recibido, restante);
+        : Math.min(recibido, restanteCliente);
       if (monto > 0.009) {
         pagos.push({
           metodo: this._FormaPago,
@@ -733,11 +859,10 @@ export class CuentaxPagarComponent implements OnInit {
     } else {
       const monto1 = Number(this.MontoPago1) || Number(this._MontoPago1) || 0;
       const monto2 = Number(this.MontoPago2) || Number(this._MontoPago2) || 0;
-      // No forzar a cubrir el total: si paga menos, queda a crédito
-      if (monto1 > 0) {
+      if (monto1 > 0 && !this.esMetodoArs(this._MetodoPago1)) {
         pagos.push({ metodo: this._MetodoPago1, monto: Math.round(monto1 * 100) / 100 });
       }
-      if (monto2 > 0) {
+      if (monto2 > 0 && !this.esMetodoArs(this._MetodoPago2)) {
         pagos.push({ metodo: this._MetodoPago2, monto: Math.round(monto2 * 100) / 100 });
       }
     }
@@ -812,7 +937,7 @@ export class CuentaxPagarComponent implements OnInit {
     }
 
     if (this._TipoFactura === 'Contado') {
-      if (this.restanteTrasNc > 0.009) {
+      if (this.restanteCliente > 0.009) {
         if (!this._PagoMixto && !this._FormaPago) {
           (await this.toastCtrl.create({
             message: 'Seleccione una forma de pago para el restante',
@@ -885,6 +1010,15 @@ export class CuentaxPagarComponent implements OnInit {
       this.PlazoDias = dias;
     }
 
+    if (this.usarArsEmpresa && this.montoCubiertoArs > 0.009 && !this.idArs) {
+      (await this.toastCtrl.create({
+        message: 'Seleccione la ARS que cubre el servicio',
+        duration: 2200,
+        color: 'warning'
+      })).present();
+      return;
+    }
+
     if (this.requiereDatosFiscales) {
       if (!this.rncFiscal?.trim() || !this.nombreFiscal?.trim()) {
         (await this.toastCtrl.create({
@@ -922,12 +1056,14 @@ export class CuentaxPagarComponent implements OnInit {
         }
         pagos = this.construirPagosAbono();
 
-        const totalAbono = pagos.reduce(
+        const totalAbono = pagos
+          .filter((p: any) => p.metodo !== this.METODO_ARS)
+          .reduce(
           (sum: number, p: any) => sum + Number(p.monto),
           0
         );
 
-        if (totalAbono >= this.totalAPagar) {
+        if (totalAbono >= this.restanteCliente && this.restanteCliente > 0.009) {
           (await this.toastCtrl.create({
             message: 'El abono no puede ser igual o mayor al total',
             duration: 1500,
@@ -935,6 +1071,15 @@ export class CuentaxPagarComponent implements OnInit {
           })).present();
           return;
         }
+      }
+
+      if (this.coberturaArsAplicar > 0.009 && this.idArs
+        && !pagos.some((p: any) => this.esMetodoArs(p.metodo))) {
+        pagos.unshift({
+          metodo: this.METODO_ARS,
+          monto: this.coberturaArsAplicar,
+          idArs: this.idArs
+        });
       }
     }
 
@@ -949,7 +1094,9 @@ export class CuentaxPagarComponent implements OnInit {
       : 30;
 
     if (this._TipoFactura === 'Contado' && restante > 0.02) {
-      if (sumaMetodos <= 0.009 && !(this._UsarNotaCredito && this.restanteTrasNc <= 0.009)) {
+      if (this.restanteCliente > 0.009
+        && sumaMetodos <= 0.009
+        && !(this._UsarNotaCredito && this.restanteTrasNc <= 0.009)) {
         (await this.toastCtrl.create({
           message: 'Indique un monto de pago mayor a cero',
           duration: 2000,
@@ -959,7 +1106,7 @@ export class CuentaxPagarComponent implements OnInit {
       }
 
       if (sumaMetodos < restante - 0.02) {
-        // Abono parcial → crédito automático
+        // Abono parcial del cliente → crédito automático a su cuenta (IDCliente)
         if (!idCliente && !this.idEmpleadoConsumo) {
           (await this.toastCtrl.create({
             message: 'Para dejar saldo pendiente debe seleccionar un cliente o un colaborador (queda a crédito)',
@@ -981,11 +1128,10 @@ export class CuentaxPagarComponent implements OnInit {
           })).present();
           return;
         }
-        // Recortar pagos de efectivo al restante; el cambio ya se calcula
         pagos = pagos.map(p =>
-          p.metodo === this.METODO_NC
+          p.metodo === this.METODO_NC || this.esMetodoArs(p.metodo)
             ? p
-            : { ...p, monto: Math.min(Number(p.monto) || 0, restante) }
+            : { ...p, monto: Math.min(Number(p.monto) || 0, this.restanteCliente) }
         );
       }
     }
@@ -1037,6 +1183,8 @@ export class CuentaxPagarComponent implements OnInit {
     this._MostrarQR = false;
     this.qrData = '';
     this._UsarNotaCredito = false;
+    this.idArs = 0;
+    this.montoCubiertoArs = 0;
     this.limpiarNc();
   }
 
@@ -1076,7 +1224,7 @@ export class CuentaxPagarComponent implements OnInit {
     this.onMetodoPagoChange();
 
     if (pago === 'UberEats' || pago === 'PedidosYa') {
-      this.EfectivoRecibido = this.restanteTrasNc;
+      this.EfectivoRecibido = this.restanteCliente;
       this.cambio = 0;
     }
   }

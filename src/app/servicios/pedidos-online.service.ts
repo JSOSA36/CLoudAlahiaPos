@@ -128,6 +128,37 @@ export class PedidosOnlineService {
     });
   }
 
+  voucher(idEmpresa: number, idPedidoOnline: number): Observable<Blob> {
+    return this.http.get(`${this.deliveryUrl}/${idPedidoOnline}/voucher`, {
+      params: this.empresa(idEmpresa),
+      responseType: 'blob'
+    });
+  }
+
+  enviarCocina(
+    idEmpresa: number,
+    idPedidoOnline: number,
+    idUsuario: number
+  ): Observable<PedidoDeliveryListado> {
+    return this.http.post<PedidoDeliveryListado>(
+      `${this.deliveryUrl}/${idPedidoOnline}/enviar-cocina`,
+      { idUsuario },
+      { params: this.empresa(idEmpresa) }
+    );
+  }
+
+  validarPago(
+    idEmpresa: number,
+    idPedidoOnline: number,
+    idUsuario: number
+  ): Observable<PedidoDeliveryListado> {
+    return this.http.post<PedidoDeliveryListado>(
+      `${this.deliveryUrl}/${idPedidoOnline}/validar-pago`,
+      { idUsuario },
+      { params: this.empresa(idEmpresa) }
+    );
+  }
+
   transicionar(
     idEmpresa: number,
     idPedidoOnline: number,

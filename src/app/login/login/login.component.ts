@@ -15,6 +15,7 @@ import { PoliticasGateService } from 'src/app/servicios/politicas-gate.service';
 import { NotificacionesService } from 'src/app/servicios/notificaciones.service';
 import { TicketDesdeLoginComponent } from 'src/app/tickets/ticket-desde-login.component';
 import { PosDeviceService } from 'src/app/servicios/pos-device.service';
+import { SucursalService } from 'src/app/servicios/sucursal.service';
 // OneSignal
 declare const OneSignal: any;
 
@@ -40,7 +41,8 @@ export class LoginComponent implements OnInit {
     private platform: Platform,
     private politicasGate: PoliticasGateService,
     private notificaciones: NotificacionesService,
-    private posDevice: PosDeviceService
+    private posDevice: PosDeviceService,
+    private sucursales: SucursalService
   ) {}
 
   // ❌ NO limpiar sesión aquí
@@ -285,11 +287,11 @@ async login() {
         this.parametros.setNivelSoporte(empresa.nivelSoporte);
         localStorage.setItem('NombreEmpresa', this.parametros.NombreEmpresa || '');
         localStorage.setItem('nombrePlan', this.parametros.nombrePlan || '');
-        this.parametros.puedeEliminarOrden = usuario.puedeEliminarOrden || false;
+        this.parametros.puedeEliminarOrden = !!(usuario.puedeEliminarOrden || usuario.esAdministrador);
         this.parametros.PuedeEliminarItemCarrito = usuario.puedeEliminarItemCarrito || false;
         this.parametros.PuedeDisminuirCantidadCarrito = usuario.puedeDisminuirCantidadCarrito || false;
         this.parametros.PuedeEditarPrecioCarrito = usuario.puedeEditarPrecioCarrito || false;
-        this.parametros.PuedeAnularFactura = usuario.puedeAnularFactura || false;
+        this.parametros.PuedeAnularFactura = !!(usuario.puedeAnularFactura || usuario.esAdministrador);
 
         // Cabecera de documentos (cotización, conduce, etc.)
         this.parametros._Empresa = {
@@ -325,9 +327,25 @@ async login() {
           usuario
         );
 
-        const sucursalesLogin = Array.isArray(resp?.sucursales) ? resp.sucursales : [];
-        const idSucursalLogin = Number(resp?.idSucursalActiva ?? usuario.idSucursal ?? 0) || 0;
+        const sucursalesLogin = Array.isArray(resp?.sucursales)
+          ? resp.sucursales
+          : (Array.isArray(resp?.Sucursales) ? resp.Sucursales : []);
+        const idSucursalLogin = Number(
+          resp?.idSucursalActiva ?? resp?.IdSucursalActiva ?? usuario.idSucursal ?? usuario.IdSucursal ?? 0
+        ) || 0;
         this.parametros.setSucursalSesion(idSucursalLogin, sucursalesLogin);
+        if (!this.parametros.sucursales.length) {
+          this.sucursales.listar().subscribe({
+            next: (lista) => {
+              if (!lista?.length) return;
+              const id = this.parametros.IdSucursal
+                || (lista.length === 1
+                  ? lista[0].idSucursal
+                  : (lista.find(s => s.esDefault)?.idSucursal || 0));
+              this.parametros.setSucursalSesion(id, lista);
+            }
+          });
+        }
 
         this.parametros.setModulosActivos(
           modulos.map((m: any) => m.moduloId).filter((id: any) => id != null),

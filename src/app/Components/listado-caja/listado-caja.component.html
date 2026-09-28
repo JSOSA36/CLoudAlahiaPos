@@ -456,6 +456,17 @@
 
             </div>
 
+            <ion-button
+              *ngIf="idCierreDeFila(caja)"
+              expand="block"
+              color="primary"
+              class="btn-reimprimir-cierre"
+              (click)="reimprimirCierre(caja); $event.stopPropagation()"
+              [disabled]="reimprimiendoId === idCierreDeFila(caja)">
+              <ion-icon name="print-outline" slot="start"></ion-icon>
+              {{ reimprimiendoId === idCierreDeFila(caja) ? 'Imprimiendo…' : 'Reimprimir ticket' }}
+            </ion-button>
+
           <div class="line">
 
   <span>Ventas Brutas</span>

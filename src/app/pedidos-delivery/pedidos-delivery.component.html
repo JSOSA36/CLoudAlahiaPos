@@ -33,9 +33,10 @@
 
       <article class="pd-link pd-link-reparto">
         <p class="pd-eyebrow">Para repartidores · Alahia Reparto</p>
-        <strong>{{ urlReparto }}</strong>
-        <p class="pd-link-hint">Envíe este link al repartidor. Entra con su usuario y contraseña del ERP.</p>
-          <div class="pd-link-actions">
+        <strong *ngIf="urlReparto">{{ urlReparto }}</strong>
+        <p class="pd-link-hint" *ngIf="!urlReparto">Este negocio no tiene código público para el link del repartidor.</p>
+        <p class="pd-link-hint" *ngIf="urlReparto">Envíe este link al repartidor. Entra con su usuario y contraseña del ERP.</p>
+          <div class="pd-link-actions" *ngIf="urlReparto">
             <button type="button" class="pd-btn" (click)="copiar(urlReparto, 'Link de Reparto copiado')">Copiar</button>
             <button type="button" class="pd-btn pd-btn-ghost" (click)="whatsapp(urlReparto, textoReparto)">WhatsApp</button>
             <button type="button" class="pd-btn pd-btn-ghost" (click)="abrir(urlReparto)">Abrir</button>
@@ -43,7 +44,17 @@
       </article>
     </section>
 
-    <p class="pd-hint">Los pedidos de delivery aparecen aquí apenas entran, también mientras cocina los prepara. Cocina se opera en Centro de producción.</p>
+    <div class="pd-cocina-bar">
+      <p class="pd-hint">Los pedidos entran aquí primero. Márquelos para enviarlos a cocina, o envíe toda la lista de una vez.</p>
+      <button
+        type="button"
+        class="pd-btn pd-btn-gold"
+        *ngIf="tab !== 'repartidores'"
+        [disabled]="enviandoTodo || pendientesCocina().length === 0"
+        (click)="enviarTodoCocina()">
+        {{ enviandoTodo ? 'Enviando…' : 'Enviar todo a cocina' }}
+      </button>
+    </div>
     <div class="pd-tabs">
       <button type="button" [class.active]="tab === 'cola'" (click)="tab = 'cola'">
         Cola delivery <span>{{ cola.length }}</span>
@@ -90,9 +101,32 @@
           <footer>
             <strong class="pd-total">{{ money(p.total) }}</strong>
             <span class="chip chip-tipo">{{ p.metodoPago }}</span>
+            <ng-container *ngIf="esTransferencia(p)">
+              <span class="chip" [class.chip-ok]="p.pagoValidado" [class.chip-pend]="!p.pagoValidado">
+                {{ p.pagoValidado ? 'Pago validado' : 'Pago por validar' }}
+              </span>
+              <button type="button" class="pd-btn pd-btn-ghost" *ngIf="p.tieneVoucher" (click)="verVoucher(p)">Ver volante</button>
+              <span class="chip chip-pend" *ngIf="!p.tieneVoucher">Sin voucher</span>
+              <button
+                type="button"
+                class="pd-btn pd-btn-gold"
+                *ngIf="p.tieneVoucher && !p.pagoValidado"
+                [disabled]="validando === p.idPedidoOnline"
+                (click)="validarPago(p)">
+                {{ validando === p.idPedidoOnline ? 'Validando…' : 'Validar pago' }}
+              </button>
+            </ng-container>
             <span class="pd-driver" *ngIf="p.nombreRepartidor">{{ p.nombreRepartidor }}</span>
             <a class="pd-maps" *ngIf="mapsUrl(p)" [href]="mapsUrl(p)" target="_blank" rel="noopener">Maps</a>
           </footer>
+          <label class="pd-check" *ngIf="p.estadoLogistico !== 'Cancelado' && p.estadoLogistico !== 'Entregado'">
+            <input
+              type="checkbox"
+              [checked]="enCocina(p)"
+              [disabled]="enCocina(p) || enviandoCocina === p.idPedidoOnline || enviandoTodo"
+              (click)="enviarCocina(p, $event)" />
+            <span>{{ enCocina(p) ? 'En cocina' : 'Enviar a cocina' }}</span>
+          </label>
           <div class="asignar" *ngIf="!esRecoger(p) && p.estadoLogistico !== 'Entregado' && p.estadoLogistico !== 'Cancelado'">
             <select #sel [disabled]="asignando === p.idPedidoOnline">
               <option value="">Asignar a…</option>
@@ -138,4 +172,15 @@
       </section>
     </ng-container>
   </div>
+
 </ion-content>
+
+<div class="pd-voucher" *ngIf="voucherUrl" (click)="cerrarVoucher()">
+  <div class="pd-voucher-box" (click)="$event.stopPropagation()">
+    <header>
+      <strong>Volante {{ voucherTitulo }}</strong>
+      <button type="button" class="pd-btn pd-btn-ghost" (click)="cerrarVoucher()">Cerrar</button>
+    </header>
+    <img [src]="voucherUrl" alt="Volante de la transferencia" />
+  </div>
+</div>

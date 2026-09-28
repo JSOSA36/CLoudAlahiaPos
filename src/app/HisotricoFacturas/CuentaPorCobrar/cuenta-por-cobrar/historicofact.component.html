@@ -558,7 +558,7 @@
                 color="danger"
                 fill="solid"
                 *ngIf="puedeAnularFactura"
-                (click)="abrirAnulacion(iten)"
+                (click)="abrirAnulacion(iten); $event.stopPropagation()"
                 [disabled]="iten.estaCancelada">
 
                 <ion-icon

@@ -52,6 +52,15 @@
   font-weight: 500;
 }
 
+.mp-header .mp-cobrando-como {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mp-yellow);
+  letter-spacing: 0.01em;
+}
+
 /* ---------- Layout ---------- */
 .factura-card {
   background: transparent;
@@ -279,6 +288,46 @@ ion-segment-button {
 
 .facturacion-rnc-btn[disabled] {
   opacity: 0.55;
+}
+
+.ars-totales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ars-total {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--mp-blue-soft);
+  border: 1px solid rgba(20, 84, 184, 0.16);
+}
+
+.ars-total span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mp-muted);
+}
+
+.ars-total strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--mp-blue-dark);
+}
+
+.ars-total.cliente {
+  background: var(--mp-yellow-soft);
+  border-color: rgba(251, 185, 1, 0.45);
+}
+
+.ars-total.cliente strong {
+  color: #92400e;
 }
 
 .facturacion-hint {

@@ -12,6 +12,10 @@ from 'src/app/servicios/caja-cierre.service';
 
 import { ParametrosService }
 from 'src/app/servicios/parametros.service';
+import { PrintService }
+from 'src/app/servicios/print.services';
+import { ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 @Component({
 
   selector: 'app-listado-caja',
@@ -47,12 +51,16 @@ implements OnInit {
 
   idSucursalFiltro = 0;
 
+  reimprimiendoId = 0;
+
   constructor(
 
     private cajaCierreService:
       CajaCierreService,
     private _parametroService:
-      ParametrosService
+      ParametrosService,
+    private printService: PrintService,
+    private toastCtrl: ToastController
 
   ) { }
 
@@ -75,6 +83,40 @@ implements OnInit {
     this.fechaHasta = fecha;
 
     this.CargarListadoCaja();
+  }
+
+  idCierreDeFila(caja: any): number {
+    return Number(caja?.idCajaCierre ?? caja?.IdCajaCierre ?? 0) || 0;
+  }
+
+  async reimprimirCierre(caja: any): Promise<void> {
+    const id = this.idCierreDeFila(caja);
+    if (!id || this.reimprimiendoId) {
+      return;
+    }
+
+    this.reimprimiendoId = id;
+
+    try {
+      await firstValueFrom(this.printService.printCierre(id));
+      const toast = await this.toastCtrl.create({
+        message: 'Cierre enviado a la impresora.',
+        duration: 2500,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo imprimir. Verifica el agente de impresión.',
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+    } finally {
+      this.reimprimiendoId = 0;
+    }
   }
 
   /* =====================================

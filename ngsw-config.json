@@ -10,6 +10,12 @@
       "resources": {
         "files": [
           "/index.html",
+          "/manifest.webmanifest",
+          "/manifest.json",
+          "/icon-192.png",
+          "/icon-512.png",
+          "/web-app-manifest-192x192.png",
+          "/web-app-manifest-512x512.png",
           "/*.css",
           "/*.js"
         ]

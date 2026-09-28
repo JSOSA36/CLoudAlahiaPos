@@ -1,0 +1,93 @@
+<div class="mp-header">
+  <h2 class="mp-title">{{ esLote ? 'Cotejar cobro ARS' : 'Registrar pago ARS' }}</h2>
+  <p class="mp-subtitle">El dinero entra a la cuenta financiera de la forma de pago</p>
+  <p class="mp-cobrando-como">{{ nombreArs }}</p>
+</div>
+
+<ion-card class="factura-card">
+  <div class="factura-scroll">
+    <ion-card-content>
+      <div class="facturacion-box">
+        <p class="facturacion-title">{{ esLote ? (documentos.length + ' facturas') : 'Factura' }}</p>
+        <div class="ars-docs">
+          <div class="ars-doc" *ngFor="let d of documentos">
+            <div>
+              <strong>{{ d.numeroDocumento || ('FACT-' + d.idFacturaHeader) }}</strong>
+              <small>Cliente: {{ d.nombreCliente || '—' }}</small>
+            </div>
+            <span>RD$ {{ d.pendienteArs | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cobro-hero">
+        <div class="cobro-hero-head">
+          <p class="cobro-hero-title">Cobro</p>
+        </div>
+
+        <ion-item lines="none" class="cobro-field cobro-field-monto">
+          <ion-label position="stacked">Monto recibido</ion-label>
+          <ion-input
+            type="number"
+            [(ngModel)]="monto"
+            placeholder="RD$ 0.00"
+            [disabled]="procesando">
+          </ion-input>
+        </ion-item>
+        <ion-button fill="clear" size="small" class="btn-exacto" (click)="pagarExacto()" [disabled]="procesando">
+          Usar pendiente completo
+        </ion-button>
+
+        <p class="facturacion-title">Forma de pago (cuenta financiera)</p>
+        <div class="metodos-grid" *ngIf="metodos.length">
+          <button
+            type="button"
+            class="opcion"
+            *ngFor="let m of metodos"
+            [class.activa]="metodoPago === m.metodoPago"
+            (click)="seleccionar(m)"
+            [disabled]="procesando">
+            <strong>{{ m.metodoPago }}</strong>
+            <small>{{ etiquetaCuenta(m) }}</small>
+          </button>
+        </div>
+
+        <div class="cuenta-preview" *ngIf="nombreCuenta">
+          <ion-icon name="wallet-outline"></ion-icon>
+          <div>
+            <strong>{{ nombreCuenta }}</strong>
+            <small>Tesorería · cobro ARS {{ nombreArs }}</small>
+          </div>
+        </div>
+
+        <p class="facturacion-hint" *ngIf="!metodos.length && !cargando">
+          No hay formas de pago con cuenta financiera. Vaya a Métodos de pago, vincule el banco y active Cobro ARS.
+        </p>
+
+        <ion-item lines="none" class="cobro-field">
+          <ion-label position="stacked">Nota (opcional)</ion-label>
+          <ion-textarea
+            [(ngModel)]="nota"
+            autoGrow="true"
+            placeholder="Referencia de la ARS, lote o transferencia…"
+            [disabled]="procesando">
+          </ion-textarea>
+        </ion-item>
+      </div>
+    </ion-card-content>
+  </div>
+</ion-card>
+
+<ion-footer class="factura-footer">
+  <div class="total-footer">
+    <div class="total-label">Pendiente ARS</div>
+    <div class="total-value">RD$ {{ totalPendiente | number:'1.2-2' }}</div>
+    <div class="total-sub" *ngIf="nombreCuenta">Entra a {{ nombreCuenta }}</div>
+  </div>
+  <ion-button expand="block" class="mp-btn-primary" (click)="confirmar()" [disabled]="procesando || !metodos.length">
+    {{ procesando ? 'Procesando…' : (esLote ? 'Cotejar ' + documentos.length + ' facturas' : 'Registrar pago') }}
+  </ion-button>
+  <ion-button expand="block" fill="outline" class="mp-btn-cancel" (click)="cerrar()" [disabled]="procesando">
+    Cancelar
+  </ion-button>
+</ion-footer>

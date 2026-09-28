@@ -122,6 +122,14 @@
           </small>
         </div>
 
+        <div class="pa-toggle pa-field-full">
+          <div>
+            <strong>Maneja guarniciones</strong>
+            <p>Al agregarlo en el POS se elige la guarnición.</p>
+          </div>
+          <ion-toggle [(ngModel)]="form.manejaGuarniciones"></ion-toggle>
+        </div>
+
         <div class="pa-field pa-field-full" *ngIf="muestraComportamientoCompra">
           <label>Comportamiento ERP (compras)</label>
           <ion-select [(ngModel)]="form.tipoComportamiento" interface="popover">

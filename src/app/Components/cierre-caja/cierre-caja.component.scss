@@ -843,6 +843,18 @@ ion-textarea{
   }
 }
 
+.empty-card.empty-ok .empty-icon{
+
+  background:linear-gradient(
+    135deg,
+    #16a34a,
+    #15803d
+  );
+
+  box-shadow:
+    0 10px 25px rgba(22,163,74,.35);
+}
+
 .empty-title{
 
   font-size:32px;

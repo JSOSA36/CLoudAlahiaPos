@@ -160,6 +160,10 @@ import { ModalAsientoContableComponent } from './Components/modal-asiento-contab
 import { ContabilidadInicioComponent } from './Components/contabilidad-inicio/contabilidad-inicio.component';
 import { ProveedoresComponent } from './Proveedores/proveedores/proveedores.component';
 import { ProveedorFormComponent } from './Proveedores/proveedor-form/proveedor-form.component';
+import { ArsAseguradorasComponent } from './Ars/ars-aseguradoras/ars-aseguradoras.component';
+import { ArsFormComponent } from './Ars/ars-form/ars-form.component';
+import { ArsCuentasComponent } from './facturasporcobrar/ars-cuentas/ars-cuentas.component';
+import { ArsPagoModalComponent } from './facturasporcobrar/ars-pago-modal/ars-pago-modal.component';
 import { FacturasCompraComponent } from './Compras/facturas-compra/facturas-compra.component';
 import { FacturaCompraFormComponent } from './Compras/factura-compra-form/factura-compra-form.component';
 import { OrdenesCompraComponent } from './Compras/ordenes-compra/ordenes-compra.component';
@@ -332,6 +336,10 @@ import { FiltroSucursalConsultaComponent } from './shared/filtro-sucursal-consul
     CuentaContableSelectorComponent,
     ProveedoresComponent,
     ProveedorFormComponent,
+    ArsAseguradorasComponent,
+    ArsFormComponent,
+    ArsCuentasComponent,
+    ArsPagoModalComponent,
     FacturasCompraComponent,
     FacturaCompraFormComponent,
     OrdenesCompraComponent,

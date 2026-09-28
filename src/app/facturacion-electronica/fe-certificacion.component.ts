@@ -35,9 +35,17 @@ export class FeCertificacionComponent implements OnInit {
   empresas: EmpresaAdminListItem[] = [];
   idEmpresaLab = 0;
   pasoSel = 1;
+  private reanudarPaso = true;
+  private readonly keyEmpresaLab = 'certecf.idEmpresaLab';
   logDgii: { idCaso: number; encf: string; estado: string; hora: string; texto: string }[] = [];
   logActivo: { idCaso: number; encf: string; estado: string; hora: string; texto: string } | null = null;
   generandoRi = false;
+  generandoRiEncf = '';
+  generandoRiIdx = 0;
+  generandoRiTotal = 0;
+  riRevisadas = false;
+  private riEstado: Record<string, string> = {};
+  private riMensaje: Record<string, string> = {};
 
   constructor(
     private fe: FacturacionElectronicaService,
@@ -47,9 +55,22 @@ export class FeCertificacionComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.idEmpresaLab = this.parametro.IdEmpresa || this.parametro.GetIdEmpresa();
-    void this.cargarEmpresas();
-    void this.cargar();
+    const saved = Number(sessionStorage.getItem(this.keyEmpresaLab) || 0);
+    this.idEmpresaLab = saved || 0;
+    void this.iniciarLab();
+  }
+
+  private async iniciarLab(): Promise<void> {
+    await this.cargarEmpresas();
+    if (this.idEmpresaLab && !this.empresas.some(e => e.idEmpresa === this.idEmpresaLab))
+      this.idEmpresaLab = 0;
+    if (!this.idEmpresaLab) {
+      const sena = this.empresas.find(e => /sena/i.test(e.nombreComercial || ''));
+      this.idEmpresaLab = sena?.idEmpresa || this.empresas[0]?.idEmpresa || this.parametro.IdEmpresa || this.parametro.GetIdEmpresa();
+    }
+    if (this.idEmpresaLab)
+      sessionStorage.setItem(this.keyEmpresaLab, String(this.idEmpresaLab));
+    await this.cargar();
   }
 
   get idEmpresa(): number {
@@ -73,14 +94,34 @@ export class FeCertificacionComponent implements OnInit {
 
   async cargarEmpresas(): Promise<void> {
     try {
-      this.empresas = await firstValueFrom(this.empresasAdmin.listado()) || [];
+      const raw = await firstValueFrom(this.empresasAdmin.listado()) || [];
+      this.empresas = raw
+        .map((e: any) => ({
+          ...e,
+          idEmpresa: Number(e.idEmpresa ?? e.IdEmpresa ?? 0),
+          nombreComercial: e.nombreComercial || e.NombreComercial || '',
+          rnc: e.rnc || e.RNC || e.Rnc || ''
+        }))
+        .filter((e: EmpresaAdminListItem) => e.idEmpresa > 0)
+        .sort((a, b) => (a.nombreComercial || '').localeCompare(b.nombreComercial || '', 'es'));
     } catch {
       this.empresas = [];
     }
   }
 
+  idDeEmpresa(e: any): number {
+    return Number(e?.idEmpresa ?? e?.IdEmpresa ?? 0);
+  }
+
+  etiquetaEmpresa(e: any): string {
+    return e?.nombreComercial || e?.NombreComercial || 'Empresa';
+  }
+
   onEmpresaLab(id: number | string): void {
-    this.idEmpresaLab = Number(id) || 0;
+    const siguiente = Number(id) || 0;
+    if (!siguiente || siguiente === this.idEmpresaLab) return;
+    this.idEmpresaLab = siguiente;
+    sessionStorage.setItem(this.keyEmpresaLab, String(siguiente));
     this.logDgii = [];
     this.logActivo = null;
     this.certArchivo = null;
@@ -88,11 +129,29 @@ export class FeCertificacionComponent implements OnInit {
     this.postulacionXml = null;
     this.xmlFirmado = null;
     this.xmlFirmadoNombre = '';
+    this.reanudarPaso = true;
     void this.cargar();
   }
 
   seleccionarPaso(n: number): void {
     this.pasoSel = n;
+  }
+
+  private pasoDondeSeguir(lab: any): number {
+    const actual = Number(lab?.pasoActual || lab?.PasoActual) || 1;
+    const pasos = lab?.pasos || lab?.Pasos || [];
+    const sim = lab?.sesionSimulacion || lab?.SesionSimulacion;
+    const p5 = pasos.find((p: any) => Number(p.numero ?? p.Numero) === 5);
+    const p5Hecho = this.esHecho(p5?.estado || p5?.Estado);
+    if (sim && !p5Hecho) return 5;
+    if (actual > 1) return actual;
+    let last = 1;
+    for (const p of pasos) {
+      const n = Number(p.numero ?? p.Numero);
+      const est = p.estado || p.Estado;
+      if (est && est !== 'Pendiente' && n > last) last = n;
+    }
+    return last;
   }
 
   async cargar(silencioso = false): Promise<void> {
@@ -103,9 +162,19 @@ export class FeCertificacionComponent implements OnInit {
     if (!silencioso) this.cargando = true;
     try {
       this.lab = await firstValueFrom(this.fe.getCertecfEstado(this.idEmpresa));
-      const actual = Number(this.lab?.pasoActual) || 1;
-      if (!this.pasoSel || this.pasoSel < 1) this.pasoSel = actual;
+      if (this.idEmpresa) sessionStorage.setItem(this.keyEmpresaLab, String(this.idEmpresa));
+      const actual = this.pasoDondeSeguir(this.lab);
+      if (this.reanudarPaso || (this.pasoSel === 1 && actual > 1)) {
+        this.pasoSel = actual;
+        this.reanudarPaso = false;
+      } else if (!this.pasoSel || this.pasoSel < 1) {
+        this.pasoSel = actual;
+      }
       this.reconstruirLogDgii();
+      if (!silencioso) {
+        this.riEstado = {};
+        this.riMensaje = {};
+      }
     } catch (err: any) {
       if (!silencioso) this.lab = null;
       await this.toast(this.msg(err, 'No se pudo cargar el laboratorio CerteCF.'), 'danger');
@@ -505,15 +574,16 @@ export class FeCertificacionComponent implements OnInit {
   }
 
   private sesionActualizada(sesion: any): any | null {
-    const id = Number(sesion?.idSesion);
     const lab = this.lab;
     if (!lab) return sesion || null;
-    const pool = [lab.sesionActiva, lab.sesionAcecf, lab.sesionSimulacion];
-    if (id) {
-      const hit = pool.find((s: any) => s && Number(s.idSesion) === id);
-      if (hit) return hit;
-    }
-    return sesion || pool.find(Boolean) || null;
+    const tipo = String(sesion?.tipoSet || sesion?.TipoSet || '').toUpperCase();
+    if (tipo.includes('SIMUL') && lab.sesionSimulacion) return lab.sesionSimulacion;
+    if (tipo === 'ACECF' && lab.sesionAcecf) return lab.sesionAcecf;
+    if ((tipo === 'DATOS' || tipo === 'ECF' || !tipo) && lab.sesionActiva) return lab.sesionActiva;
+    const id = Number(sesion?.idSesion);
+    if (id && lab.sesionSimulacion && Number(lab.sesionSimulacion.idSesion) === id && sesion?.casos?.some((c: any) => (c.tipoPrueba || c.TipoPrueba) === 'SIMULACION'))
+      return lab.sesionSimulacion;
+    return sesion || lab.sesionSimulacion || lab.sesionAcecf || lab.sesionActiva || null;
   }
 
   private conteoAceptados(sesion: any): number {
@@ -630,35 +700,150 @@ export class FeCertificacionComponent implements OnInit {
 
   descargar(path: string, nombre?: string): void {
     this.fe.descargarCertecfArchivo(path).subscribe({
-      next: (blob) => this.bajarBlob(blob, nombre || (path.split('/').filter(Boolean).join('-') + '.xml')),
-      error: (err) => void this.toast(this.msg(err, 'No se pudo descargar.'), 'danger'),
+      next: (blob) => {
+        const type = (blob?.type || '').toLowerCase();
+        if (type.includes('json') || type.includes('text/plain')) {
+          void this.msgBlob({ error: blob }, 'No se pudo descargar.').then(m => this.toast(m, 'danger'));
+          return;
+        }
+        this.bajarBlob(blob, nombre || (path.split('/').filter(Boolean).join('-') + '.xml'));
+      },
+      error: (err) => void this.msgBlob(err, 'No se pudo descargar.').then(m => this.toast(m, 'danger')),
     });
   }
 
   descargarRi(idCaso: number, encf?: string): void {
-    this.descargar(`ri/${this.idEmpresa}/${idCaso}`, `RI-${encf || idCaso}.html`);
+    this.descargar(`ri/${this.idEmpresa}/${idCaso}`, `RI-${encf || idCaso}.pdf`);
   }
 
   async generarLoteRi(): Promise<void> {
+    const slots = this.slotsRi().filter(s => s.caso);
+    if (!slots.length) {
+      await this.toast('No hay e-CF de simulación para armar RI.', 'warning');
+      return;
+    }
     this.generandoRi = true;
+    this.generandoRiIdx = 0;
+    this.generandoRiTotal = slots.length;
+    this.generandoRiEncf = '';
+    const reset: Record<string, string> = {};
+    const msgs: Record<string, string> = {};
+    for (const s of this.slotsRi()) {
+      reset[s.clave] = s.caso ? 'Pendiente' : 'Error';
+      msgs[s.clave] = s.caso ? '' : 'Sin e-CF de simulación';
+    }
+    this.riEstado = reset;
+    this.riMensaje = msgs;
     try {
+      this.generandoRiEncf = 'Armando las 11 representaciones impresas';
       const lote = await firstValueFrom(this.fe.generarCertecfRiLote(this.idEmpresa));
-      if (lote?.ruta) {
-        if (this.lab) this.lab.rutaRi = lote.ruta;
+      await this.cargar(true);
+      const generados = lote?.slots || lote?.Slots || [];
+      const porClave = new Map<string, any>();
+      const porEncf = new Map<string, any>();
+      for (const g of generados) {
+        const clave = this.claveRiNorm(g.clave || g.Clave);
+        if (clave) porClave.set(clave, g);
+        const encf = String(g.encf || g.Encf || '').toUpperCase();
+        if (encf) porEncf.set(encf, g);
       }
-      const ok = (lote?.slots || []).filter((s: any) => s.qrListo).length;
-      const total = (lote?.slots || []).length;
+      let ok = 0;
+      for (const s of slots) {
+        this.generandoRiIdx++;
+        this.generandoRiEncf = s.caso.encf || s.etiqueta;
+        const hit = porClave.get(this.claveRiNorm(s.clave))
+          || porEncf.get(String(s.caso.encf || s.caso.Encf || '').toUpperCase());
+        const listo = !!(hit?.qrListo || hit?.QrListo) && this.qrRiValido(s);
+        const msgApi = hit?.mensaje || hit?.Mensaje || '';
+        if (listo) {
+          s.caso.qrListo = true;
+          s.caso.QrListo = true;
+          this.riEstado = { ...this.riEstado, [s.clave]: 'Para revisar' };
+          this.riMensaje = { ...this.riMensaje, [s.clave]: msgApi || 'PDF listo (mismo formato RI).' };
+          ok++;
+        } else {
+          const aceptado = this.esHechoCaso(s.caso);
+          this.riEstado = { ...this.riEstado, [s.clave]: aceptado ? 'Sin QR' : 'Error' };
+          this.riMensaje = {
+            ...this.riMensaje,
+            [s.clave]: msgApi || (aceptado
+              ? 'DGII Aceptó este e-CF, pero no quedó el QR de ese envío. No se fabrica uno falso.'
+              : 'No hay RI para este recuadro.')
+          };
+        }
+      }
+      this.riRevisadas = false;
       await this.toast(
-        total
-          ? `${ok}/${total} RI con QR en ${lote.ruta || this.rutaRi()}. Imprima cada HTML a PDF.`
-          : 'No hay e-CF de simulación para armar RI.',
-        ok === total && total ? 'success' : 'warning'
+        ok
+          ? `${ok}/11 RI en el escritorio (CerteCF-SUBIR-RI). Paso 5 no reenvía a DGII.`
+          : 'No se pudo armar ninguna RI. Paso 5 no reenvía a DGII.',
+        ok === slots.length ? 'success' : 'warning'
       );
     } catch (err: any) {
-      await this.toast(this.msg(err, 'No se pudieron generar las RI.'), 'danger');
+      await this.cargar(true);
+      await this.toast(await this.msgBlob(err, 'No se pudieron generar los 11 PDF.'), 'danger');
     } finally {
       this.generandoRi = false;
+      this.generandoRiEncf = '';
+      this.generandoRiIdx = 0;
     }
+  }
+
+  estadoRi(s: { clave: string; qrListo: boolean; caso: any }): string {
+    if (this.esRechazo(s.caso?.estado) || this.esFaseInvalida(s.caso)) return 'Rechazado';
+    if (this.qrRiValido(s)) return 'Para revisar';
+    const e = this.riEstado[s.clave];
+    if (e === 'Para revisar') return this.esHechoCaso(s.caso) ? 'Sin QR' : 'Error';
+    if (e && e !== 'Pendiente') return e;
+    if (this.esHechoCaso(s.caso)) return 'Sin QR';
+    return s.caso ? 'Pendiente' : 'Error';
+  }
+
+  mensajeRi(s: { clave: string; qrListo: boolean; caso: any }): string {
+    if (this.qrRiValido(s)) {
+      const mOk = this.riMensaje[s.clave];
+      return mOk || 'PDF listo. Revíselo antes de subir.';
+    }
+    const m = this.riMensaje[s.clave];
+    if (m && !/ri lista|pdf listo/i.test(m)) return m;
+    if (!s.caso) return 'Sin e-CF de simulación';
+    const msg = s.caso.mensaje || s.caso.Mensaje || '';
+    if (this.esRechazo(s.caso.estado) || this.esFaseInvalida(s.caso))
+      return msg || 'DGII rechazó este e-CF.';
+    if (this.esSecuenciaConsumida(msg))
+      return 'ConsultaTimbre lo tiene Rechazado o duplicado. No subir.';
+    if (this.esHecho(s.caso.estado) || this.esHechoCaso(s.caso))
+      return 'Sin QR del envío aceptado. Puede ver el PDF, pero no lo suba.';
+    return msg;
+  }
+
+  private qrRiValido(s?: { qrListo?: boolean; caso?: any } | null): boolean {
+    const c = s?.caso;
+    if (!c || this.esRechazo(c.estado) || this.esFaseInvalida(c)) return false;
+    if (!this.esHecho(c.estado) && !this.esHechoCaso(c)) return false;
+    if (this.esSecuenciaConsumida(c.mensaje || c.Mensaje)) return false;
+    const qr = String(c.urlQR || c.UrlQR || '');
+    return /^https?:\/\//i.test(qr);
+  }
+
+  private esFaseInvalida(c: any): boolean {
+    const t = `${c?.mensaje || ''} ${c?.Mensaje || ''} ${c?.respuestaDgii || ''}`.toLowerCase();
+    return t.includes('fase válid') || t.includes('fase valid') || t.includes('omitido');
+  }
+
+  hayRiGeneradas(): boolean {
+    return this.slotsRi().some(s => {
+      const e = this.estadoRi(s);
+      return e === 'Para revisar' || e === 'Enviado';
+    });
+  }
+
+  badgeRi(estado: string): string {
+    const e = (estado || '').toLowerCase();
+    if (e === 'enviado' || e === 'generado' || e === 'aceptado' || e === 'para revisar') return 'success';
+    if (e === 'error' || e === 'fallido' || e === 'rechazado') return 'danger';
+    if (e === 'enviando' || e === 'generando' || e === 'sin qr') return 'warning';
+    return 'medium';
   }
 
   rutaRi(): string {
@@ -667,9 +852,19 @@ export class FeCertificacionComponent implements OnInit {
       || 'C:\\Users\\USUARIO\\Desktop\\CerteCF-SUBIR-RI';
   }
 
+  private claveRiNorm(raw: string): string {
+    return String(raw || '').toLowerCase().replace(/^tipo-/, '').trim();
+  }
+
   slotsRi(): { clave: string; etiqueta: string; caso: any; qrListo: boolean }[] {
     const casos = this.lab?.sesionSimulacion?.casos || this.lab?.SesionSimulacion?.casos || [];
-    const pick = (pred: (c: any) => boolean) => casos.find(pred) || null;
+    const pick = (pred: (c: any) => boolean) => {
+      const hits = casos.filter(pred);
+      return hits.find((c: any) => this.esHechoCaso(c) && !this.esRechazo(c.estado) && !this.esFaseInvalida(c))
+        || hits.find((c: any) => !this.esRechazo(c.estado) && !this.esFaseInvalida(c))
+        || hits[0]
+        || null;
+    };
     const slot = (clave: string, etiqueta: string, pred: (c: any) => boolean) => {
       const caso = pick(pred);
       return {
@@ -680,17 +875,17 @@ export class FeCertificacionComponent implements OnInit {
       };
     };
     return [
-      slot('31', 'Tipo 31', c => Number(c.tipoEcf) === 31),
-      slot('32-250', 'Tipo 32 ≥ RD$250 mil', c => Number(c.tipoEcf) === 32 && Number(c.montoTotal) >= 250000),
-      slot('33', 'Tipo 33', c => Number(c.tipoEcf) === 33),
-      slot('34', 'Tipo 34', c => Number(c.tipoEcf) === 34),
-      slot('41', 'Tipo 41', c => Number(c.tipoEcf) === 41),
-      slot('43', 'Tipo 43', c => Number(c.tipoEcf) === 43),
-      slot('44', 'Tipo 44', c => Number(c.tipoEcf) === 44),
-      slot('45', 'Tipo 45', c => Number(c.tipoEcf) === 45),
-      slot('46', 'Tipo 46', c => Number(c.tipoEcf) === 46),
-      slot('47', 'Tipo 47', c => Number(c.tipoEcf) === 47),
-      slot('32-consumo', 'Tipo 32 < RD$250 mil', c => Number(c.tipoEcf) === 32 && Number(c.montoTotal) < 250000),
+      slot('tipo-31', 'Tipo 31', c => Number(c.tipoEcf) === 31 && String(c.encf || '').toUpperCase() !== 'E310000000009'),
+      slot('tipo-32-250mil', 'Tipo 32 ≥ RD$250 mil', c => Number(c.tipoEcf) === 32 && Number(c.montoTotal) >= 250000),
+      slot('tipo-33', 'Tipo 33', c => Number(c.tipoEcf) === 33),
+      slot('tipo-34', 'Tipo 34', c => Number(c.tipoEcf) === 34),
+      slot('tipo-41', 'Tipo 41', c => Number(c.tipoEcf) === 41),
+      slot('tipo-43', 'Tipo 43', c => Number(c.tipoEcf) === 43),
+      slot('tipo-44', 'Tipo 44', c => Number(c.tipoEcf) === 44),
+      slot('tipo-45', 'Tipo 45', c => Number(c.tipoEcf) === 45),
+      slot('tipo-46', 'Tipo 46', c => Number(c.tipoEcf) === 46),
+      slot('tipo-47', 'Tipo 47', c => Number(c.tipoEcf) === 47),
+      slot('tipo-32-consumo', 'Tipo 32 < RD$250 mil', c => Number(c.tipoEcf) === 32 && Number(c.montoTotal) < 250000),
     ];
   }
 

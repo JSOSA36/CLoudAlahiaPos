@@ -200,6 +200,14 @@
 
     </div>
 
+    <ion-item lines="none">
+      <ion-label>Usar en cobro ARS</ion-label>
+      <ion-toggle
+        [(ngModel)]="model.esCobroArs"
+        [disabled]="!model.idCuentaFinanciera">
+      </ion-toggle>
+    </ion-item>
+
     <!-- =====================================
     🔥 ESTADO
     ====================================== -->

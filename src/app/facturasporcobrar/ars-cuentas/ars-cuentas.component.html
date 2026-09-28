@@ -1,0 +1,241 @@
+<ion-header class="cxc-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="cxc-title-wrap">
+        <span>Cuentas por cobrar ARS</span>
+        <small *ngIf="!cargando">{{ documentosFiltrados.length }} documento(s)</small>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportarPdf()" [disabled]="cargando || exportandoPdf || !puedeExportar">
+        <ion-icon slot="start" name="document-outline"></ion-icon>
+        {{ exportandoPdf ? 'PDF…' : 'PDF' }}
+      </ion-button>
+      <ion-button routerLink="/ars">
+        <ion-icon slot="start" name="medkit-outline"></ion-icon>
+        Maestro ARS
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cxc-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="cxc-page" [class.has-selection-bar]="cantidadSeleccionada > 0">
+    <div class="cxc-toolbar">
+      <ion-segment [(ngModel)]="vista">
+        <ion-segment-button value="documentos">Documentos</ion-segment-button>
+        <ion-segment-button value="resumen">Por ARS</ion-segment-button>
+        <ion-segment-button value="antiguedad">Antigüedad</ion-segment-button>
+        <ion-segment-button value="ventas">Ventas</ion-segment-button>
+      </ion-segment>
+
+      <ion-select [(ngModel)]="idArs" (ionChange)="cargar()" interface="popover" placeholder="Todas las ARS">
+        <ion-select-option [value]="0">Todas las ARS</ion-select-option>
+        <ion-select-option *ngFor="let a of arsList" [value]="a.idArs">{{ a.nombre }}</ion-select-option>
+      </ion-select>
+
+      <ion-select [(ngModel)]="estado" (ionChange)="cargar()" interface="popover" placeholder="Estado">
+        <ion-select-option value="">Todos los estados</ion-select-option>
+        <ion-select-option value="Pendiente">Pendiente</ion-select-option>
+        <ion-select-option value="Parcial">Parcial</ion-select-option>
+        <ion-select-option value="Pagada">Pagada</ion-select-option>
+        <ion-select-option value="Anulada">Anulada</ion-select-option>
+      </ion-select>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Desde</ion-label>
+        <ion-input type="date" [(ngModel)]="fechaDesde" (ionChange)="cargar()"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label position="stacked">Hasta</ion-label>
+        <ion-input type="date" [(ngModel)]="fechaHasta" (ionChange)="cargar()"></ion-input>
+      </ion-item>
+
+      <ion-searchbar
+        [(ngModel)]="filtro"
+        placeholder="Buscar factura, cliente o ARS"
+        debounce="200">
+      </ion-searchbar>
+    </div>
+
+    <div class="cxc-summary" *ngIf="vista === 'documentos'">
+      <div class="cxc-summary-item">
+        <span class="label">Documentos</span>
+        <strong>{{ documentosFiltrados.length }}</strong>
+      </div>
+      <div class="cxc-summary-item pending">
+        <span class="label">Pendiente ARS</span>
+        <strong>{{ totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+      </div>
+      <button
+        type="button"
+        class="cxc-select-all"
+        *ngIf="documentosPendientes.length > 1"
+        (click)="toggleSeleccionarTodas()">
+        <ion-icon [name]="todasVisiblesSeleccionadas ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+        {{ todasVisiblesSeleccionadas ? 'Quitar selección' : 'Seleccionar todas' }}
+      </button>
+    </div>
+
+    <div class="cxc-loading" *ngIf="cargando">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando cuentas ARS…</p>
+    </div>
+
+    <ng-container *ngIf="!cargando && vista === 'documentos'">
+      <div class="cxc-empty" *ngIf="!documentosFiltrados.length">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <h3>No hay documentos ARS</h3>
+        <p>Cuando un servicio se cubra con ARS, la deuda aparecerá aquí a nombre de la aseguradora.</p>
+      </div>
+
+      <article
+        class="cxc-card"
+        *ngFor="let f of documentosFiltrados"
+        [class.selected]="estaSeleccionada(f)"
+        [class.has-pagos]="f.pagadoArs > 0">
+        <header class="cxc-card-top">
+          <div class="cxc-card-title-row">
+            <ng-container *ngIf="checkboxKey(f) as _">
+              <ion-checkbox
+                *ngIf="f.pendienteArs > 0"
+                [checked]="estaSeleccionada(f)"
+                (click)="$event.stopPropagation()"
+                (ionChange)="onSeleccionChange(f, $event)">
+              </ion-checkbox>
+            </ng-container>
+            <div>
+              <strong>{{ f.numeroDocumento || ('FACT-' + f.idFacturaHeader) }}</strong>
+              <span class="fecha">{{ f.fecha | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+          <span class="badge">{{ f.estadoArs || 'Pendiente' }}</span>
+        </header>
+        <div class="cxc-body">
+          <div class="cliente">
+            <ion-icon name="medkit-outline"></ion-icon>
+            <div>
+              <strong>{{ f.nombreArs }}</strong>
+              <small>Cliente: {{ f.nombreCliente || '—' }}</small>
+            </div>
+          </div>
+          <div class="montos">
+            <div class="monto cobertura">
+              <span class="label">Cobertura</span>
+              <strong>{{ f.montoCubiertoArs | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+            <div class="monto pagado">
+              <span class="label">Pagado</span>
+              <strong class="ok">{{ f.pagadoArs | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+            <div class="monto pendiente">
+              <span class="label">Pendiente</span>
+              <strong class="warn">{{ f.pendienteArs | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+        <footer class="cxc-actions">
+          <ion-button size="small" fill="outline" color="primary" (click)="verHistorial(f)">
+            <ion-icon slot="start" name="time-outline"></ion-icon>
+            Historial
+          </ion-button>
+          <ion-button size="small" color="success" (click)="cobrar(f)" [disabled]="f.pendienteArs <= 0">
+            <ion-icon slot="start" name="cash-outline"></ion-icon>
+            Registrar pago ARS
+          </ion-button>
+        </footer>
+        <div class="cxc-body" *ngIf="facturaHistorial === f.idFacturaHeader && historial.length">
+          <p *ngFor="let p of historial">
+            {{ p.fecha | date:'dd/MM/yyyy HH:mm' }} ·
+            {{ p.esCoberturaArs ? 'Cobertura' : p.formaPago }} ·
+            {{ p.monto | currency:'DOP':'symbol-narrow':'1.2-2' }}
+            <small *ngIf="p.nota"> — {{ p.nota }}</small>
+          </p>
+        </div>
+      </article>
+    </ng-container>
+
+    <ng-container *ngIf="!cargando && vista === 'resumen'">
+      <article class="cxc-card" *ngFor="let c of cuentas">
+        <header class="cxc-card-top">
+          <strong>{{ c.nombreArs }}</strong>
+          <span class="badge">{{ c.documentos }} doc.</span>
+        </header>
+        <div class="cxc-body">
+          <div class="montos">
+            <div class="monto cobertura">
+              <span class="label">Original</span>
+              <strong>{{ c.totalOriginal | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+            <div class="monto pagado">
+              <span class="label">Pagado</span>
+              <strong class="ok">{{ c.totalPagado | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+            <div class="monto pendiente">
+              <span class="label">Pendiente</span>
+              <strong class="warn">{{ c.totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    </ng-container>
+
+    <ng-container *ngIf="!cargando && vista === 'antiguedad'">
+      <article class="cxc-card" *ngFor="let a of antiguedad">
+        <header class="cxc-card-top">
+          <strong>{{ a.nombreArs }}</strong>
+          <span class="badge">{{ a.totalPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+        </header>
+        <div class="cxc-body">
+          <div class="montos montos-4">
+            <div class="monto cobertura"><span class="label">0-30</span><strong>{{ a.dias0A30 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto pagado"><span class="label">31-60</span><strong>{{ a.dias31A60 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto cobertura"><span class="label">61-90</span><strong>{{ a.dias61A90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto pendiente"><span class="label">+90</span><strong class="warn">{{ a.diasMas90 | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+          </div>
+        </div>
+      </article>
+    </ng-container>
+
+    <ng-container *ngIf="!cargando && vista === 'ventas'">
+      <article class="cxc-card" *ngFor="let v of ventas">
+        <header class="cxc-card-top">
+          <strong>{{ v.nombreArs }}</strong>
+          <span class="badge">{{ v.documentos }} venta(s)</span>
+        </header>
+        <div class="cxc-body">
+          <div class="montos montos-4">
+            <div class="monto cobertura"><span class="label">Ventas</span><strong>{{ v.totalVentas | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto cobertura"><span class="label">Cobertura</span><strong>{{ v.coberturaArs | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto pagado"><span class="label">Cliente</span><strong class="ok">{{ v.pagadoPaciente | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+            <div class="monto pendiente"><span class="label">Pendiente</span><strong class="warn">{{ v.pendienteArs | currency:'DOP':'symbol-narrow':'1.2-2' }}</strong></div>
+          </div>
+        </div>
+      </article>
+    </ng-container>
+  </div>
+</ion-content>
+
+<div class="cxc-selection-bar" *ngIf="cantidadSeleccionada > 0">
+  <div class="cxc-selection-info">
+    <strong>{{ cantidadSeleccionada }} factura(s) de {{ documentosSeleccionados[0]?.nombreArs }}</strong>
+    <span>{{ totalSeleccionPendiente | currency:'DOP':'symbol-narrow':'1.2-2' }}</span>
+  </div>
+  <div class="cxc-selection-actions">
+    <ion-button fill="clear" color="medium" (click)="limpiarSeleccion()">Quitar</ion-button>
+    <ion-button
+      color="success"
+      [disabled]="procesandoLote || cantidadSeleccionada < 1"
+      (click)="cotejarSeleccionadas()">
+      <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+      Cotejar seleccionadas
+    </ion-button>
+  </div>
+</div>

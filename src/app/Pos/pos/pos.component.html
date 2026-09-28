@@ -75,6 +75,22 @@
         <span class="btn-label btn-label-short">Cierre</span>
       </ion-button>
 
+      <ion-button
+        *ngIf="puedeCerrarCajaDesdePos"
+        class="btn-header-pos"
+        color="medium"
+        fill="outline"
+        (click)="reimprimirUltimoCierre()"
+        [disabled]="reimprimiendoCierre"
+        shape="round"
+        title="Reimprimir último cierre">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        <span class="btn-label btn-label-full">
+          {{ reimprimiendoCierre ? 'Imprimiendo…' : 'Reimprimir cierre' }}
+        </span>
+        <span class="btn-label btn-label-short">Reimp.</span>
+      </ion-button>
+
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar *ngIf="!isCartOpen" class="search-toolbar mobile-only">
@@ -509,6 +525,14 @@ class="right-panel"
           <div class="name">
             {{ item.nombre }}
           </div>
+
+          <select
+            *ngIf="item.manejaGuarniciones"
+            class="guarnicion-select"
+            [(ngModel)]="item.guarnicion">
+            <option value="">Sin guarnición</option>
+            <option *ngFor="let g of guarniciones" [value]="g.nombre">{{ g.nombre }}</option>
+          </select>
 
           <div class="precio-row">
 

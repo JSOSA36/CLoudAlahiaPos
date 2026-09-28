@@ -114,6 +114,10 @@ export interface PedidoDeliveryListado {
   latitud?: number | null;
   longitud?: number | null;
   metodoPago: string;
+  tieneVoucher?: boolean;
+  pagoValidado?: boolean;
+  fechaValidacionPago?: string | null;
+  enviadoCocina?: boolean;
   observacion?: string | null;
   total: number;
   estadoCocina: string;
@@ -138,6 +142,7 @@ export interface DeliveryRepartidor {
 export interface PedidoOnlineCanalEmpresa {
   idCanal: number;
   slug: string;
+  guidPublico?: string | null;
   nombrePublico: string;
   whatsApp?: string | null;
   activo: boolean;

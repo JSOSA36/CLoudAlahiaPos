@@ -178,6 +178,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'guarniciones',
+    loadChildren: () => import('./Guarniciones/guarniciones.module').then(m => m.GuarnicionesModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'area',
     loadChildren: () => import('./Areas/area/area.module').then(m => m.AreaModule),
     canActivate: [AuthGuard]
@@ -591,6 +596,11 @@ const routes: Routes = [
   {
     path: 'proveedores',
     loadChildren: () => import('./Proveedores/proveedores.module').then(m => m.ProveedoresModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'ars',
+    loadChildren: () => import('./Ars/ars.module').then(m => m.ArsModule),
     canActivate: [AuthGuard]
   },
   {

@@ -13,12 +13,12 @@
 
 <ion-content class="lab-page">
 
-  <div class="hint-box" *ngIf="!lab && !cargando">
+  <div class="hint-box" *ngIf="!lab && !cargando && !empresas.length">
     Entre con MacroBits, elija la empresa del cliente y en el paso 1 cargue el certificado .p12.
   </div>
-  <div class="center" *ngIf="cargando"><ion-spinner name="crescent"></ion-spinner></div>
+  <div class="center" *ngIf="cargando && !lab"><ion-spinner name="crescent"></ion-spinner></div>
 
-  <div class="lab-layout" *ngIf="lab && !cargando">
+  <div class="lab-layout" *ngIf="lab || empresas.length">
 
     <aside class="lab-steps">
       <div class="aside-brand">
@@ -27,21 +27,22 @@
         <p class="aside-sub">15 pasos oficiales</p>
       </div>
       <label class="empresa-lab" *ngIf="empresas.length">
-        Empresa
-        <select [ngModel]="idEmpresa" (ngModelChange)="onEmpresaLab($event)">
-          <option *ngFor="let e of empresas" [ngValue]="e.idEmpresa">
-            {{ e.nombreComercial }}
+        Empresa a certificar
+        <select [value]="idEmpresa" (change)="onEmpresaLab($any($event.target).value)">
+          <option *ngFor="let e of empresas" [value]="idDeEmpresa(e)">
+            {{ etiquetaEmpresa(e) }}
           </option>
         </select>
+        <em *ngIf="lab">CerteCF {{ lab.rnc || lab.Rnc }} · {{ lab.razonSocial || lab.RazonSocial || lab.nombreEmpresa }}</em>
       </label>
-      <div class="aside-progress">
+      <div class="aside-progress" *ngIf="lab">
         <div class="bar"><i [style.width.%]="progresoPct"></i></div>
         <span>{{ hechos }} de {{ lab.pasos?.length || 15 }} completados</span>
       </div>
       <button
         type="button"
         class="step"
-        *ngFor="let p of lab.pasos"
+        *ngFor="let p of lab?.pasos || []"
         [class.actual]="p.numero === pasoSel"
         [class.ok]="clasePaso(p) === 'ok'"
         [class.bad]="clasePaso(p) === 'bad'"
@@ -55,7 +56,9 @@
       </button>
     </aside>
 
-    <section class="lab-detail" *ngIf="paso">
+    <div class="center lab-detail" *ngIf="cargando && lab"><ion-spinner name="crescent"></ion-spinner></div>
+
+    <section class="lab-detail" *ngIf="lab && !cargando && paso">
       <div class="lab-hero">
         <div class="hero-left">
           <h1>{{ lab.nombreEmpresa }}</h1>
@@ -355,18 +358,30 @@
       <div class="panel" *ngIf="pasoSel === 5">
         <h3>Representación impresa</h3>
         <p class="hint">
-          El portal pide <strong>11 PDF</strong> (un recuadro por tipo), no una foto y no los 25 e-CF.
-          Es la factura impresa del e-CF del paso 4, con título «Electrónica», e-NCF y QR ConsultaTimbre.
+          El portal pide <strong>11 PDF</strong> (un recuadro por tipo). No HTML y no fotos.
+          CerteCF lee la <strong>Razón Social</strong> del contribuyente, no el nombre de muestra del Excel.
+        </p>
+        <div class="ri-preview">
+          <span>Razón social que se imprime</span>
+          <strong>{{ lab.razonSocial || lab.RazonSocial || 'Falta en configuración DGII' }}</strong>
+          <em *ngIf="lab?.rnc || lab?.Rnc">RNC emisor: {{ lab.rnc || lab.Rnc }}</em>
+          <em *ngIf="lab?.nombreEmpresa || lab?.NombreEmpresa">
+            Nombre comercial (otra línea): {{ lab.nombreEmpresa || lab.NombreEmpresa }}
+          </em>
+        </div>
+        <p class="hint aviso-dgii">
+          Después de generar, <strong>abra cada PDF</strong> y confirme razón social, e-NCF y QR.
+          No los suba al portal hasta terminar esa revisión.
         </p>
         <ng-container *ngIf="lab.sesionSimulacion">
           <div class="card-ruta">
             <div class="card-ruta-h">
               <div>
-                <strong>PDF para el portal</strong>
-                <span>Genere las 11 RI, ábralas en Chrome → Imprimir → Guardar como PDF. Suma ≤ 10 MB.</span>
+                <strong>PDF para revisar</strong>
+                <span>Paso 5 no reenvía a DGII. Arma la RI con el QR del e-CF que ya quedó Aceptado.</span>
               </div>
               <ion-button size="small" color="primary" (click)="generarLoteRi()" [disabled]="generandoRi">
-                {{ generandoRi ? 'Generando…' : 'Generar las 11 RI' }}
+                {{ generandoRi ? ('Armando RI ' + generandoRiIdx + '/' + generandoRiTotal + '…') : 'Generar las 11 RI' }}
               </ion-button>
             </div>
             <code class="ruta-path">{{ rutaRi() }}</code>
@@ -374,23 +389,35 @@
               Copiar ruta
             </ion-button>
           </div>
+          <p class="hint aviso-dgii" *ngIf="generandoRi">
+            Armando representaciones impresas: <strong>{{ generandoRiEncf || '…' }}</strong>. No se reenvía a DGII.
+          </p>
+          <label class="ri-check" *ngIf="hayRiGeneradas()">
+            <input type="checkbox" [(ngModel)]="riRevisadas" />
+            Ya revisé las 11 RI (razón social, e-NCF y QR). Todavía no las he subido al portal.
+          </label>
           <table class="casos">
-            <tr *ngFor="let s of slotsRi()">
-              <td>{{ s.etiqueta }}</td>
-              <td>{{ s.caso?.encf || '—' }}</td>
-              <td>
-                <ion-badge *ngIf="s.caso" [color]="s.qrListo ? 'success' : 'warning'">
-                  {{ s.qrListo ? 'QR listo' : 'Sin QR' }}
-                </ion-badge>
-              </td>
-              <td>
-                <ion-button size="small" color="primary" fill="outline"
-                  [disabled]="!s.caso"
-                  (click)="descargarRi(s.caso.idCaso, s.caso.encf)">
-                  Descargar HTML
-                </ion-button>
-              </td>
-            </tr>
+            <thead>
+              <tr><th>Tipo</th><th>e-NCF</th><th>Estado</th><th>Mensaje</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of slotsRi()"
+                  [class.actual]="generandoRi && s.caso?.encf === generandoRiEncf">
+                <td>{{ s.etiqueta }}</td>
+                <td>{{ s.caso?.encf || '—' }}</td>
+                <td>
+                  <ion-badge [color]="badgeRi(estadoRi(s))">{{ estadoRi(s) }}</ion-badge>
+                </td>
+                <td class="msg" [class.err]="estadoRi(s) === 'Error'" [title]="mensajeRi(s)">{{ mensajeRi(s) }}</td>
+                <td>
+                  <ion-button size="small" color="primary" fill="outline"
+                    [disabled]="!s.caso || estadoRi(s) === 'Enviando'"
+                    (click)="descargarRi(s.caso.idCaso, s.caso.encf)">
+                    Ver PDF
+                  </ion-button>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </ng-container>
         <p class="hint" *ngIf="!lab.sesionSimulacion">Primero genere y envíe la simulación del paso 4.</p>
@@ -458,8 +485,9 @@
         <ion-button
           color="primary"
           *ngIf="!paso.accionEnPortal && !esHecho(paso.estado) && pasoSel !== 2 && pasoSel !== 3 && pasoSel !== 4"
+          [disabled]="pasoSel === 5 && !riRevisadas"
           (click)="marcarPaso(paso.numero)">
-          Marcar paso hecho
+          {{ pasoSel === 5 && !riRevisadas ? 'Revise las RI primero' : 'Marcar paso hecho' }}
         </ion-button>
         <ion-button
           color="primary"
@@ -475,7 +503,7 @@
         <ion-button color="primary" (click)="enviarSiguiente(sesion)" [disabled]="!puedeEnviarActual(sesion) || enviandoId || enviandoRfce || enviandoTodo">
           {{ etiquetaEnviarActual(sesion) }}
         </ion-button>
-        <ion-button color="secondary" (click)="enviarTodo(sesion)" [disabled]="enviandoTodo || !puedeEnviarTodo(sesion)">
+        <ion-button color="primary" (click)="enviarTodo(sesion)" [disabled]="enviandoTodo || !puedeEnviarTodo(sesion)">
           {{ etiquetaEnviarTodo(sesion) }}
         </ion-button>
         <ion-button color="medium" fill="outline" *ngIf="enviandoTodo" (click)="detenerEnviarTodo()">

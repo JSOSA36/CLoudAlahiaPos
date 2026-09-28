@@ -70,6 +70,8 @@ implements OnInit {
 
     idCuentaFinanciera:null,
 
+    esCobroArs:false,
+
     activo:true
   };
 
@@ -113,6 +115,14 @@ implements OnInit {
 
     {
       nombre:'RESERVAS',
+
+      icono:'business-outline',
+
+      color:'#059669'
+    },
+
+    {
+      nombre:'BANRESERVAS',
 
       icono:'business-outline',
 

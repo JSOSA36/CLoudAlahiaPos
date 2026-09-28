@@ -11,6 +11,20 @@ export class SucursalService {
     private config: AppConfigService
   ) {}
 
+  yo(): Observable<{
+    idUsuario: number;
+    idEmpresa: number;
+    idSucursal: number;
+    userName: string;
+  }> {
+    return this.http.get<{
+      idUsuario: number;
+      idEmpresa: number;
+      idSucursal: number;
+      userName: string;
+    }>(`${this.config.apiUrl}/Sesion/yo`);
+  }
+
   listar(): Observable<SucursalSesion[]> {
     return this.http.get<any[]>(`${this.config.apiUrl}/Sucursales`).pipe(
       map(normalizarSucursalesSesion)

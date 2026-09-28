@@ -114,6 +114,7 @@ public PuedeAnularFactura: boolean = false;
   public IdFacturaHeader = 0;
   public IdFactPay = 0;
   public IdUsuario = 0;
+  private _escuchaSesion = false;
   public IdEmpleados = 0;
   public IdEmpresa = 0;
   public IdSucursal = 0;
@@ -315,6 +316,12 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     this.IdEmpresa = idEmpresa;
     this.IdPerfil = Number(rawUsuario?.idPerfil ?? rawUsuario?.IdPerfil ?? 0) || 0;
     this.esAdministrador = this.resolverEsAdministrador(rawUsuario, rol);
+    this.puedeEliminarOrden = !!(
+      rawUsuario?.puedeEliminarOrden || rawUsuario?.PuedeEliminarOrden || this.esAdministrador
+    );
+    this.PuedeAnularFactura = !!(
+      rawUsuario?.puedeAnularFactura || rawUsuario?.PuedeAnularFactura || this.esAdministrador
+    );
     if (this.IdPerfil) {
       localStorage.setItem('IdPerfil', String(this.IdPerfil));
     }
@@ -413,16 +420,30 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     return (this.sucursales || []).filter(s => s?.activa !== false).length > 1;
   }
 
+  /** Cajero: solo documentos con su IdSucursal. Admin: no recorta. */
+  documentosDeMiSucursal<T>(docs: T[]): T[] {
+    if (this.esAdministrador) return docs || [];
+    const mia = Number(this.IdSucursal) || 0;
+    if (mia <= 0) return [];
+    return (docs || []).filter(d => Number((d as any)?.idSucursal) === mia);
+  }
+
   setSucursalSesion(idSucursal: number, lista?: SucursalSesion[] | null): void {
     if (Array.isArray(lista)) {
       this.sucursales = normalizarSucursalesSesion(lista);
       try {
-        localStorage.setItem('sucursales', JSON.stringify(lista));
+        localStorage.setItem('sucursales', JSON.stringify(this.sucursales));
       } catch { /* ignore */ }
     }
     this.IdSucursal = Number(idSucursal) || 0;
+    if (!this.IdSucursal && this.sucursales.length) {
+      const unica = this.sucursales.length === 1
+        ? this.sucursales[0]
+        : this.sucursales.find(s => s.esDefault);
+      if (unica?.idSucursal) this.IdSucursal = unica.idSucursal;
+    }
     const actual = this.sucursales.find(s => s.idSucursal === this.IdSucursal);
-    this.nombreSucursal = actual?.nombre || this.nombreSucursal || '';
+    this.nombreSucursal = actual?.nombre || (this.IdSucursal ? this.nombreSucursal : '') || '';
     if (actual?.apiPrint) {
       this.ApiPrint = actual.apiPrint;
     }
@@ -431,6 +452,57 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
     }
     if (this.nombreSucursal) {
       localStorage.setItem('NombreSucursal', this.nombreSucursal);
+    }
+  }
+
+  /** Si otra pestaña inicia sesión, este tab toma el usuario persistido. */
+  iniciarEscuchaCambioSesion(): void {
+    if (this._escuchaSesion || typeof window === 'undefined') return;
+    this._escuchaSesion = true;
+    window.addEventListener('storage', (ev: StorageEvent) => {
+      if (!ev.key) return;
+      if (
+        ev.key !== 'IdUsuario'
+        && ev.key !== 'token_sesion'
+        && ev.key !== 'token'
+        && ev.key !== 'usuario'
+        && ev.key !== 'Usuario'
+      ) {
+        return;
+      }
+      this.IdUsuario = 0;
+      this.IdEmpresa = 0;
+      this.ensureSessionFromStorage();
+      this.aplicarUsuarioPersistido();
+      this.sessionStarted$.next();
+      this.refrescarMenu();
+    });
+  }
+
+  /** Alinea IdUsuario / correo con localStorage (no con memoria vieja del POS). */
+  aplicarUsuarioPersistido(): void {
+    const idLs = parseInt(localStorage.getItem('IdUsuario') ?? '0', 10) || 0;
+    const nombreLs = (localStorage.getItem('Usuario') || '').trim();
+    if (idLs > 0) this.IdUsuario = idLs;
+    if (nombreLs) this.UserName = nombreLs;
+    try {
+      const raw = localStorage.getItem('usuario');
+      if (!raw) return;
+      const u = JSON.parse(raw);
+      const idJson = Number(u?.idUsuario ?? u?.IdUsuario ?? 0) || 0;
+      if (idJson > 0) {
+        this.IdUsuario = idJson;
+        localStorage.setItem('IdUsuario', String(idJson));
+      }
+      const nomJson = String(
+        u?.correo ?? u?.Correo ?? u?.userName ?? u?.UserName ?? ''
+      ).trim();
+      if (nomJson) {
+        this.UserName = nomJson;
+        localStorage.setItem('Usuario', nomJson);
+      }
+    } catch {
+      /* ignore */
     }
   }
 
@@ -457,6 +529,12 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
         this.IdPerfil = Number(u?.idPerfil ?? u?.IdPerfil ?? this.IdPerfil) || this.IdPerfil;
         this.Rol = String(u?.nombrePerfil ?? u?.NombrePerfil ?? u?.rol ?? this.Rol ?? '');
         this.esAdministrador = this.resolverEsAdministrador(u, this.Rol);
+        this.puedeEliminarOrden = !!(
+          u?.puedeEliminarOrden || u?.PuedeEliminarOrden || this.esAdministrador
+        );
+        this.PuedeAnularFactura = !!(
+          u?.puedeAnularFactura || u?.PuedeAnularFactura || this.esAdministrador
+        );
         if (!this.UserName) this.UserName = String(u?.userName ?? u?.UserName ?? '');
         if (this.IdPerfil) localStorage.setItem('IdPerfil', String(this.IdPerfil));
       }
@@ -528,7 +606,7 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
 
     const aplicar = async (servidor: facturaheader[]) => {
       const locales = await this.posOffline.listarOrdenesLocales(idEmpresa);
-      this.ListadoOrdenes = [...locales, ...(servidor || [])];
+      this.ListadoOrdenes = [...this.documentosDeMiSucursal(locales), ...(servidor || [])];
       this.ExistCuenta = this.ListadoOrdenes.length > 0;
       this.Carga = false;
       this.OrdenesActualizadas$.next();

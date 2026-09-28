@@ -30,6 +30,11 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
   usuarioNuevo = 0;
   canal: PedidoOnlineCanalEmpresa | null = null;
   asignando: number | null = null;
+  validando: number | null = null;
+  enviandoCocina: number | null = null;
+  enviandoTodo = false;
+  voucherUrl: string | null = null;
+  voucherTitulo = '';
   private timer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
@@ -48,14 +53,22 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
     return Number(this.parametros.IdUsuario || localStorage.getItem('IdUsuario') || 0);
   }
 
+  get codigoPublico(): string {
+    const g = (this.canal?.guidPublico || '').trim();
+    if (!g || g === '00000000-0000-0000-0000-000000000000') return '';
+    return g;
+  }
+
   get urlPedir(): string {
-    const slug = (this.canal?.slug || '').trim();
-    if (!slug) return '';
-    return `${this.config.pedirPublicUrl.replace(/\/$/, '')}/${slug}`;
+    const codigo = this.codigoPublico;
+    if (!codigo) return '';
+    return `${this.config.pedirPublicUrl.replace(/\/$/, '')}/${codigo}`;
   }
 
   get urlReparto(): string {
-    return this.config.repartoPublicUrl.replace(/\/$/, '');
+    const codigo = this.codigoPublico;
+    if (!codigo) return '';
+    return `${this.config.repartoPublicUrl.replace(/\/$/, '')}/${codigo}`;
   }
 
   get hintPedir(): string {
@@ -92,6 +105,7 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    this.cerrarVoucher();
   }
 
   async cargar(silencio = false): Promise<void> {
@@ -159,6 +173,98 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
   abrir(url: string): void {
     if (!url) return;
     window.open(url, '_blank', 'noopener');
+  }
+
+  esTransferencia(p: PedidoDeliveryListado): boolean {
+    return (p.metodoPago || '').trim().toLowerCase().startsWith('transfer');
+  }
+
+  enCocina(p: PedidoDeliveryListado): boolean {
+    return !!p.enviadoCocina || !!(p.estadoCocina && p.estadoCocina.trim());
+  }
+
+  pendientesCocina(): PedidoDeliveryListado[] {
+    return this.pedidos.filter(p =>
+      p.estadoLogistico !== 'Cancelado'
+      && p.estadoLogistico !== 'Entregado'
+      && !this.enCocina(p));
+  }
+
+  async enviarCocina(p: PedidoDeliveryListado, ev: Event): Promise<void> {
+    ev.preventDefault();
+    if (this.enCocina(p) || this.enviandoCocina != null || this.enviandoTodo) return;
+    this.enviandoCocina = p.idPedidoOnline;
+    try {
+      await firstValueFrom(this.api.enviarCocina(this.idEmpresa, p.idPedidoOnline, this.idUsuario));
+      await this.cargar(true);
+      await this.toast('Orden enviada a cocina');
+    } catch (err: any) {
+      await this.toast(err?.error?.message || 'No se pudo enviar a cocina', 'danger');
+    } finally {
+      this.enviandoCocina = null;
+    }
+  }
+
+  async enviarTodoCocina(): Promise<void> {
+    const pendientes = this.pendientesCocina();
+    if (!pendientes.length || this.enviandoTodo) return;
+    this.enviandoTodo = true;
+    let enviados = 0;
+    let fallos = 0;
+    let motivo = '';
+    try {
+      for (const p of pendientes) {
+        try {
+          await firstValueFrom(this.api.enviarCocina(this.idEmpresa, p.idPedidoOnline, this.idUsuario));
+          enviados++;
+        } catch (err: any) {
+          fallos++;
+          motivo = err?.error?.message || motivo;
+        }
+      }
+      await this.cargar(true);
+      if (enviados && !fallos) {
+        await this.toast(enviados === 1 ? '1 pedido enviado a cocina' : `${enviados} pedidos enviados a cocina`);
+      } else if (enviados && fallos) {
+        await this.toast(`${enviados} enviados a cocina. ${fallos} no se pudieron enviar.${motivo ? ' ' + motivo : ''}`, 'danger');
+      } else {
+        await this.toast(motivo || 'No se pudo enviar la lista a cocina', 'danger');
+      }
+    } finally {
+      this.enviandoTodo = false;
+    }
+  }
+
+  async verVoucher(p: PedidoDeliveryListado): Promise<void> {
+    try {
+      const blob = await firstValueFrom(this.api.voucher(this.idEmpresa, p.idPedidoOnline));
+      this.cerrarVoucher();
+      this.voucherUrl = URL.createObjectURL(blob);
+      this.voucherTitulo = p.numeroPedido;
+    } catch {
+      await this.toast('No se pudo abrir el voucher', 'danger');
+    }
+  }
+
+  cerrarVoucher(): void {
+    if (this.voucherUrl) URL.revokeObjectURL(this.voucherUrl);
+    this.voucherUrl = null;
+    this.voucherTitulo = '';
+  }
+
+  async validarPago(p: PedidoDeliveryListado): Promise<void> {
+    this.validando = p.idPedidoOnline;
+    try {
+      const actualizado = await firstValueFrom(this.api.validarPago(this.idEmpresa, p.idPedidoOnline, this.idUsuario));
+      p.pagoValidado = !!actualizado?.pagoValidado;
+      p.fechaValidacionPago = actualizado?.fechaValidacionPago ?? p.fechaValidacionPago;
+      await this.cargar(true);
+      await this.toast('Pago validado');
+    } catch (err: any) {
+      await this.toast(err?.error?.message || 'No se pudo validar el pago', 'danger');
+    } finally {
+      this.validando = null;
+    }
   }
 
   async asignar(p: PedidoDeliveryListado, idUsuarioRepartidor: number): Promise<void> {

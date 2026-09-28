@@ -355,6 +355,11 @@ async nuevoMovimiento()
     this.router.navigate(['/reporteperdidas']);
   }
 
+  abrirReporteCruceStock(): void {
+
+    this.router.navigate(['/reportecrucestock']);
+  }
+
   nombreUsuario(
     item: MovimientosInventario | any
   ): string {

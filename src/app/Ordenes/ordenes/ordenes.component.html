@@ -121,9 +121,9 @@
             <ion-icon name="calendar-outline"></ion-icon>
             {{ iten.fechaBencimiento | date:'dd/MM/yyyy' }} {{iten.hora}}
           </div>
-          <div class="badge-sucursal" *ngIf="mostrarSucursalEnFila && iten.nombreSucursal">
+          <div class="badge-sucursal" *ngIf="nombreSucursalDe(iten) as sucursalOrden">
             <ion-icon name="storefront-outline"></ion-icon>
-            {{ iten.nombreSucursal }}
+            {{ sucursalOrden }}
           </div>
         </ion-label>
 
@@ -166,7 +166,7 @@
 
             <ion-button 
               *ngIf="puedeEliminarOrden"
-              (click)="EliminarFactura(iten.idFacturaHeader)"
+              (click)="EliminarFactura(iten.idFacturaHeader); $event.stopPropagation()"
               color="danger">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>

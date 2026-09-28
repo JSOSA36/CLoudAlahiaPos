@@ -1,0 +1,26 @@
+---
+description: En pases, no alterar perfiles, módulos, parámetros ni config ya existente de empresas
+alwaysApply: true
+---
+
+# Pases: no tocar configuración existente de empresas
+
+En todo **pase a prod** o SQL/seed asociado, está **prohibido** cambiar la configuración que cada empresa ya tiene, salvo pedido **explícito** del usuario (empresa concreta + qué cambiar).
+
+## No tocar (salvo pedido explícito)
+
+- Perfiles / PerfilRoles
+- Empresa_Modulos / licencias
+- Parámetros y flags de empresa
+- Usuarios, cupos y sucursales asignadas
+- Secuencias fiscales en uso
+- Maestros operativos ya configurados (pagos, cargos, almacenes, cajas, etc.)
+- `UPDATE`/`DELETE` masivos por tenant “para que el feature funcione”
+
+## Qué sí
+
+- Código FE/API con defaults seguros si falta un flag
+- Activar algo **solo** en empresas/perfiles que el usuario nombre
+- Fix puntual de una fila/empresa con autorización clara
+
+Detalle de módulos: ver regla `perfiles-no-regalar-modulos` en AlahiaPosApi.

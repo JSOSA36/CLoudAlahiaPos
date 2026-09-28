@@ -37,6 +37,14 @@
     "output": "./svg"
   },
   "src/manifest.webmanifest",
+  "src/manifest.json",
+  "src/icon-192.png",
+  "src/icon-512.png",
+  {
+    "glob": "web-app-manifest-*.png",
+    "input": "src/assets",
+    "output": "/"
+  },
   {
     "glob": "OneSignalSDKWorker.js",
     "input": "src",
@@ -44,11 +52,6 @@
   },
   {
     "glob": "OneSignalSDKUpdaterWorker.js",
-    "input": "src",
-    "output": "/"
-  },
-  {
-    "glob": "sw-custom.js",
     "input": "src",
     "output": "/"
   }

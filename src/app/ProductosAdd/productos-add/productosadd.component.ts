@@ -42,7 +42,8 @@ export class ProductosAddComponent implements OnInit {
     Itbis: false,
     codigoBarra: '',
     duracionServicio: 0,
-    disponibleEnCitas: true
+    disponibleEnCitas: true,
+    manejaGuarniciones: false
   };
 
   imagenFile: File | null = null;
@@ -98,7 +99,8 @@ export class ProductosAddComponent implements OnInit {
         Itbis: !!this.producto.itbis,
         codigoBarra: this.producto.codigoBarra,
         duracionServicio: this.producto.duracionServicio || 0,
-        disponibleEnCitas: this.producto.disponibleEnCitas ?? true
+        disponibleEnCitas: this.producto.disponibleEnCitas ?? true,
+        manejaGuarniciones: !!this.producto.manejaGuarniciones
       };
       this.imagenPreview = this.producto.imagen1 || null;
     }
@@ -195,6 +197,7 @@ export class ProductosAddComponent implements OnInit {
     formData.append('idArea', String(this.form.idArea || 0));
     formData.append('duracionServicio', String(this.form.duracionServicio || 0));
     formData.append('disponibleEnCitas', String(this.form.disponibleEnCitas ?? true));
+    formData.append('manejaGuarniciones', String(!!this.form.manejaGuarniciones));
     formData.append('Itbis', String(this.form.Itbis ?? false));
     formData.append('isActivo', String(this.form.isActivo ?? true));
     formData.append('esServicio', String(esServicio));

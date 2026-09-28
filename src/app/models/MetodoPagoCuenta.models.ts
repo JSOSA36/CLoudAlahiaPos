@@ -15,5 +15,7 @@ export interface MetodoPagoCuenta {
 
   activo:boolean;
 
+  esCobroArs?: boolean;
+
   cuentaFinanciera?:any;
 }

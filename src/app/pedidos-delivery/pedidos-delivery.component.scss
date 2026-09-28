@@ -172,9 +172,49 @@
   color: var(--pd-navy);
 }
 
-.chip.off {
+.chip.off, .chip-pend {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.chip-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pd-voucher {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pd-voucher-box {
+  width: min(520px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    border-radius: 12px;
+    background: #f8fafc;
+  }
 }
 
 .pd-card ul {
@@ -252,6 +292,33 @@
 
 .pd-error { color: #b91c1c; }
 .pd-state { color: #64748b; text-align: center; padding: 1.5rem 0; }
-.pd-hint { color: #475569; font-size: 0.85rem; margin: 0 0 10px; }
+.pd-hint { color: #475569; font-size: 0.85rem; margin: 0; }
+
+.pd-cocina-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+
+  .pd-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+.pd-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-weight: 800;
+  color: var(--pd-navy);
+
+  input {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
 .obs { color: #475569; font-style: italic; margin: 6px 0 0; }
 .cliente { margin: 10px 0 2px; font-weight: 700; color: #0f172a; }

@@ -1,0 +1,21 @@
+---
+description: Un pase al VPS solo sube lo que ya está en git. No publicar el árbol local sucio encima del servidor.
+alwaysApply: true
+---
+
+# Pases: no pisar lo que ya está en el servidor
+
+El 28-sep-2026 se publicó al VPS el árbol local sin commitear (API + frontend). Eso reemplazó el sitio vivo con todo lo que había en el disco, no con un cambio acotado.
+
+## Prohibido
+
+- `dotnet publish` / `ng build` / `robocopy` al VPS desde archivos **sin commit**.
+- Subir el working tree sucio “porque es lo que está corriendo en localhost”.
+- Un DLL o un `www` que mezcle el arreglo pedido con Pedir, KDS, guarniciones u otro trabajo local no pedido.
+
+## Qué sí
+
+- Lo que se sube es un **commit** (o una lista de archivos que el usuario nombró y que ya están en git).
+- Si pide **súbelo** y el cambio no está en git: **parar** y decirlo. No publicar el disco.
+- El usuario commitea a git (diario si hace falta). El pase sale de ese commit.
+- Siguen vigentes `pases-produccion-el-agente`, `pases-impacto-y-pruebas` y `pases-no-tocar-config-empresas`.

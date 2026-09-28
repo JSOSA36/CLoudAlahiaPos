@@ -38,28 +38,56 @@
 
   *ngIf="!validandoCaja && !cajaAbierta">
 
-  <div class="empty-card">
+  <div class="empty-card" [class.empty-ok]="cajaRecienCerrada">
 
     <div class="empty-icon">
 
       <ion-icon
-        name="lock-closed-outline">
+        [name]="cajaRecienCerrada ? 'checkmark-circle-outline' : 'lock-closed-outline'">
       </ion-icon>
 
     </div>
 
     <h1 class="empty-title">
-      No hay caja abierta
+      {{ cajaRecienCerrada ? 'Caja cerrada' : 'No hay caja abierta' }}
     </h1>
 
-    <p class="empty-text">
-
-      Debes aperturar una caja antes
-      de poder realizar un cierre.
-
+    <p class="empty-text" *ngIf="cajaRecienCerrada">
+      El ticket se envió a la impresora. Si no salió, reimprímelo antes de salir.
     </p>
 
-    
+    <p class="empty-text" *ngIf="!cajaRecienCerrada && ultimoCierreId">
+      No hay una caja abierta. Puedes reimprimir el último cierre que hiciste
+      <span *ngIf="ultimoCierreFecha">
+        ({{ ultimoCierreFecha | date:'short' }})
+      </span>.
+    </p>
+
+    <p class="empty-text" *ngIf="!cajaRecienCerrada && !ultimoCierreId">
+      Debes aperturar una caja antes de poder realizar un cierre.
+    </p>
+
+    <div class="empty-actions" *ngIf="ultimoCierreId || cajaRecienCerrada">
+
+      <ion-button
+        *ngIf="ultimoCierreId"
+        class="btn-abrir"
+        (click)="reimprimirUltimoCierre()"
+        [disabled]="reimprimiendoCierre">
+        <ion-icon name="print-outline" slot="start"></ion-icon>
+        {{ reimprimiendoCierre ? 'Imprimiendo…' : 'Reimprimir último cierre' }}
+      </ion-button>
+
+      <ion-button
+        *ngIf="cajaRecienCerrada"
+        class="btn-volver"
+        fill="outline"
+        color="medium"
+        (click)="cerrarSesionTrasCierre()">
+        Cerrar sesión
+      </ion-button>
+
+    </div>
 
   </div>
 
@@ -128,6 +156,19 @@
   </strong>
 
 </div>
+
+  <div class="line" *ngIf="totalArsCierre > 0" style="font-size: 0.78rem; opacity: 0.8;">
+    <span>ARS = cobertura facturada, no dinero en caja</span>
+    <strong></strong>
+  </div>
+
+  <div
+    class="line"
+    *ngFor="let item of desgloseArs"
+    style="padding-left: 12px;">
+    <span>{{ item.nombreArs }}</span>
+    <strong>{{ item.total | currency:'DOP' }}</strong>
+  </div>
 
   <div class="line">
     <span>Gastos Caja</span>

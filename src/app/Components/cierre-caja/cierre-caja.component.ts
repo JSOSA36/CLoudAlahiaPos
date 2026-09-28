@@ -9,7 +9,8 @@ import {
 import {PrintService} from 'src/app/servicios/print.services';
 
 import {
-  AlertController
+  AlertController,
+  ToastController
 } from '@ionic/angular';
 
 import {
@@ -29,6 +30,8 @@ import {
   CajaAperturaService
 } from 'src/app/servicios/caja-apertura.service';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { ArsAseguradoraService } from 'src/app/servicios/ars-aseguradora.service';
+import { ArsDesgloseCaja } from 'src/app/models/ars-aseguradora';
 import { firstValueFrom } from 'rxjs';
 
 type Denominacion = {
@@ -56,10 +59,19 @@ implements OnInit {
   ====================================== */
 
   ingresos:any[] = [];
+  desgloseArs: ArsDesgloseCaja[] = [];
 
   cajaAbierta:any = null;
   totalDescuento = 0;
   validandoCaja = true;
+
+  cajaRecienCerrada = false;
+
+  ultimoCierreId = 0;
+
+  ultimoCierreFecha: string | null = null;
+
+  reimprimiendoCierre = false;
 
   entradasEfectivo = 0;
 
@@ -99,6 +111,10 @@ implements OnInit {
 
     private alertCtrl:
       AlertController,
+
+    private toastCtrl:
+      ToastController,
+
       private printService:
     PrintService,
 
@@ -109,7 +125,8 @@ implements OnInit {
       CajaAperturaService,
       private _facturaHeaderService:
       FacturaHeaderService,
-    private parametroConfig: ParametroConfigService
+    private parametroConfig: ParametroConfigService,
+    private arsService: ArsAseguradoraService
 
   ){}
 
@@ -227,6 +244,8 @@ implements OnInit {
 
           this.validandoCaja = false;
 
+          this.CargarUltimoCierre();
+
           return;
         }
 
@@ -242,8 +261,83 @@ implements OnInit {
         this.cajaAbierta = null;
 
         this.validandoCaja = false;
+
+        this.CargarUltimoCierre();
       }
     });
+  }
+
+  private idCierreDeRespuesta(resp: any): number {
+    return Number(
+      resp?.idCajaCierre
+      ?? resp?.IdCajaCierre
+      ?? resp?.data?.idCajaCierre
+      ?? resp?.data?.IdCajaCierre
+      ?? 0
+    ) || 0;
+  }
+
+  CargarUltimoCierre(): void {
+    const idEmpresa = this.parametrosService.GetIdEmpresa();
+    const idUsuario = this.parametrosService.IdUsuario;
+
+    if (!idEmpresa || !idUsuario) {
+      this.ultimoCierreId = 0;
+      this.ultimoCierreFecha = null;
+      return;
+    }
+
+    this.cajaCierreService
+      .getUltimoCierre(idEmpresa, idUsuario)
+      .subscribe({
+        next: (resp: any) => {
+          this.ultimoCierreId = this.idCierreDeRespuesta(resp);
+          const fecha = resp?.fechaCierre ?? resp?.FechaCierre ?? null;
+          this.ultimoCierreFecha = fecha ? String(fecha) : null;
+        },
+        error: () => {
+          this.ultimoCierreId = 0;
+          this.ultimoCierreFecha = null;
+        }
+      });
+  }
+
+  async reimprimirUltimoCierre(): Promise<void> {
+    if (!this.ultimoCierreId || this.reimprimiendoCierre) {
+      return;
+    }
+
+    this.reimprimiendoCierre = true;
+
+    try {
+      await firstValueFrom(
+        this.printService.printCierre(this.ultimoCierreId)
+      );
+
+      const toast = await this.toastCtrl.create({
+        message: 'Cierre enviado a la impresora.',
+        duration: 2500,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo imprimir. Verifica el agente de impresión e inténtalo de nuevo.',
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+    } finally {
+      this.reimprimiendoCierre = false;
+    }
+  }
+
+  cerrarSesionTrasCierre(): void {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace('/login');
   }
 
   /* =====================================
@@ -277,6 +371,7 @@ CargarIngresos(): void {
         );
 
         this.ingresos = res || [];
+        this.cargarDesgloseArs();
 
         // =====================================
         // 🔥 DESCUENTOS
@@ -485,6 +580,23 @@ get metodosPagoResumen(): any[] {
 
   return this.ingresos
     .filter(x => Number(x.total || 0) > 0);
+}
+
+get totalArsCierre(): number {
+  return (this.desgloseArs || []).reduce((s, x) => s + Number(x.total || 0), 0);
+}
+
+private cargarDesgloseArs(): void {
+  const idEmpresa = this.parametrosService.GetIdEmpresa();
+  const idUsuario = this.parametrosService.IdUsuario;
+  if (!idEmpresa || !idUsuario) {
+    this.desgloseArs = [];
+    return;
+  }
+  this.arsService.desgloseCaja(idEmpresa, idUsuario).subscribe({
+    next: (rows) => this.desgloseArs = rows || [],
+    error: () => this.desgloseArs = []
+  });
 }
  get totalGeneral(): number {
 
@@ -768,18 +880,17 @@ const payload = {
     next: async (resp:any)=>{
 
       const idCajaCierre =
-        resp?.data?.idCajaCierre;
+        this.idCierreDeRespuesta(resp);
 
       console.log(
         'CIERRE OK:',
         resp
       );
 
-      // =====================================
-      // 🔥 INTENTAR IMPRIMIR
-      // =====================================
-
       if(idCajaCierre){
+
+        this.ultimoCierreId = idCajaCierre;
+        this.ultimoCierreFecha = new Date().toISOString();
 
         this.printService
         .printCierre(idCajaCierre)
@@ -803,10 +914,6 @@ const payload = {
         });
       }
 
-      // =====================================
-      // 🔥 CONTINUAR SIEMPRE
-      // =====================================
-
       localStorage.removeItem(
         'CAJA_ABIERTA'
       );
@@ -823,24 +930,9 @@ const payload = {
         payload
       );
 
-      await this.MostrarAlerta(
+      this.cajaAbierta = null;
+      this.cajaRecienCerrada = true;
 
-  'Caja Cerrada',
-
-  'La caja fue cerrada correctamente'
-);
-
-// =====================================
-// 🔥 CERRAR SESIÓN
-// =====================================
-
-localStorage.clear();
-
-sessionStorage.clear();
-
-window.location.replace('/login');
-
-      // window.location.href = '/login';
     },
 
     error: async (err)=>{

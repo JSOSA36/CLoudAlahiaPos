@@ -14,6 +14,10 @@
         <ion-icon slot="start" name="document-text-outline"></ion-icon>
         Estado de cuenta
       </ion-button>
+      <ion-button *ngIf="usarArs" (click)="irCuentasArs()">
+        <ion-icon slot="start" name="medkit-outline"></ion-icon>
+        ARS
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

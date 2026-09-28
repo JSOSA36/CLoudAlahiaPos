@@ -199,6 +199,7 @@ export class FeConfiguracionComponent implements OnInit {
         this.certNombre = res?.nombreArchivo || '';
         this.certFechaExp = res?.fechaExpiracion || '';
         this.certVencido = !!res?.vencido;
+        this.certPassword = res?.password || '';
         this.cargandoCertificado = false;
       },
       error: () => { this.cargandoCertificado = false; }

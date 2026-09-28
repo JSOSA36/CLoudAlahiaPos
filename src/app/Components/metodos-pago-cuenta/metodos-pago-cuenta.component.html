@@ -139,6 +139,20 @@
 
       </ion-item>
 
+      <ion-item lines="none">
+        <ion-label>
+          Cobro ARS
+        </ion-label>
+        <ion-toggle
+          [(ngModel)]="item.esCobroArs"
+          [disabled]="!item.idCuentaFinanciera">
+        </ion-toggle>
+      </ion-item>
+      <p class="hint-ars" *ngIf="item.esCobroArs">
+        Al cotejar ARS, el pago entra a
+        {{ GetNombreCuenta(item.idCuentaFinanciera) || 'esta cuenta' }}.
+      </p>
+
       <!-- =====================================
       🔥 BOTON
       ====================================== -->

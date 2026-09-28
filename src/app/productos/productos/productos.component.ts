@@ -170,7 +170,7 @@ filtrarProductos(): void {
 
   aplicarFiltros(): void {
 
-    let lista = [...this.ListadoProductos];
+    let lista = this.ListadoProductos.filter(p => p.isActivo !== false);
 
     const texto =
       (this.filtro || '')
@@ -412,7 +412,7 @@ console.log('Productos cargados:', res);
       .DeleteIten(producto.idProducto)
       .subscribe({
 
-        next: async () => {
+        next: async (res: any) => {
 
           this.ListadoProductos =
             this.ListadoProductos.filter(
@@ -428,7 +428,8 @@ console.log('Productos cargados:', res);
             await this.toastCtrl.create({
 
               message:
-                `Producto "${producto.nombre}" eliminado ✅`,
+                res?.message
+                || `Producto "${producto.nombre}" eliminado ✅`,
 
               duration: 2000,
 

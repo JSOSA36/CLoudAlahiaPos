@@ -48,6 +48,7 @@ export class AnularFacturaComponent {
         this.facturaHeaderService.AnularFactura({
           idFacturaHeader: this.factura.idFacturaHeader,
           idEmpresa: this.parametros.GetIdEmpresa(),
+          idUsuario: this.parametros.IdUsuario || 0,
           motivoAnulacion: motivo,
           usuarioAnulo: this.parametros.UserName || ''
         })
@@ -56,9 +57,10 @@ export class AnularFacturaComponent {
       await this.toast('Factura anulada correctamente');
       this.modalCtrl.dismiss({ refresh: true });
     } catch (error: any) {
-      const mensaje =
-        error?.error
-        || 'No se pudo anular la factura';
+      const raw = error?.error;
+      const mensaje = typeof raw === 'string'
+        ? raw
+        : (raw?.message || 'No se pudo anular la factura');
 
       await this.toast(String(mensaje));
     } finally {

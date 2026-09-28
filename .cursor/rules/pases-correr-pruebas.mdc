@@ -1,0 +1,14 @@
+---
+description: Antes de un pase a prod, correr las pruebas de AlahiaPosApi (pre-pase.ps1). Si fallan, no publicar.
+alwaysApply: true
+---
+
+# Pases: correr pruebas antes de publicar
+
+Si el usuario pide **pase a prod** / **súbelo**:
+
+1. Desde el repo API (`AlahiaPosApi`): `powershell -ExecutionPolicy Bypass -File .\Scripts\pre-pase.ps1`
+2. Si **falla: no publicar**.
+3. Si pasa: impacto + no tocar config de empresas, y recién entonces IIS.
+
+Proyecto de contratos vivo: `AlahiaPosApi/AlahiaPosApi.Pase.Tests`.

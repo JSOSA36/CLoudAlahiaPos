@@ -246,7 +246,10 @@ implements OnInit {
           next:(metodosResp:any[])=>{
 
             this.metodos =
-              metodosResp || [];
+              (metodosResp || []).map((m: any) => ({
+                ...m,
+                esCobroArs: !!(m.esCobroArs ?? m.EsCobroArs)
+              }));
 
             this.GenerarMetodosFaltantes();
 
@@ -313,6 +316,8 @@ implements OnInit {
 
           idCuentaFinanciera:null,
 
+          esCobroArs: false,
+
           activo:true
         });
       }
@@ -346,6 +351,9 @@ implements OnInit {
 
       idCuentaFinanciera:
         item.idCuentaFinanciera,
+
+      esCobroArs:
+        !!item.esCobroArs,
 
       activo:
         item.activo

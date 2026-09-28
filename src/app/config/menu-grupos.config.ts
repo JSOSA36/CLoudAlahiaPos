@@ -110,6 +110,16 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     ]
   },
   {
+    id: 'ars',
+    titulo: 'ARS',
+    icono: 'briefcase-medical',
+    orden: 3.5,
+    modulos: [
+      'ARS',
+      'ARS_CXC'
+    ]
+  },
+  {
     id: 'inventario',
     titulo: 'Inventario',
     icono: 'box-open',
@@ -117,6 +127,7 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
     modulos: [
       'CATEGORIAS',
       'PRODUCTOS',
+      'GUARNICIONES',
       'ALMACENES',
       'MOVIMIENTO_INVENTARIO',
       'CONDUCES',
@@ -282,6 +293,8 @@ export const MENU_GRUPOS: MenuGrupoConfig[] = [
 export const MODULO_TITULOS_MENU: Record<string, string> = {
   CUENTAS_COBRAR: 'Facturas por cobrar',
   CLIENTES: 'Clientes',
+  ARS: 'Aseguradoras',
+  ARS_CXC: 'Cuentas por cobrar',
   NOTAS_CREDITO: 'Notas de Crédito',
   ANTIGUEDAD_CXC: 'Antigüedad CxC',
   ANTIGUEDAD_CXP: 'Antigüedad CxP',

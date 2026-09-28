@@ -7,6 +7,9 @@
   <p class="mp-subtitle">
     {{ _TipoFactura === 'Credito' ? 'Facturación a crédito' : 'Facturación y cobro' }}
   </p>
+  <p class="mp-cobrando-como" *ngIf="usuarioSesionCobro">
+    Cobrando como {{ usuarioSesionCobro }}
+  </p>
 </div>
 
 <ion-card class="factura-card">
@@ -156,13 +159,51 @@
         </div>
       </div>
 
-      <!-- Cobro: solo Contado -->
-      <div class="cobro-hero" *ngIf="_TipoFactura === 'Contado'">
+      <div class="facturacion-box" *ngIf="usarArsEmpresa">
+        <p class="facturacion-title">Cobertura ARS</p>
+        <ion-item lines="none" class="facturacion-item">
+          <ion-label position="stacked">ARS</ion-label>
+          <ion-select
+            [(ngModel)]="idArs"
+            (ionChange)="onCoberturaArsChange()"
+            interface="popover"
+            placeholder="Sin cobertura ARS">
+            <ion-select-option [value]="0">Sin cobertura ARS</ion-select-option>
+            <ion-select-option *ngFor="let a of arsList" [value]="a.idArs">
+              {{ a.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" class="facturacion-item" *ngIf="idArs">
+          <ion-label position="stacked">Monto cubierto por ARS</ion-label>
+          <ion-input
+            type="number"
+            [(ngModel)]="montoCubiertoArs"
+            (ngModelChange)="onCoberturaArsChange()"
+            (ionInput)="onCoberturaArsChange($event)"
+            (ionChange)="onCoberturaArsChange($event)"
+            placeholder="RD$ 0.00">
+          </ion-input>
+        </ion-item>
+        <div class="ars-totales" *ngIf="idArs">
+          <div class="ars-total cobertura">
+            <span>Total cobertura</span>
+            <strong>RD$ {{ coberturaArsAplicar | number:'1.2-2' }}</strong>
+          </div>
+          <div class="ars-total cliente">
+            <span>Total a pagar cliente</span>
+            <strong>RD$ {{ restanteCliente | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cobro del cliente: solo Contado y si queda restante tras ARS -->
+      <div class="cobro-hero" *ngIf="_TipoFactura === 'Contado' && (restanteCliente > 0.009 || montoCargoPago > 0)">
         <div class="cobro-hero-head">
           <p class="cobro-hero-title">Cobro</p>
         </div>
 
-        <ion-item lines="none" class="cobro-check" *ngIf="restanteTrasNc > 0 || montoCargoPago > 0">
+        <ion-item lines="none" class="cobro-check" *ngIf="restanteCliente > 0 || montoCargoPago > 0">
           <ion-checkbox
             slot="start"
             [(ngModel)]="_PagoMixto"
@@ -173,7 +214,7 @@
           </ion-label>
         </ion-item>
 
-        <div class="cobro-fields" *ngIf="!_PagoMixto && (restanteTrasNc > 0 || montoCargoPago > 0)">
+        <div class="cobro-fields" *ngIf="!_PagoMixto && (restanteCliente > 0 || montoCargoPago > 0)">
           <ion-item lines="none" class="cobro-field">
             <ion-label position="stacked">Forma de pago</ion-label>
             <ion-select
@@ -478,9 +519,12 @@
   <div class="total-footer">
 
     <div class="total-label">
+      {{ etiquetaTotalFooter }}
+    </div>
 
-      {{ _TipoFactura === 'Credito' ? 'TOTAL FACTURA' : 'TOTAL A PAGAR' }}
-
+    <div class="cargo-pago-footer" *ngIf="coberturaArsAplicar > 0.009">
+      Total cobertura {{ arsSeleccionada?.nombre || 'ARS' }}:
+      RD$ {{ coberturaArsAplicar | number:'1.2-2' }}
     </div>
 
     <div class="cargo-pago-footer" *ngIf="_TipoFactura === 'Contado' && montoCargoPago > 0">
@@ -489,13 +533,7 @@
     </div>
 
     <div class="total-value">
-
-      RD$
-      {{
-        totalAPagar
-        | number:'1.2-2'
-      }}
-
+      RD$ {{ totalFooterMostrar | number:'1.2-2' }}
     </div>
 
   </div>

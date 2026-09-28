@@ -94,14 +94,19 @@ export class CajaCierreService {
   ====================================== */
 
   getUltimoCierre(
-    idEmpresa: number
+    idEmpresa: number,
+    idUsuario = 0
   ): Observable<any> {
+
+    const uid = Number(idUsuario) || 0;
 
     return this.http.get<any>(
 
       `${this.baseUrl}/UltimoCierre` +
 
-      `?idEmpresa=${idEmpresa}`
+      `?idEmpresa=${idEmpresa}` +
+
+      `&idUsuario=${uid}`
     );
   }
 

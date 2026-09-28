@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AlertController, Platform, ToastController } from '@ionic/angular';
 import { ParametrosService } from './servicios/parametros.service';
+import { ParametroConfigService } from './servicios/parametrosconfig.service';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { PerfilRolesService } from './perfil-roles.service';
@@ -49,6 +50,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   REPORTE_CRUCE_STOCK: '/reportecrucestock',
   CATEGORIAS: '/Listadocategorias',
   PRODUCTOS: '/listproducto',
+  GUARNICIONES: '/guarniciones',
   CLIENTES: '/clientemodal',
   NOTAS_CREDITO: '/notascredito',
   CUMPLEANEROS: '/clientehappy',
@@ -69,6 +71,8 @@ export const MODULO_RUTAS: Record<string, string> = {
   SALDOS_A_FAVOR: '/saldosafavor',
   CUENTAS_COBRAR: '/cuentaxcobrar',
   ANTIGUEDAD_CXC: '/cuentaxcobrar/antiguedad',
+  ARS: '/ars',
+  ARS_CXC: '/cuentaxcobrar/ars',
   DESCUENTOS: '/Descuento',
   BIZCOCHO_ENCARGO: '/bizcocho',
   LISTADO_CAJA: '/listadocaja',
@@ -128,6 +132,7 @@ export const MODULO_RUTAS: Record<string, string> = {
   FE_HISTORIAL: '/fe-historial',
   FE_REPROCESAR: '/fe-reprocesar',
   FE_MONITOREO: '/fe-monitoreo',
+  FE_CERTIFICACION: '/fe-certificacion',
   POLITICAS_VERSIONES: '/politicas-admin',
   POLITICAS_ACEPTACIONES: '/politicas-aceptaciones',
   MACROBITS_ADMIN: '/politicas-admin',
@@ -163,6 +168,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   MOVIMIENTO_CAJA: 'wallet',
   CATEGORIAS: 'th-large',
   PRODUCTOS: 'box-open',
+  GUARNICIONES: 'utensils',
   CUENTAS_FINANCIERAS: 'wallet',
   TRANSFERENCIAS_FINANCIERAS: 'exchange-alt',
   MOVIMIENTO_FINANCIERO: 'chart-line',
@@ -193,6 +199,8 @@ export const MODULO_ICONOS: Record<string, string> = {
   CIERRE_CAJA: 'cash-register',
   CUENTAS_COBRAR: 'hand-holding-dollar',
   ANTIGUEDAD_CXC: 'chart-bar',
+  ARS: 'briefcase-medical',
+  ARS_CXC: 'file-medical',
   DESCUENTOS: 'tags',
 
   EMPRESA: 'building',
@@ -232,6 +240,7 @@ export const MODULO_ICONOS: Record<string, string> = {
   FE_HISTORIAL: 'history',
   FE_REPROCESAR: 'redo',
   FE_MONITOREO: 'tachometer-alt',
+  FE_CERTIFICACION: 'certificate',
   POLITICAS_VERSIONES: 'file-contract',
   POLITICAS_ACEPTACIONES: 'clipboard-check',
   MACROBITS_ADMIN: 'shield-alt',
@@ -267,6 +276,7 @@ export class AppComponent implements OnInit, OnDestroy {
   };
   public alertaPagoBanner: { tipo: string; mensaje: string } | null = null;
   private destroy$ = new Subject<void>();
+  private actualizando = false;
 
   get mostrarChromeErp(): boolean {
     if (this.esShellPwa()) return false;
@@ -340,7 +350,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private empresaSrv: EmpresaService,
     private dgiiConfig: DgiiConfigService,
     private posDevice: PosDeviceService,
-    private sucursalSrv: SucursalService
+    private sucursalSrv: SucursalService,
+    private parametroConfig: ParametroConfigService
   ) {}
 
   onSucursalChange(ev: Event): void {
@@ -363,12 +374,52 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  private rehidratarSucursales(): void {
+    if (!localStorage.getItem('token')) return;
+    if ((this._Parametro.sucursales || []).some(s => s?.idSucursal > 0 && s.activa !== false)) return;
+    this.sucursalSrv.listar().subscribe({
+      next: (lista) => {
+        if (!lista?.length) return;
+        const id = this._Parametro.IdSucursal
+          || (lista.length === 1
+            ? lista[0].idSucursal
+            : (lista.find(s => s.esDefault)?.idSucursal || 0));
+        this._Parametro.setSucursalSesion(id, lista);
+      }
+    });
+  }
+
+  private async buscarActualizacion(): Promise<void> {
+    if (!this.updates.isEnabled || this.actualizando) return;
+    try {
+      const hayNueva = await this.updates.checkForUpdate();
+      const activada = await this.updates.activateUpdate();
+      if (hayNueva || activada) {
+        await this.aplicarActualizacion();
+      }
+    } catch (err) {
+      console.error('Error buscando update', err);
+    }
+  }
+
+  private async aplicarActualizacion(): Promise<void> {
+    if (this.actualizando) return;
+    this.actualizando = true;
+    try {
+      await this.updates.activateUpdate();
+    } catch (err) {
+      console.error('No se pudo activar la versión nueva', err);
+    }
+    document.location.reload();
+  }
+
   // ===============================
   // 🔄 INIT
   // ===============================
   ngOnInit() {
     this._Parametro.setAlertaPago(null);
     this.alertaPagoBanner = null;
+    this.rehidratarSucursales();
     void this.posDevice.obtenerInfo();
 
   this.citasService.nuevaCita$
@@ -398,41 +449,19 @@ export class AppComponent implements OnInit, OnDestroy {
   });
 
 if (this.updates.isEnabled) {
-
-  // 🔄 Revisar updates cada 60 segundos (PC de recepción abierta todo el día)
-setInterval(async () => {
-  try {
-    const updateFound = await this.updates.checkForUpdate();
-    console.log('🔎 Buscando nueva versión...', updateFound);
-  } catch (err) {
-    console.error('❌ Error buscando update', err);
-  }
-}, 60000);
-
-
   this.updates.versionUpdates
     .pipe(
-      filter((event): event is VersionReadyEvent =>
-        event.type === 'VERSION_READY'
-      )
+      filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'),
+      takeUntil(this.destroy$)
     )
-    .subscribe(async () => {
-
-      const toast = await this.toastCtrl.create({
-        message: '🔄 El sistema fue actualizado. Recargando...',
-        duration: 3000,
-        position: 'bottom'
-      });
-
-      await toast.present();
-
-      setTimeout(() => {
-        this.updates.activateUpdate().then(() => {
-          document.location.reload();
-        });
-      }, 3000);
-
+    .subscribe(() => {
+      void this.aplicarActualizacion();
     });
+
+  void this.buscarActualizacion();
+  setInterval(() => {
+    void this.buscarActualizacion();
+  }, 60000);
 }
 
   window.addEventListener('beforeinstallprompt', (event: any) => {
@@ -443,6 +472,7 @@ setInterval(async () => {
 
 
     this._Parametro.ensureSessionFromStorage();
+    this._Parametro.iniciarEscuchaCambioSesion();
     this.syncPwaShellClass();
     this.router.events
       .pipe(
@@ -864,6 +894,73 @@ private startIdleWatcher() {
 
     this.menuGrupos = grupos;
     this.expandirGrupoActivo();
+    this.inyectarMenuArs();
+  }
+
+  private inyectarMenuArs(): void {
+    const idEmpresa = this._Parametro.IdEmpresa
+      || Number(localStorage.getItem('IdEmpresa') || 0);
+    if (!idEmpresa) return;
+
+    this.parametroConfig.getParametrosEmpresa(idEmpresa).subscribe({
+      next: (params) => {
+        const p = (params || []).find((x: any) =>
+          String(x?.clave ?? x?.Clave ?? '') === 'UTILIZAR_ARS'
+        );
+        const valor = String(p?.valor ?? (p as any)?.Valor ?? '').toLowerCase();
+        if (valor !== 'true' && valor !== '1') return;
+
+        const puedeVer = this._Parametro.tieneModulo('CLIENTES')
+          || this._Parametro.tieneModulo('CUENTAS_COBRAR')
+          || this._Parametro.tieneModulo('PARAMETROS');
+        if (!puedeVer) return;
+
+        const clientes = this.menuGrupos.find(g => g.id === 'clientes');
+        if (clientes) {
+          clientes.items = clientes.items.filter(i => i.codigo !== 'ARS' && i.codigo !== 'ARS_CXC');
+        }
+
+        let grupo = this.menuGrupos.find(g => g.id === 'ars');
+        if (!grupo) {
+          grupo = {
+            id: 'ars',
+            titulo: 'ARS',
+            icono: 'briefcase-medical',
+            iconFa: this.crearIconFa('briefcase-medical'),
+            expandido: false,
+            items: []
+          };
+          const idxClientes = this.menuGrupos.findIndex(g => g.id === 'clientes');
+          const insertAt = idxClientes >= 0 ? idxClientes + 1 : this.menuGrupos.length;
+          this.menuGrupos.splice(insertAt, 0, grupo);
+        }
+
+        const destino = grupo;
+        const pushSiFalta = (codigo: string, title: string, url: string, icon: string) => {
+          if (destino.items.some(i => i.codigo === codigo)) return;
+          destino.items.push({
+            codigo,
+            title,
+            url,
+            icon,
+            iconFa: this.crearIconFa(icon)
+          });
+        };
+
+        pushSiFalta('ARS', MODULO_TITULOS_MENU['ARS'] || 'Aseguradoras', '/ars', 'briefcase-medical');
+        if (this._Parametro.tieneModulo('CUENTAS_COBRAR')) {
+          pushSiFalta(
+            'ARS_CXC',
+            MODULO_TITULOS_MENU['ARS_CXC'] || 'Cuentas por cobrar',
+            '/cuentaxcobrar/ars',
+            'file-medical'
+          );
+        }
+
+        this.menuGrupos = [...this.menuGrupos];
+        this.expandirGrupoActivo();
+      }
+    });
   }
 
   toggleGrupo(grupoId: string): void {

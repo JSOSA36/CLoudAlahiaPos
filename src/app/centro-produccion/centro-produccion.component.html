@@ -131,7 +131,7 @@
               </span>
             </div>
 
-            <p class="cp-obs" *ngIf="t.observacion">{{ t.observacion }}</p>
+            <p class="cp-obs" *ngIf="observacionCocina(t.observacion) as obs">{{ obs }}</p>
 
             <ul class="cp-items" *ngIf="t.items?.length">
               <li *ngFor="let it of t.items | slice:0:2">

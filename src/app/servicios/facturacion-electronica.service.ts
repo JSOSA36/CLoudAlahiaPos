@@ -285,7 +285,7 @@ export class FacturacionElectronicaService {
   }
 
   generarCertecfRiLote(idEmpresa: number): Observable<any> {
-    return this.http.get<any>(`${this.config.apiUrl}/CertecfCertificacion/ri/${idEmpresa}/lote`);
+    return this.http.post<any>(`${this.config.apiUrl}/CertecfCertificacion/ri/${idEmpresa}/lote`, {});
   }
 
   descargarCertecfArchivo(path: string): Observable<Blob> {
