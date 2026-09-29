@@ -44,8 +44,7 @@
           Verificar conexión
         </ion-button>
         <p class="hint">
-          Verifica el endpoint del <strong>proveedor elegido para esta empresa</strong>
-          (Alahia.eCF.Api o URL externa). No es el ambiente DGII.
+          Verifica el endpoint de Alahia.eCF.Api. La firma usa el certificado de esta empresa.
         </p>
       </div>
     </div>
@@ -58,56 +57,10 @@
       <div class="card-body">
         <ion-spinner name="dots" *ngIf="cargandoProveedor"></ion-spinner>
 
-        <div class="ambiente-options" *ngIf="!cargandoProveedor">
-          <button type="button"
-                  class="ambiente-option"
-                  *ngFor="let op of opcionesProveedor"
-                  [class.selected]="proveedorSeleccionado === op.code"
-                  (click)="seleccionarProveedor(op.code)">
-            <div class="ambiente-option-top">
-              <span class="ambiente-radio" [class.on]="proveedorSeleccionado === op.code"></span>
-              <strong>{{ op.label }}</strong>
-            </div>
-            <p>{{ op.hint }}</p>
-          </button>
-        </div>
-
-        <div class="proveedor-form" *ngIf="!cargandoProveedor && !esDgiiDirecto">
-          <label>
-            Nombre del proveedor
-            <input type="text" [(ngModel)]="proveedorNombre" placeholder="Ej. Pedro" />
-          </label>
-          <label>
-            URL base (api/Receipt)
-            <input type="url" [(ngModel)]="proveedorBaseUrl" placeholder="https://proveedor.ejemplo.com" />
-          </label>
-          <label>
-            Usuario (opcional, Basic Auth)
-            <input type="text" [(ngModel)]="proveedorUsuario" autocomplete="off" />
-          </label>
-          <label>
-            Contraseña {{ passwordConfigurado ? '(dejá vacío para conservar)' : '' }}
-            <input type="password" [(ngModel)]="proveedorPassword" autocomplete="new-password" />
-          </label>
-          <label>
-            API Key {{ apiKeyConfigurado ? '(dejá vacío para conservar)' : '' }}
-            <input type="password" [(ngModel)]="proveedorApiKey" autocomplete="new-password" />
-          </label>
-        </div>
-
-        <p class="hint" *ngIf="!cargandoProveedor && esDgiiDirecto">
-          En modo DGII directo, Alahia.eCF.Api usa el certificado de esta empresa y el ambiente DGII
-          configurado abajo. El endpoint del microservicio está en <code>FiscalGateway</code> del servidor.
+        <p class="hint" *ngIf="!cargandoProveedor">
+          DGII directo (Alahia). El certificado y su clave quedan guardados en el servidor;
+          un pase del sistema no los reemplaza.
         </p>
-
-        <ion-button
-          class="ion-margin-top"
-          color="primary"
-          (click)="guardarProveedor()"
-          [disabled]="guardandoProveedor || cargandoProveedor">
-          <ion-icon name="save-outline" slot="start"></ion-icon>
-          {{ guardandoProveedor ? 'Guardando…' : 'Guardar proveedor' }}
-        </ion-button>
       </div>
     </div>
 
@@ -124,6 +77,7 @@
             {{ certVencido ? 'Vencido' : 'Activo' }}
           </div>
           <div class="info-row"><span>Archivo adjunto:</span><strong>{{ certNombre }}</strong></div>
+          <div class="info-row" *ngIf="certRuta"><span>Ruta:</span><code>{{ certRuta }}</code></div>
           <div class="info-row">
             <span>Clave:</span><strong>{{ certPassword ? 'Adjuntada' : 'Falta' }}</strong>
           </div>
@@ -212,19 +166,6 @@
         <p class="hint">
           Solo aplica en <strong>DGII directo</strong>. Cada emisión usará testecf / certecf / ecf.
           Cambiar a Producción requiere confirmación.
-        </p>
-      </div>
-    </div>
-
-    <div class="config-card config-card--wide" *ngIf="!esDgiiDirecto">
-      <div class="card-header">
-        <ion-icon name="globe-outline"></ion-icon>
-        <h3>Ambiente DGII</h3>
-      </div>
-      <div class="card-body">
-        <p class="hint" style="margin-top:0">
-          En modo <strong>proveedor externo</strong> el ambiente DGII lo define el proveedor
-          (Pedro u otro). El selector Pruebas/Certificación/Producción de Alahia no aplica.
         </p>
       </div>
     </div>

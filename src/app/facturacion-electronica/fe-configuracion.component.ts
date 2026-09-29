@@ -56,6 +56,7 @@ export class FeConfiguracionComponent implements OnInit {
   certVencido = false;
   certArchivo: File | null = null;
   certPassword = '';
+  certRuta = '';
 
   readonly opciones: AmbienteOption[] = [
     {
@@ -82,12 +83,7 @@ export class FeConfiguracionComponent implements OnInit {
     {
       code: 'DGII_DIRECTO',
       label: 'DGII directo (Alahia)',
-      hint: 'Alahia firma y envía a DGII. Requiere certificado .p12/.pfx + contraseña y ambiente.',
-    },
-    {
-      code: 'PROVEEDOR_EXTERNO',
-      label: 'Proveedor externo',
-      hint: 'Solo se envía la trama (api/Receipt). El proveedor maneja certificado y DGII (ej. Pedro).',
+      hint: 'Alahia firma con el certificado de la empresa y envía a DGII.',
     },
   ];
 
@@ -105,7 +101,7 @@ export class FeConfiguracionComponent implements OnInit {
   }
 
   get esDgiiDirecto(): boolean {
-    return this.proveedorSeleccionado === 'DGII_DIRECTO';
+    return true;
   }
 
   get opcionSeleccionada(): AmbienteOption {
@@ -200,6 +196,7 @@ export class FeConfiguracionComponent implements OnInit {
         this.certFechaExp = res?.fechaExpiracion || '';
         this.certVencido = !!res?.vencido;
         this.certPassword = res?.password || '';
+        this.certRuta = res?.rutaArchivo || '';
         this.cargandoCertificado = false;
       },
       error: () => { this.cargandoCertificado = false; }
