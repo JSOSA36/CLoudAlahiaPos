@@ -143,6 +143,7 @@ export class FacturacionElectronicaService {
     fechaExpiracion?: string;
     fechaCreacion?: string;
     ambiente?: string;
+    rutaArchivo?: string;
     vencido?: boolean;
     usable?: boolean;
     subject?: string;
