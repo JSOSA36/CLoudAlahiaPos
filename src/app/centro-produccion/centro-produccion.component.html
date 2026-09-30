@@ -47,6 +47,17 @@
           <span *ngIf="flujo.slaModoInicio === 'INICIO_PREPARACION'"> · desde inicio</span>
           <span *ngIf="flujo.slaModoInicio !== 'INICIO_PREPARACION'"> · desde creación</span>
         </p>
+        <label class="cp-nota">
+          <span>Aviso al marcar lista</span>
+          <select
+            [ngModel]="notaAnuncio"
+            (ngModelChange)="cambiarNota($event)"
+            [disabled]="guardandoNota">
+            <option value="ninguna">Sin aviso</option>
+            <option value="orden">Restaurante: su orden está lista</option>
+            <option value="vehiculo">Car wash: su vehículo está listo</option>
+          </select>
+        </label>
       </section>
 
       <section class="cp-kpis" *ngIf="resumen">
@@ -134,12 +145,12 @@
             <p class="cp-obs" *ngIf="observacionCocina(t.observacion) as obs">{{ obs }}</p>
 
             <ul class="cp-items" *ngIf="t.items?.length">
-              <li *ngFor="let it of t.items | slice:0:2">
+              <li *ngFor="let it of t.items">
                 <span class="cp-qty">{{ it.cantidad | number:'1.0-2' }}×</span>
-                <span class="cp-item-name">{{ it.nombreItem }}</span>
-              </li>
-              <li class="cp-more" *ngIf="t.items.length > 2">
-                +{{ t.items.length - 2 }} más
+                <div class="cp-item-body">
+                  <span class="cp-item-name">{{ it.nombreItem }}</span>
+                  <p class="cp-item-note" *ngIf="notaItem(it) as nota">{{ nota }}</p>
+                </div>
               </li>
             </ul>
 

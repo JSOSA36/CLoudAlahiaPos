@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { Parametros } from '../models/parametros.models';
 import { ParametroConfigService } from '../servicios/parametrosconfig.service';
 import { ParametrosService } from '../servicios/parametros.service';
 import { ProduccionService } from '../servicios/produccion.service';
@@ -46,8 +47,9 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   filtroTexto = '';
   filtroPrioridad = '';
   mute = false;
-  /** Parámetro NotificacionVehiculo: anuncia por voz al pasar a Lista. */
-  notificacionVehiculo = false;
+  /** ninguna | orden (restaurante) | vehiculo (car wash). Delivery no anuncia. */
+  notaAnuncio: 'ninguna' | 'orden' | 'vehiculo' = 'ninguna';
+  guardandoNota = false;
   ahoraMs = Date.now();
 
   historialAbierto = false;
@@ -174,7 +176,7 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
         t.referencia,
         t.etiquetaContexto,
         t.observacion,
-        ...(t.items || []).map(i => i.nombreItem)
+        ...(t.items || []).map(i => [i.nombreItem, i.observacion, i.variacionesTexto].filter(Boolean).join(' '))
       ].filter(Boolean).join(' ').toLowerCase();
       return blob.includes(q);
     });
@@ -217,6 +219,13 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
       DeliveryExterno: 'Delivery externo'
     };
     return map[raw] || raw;
+  }
+
+  notaItem(it: { observacion?: string | null; variacionesTexto?: string | null }): string {
+    return [it.observacion, it.variacionesTexto]
+      .map(s => (s || '').trim())
+      .filter(Boolean)
+      .join(' · ');
   }
 
   observacionCocina(raw: string | null | undefined): string {
@@ -396,17 +405,66 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   private cargarFlagNotificacionVehiculo(): void {
     if (!this.idEmpresa) return;
     this.parametroConfig.getParametrosEmpresa(this.idEmpresa).subscribe({
-      next: (params) => {
-        const p = (params || []).find(x =>
-          String(x.clave || '').trim().toLowerCase() === 'notificacionvehiculo'
-        );
-        const valor = String(p?.valor ?? '').trim().toLowerCase();
-        this.notificacionVehiculo = valor === 'true' || valor === '1';
-      },
+      next: (params) => this.aplicarNotaDesdeParametros(params || []),
       error: () => {
-        this.notificacionVehiculo = false;
+        this.notaAnuncio = 'ninguna';
       }
     });
+  }
+
+  private aplicarNotaDesdeParametros(params: Parametros[]): void {
+    const aviso = params.find(x =>
+      String(x.clave || '').trim().toLowerCase() === 'notificacionvehiculo'
+    );
+    const nota = params.find(x =>
+      String(x.clave || '').trim().toLowerCase() === 'notaanunciolista'
+    );
+    const activo = ['true', '1'].includes(String(aviso?.valor ?? '').trim().toLowerCase());
+    const tipo = String(nota?.valor ?? '').trim().toLowerCase();
+    if (!activo) {
+      this.notaAnuncio = 'ninguna';
+      return;
+    }
+    this.notaAnuncio = tipo === 'orden' ? 'orden' : 'vehiculo';
+  }
+
+  async cambiarNota(valor: string): Promise<void> {
+    const nota: 'ninguna' | 'orden' | 'vehiculo' =
+      valor === 'orden' || valor === 'vehiculo' ? valor : 'ninguna';
+    const anterior = this.notaAnuncio;
+    this.notaAnuncio = nota;
+    this.guardandoNota = true;
+    const items: Parametros[] = [
+      {
+        idEmpresa: this.idEmpresa,
+        codigoPOS: null,
+        clave: 'NotificacionVehiculo',
+        valor: nota === 'ninguna' ? 'false' : 'true',
+        descripcion: 'Al marcar lista en Centro de Producción, anuncia por voz'
+      }
+    ];
+    if (nota !== 'ninguna') {
+      items.push({
+        idEmpresa: this.idEmpresa,
+        codigoPOS: null,
+        clave: 'NotaAnuncioLista',
+        valor: nota,
+        descripcion: 'Frase del aviso: orden (restaurante) o vehiculo (car wash). Delivery no anuncia.'
+      });
+    }
+    try {
+      await firstValueFrom(this.parametroConfig.guardarLista(items));
+    } catch {
+      this.notaAnuncio = anterior;
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo guardar el aviso.',
+        duration: 2200,
+        position: 'top'
+      });
+      await toast.present();
+    } finally {
+      this.guardandoNota = false;
+    }
   }
 
   private precargarVoces(): void {
@@ -419,12 +477,22 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
   }
 
   private anunciarVehiculoListo(t: ProduccionTrabajo): void {
-    if (!this.notificacionVehiculo) return;
+    if (this.notaAnuncio === 'ninguna' || this.esDelivery(t)) return;
     const nombre = (t?.nombreVisible || '').trim();
     if (!nombre) return;
-    const texto = `${this.nombreParaVoz(nombre)}. Su vehículo está listo.`;
+    const frase = this.notaAnuncio === 'orden'
+      ? 'Su orden está lista.'
+      : 'Su vehículo está listo.';
+    const texto = `${this.nombreParaVoz(nombre)}. ${frase}`;
     const seq = ++this.anuncioSeq;
     void this.hablarConRepeticion(texto, seq);
+  }
+
+  private esDelivery(t: ProduccionTrabajo): boolean {
+    const ctx = `${t?.etiquetaContexto || ''} ${t?.referencia || ''}`.toLowerCase();
+    if (ctx.includes('delivery')) return true;
+    const obs = (t?.observacion || '').toLowerCase();
+    return /pedido online/.test(obs) && /(^|[·|])\s*delivery\b/.test(obs);
   }
 
   private async hablarConRepeticion(texto: string, seq: number): Promise<void> {
@@ -438,7 +506,7 @@ export class CentroProduccionComponent implements OnInit, OnDestroy {
       primero.onend = () => {
         if (seq !== this.anuncioSeq) return;
         setTimeout(() => {
-          if (seq !== this.anuncioSeq || !this.notificacionVehiculo) return;
+          if (seq !== this.anuncioSeq || this.notaAnuncio === 'ninguna') return;
           synth.speak(this.crearUtterance(texto));
         }, 1000);
       };

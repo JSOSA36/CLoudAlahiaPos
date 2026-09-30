@@ -94,6 +94,30 @@
   opacity: 0.95;
 }
 
+.cp-nota {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 220px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffe082;
+}
+
+.cp-nota select {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #0b1220;
+  background: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
 .cp-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -396,14 +420,12 @@
 }
 
 .cp-obs {
-  margin: 0 0 4px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
   color: #37474f;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  white-space: pre-wrap;
 }
 
 .cp-items {
@@ -417,12 +439,18 @@
 .cp-items li {
   display: grid;
   grid-template-columns: auto 1fr;
-  column-gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  column-gap: 8px;
+  align-items: start;
+  font-size: 1.12rem;
+  font-weight: 800;
   color: var(--cp-text);
-  padding: 2px 0;
-  line-height: 1.25;
+  padding: 7px 0;
+  line-height: 1.3;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.cp-items li:last-child {
+  border-bottom: 0;
 }
 
 .cp-items li.cp-more {
@@ -436,18 +464,32 @@
 .cp-qty {
   color: var(--cp-blue-dark);
   font-weight: 900;
-  font-size: 0.85rem;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.cp-item-body {
+  min-width: 0;
 }
 
 .cp-item-name {
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: block;
+  font-weight: 800;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  white-space: normal;
 }
 
-.cp-items small {
-  display: none; /* detalles en historial / click futuro; ahorra altura */
+.cp-item-note {
+  margin: 3px 0 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: pre-wrap;
 }
 
 .cp-actions {
