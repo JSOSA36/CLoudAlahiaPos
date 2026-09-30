@@ -342,7 +342,15 @@ setTipoDocumento(tipo: 'ORDEN' | 'FACTURA') {
   // 🚪 LOGOUT (LIMPIEZA TOTAL)
   // ==================================================
   logout() {
+    const conservar: Record<string, string> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || (!k.startsWith('pedir_') && k !== 'reparto_sesion')) continue;
+      const v = localStorage.getItem(k);
+      if (v != null) conservar[k] = v;
+    }
     localStorage.clear();
+    Object.keys(conservar).forEach(k => localStorage.setItem(k, conservar[k]));
 
     // estado usuario
     this.UserName = '';

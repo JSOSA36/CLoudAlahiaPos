@@ -479,7 +479,11 @@ if (this.updates.isEnabled) {
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
         takeUntil(this.destroy$)
       )
-      .subscribe(() => this.syncPwaShellClass());
+      .subscribe(() => {
+        this.syncPwaShellClass();
+        this.startIdleWatcher();
+        this.mantenerShellVivo();
+      });
     this.cargarMenu();
     this.cargarNivelSoporte();
     this.recargarFlagsFiscales();
@@ -502,13 +506,17 @@ if (this.updates.isEnabled) {
 
     // 🔥 arrancar watcher si hay sesión
     this.startIdleWatcher();
+    this.mantenerShellVivo();
     this.iniciarCentroNotificaciones();
     // Revalidar políticas en refresh / sesión existente (el login también valida)
     setTimeout(() => this.validarPoliticasSesion(), 300);
 
     // 🔥 cuando la app vuelve del background
    this.platform.resume.subscribe(() => {
-
+  if (this.esShellPwa()) {
+    this._Parametro.refreshSession();
+    return;
+  }
   if (this.isPublicRoute()) {
     return; // 🚫 No hacer logout en catálogo / citas públicas
   }
@@ -523,6 +531,7 @@ if (this.updates.isEnabled) {
     this.destroy$.complete();
     clearTimeout(this.idleTimer);
     clearTimeout(this.warningTimer);
+    if (this.shellKeepAlive) clearInterval(this.shellKeepAlive);
   }
 
   cerrarAlertaPago() {
@@ -595,10 +604,30 @@ private isPublicRoute(): boolean {
   // ===============================
   // ⏱️ WATCHER DE INACTIVIDAD
   // ===============================
+private shellKeepAlive: ReturnType<typeof setInterval> | null = null;
+
+private mantenerShellVivo(): void {
+  if (this.shellKeepAlive) {
+    clearInterval(this.shellKeepAlive);
+    this.shellKeepAlive = null;
+  }
+  if (!this.esShellPwa()) return;
+  this._Parametro.refreshSession();
+  this.shellKeepAlive = setInterval(() => {
+    if (!this.esShellPwa()) return;
+    this._Parametro.refreshSession();
+  }, 5 * 60_000);
+}
+
 private startIdleWatcher() {
 
-  if (this.isPublicRoute()) {
-    return; // 🚫 No activar watcher en rutas públicas
+  if (this.isPublicRoute() || this.esShellPwa()) {
+    clearTimeout(this.idleTimer);
+    clearTimeout(this.warningTimer);
+    this.warningShown = false;
+    this.activeAlert?.dismiss();
+    this.activeAlert = null;
+    return;
   }
 
   clearTimeout(this.idleTimer);
@@ -677,6 +706,7 @@ private startIdleWatcher() {
   // 🚪 LOGOUT FORZADO
   // ===============================
   private async forceLogout() {
+  if (this.esShellPwa()) return;
 
   this.activeAlert?.dismiss();
   this.activeAlert = null;
@@ -693,7 +723,6 @@ private startIdleWatcher() {
 
   // 🔥 LIMPIAR TODO
   this._Parametro.logout();
-  localStorage.clear();
   await this.notificaciones.stop();
 
   this.router.navigateByUrl('/login', { replaceUrl: true });

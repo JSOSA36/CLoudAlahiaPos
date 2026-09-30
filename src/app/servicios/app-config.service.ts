@@ -23,10 +23,21 @@ export class AppConfigService {
   /** Modo local POS (IndexedDB). false en erp vivo. true solo en prueba aislada. */
   public readonly posOfflineHabilitado: boolean = false;
 
-  /** PWA cliente (proyecto AlahiaPedidos). */
-  public readonly pedirPublicUrl: string = 'http://localhost:4210';
-  /** PWA repartidor (proyecto AlahiaPedidos). */
-  public readonly repartoPublicUrl: string = 'http://localhost:4211';
+  /** PWA cliente. En el ERP vivo sale del mismo sitio: /pedir/{guid}. */
+  get pedirPublicUrl(): string {
+    return this.urlPublica('http://localhost:4210', '/pedir');
+  }
+
+  /** PWA repartidor. En el ERP vivo: /reparto/{guid}. */
+  get repartoPublicUrl(): string {
+    return this.urlPublica('http://localhost:4211', '/reparto');
+  }
+
+  private urlPublica(local: string, ruta: string): string {
+    const host = typeof location !== 'undefined' ? location.hostname : 'localhost';
+    if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') return local;
+    return `${location.origin}${ruta}`;
+  }
   /** PWA citas para el cliente. Prod: https://alahiapos.com/citas/{guid} */
   public readonly citasPublicUrl: string = 'http://localhost:4212';
 

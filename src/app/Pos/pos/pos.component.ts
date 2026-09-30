@@ -1670,10 +1670,12 @@ private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonL
         position: 'top',
       });
       await toast.present();
+      await abrirModalFiscal(resultado || {});
       return false;
     }
 
     await this.imprimirTicketDocumento(idFactura, 1);
+    await abrirModalFiscal(resultado);
     return true;
 
   } catch (err: any) {
@@ -1686,6 +1688,7 @@ private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonL
       position: 'top',
     });
     await toast.present();
+    await abrirModalFiscal(err?.error || {});
     return false;
   }
 }

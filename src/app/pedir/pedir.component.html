@@ -87,10 +87,13 @@
             <p>{{ money(l.precioConItbis) }} c/u</p>
             <input type="text" [(ngModel)]="l.observacion" placeholder="Nota: sin cebolla, extra salsa…" maxlength="200" />
           </div>
-          <div class="qty">
-            <button type="button" (click)="quitar(l.idProducto)">−</button>
-            <span>{{ l.cantidad }}</span>
-            <button type="button" (click)="incrementar(l.idProducto)">+</button>
+          <div class="linea-acciones">
+            <div class="qty">
+              <button type="button" (click)="quitar(l.idProducto)">−</button>
+              <span>{{ l.cantidad }}</span>
+              <button type="button" (click)="incrementar(l.idProducto)">+</button>
+            </div>
+            <button type="button" class="link danger" (click)="eliminarLinea(l.idProducto)">Quitar</button>
           </div>
         </article>
         <div class="total-bar">
@@ -98,6 +101,7 @@
           <strong>{{ money(total) }}</strong>
         </div>
         <button type="button" class="primary" (click)="irCheckout()">Continuar</button>
+        <button type="button" class="ghost danger" (click)="anularPedido()">Anular pedido</button>
       </section>
 
       <section *ngIf="paso === 'checkout'" class="checkout">
@@ -148,6 +152,15 @@
           <textarea [(ngModel)]="observacion" rows="2" maxlength="500"></textarea>
         </label>
 
+        <div class="checkout-lines">
+          <div class="checkout-line" *ngFor="let l of carrito">
+            <div>
+              <strong>{{ l.nombre }}</strong>
+              <p>{{ l.cantidad }} × {{ money(l.precioConItbis) }}</p>
+            </div>
+            <button type="button" class="link danger" (click)="eliminarLinea(l.idProducto)">Quitar</button>
+          </div>
+        </div>
         <div class="total-bar">
           <span>{{ itemsCount }} ítems</span>
           <strong>{{ money(total) }}</strong>
@@ -156,6 +169,7 @@
         <button type="button" class="primary" [disabled]="enviando" (click)="enviar()">
           {{ enviando ? 'Enviando…' : 'Confirmar pedido' }}
         </button>
+        <button type="button" class="ghost danger" [disabled]="enviando" (click)="anularPedido()">Anular pedido</button>
       </section>
 
       <section *ngIf="paso === 'ok'" class="ok">

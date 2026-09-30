@@ -12,7 +12,7 @@ import {
   urlMapaPedido
 } from '../models/pedidos-online.models';
 
-type Tab = 'cola' | 'recoger' | 'curso' | 'todos' | 'repartidores';
+type Tab = 'cola' | 'recoger' | 'curso' | 'entregados' | 'todos' | 'repartidores';
 
 @Component({
   selector: 'app-pedidos-delivery',
@@ -96,6 +96,24 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
   get enCurso(): PedidoDeliveryListado[] {
     return this.pedidos.filter(p =>
       ['Asignado', 'Recogido', 'EnCamino'].includes(p.estadoLogistico));
+  }
+
+  get entregados(): PedidoDeliveryListado[] {
+    return this.pedidos.filter(p => this.esEntregado(p));
+  }
+
+  listaActual(): PedidoDeliveryListado[] {
+    if (this.tab === 'cola') return this.cola;
+    if (this.tab === 'recoger') return this.recoger;
+    if (this.tab === 'curso') return this.enCurso;
+    if (this.tab === 'entregados') return this.entregados;
+    return this.pedidos;
+  }
+
+  esEntregado(p: PedidoDeliveryListado): boolean {
+    const log = (p.estadoLogistico || '').trim().toLowerCase();
+    const uni = (p.estadoUnificado || '').trim().toLowerCase();
+    return log === 'entregado' || uni === 'entregado';
   }
 
   ngOnInit(): void {
@@ -183,10 +201,16 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
     return !!p.enviadoCocina || !!(p.estadoCocina && p.estadoCocina.trim());
   }
 
+  /** Ya salió de cocina: asignado, recogido o en camino. */
+  enRuta(p: PedidoDeliveryListado): boolean {
+    return ['Asignado', 'Recogido', 'EnCamino'].includes(p.estadoLogistico);
+  }
+
   pendientesCocina(): PedidoDeliveryListado[] {
     return this.pedidos.filter(p =>
       p.estadoLogistico !== 'Cancelado'
       && p.estadoLogistico !== 'Entregado'
+      && !this.enRuta(p)
       && !this.enCocina(p));
   }
 

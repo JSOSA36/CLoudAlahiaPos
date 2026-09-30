@@ -60,7 +60,11 @@ export class PedirComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.slug = (this.route.snapshot.paramMap.get('slug') || '').trim().toLowerCase();
+    const desdeRuta = this.route.snapshot.paramMap.get('slug')
+      || this.route.parent?.snapshot.paramMap.get('slug')
+      || '';
+    const desdeUrl = (typeof location !== 'undefined' ? location.pathname : '').split('/').filter(Boolean).pop() || '';
+    this.slug = (desdeRuta || desdeUrl).trim();
     this.cargar();
   }
 
@@ -149,9 +153,32 @@ export class PedirComponent implements OnInit, OnDestroy {
     if (!row) return;
     row.cantidad -= 1;
     if (row.cantidad <= 0) {
-      this.carrito = this.carrito.filter(l => l.idProducto !== idProducto);
+      this.eliminarLinea(idProducto);
+      return;
     }
     this.nuevaClave();
+  }
+
+  eliminarLinea(idProducto: number): void {
+    this.carrito = this.carrito.filter(l => l.idProducto !== idProducto);
+    this.nuevaClave();
+    if (!this.carrito.length && (this.paso === 'carrito' || this.paso === 'checkout')) {
+      this.paso = 'menu';
+    }
+  }
+
+  anularPedido(): void {
+    if (!this.carrito.length) {
+      this.volverMenu();
+      return;
+    }
+    const confirmar = typeof window === 'undefined'
+      || window.confirm('¿Anular el pedido y vaciar el carrito?');
+    if (!confirmar) return;
+    this.carrito = [];
+    this.observacion = '';
+    this.nuevaClave();
+    this.volverMenu();
   }
 
   irCarrito(): void {
@@ -342,9 +369,9 @@ export class PedirComponent implements OnInit, OnDestroy {
     if (estado === 'Nuevo') return 'Recibido';
     if (estado === 'En preparación') return 'En preparación';
     if (estado === 'Listo') return 'Listo para recoger';
-    if (estado === 'Pendiente de asignación' || estado === 'Asignado a delivery' || estado === 'Recogido' || estado === 'En camino') {
-      return 'En camino';
-    }
+    if (estado === 'Pendiente de asignación') return 'Asignando repartidor';
+    if (estado === 'Asignado a delivery') return 'Esperando al repartidor';
+    if (estado === 'Recogido' || estado === 'En camino') return 'En camino';
     if (estado === 'Entregado') return 'Entregado';
     if (estado === 'Cancelado') return 'Cancelado';
     return estado || 'En proceso';
@@ -353,9 +380,8 @@ export class PedirComponent implements OnInit, OnDestroy {
   claseEstado(estado: string): string {
     if (estado === 'Cancelado') return 'st-cancel';
     if (estado === 'Entregado') return 'st-ok';
-    if (estado === 'En camino' || estado === 'Recogido' || estado === 'Asignado a delivery' || estado === 'Pendiente de asignación') {
-      return 'st-go';
-    }
+    if (estado === 'En camino' || estado === 'Recogido') return 'st-go';
+    if (estado === 'Pendiente de asignación' || estado === 'Asignado a delivery') return 'st-wait';
     if (estado === 'En preparación' || estado === 'Nuevo') return 'st-cook';
     return 'st-wait';
   }
@@ -617,10 +643,8 @@ export class PedirComponent implements OnInit, OnDestroy {
   private indiceTrack(estado: string, delivery: boolean): number {
     if (estado === 'Cancelado') return -1;
     if (estado === 'Entregado') return delivery ? 3 : 2;
-    if (estado === 'Listo') return 2;
-    if (estado === 'En camino' || estado === 'Asignado a delivery' || estado === 'Recogido' || estado === 'Pendiente de asignación') {
-      return delivery ? 2 : 1;
-    }
+    if (estado === 'Listo' || estado === 'Pendiente de asignación' || estado === 'Asignado a delivery') return delivery ? 1 : 2;
+    if (estado === 'En camino' || estado === 'Recogido') return delivery ? 2 : 1;
     if (estado === 'En preparación') return 1;
     return 0;
   }

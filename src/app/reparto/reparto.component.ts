@@ -22,6 +22,9 @@ export class RepartoComponent implements OnInit, OnDestroy {
   error = '';
   okMsg = '';
   pedidos: PedidoDeliveryListado[] = [];
+  historial: PedidoDeliveryListado[] = [];
+  mostrarHistorial = false;
+  loadingHistorial = false;
   detalle: PedidoDeliveryListado | null = null;
   accionId: number | null = null;
   private okTimer: ReturnType<typeof setTimeout> | null = null;
@@ -130,6 +133,8 @@ export class RepartoComponent implements OnInit, OnDestroy {
     this.parametros.logout();
     localStorage.removeItem('token_sesion');
     this.pedidos = [];
+    this.historial = [];
+    this.mostrarHistorial = false;
     this.detalle = null;
     this.okMsg = '';
   }
@@ -152,7 +157,7 @@ export class RepartoComponent implements OnInit, OnDestroy {
     try {
       const pedidos = (await firstValueFrom(this.api.mios(this.idEmpresa, this.idUsuario))) || [];
       if (seq !== this.cargaSeq || this.accionId) return;
-      this.pedidos = pedidos;
+      this.pedidos = pedidos.filter(p => !this.esCerrado(p));
       if (this.detalle) {
         this.detalle = this.pedidos.find(p => p.idPedidoOnline === this.detalle?.idPedidoOnline) || this.detalle;
       }
@@ -233,6 +238,10 @@ export class RepartoComponent implements OnInit, OnDestroy {
       const numero = p.numeroPedido;
       if (dest === 'Entregado') {
         this.pedidos = this.pedidos.filter(x => x.idPedidoOnline !== p.idPedidoOnline);
+        if (this.mostrarHistorial) {
+          const cerrado = { ...updated, estadoUnificado: updated?.estadoUnificado || 'Entregado' };
+          this.historial = [cerrado, ...this.historial.filter(x => x.idPedidoOnline !== p.idPedidoOnline)];
+        }
         this.detalle = null;
         this.mostrarOk(`Pedido #${numero} entregado.`);
       } else {
@@ -258,6 +267,31 @@ export class RepartoComponent implements OnInit, OnDestroy {
     this.okTimer = setTimeout(() => {
       if (this.okMsg === msg) this.okMsg = '';
     }, 8000);
+  }
+
+  alternarHistorial(): void {
+    this.mostrarHistorial = !this.mostrarHistorial;
+    if (this.mostrarHistorial) void this.cargarHistorial();
+  }
+
+  async cargarHistorial(): Promise<void> {
+    if (!this.haySesion) return;
+    this.loadingHistorial = true;
+    this.error = '';
+    try {
+      const lista = (await firstValueFrom(this.api.historial(this.idEmpresa, this.idUsuario))) || [];
+      this.historial = lista.filter(p => this.esCerrado(p));
+    } catch (err: any) {
+      this.error = err?.error?.message || 'No se pudo cargar el historial.';
+    } finally {
+      this.loadingHistorial = false;
+    }
+  }
+
+  esCerrado(p: PedidoDeliveryListado): boolean {
+    const uni = (p.estadoUnificado || '').trim().toLowerCase();
+    const log = this.normLogistico(p.estadoLogistico || '').toLowerCase();
+    return uni === 'entregado' || uni === 'cancelado' || log === 'entregado' || log === 'cancelado';
   }
 
   private normLogistico(e: string): string {

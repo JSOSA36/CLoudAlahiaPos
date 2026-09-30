@@ -65,6 +65,9 @@
       <button type="button" [class.active]="tab === 'curso'" (click)="tab = 'curso'">
         En camino <span>{{ enCurso.length }}</span>
       </button>
+      <button type="button" [class.active]="tab === 'entregados'" (click)="tab = 'entregados'">
+        Entregados <span>{{ entregados.length }}</span>
+      </button>
       <button type="button" [class.active]="tab === 'todos'" (click)="tab = 'todos'">Todos</button>
       <button type="button" [class.active]="tab === 'repartidores'" (click)="tab = 'repartidores'; cargarUsuarios()">
         Repartidores
@@ -78,13 +81,13 @@
       <ng-container *ngIf="tab !== 'repartidores'">
         <article
           class="pd-card"
-          *ngFor="let p of (tab === 'cola' ? cola : tab === 'recoger' ? recoger : tab === 'curso' ? enCurso : pedidos)">
+          *ngFor="let p of listaActual()">
           <header class="pd-card-top">
             <div class="pd-card-id">
               <strong>#{{ p.numeroPedido }}</strong>
               <span class="chip chip-tipo">{{ etiquetaTipo(p) }}</span>
               <span class="chip chip-estado">{{ p.estadoUnificado }}</span>
-              <span class="chip chip-cocina" *ngIf="p.estadoCocina && p.estadoCocina !== 'LISTA' && !esRecoger(p)">En cocina</span>
+              <span class="chip chip-cocina" *ngIf="p.estadoCocina && p.estadoCocina !== 'LISTA' && !esRecoger(p) && !enRuta(p)">En cocina</span>
             </div>
             <time>{{ p.fecha | date:'short' }}</time>
           </header>
@@ -119,7 +122,7 @@
             <span class="pd-driver" *ngIf="p.nombreRepartidor">{{ p.nombreRepartidor }}</span>
             <a class="pd-maps" *ngIf="mapsUrl(p)" [href]="mapsUrl(p)" target="_blank" rel="noopener">Maps</a>
           </footer>
-          <label class="pd-check" *ngIf="p.estadoLogistico !== 'Cancelado' && p.estadoLogistico !== 'Entregado'">
+          <label class="pd-check" *ngIf="p.estadoLogistico !== 'Cancelado' && p.estadoLogistico !== 'Entregado' && !enRuta(p)">
             <input
               type="checkbox"
               [checked]="enCocina(p)"
@@ -143,7 +146,7 @@
             </button>
           </div>
         </article>
-        <p class="pd-state" *ngIf="(tab === 'cola' ? cola : tab === 'recoger' ? recoger : tab === 'curso' ? enCurso : pedidos).length === 0">
+        <p class="pd-state" *ngIf="listaActual().length === 0">
           No hay pedidos en esta vista.
         </p>
       </ng-container>

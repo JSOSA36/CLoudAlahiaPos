@@ -98,6 +98,12 @@ export class PedidosOnlineService {
     });
   }
 
+  historial(idEmpresa: number, idUsuario: number): Observable<PedidoDeliveryListado[]> {
+    return this.http.get<PedidoDeliveryListado[]>(`${this.deliveryUrl}/mios/historial`, {
+      params: this.empresa(idEmpresa).set('idUsuario', String(idUsuario))
+    });
+  }
+
   obtener(idEmpresa: number, idPedidoOnline: number): Observable<PedidoDeliveryListado> {
     return this.http.get<PedidoDeliveryListado>(`${this.deliveryUrl}/${idPedidoOnline}`, {
       params: this.empresa(idEmpresa)

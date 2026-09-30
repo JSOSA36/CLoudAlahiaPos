@@ -33,7 +33,7 @@
 
     <section class="lista" *ngIf="!detalle">
       <h2>Mis pedidos</h2>
-      <p class="hint">Toca una tarjeta para ver el detalle, el mapa y marcar el estado.</p>
+      <p class="hint" *ngIf="pedidos.length">Toca una tarjeta para ver el detalle, el mapa y marcar el estado.</p>
       <button type="button" class="card" *ngFor="let p of pedidos" (click)="abrirDetalle(p)">
         <header>
           <strong>#{{ p.numeroPedido }}</strong>
@@ -50,7 +50,45 @@
           <span class="ver">Ver detalle →</span>
         </footer>
       </button>
-      <p class="state" *ngIf="!loading && !pedidos.length">No tiene pedidos asignados.</p>
+      <div class="vacio" *ngIf="!loading && !pedidos.length">
+        <div class="vacio-icono" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="11" y="8" width="26" height="32" rx="6" stroke="currentColor" stroke-width="2.2"/>
+            <path d="M18 18h12M18 24h12M18 30h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Sin pedidos asignados</h3>
+        <p>Cuando el local le asigne una entrega, aparecerá aquí con la dirección, el mapa y el estado.</p>
+      </div>
+      <button type="button" class="historial-toggle" (click)="alternarHistorial()">
+        {{ mostrarHistorial ? 'Ocultar historial' : 'Ver historial' }}
+      </button>
+    </section>
+
+    <section class="lista historial" *ngIf="mostrarHistorial && !detalle">
+      <h2>Historial</h2>
+      <p class="hint">Entregados y cancelados. No entran en la lista de los que están en curso.</p>
+      <p class="state" *ngIf="loadingHistorial">Cargando historial…</p>
+      <button type="button" class="card" *ngFor="let p of historial" (click)="abrirDetalle(p)">
+        <header>
+          <strong>#{{ p.numeroPedido }}</strong>
+          <span class="chip">{{ p.estadoUnificado }}</span>
+        </header>
+        <p class="cliente">{{ p.nombreCliente }}</p>
+        <p class="muted">{{ p.direccion || 'Sin dirección' }}</p>
+        <p class="items-preview" *ngIf="previewItems(p)">{{ previewItems(p) }}</p>
+        <footer>
+          <div>
+            <span class="chip" *ngIf="p.latitud && p.longitud">GPS</span>
+            <strong>{{ money(p.total) }}</strong>
+          </div>
+          <span class="ver">Ver detalle →</span>
+        </footer>
+      </button>
+      <div class="vacio" *ngIf="!loadingHistorial && !historial.length">
+        <h3>Sin pedidos anteriores</h3>
+        <p>Cuando marque uno como entregado, queda aquí.</p>
+      </div>
     </section>
 
     <section class="detalle" *ngIf="detalle">

@@ -229,6 +229,49 @@ h1, h2 {
   margin-bottom: 8px;
 }
 
+.linea-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.linea-acciones .link {
+  margin: 0;
+}
+
+.checkout-lines {
+  display: grid;
+  gap: 8px;
+  margin-top: 0.25rem;
+}
+
+.checkout-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.checkout-line p {
+  margin: 0.15rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.checkout-line .link {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.link.danger,
+.ghost.danger {
+  color: #b91c1c;
+}
+
 .thumb {
   width: 88px;
   height: 88px;
