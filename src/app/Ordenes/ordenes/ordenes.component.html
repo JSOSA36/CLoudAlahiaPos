@@ -129,6 +129,16 @@
 
         <!-- 🔥 BOTÓN EDITAR SOLO POS -->
        <ion-button
+  *ngIf="modo === 'seleccionar' && puedeEliminarOrden"
+  slot="end"
+  color="danger"
+  fill="solid"
+  size="small"
+  (click)="EliminarFactura(iten.idFacturaHeader); $event.stopPropagation()"
+>
+  <ion-icon name="trash-outline"></ion-icon>
+</ion-button>
+       <ion-button
   *ngIf="modo === 'seleccionar'"
   slot="end"
   color="warning"
