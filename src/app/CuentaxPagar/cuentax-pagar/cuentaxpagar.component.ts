@@ -903,6 +903,17 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   }
 
   async CloseModal() {
+    if (this.procesandoFactura) return;
+    this.procesandoFactura = true;
+    let enviado = false;
+    try {
+      enviado = (await this.ejecutarCierreCobro()) === true;
+    } finally {
+      if (!enviado) this.procesandoFactura = false;
+    }
+  }
+
+  private async ejecutarCierreCobro(): Promise<boolean | undefined> {
     const idCliente =
       this.IdCliente ||
       this._ClienteSeleccionado?.idCliente ||
@@ -1016,7 +1027,7 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
         duration: 2200,
         color: 'warning'
       })).present();
-      return;
+      return false;
     }
 
     if (this.requiereDatosFiscales) {
@@ -1164,6 +1175,7 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
 
     this.limpiarEstado();
     this.modalCtrl.dismiss(dataSalida, 'ok');
+    return true;
   }
 
   CerrarModal() {

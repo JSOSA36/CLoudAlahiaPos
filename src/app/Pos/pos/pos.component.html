@@ -716,8 +716,9 @@ class="right-panel"
   expand="block"
   class="btn-vender"
   (click)="openModalCobro()"
-  [disabled]="carrito.length === 0">
-  {{ getTextoBoton() }}
+  [disabled]="carrito.length === 0 || guardandoDocumento">
+  <ion-spinner *ngIf="guardandoDocumento" name="crescent"></ion-spinner>
+  {{ guardandoDocumento ? 'Guardando…' : getTextoBoton() }}
 </ion-button>
 
 <ion-button
@@ -727,8 +728,9 @@ class="right-panel"
   color="warning"
   class="btn-vender"
   (click)="openModalCobro(true)"
-  [disabled]="carrito.length === 0">
-  Guardar e imprimir
+  [disabled]="carrito.length === 0 || guardandoDocumento">
+  <ion-spinner *ngIf="guardandoDocumento" name="crescent"></ion-spinner>
+  {{ guardandoDocumento ? 'Guardando…' : 'Guardar e imprimir' }}
 </ion-button>
 
 <div class="bottom-row">

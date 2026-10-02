@@ -622,9 +622,10 @@
 
     (click)="CloseModal()"
 
-    [disabled]="!puedeProcesar()">
+    [disabled]="procesandoFactura || !puedeProcesar()">
 
-    {{ _TipoFactura === 'Credito' ? 'Guardar' : 'Procesar pago' }}
+    <ion-spinner *ngIf="procesandoFactura" name="crescent"></ion-spinner>
+    {{ procesandoFactura ? 'Guardando…' : (_TipoFactura === 'Credito' ? 'Guardar' : 'Procesar pago') }}
 
   </ion-button>
 
@@ -636,7 +637,9 @@
 
     class="mp-btn-cancel"
 
-    (click)="CerrarModal()">
+    (click)="CerrarModal()"
+
+    [disabled]="procesandoFactura">
 
     Cancelar
 

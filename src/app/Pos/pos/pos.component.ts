@@ -103,6 +103,9 @@ aplicarITBIS: boolean = true;
   usarGuarniciones = false;
   guarniciones: Guarnicion[] = [];
   carrito: ItemCarrito[] = [];
+  /** Evita un segundo toque mientras el servidor guarda la orden o la factura. */
+  guardandoDocumento = false;
+  private loadingGuardado: HTMLIonLoadingElement | null = null;
 
 
 tipoPago: 'CONTADO' | 'CREDITO' = 'CONTADO';
@@ -638,9 +641,15 @@ async validarCajaAbierta(){
   }
 async openModalCobro(imprimirCotizacion = false) {
 
-  if (!this.carrito.length) return;
+  if (!this.carrito.length || this.guardandoDocumento) return;
+  this.guardandoDocumento = true;
 
-  await this.alinearUsuarioCobro();
+  try {
+    await this.alinearUsuarioCobro();
+  } catch (err) {
+    await this.liberarGuardado();
+    throw err;
+  }
 
   if (this.tipoDocumento === 'Cotizacion' && this.esClienteAlPortador()) {
     const alert = await this.alertCtrl.create({
@@ -654,9 +663,15 @@ async openModalCobro(imprimirCotizacion = false) {
     });
     await alert.present();
     const { role } = await alert.onDidDismiss();
-    if (role !== 'confirm') return;
+    if (role !== 'confirm') {
+      await this.liberarGuardado();
+      return;
+    }
     await this.abrirClientes();
-    if (this.esClienteAlPortador()) return;
+    if (this.esClienteAlPortador()) {
+      await this.liberarGuardado();
+      return;
+    }
   }
 
   // =====================================
@@ -705,10 +720,15 @@ async openModalCobro(imprimirCotizacion = false) {
 
     });
 
+    const loading = await this.presentarLoadingGuardado(
+      this.tipoDocumento === 'Cotizacion' ? 'Guardando cotización…' : 'Guardando orden…'
+    );
+
     this._FacturaHeader.Enviarorden(header)
       .subscribe({
 
         next: async (resp: any) => {
+          try {
 
           const idOrden =
             resp?.idFacturaHeader ??
@@ -730,23 +750,30 @@ async openModalCobro(imprimirCotizacion = false) {
           }
 
           this.resetPOS();
+          } finally {
+            await this.liberarGuardado(loading);
+          }
 
         },
 
         error: async (err) => {
-          console.error(err);
-          const msg =
-            err?.error?.message ||
-            err?.message ||
-            'No se pudo guardar la orden. Intente de nuevo.';
-          (
-            await this.toastCtrl.create({
-              message: msg,
-              duration: 4000,
-              color: 'danger',
-              position: 'top'
-            })
-          ).present();
+          try {
+            console.error(err);
+            const msg =
+              err?.error?.message ||
+              err?.message ||
+              'No se pudo guardar la orden. Intente de nuevo.';
+            (
+              await this.toastCtrl.create({
+                message: msg,
+                duration: 4000,
+                color: 'danger',
+                position: 'top'
+              })
+            ).present();
+          } finally {
+            await this.liberarGuardado(loading);
+          }
         }
 
       });
@@ -816,7 +843,10 @@ async openModalCobro(imprimirCotizacion = false) {
 
   const { data, role } = await modal.onDidDismiss();
 
-  if (role !== 'ok') return;
+  if (role !== 'ok') {
+    await this.liberarGuardado();
+    return;
+  }
 
   await this.alinearUsuarioCobro();
 
@@ -875,6 +905,7 @@ async openModalCobro(imprimirCotizacion = false) {
     // (salvo NC que cubre 100%).
     if ((data?.tipoFactura || '').toString().toUpperCase() !== 'CREDITO') {
       console.warn("⚠️ No hay pagos");
+      await this.liberarGuardado();
       return;
     }
 
@@ -895,7 +926,7 @@ async openModalCobro(imprimirCotizacion = false) {
 
   const loadingDgii = this.tipoEcfDgii
     ? await this.presentarLoadingDgii()
-    : undefined;
+    : await this.presentarLoadingGuardado('Guardando factura…');
 
   const pagadoSnap = Number(data?.pagado);
   const pendienteSnap = Number(data?.pendiente);
@@ -910,6 +941,7 @@ async openModalCobro(imprimirCotizacion = false) {
     .subscribe({
 
       next: async (resp: any) => {
+        try {
 
         const carritoSnap = [...this.carrito];
         const itbisSnap = this.montoItbis;
@@ -975,14 +1007,22 @@ async openModalCobro(imprimirCotizacion = false) {
 
           this.parametro.IdFacturaHeader = 0;
 
+        } finally {
+          await this.liberarGuardado();
+        }
+
         },
 
         error: async (err) => {
+          try {
           await this.cerrarLoadingDgii(loadingDgii);
           console.error(
             '❌ Error creando factura',
             err
           );
+          } finally {
+            await this.liberarGuardado();
+          }
 
         }
 
@@ -1581,6 +1621,30 @@ onTipoEcfChange() {
     this.estadoRnc = '';
   }
   this.recalcularTotales();
+}
+
+private async presentarLoadingGuardado(message: string): Promise<HTMLIonLoadingElement> {
+  const loading = await this.loadingCtrl.create({
+    spinner: 'crescent',
+    message,
+    backdropDismiss: false,
+    cssClass: 'pos-guardando-loading'
+  });
+  await loading.present();
+  this.loadingGuardado = loading;
+  return loading;
+}
+
+private async liberarGuardado(loading?: HTMLIonLoadingElement | null): Promise<void> {
+  this.guardandoDocumento = false;
+  const overlay = loading ?? this.loadingGuardado;
+  this.loadingGuardado = null;
+  if (!overlay) return;
+  try {
+    await overlay.dismiss();
+  } catch {
+    /* overlay ya cerrado */
+  }
 }
 
 private async presentarLoadingDgii(): Promise<HTMLIonLoadingElement> {
