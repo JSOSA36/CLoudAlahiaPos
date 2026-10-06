@@ -37,7 +37,7 @@ import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-ele
 import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { GuarnicionesService } from 'src/app/servicios/guarniciones.service';
 import { Guarnicion } from 'src/app/models/guarnicion.model';
-import { TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
+import { SecuenciaEcfDisponible, TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
 type ItemCarrito = {
   idProducto: number;
   nombre: string;
@@ -153,6 +153,7 @@ usaCxC: boolean = false;
 
 facturacionElectronica: boolean = false;
 tiposComprobante: TipoComprobanteOption[] = [];
+secuenciasEcf: SecuenciaEcfDisponible[] = [];
 tipoEcfDgii: number | null = null;
   // Toggles header carrito
  
@@ -803,6 +804,14 @@ async openModalCobro(imprimirCotizacion = false) {
       Itbis: this.montoItbis,
 
       TotalFactura: this.total,
+
+      FacturarItbis: this.facturarITBIS,
+
+      TasaItbis: this.tasaITBIS,
+
+      MontoDescuento: this.montoDescuento,
+
+      MontoPropina: this.montoPropina,
 
       IdCliente: this.clienteSeleccionado?.id || this.clienteSeleccionado?.idCliente || null,
 
@@ -1525,15 +1534,40 @@ private armarFacturaDTO(dataModal: any) {
       }))
     },
 
-    pagos: (dataModal.pagos || []).map((p: any) => ({
-      metodo: p.metodo,
-      monto: p.monto,
-      idSaldoAFavor: p.idSaldoAFavor ?? null,
-      idNotaCredito: p.idNotaCredito ?? null,
-      ncfNotaCredito: p.ncfNotaCredito ?? null,
-      idArs: p.idArs ?? null
-    }))
+    pagos: this.pagosCubrenTotalSiNoHuboAbono(
+      tipoFactura,
+      dataModal,
+      (dataModal.pagos || []).map((p: any) => ({
+        metodo: p.metodo,
+        monto: p.monto,
+        idSaldoAFavor: p.idSaldoAFavor ?? null,
+        idNotaCredito: p.idNotaCredito ?? null,
+        ncfNotaCredito: p.ncfNotaCredito ?? null,
+        idArs: p.idArs ?? null
+      }))
+    )
   };
+}
+
+/** Crédito y pendiente solo si el cajero indicó un monto menor. Si no, el pago es el total. */
+private pagosCubrenTotalSiNoHuboAbono(tipoFactura: string, dataModal: any, pagos: any[]): any[] {
+  if (tipoFactura !== 'Contado') return pagos;
+
+  const pendienteIndicado = Number(dataModal?.pendiente);
+  if (Number.isFinite(pendienteIndicado) && pendienteIndicado > 0.02) return pagos;
+
+  const suma = pagos.reduce((s, p) => s + Number(p.monto || 0), 0);
+  const delta = Math.round((this.total - suma) * 100) / 100;
+  if (delta <= 0.02) return pagos;
+
+  const destino = [...pagos].reverse().find(p =>
+    p.metodo !== 'NotaCredito'
+    && p.metodo !== 'ARS'
+    && Number(p.monto) > 0);
+  if (!destino) return pagos;
+
+  destino.monto = Math.round((Number(destino.monto) + delta) * 100) / 100;
+  return pagos;
 }
 onTipoComprobanteChange() {
 
@@ -1571,6 +1605,7 @@ cargarTiposComprobante() {
 
   this.feService.getSecuenciasDisponibles(idEmpresa, this.parametro.IdSucursal || undefined).subscribe({
     next: (secuencias) => {
+      this.secuenciasEcf = secuencias || [];
       this.tiposComprobante = [
         { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
       ];
@@ -1592,6 +1627,7 @@ cargarTiposComprobante() {
       }
     },
     error: () => {
+      this.secuenciasEcf = [];
       this.tiposComprobante = [
         { value: null, label: 'FACT (Sin comprobante)', disabled: false, alertaBaja: false, restantes: 0 }
       ];
@@ -1690,11 +1726,16 @@ private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonL
   };
 
   const emp = this.parametro._Empresa as any;
+  const sec = this.secuenciasEcf.find(s => s.tipoEcfDgii === this.tipoEcfDgii);
+  const comercial = emp?.nombreComercial || emp?.NombreComercial || this.parametro.NombreEmpresa;
   const armarFacturaPreview = (resultado?: any) => ({
-    empresa: resultado?.razonSocialEmisor || this.parametro.NombreEmpresa,
+    empresa: resultado?.razonSocialEmisor || comercial,
+    razonSocial: resultado?.razonSocialEmisor || comercial,
+    nombreComercial: comercial,
     direccion: emp?.direccion || emp?.Direccion || '',
     telefono: emp?.telefono || emp?.Telefono || '',
     fecha: new Date(),
+    fechaVencimiento: sec?.fechaVencimiento || null,
     tipoDocumentoFiscal: this.ecfPreview.labelTipoEcf(this.tipoEcfDgii),
     cliente: this.nombreFiscal || this.clienteSeleccionado?.nombre || 'Consumidor',
     rnc: this.rncFiscal || this.clienteSeleccionado?.cedulaRNC || null,
@@ -1726,10 +1767,20 @@ private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonL
     const resultado = await this.feService.emitirYEnviar(request).toPromise();
     await this.cerrarLoadingDgii(loading);
 
-    if (!resultado || !resultado.exitoso) {
+    const estadoDgii = String(resultado?.estadoDgii || '').toLowerCase();
+    const rechazadoDgii = !resultado?.exitoso
+      || estadoDgii.includes('rechaz')
+      || estadoDgii.includes('error');
+
+    if (rechazadoDgii) {
+      const lista = resultado?.mensajesDgii;
+      const mensajes = Array.isArray(lista) ? lista.filter(Boolean).join('; ') : '';
+      const motivo = resultado?.mensajeError
+        || mensajes
+        || 'DGII rechazó el comprobante';
       const toast = await this.toastCtrl.create({
-        message: `Error e-CF: ${resultado?.mensajeError || 'Error desconocido'}`,
-        duration: 4000,
+        message: `No se imprime. ${motivo}`,
+        duration: 5000,
         color: 'danger',
         position: 'top',
       });

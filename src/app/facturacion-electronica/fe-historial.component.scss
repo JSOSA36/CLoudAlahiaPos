@@ -80,10 +80,17 @@
 .small {
   font-size: 0.8rem;
   color: #777;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 240px;
+  white-space: normal;
+}
+
+.motivo-corto {
+  margin-top: 6px;
+  max-width: 260px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #991b1b;
+  white-space: normal;
 }
 
 ion-badge {

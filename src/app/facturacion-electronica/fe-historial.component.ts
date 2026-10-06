@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
 import { ParametrosService } from 'src/app/servicios/parametros.service';
 import { EcfPreviewLauncherService } from 'src/app/servicios/ecf-preview-launcher.service';
@@ -90,8 +91,23 @@ export class FeHistorialComponent implements OnInit {
     this.buscar();
   }
 
+  textoTrack(item: EcfHistorialItem): string {
+    const t = (item.trackId || '').trim();
+    if (t && t !== '00000000-0000-0000-0000-000000000000') return t;
+    return Number(item.tipoEcfDgii) === 32 ? 'Sin TrackId (RFCE)' : 'Sin TrackId';
+  }
+
   async verDetalle(item: EcfHistorialItem) {
-    await this.ecfPreview.openFromHistorial(item);
+    try {
+      const det = await firstValueFrom(this.feService.getDetalle(item.idEcf));
+      if (det?.mensajeRespuesta) item.mensajeRespuesta = det.mensajeRespuesta;
+      if (det?.trackId) item.trackId = det.trackId;
+      if (det?.estadoDGII) item.estadoDGII = det.estadoDGII;
+      await this.ecfPreview.openFromHistorial(det);
+    } catch {
+      await this.showToast('No se pudo cargar el detalle del comprobante', 'danger');
+      await this.ecfPreview.openFromHistorial(item);
+    }
   }
 
   esReprocesable(item: EcfHistorialItem): boolean {

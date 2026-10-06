@@ -64,8 +64,9 @@
           <td>{{ item.fechaEmision | date:'dd/MM/yy HH:mm' }}</td>
           <td>
             <ion-badge [color]="badgeColor(item.estadoDGII)">{{ item.estadoDGII || 'Pendiente' }}</ion-badge>
+            <div class="motivo-corto" *ngIf="item.mensajeRespuesta">{{ item.mensajeRespuesta }}</div>
           </td>
-          <td class="mono small">{{ item.trackId || '—' }}</td>
+          <td class="mono small">{{ textoTrack(item) }}</td>
           <td>
             <ion-button size="small" fill="outline" color="primary"
                         (click)="verDetalle(item)">

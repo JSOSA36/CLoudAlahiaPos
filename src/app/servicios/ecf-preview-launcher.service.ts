@@ -135,37 +135,59 @@ export class EcfPreviewLauncherService {
 
   async openFromHistorial(item: {
     encf?: string;
-    tipoEcfDgii?: number;
+    tipoEcfDgii?: number | string;
     estadoDGII?: string;
     estadoDgii?: string;
     trackId?: string;
     fechaEmision?: string;
     montoTotal?: number;
+    subTotal?: number;
+    totalItbis?: number;
     rncComprador?: string;
     nombreReceptor?: string;
     mensajeRespuesta?: string;
+    codigoError?: string;
     securityCode?: string;
     urlQR?: string;
     rncEmisor?: string;
     razonSocialEmisor?: string;
+    direccion?: string;
+    telefono?: string;
+    nombreComercial?: string;
+    fechaVencimiento?: string | Date | null;
+    fechaFirma?: string | Date | null;
+    numeroDocumento?: string;
+    notaTrackId?: string;
+    xmlGuardado?: boolean;
+    mensajesDgii?: string[];
+    items?: any[];
   }): Promise<void> {
-    const tipoEcf = item.tipoEcfDgii;
+    const tipoEcf = Number(item.tipoEcfDgii) || undefined;
     const tipoDoc: TipoDocumentoElectronico =
       tipoEcf === 34 ? 'nota_credito'
       : tipoEcf === 33 ? 'nota_debito'
       : 'factura';
 
-    const mensajes = item.mensajeRespuesta
-      ? [item.mensajeRespuesta]
-      : [];
+    const mensajes = (item.mensajesDgii && item.mensajesDgii.length)
+      ? item.mensajesDgii
+      : (item.mensajeRespuesta ? [item.mensajeRespuesta] : []);
 
     const factura = {
       empresa: item.razonSocialEmisor,
+      razonSocial: item.razonSocialEmisor,
+      nombreComercial: item.nombreComercial || item.razonSocialEmisor,
+      direccion: item.direccion,
+      telefono: item.telefono,
+      numeroDocumento: item.numeroDocumento,
       fecha: item.fechaEmision ? new Date(item.fechaEmision) : new Date(),
+      fechaVencimiento: item.fechaVencimiento || null,
+      fechaFirma: item.fechaFirma || null,
       tipoDocumentoFiscal: this.labelTipoEcf(tipoEcf),
       cliente: item.nombreReceptor || 'Receptor',
       rnc: item.rncComprador,
-      items: [],
+      items: item.items || [],
+      subTotal: item.subTotal,
+      totalItbis: item.totalItbis,
       total: item.montoTotal
     };
 
@@ -177,6 +199,9 @@ export class EcfPreviewLauncherService {
       urlQR: item.urlQR || null,
       rncEmisor: item.rncEmisor || null,
       razonSocialEmisor: item.razonSocialEmisor || null,
+      codigoError: item.codigoError || null,
+      notaTrackId: item.notaTrackId || null,
+      xmlGuardado: item.xmlGuardado,
       mensajesDgii: mensajes
     };
 

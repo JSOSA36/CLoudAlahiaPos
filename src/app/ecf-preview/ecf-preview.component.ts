@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { Subscription, timer } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
@@ -17,11 +17,13 @@ export class EcfPreviewComponent implements OnInit, OnDestroy {
   @Input() titulo = 'Vista Previa — Documento Electrónico';
 
   consultando = false;
+  exportandoPdf = false;
   private pollSub?: Subscription;
 
   constructor(
     private modalCtrl: ModalController,
-    private feService: FacturacionElectronicaService
+    private feService: FacturacionElectronicaService,
+    private toastCtrl: ToastController
   ) {}
 
   ngOnInit() {
@@ -49,8 +51,13 @@ export class EcfPreviewComponent implements OnInit, OnDestroy {
     return estado.includes('rechazado');
   }
 
+  get esError(): boolean {
+    const estado = (this.ecfData?.estadoDgii || '').toLowerCase();
+    return estado.includes('error');
+  }
+
   get esPendiente(): boolean {
-    return !this.esAceptado && !this.esRechazado;
+    return !this.esAceptado && !this.esRechazado && !this.esError;
   }
 
   /** Etiqueta legible: DGII suele devolver EnProceso al recibir el envío. */
@@ -127,8 +134,119 @@ export class EcfPreviewComponent implements OnInit, OnDestroy {
     return uno ? [uno] : [];
   }
 
+  get puedeImprimir(): boolean {
+    return !this.esRechazado && !this.esError;
+  }
+
+  get razonSocial(): string {
+    return this.ecfData?.razonSocialEmisor || this.factura?.razonSocial || this.factura?.empresa || '';
+  }
+
+  get nombreComercial(): string {
+    return this.factura?.nombreComercial || this.factura?.empresa || this.razonSocial;
+  }
+
+  get fechaEmisionTxt(): string {
+    return this.fechaCorta(this.factura?.fecha);
+  }
+
+  get fechaVencimientoTxt(): string {
+    return this.fechaCorta(this.factura?.fechaVencimiento);
+  }
+
+  get codigoSeguridad(): string {
+    return (this.ecfData?.securityCode || this.qrParam('CodigoSeguridad') || '').trim();
+  }
+
+  get fechaFirmaTxt(): string {
+    const qr = this.qrParam('FechaFirma');
+    if (qr) return qr;
+    return this.fechaFirmaPlana(this.factura?.fechaFirma || this.ecfData?.fechaFirma);
+  }
+
+  lineaMonto(item: any): number {
+    return Number(item?.cantidad || 0) * Number(item?.precio || 0);
+  }
+
+  private fechaCorta(valor?: string | Date | null): string {
+    if (!valor) return '';
+    if (typeof valor === 'string') {
+      const lista = valor.trim().match(/^(\d{2})-(\d{2})-(\d{4})/);
+      if (lista) return `${lista[1]}-${lista[2]}-${lista[3]}`;
+      const iso = valor.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (iso) return `${iso[3]}-${iso[2]}-${iso[1]}`;
+    }
+    const d = valor instanceof Date ? valor : new Date(valor);
+    if (Number.isNaN(d.getTime()) || d.getFullYear() > 2100) return '';
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}-${mm}-${d.getFullYear()}`;
+  }
+
+  private fechaFirmaPlana(valor?: string | Date | null): string {
+    if (!valor) return '';
+    if (typeof valor === 'string') {
+      const lista = valor.trim().match(/^(\d{2})-(\d{2})-(\d{4})(?:[ T](\d{2}:\d{2}:\d{2}))?/);
+      if (lista) return lista[4] ? `${lista[1]}-${lista[2]}-${lista[3]} ${lista[4]}` : `${lista[1]}-${lista[2]}-${lista[3]}`;
+    }
+    const d = valor instanceof Date ? valor : new Date(valor);
+    if (Number.isNaN(d.getTime()) || d.getFullYear() > 2100) return '';
+    const p = (n: number) => String(n).padStart(2, '0');
+    return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+
+  private qrParam(key: string): string {
+    const url = this.ecfData?.urlQR;
+    if (!url) return '';
+    try {
+      return decodeURIComponent(new URL(url).searchParams.get(key) || '').replace(/\+/g, ' ');
+    } catch {
+      const m = String(url).match(new RegExp(`[?&]${key}=([^&]+)`, 'i'));
+      return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+    }
+  }
+
   imprimir() {
+    if (!this.puedeImprimir) return;
     window.print();
+  }
+
+  async exportarPdf() {
+    if (!this.esAceptado || this.exportandoPdf) return;
+    this.exportandoPdf = true;
+    try {
+      const { descargarEcfPdf } = await import('./ecf-preview-pdf');
+      await descargarEcfPdf({
+        empresa: this.ecfData?.razonSocialEmisor || this.factura?.empresa,
+        razonSocial: this.razonSocial,
+        nombreComercial: this.nombreComercial,
+        rncEmisor: this.ecfData?.rncEmisor,
+        direccion: this.factura?.direccion,
+        tipoDocumento: this.factura?.tipoDocumentoFiscal,
+        encf: this.ecfData?.encf,
+        fecha: this.factura?.fecha,
+        fechaVencimiento: this.factura?.fechaVencimiento,
+        fechaFirma: this.fechaFirmaTxt,
+        cliente: this.factura?.cliente,
+        rnc: this.factura?.rnc,
+        securityCode: this.codigoSeguridad,
+        urlQR: this.ecfData?.urlQR,
+        items: this.factura?.items || [],
+        totalItbis: this.factura?.totalItbis,
+        total: this.factura?.total
+      });
+    } catch (err) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo exportar el PDF',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    } finally {
+      this.exportandoPdf = false;
+    }
   }
 
   cerrar() {

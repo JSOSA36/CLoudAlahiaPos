@@ -207,6 +207,10 @@ export class FacturacionElectronicaService {
     return this.http.get<any>(`${this.baseUrl}/gateway/consultar/${encodeURIComponent(trackId)}`);
   }
 
+  getDetalle(idEcf: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/detalle/${idEcf}`);
+  }
+
   getHistorial(
     idEmpresa: number,
     desde?: string, hasta?: string,
