@@ -880,16 +880,12 @@ async openModalCobro(imprimirCotizacion = false) {
     // No limpiar RNC ya sincronizado desde el modal
     if (this.tipoEcfDgii === null) {
       this.tipoComprobante = 'FACT';
-      this.aplicarITBIS = false;
     } else if (this.tipoEcfDgii === 32) {
       this.tipoComprobante = 'Consumidor Final';
-      this.aplicarITBIS = true;
     } else if (this.tipoEcfDgii === 45) {
       this.tipoComprobante = 'Gubernamental';
-      this.aplicarITBIS = true;
     } else {
       this.tipoComprobante = 'Crédito Fiscal';
-      this.aplicarITBIS = true;
     }
   }
   if (data?.tipoFactura) {
@@ -1571,23 +1567,6 @@ private pagosCubrenTotalSiNoHuboAbono(tipoFactura: string, dataModal: any, pagos
 }
 onTipoComprobanteChange() {
 
-  // 🔥 FACT
-  if (
-    this.tipoComprobante ===
-    'FACT'
-  ) {
-
-    this.aplicarITBIS =
-      false;
-  }
-
-  // 🔥 FISCAL
-  else {
-
-    this.aplicarITBIS =
-      true;
-  }
-
   if (!this.requiereDatosFiscales()) {
     this.rncFiscal = '';
     this.nombreFiscal = '';
@@ -1638,16 +1617,12 @@ cargarTiposComprobante() {
 onTipoEcfChange() {
   if (this.tipoEcfDgii === null) {
     this.tipoComprobante = 'FACT';
-    this.aplicarITBIS = false;
   } else if (this.tipoEcfDgii === 32) {
     this.tipoComprobante = 'Consumidor Final';
-    this.aplicarITBIS = true;
   } else if (this.tipoEcfDgii === 45) {
     this.tipoComprobante = 'Gubernamental';
-    this.aplicarITBIS = true;
   } else {
     this.tipoComprobante = 'Crédito Fiscal';
-    this.aplicarITBIS = true;
   }
 
   if (!this.requiereDatosFiscales()) {

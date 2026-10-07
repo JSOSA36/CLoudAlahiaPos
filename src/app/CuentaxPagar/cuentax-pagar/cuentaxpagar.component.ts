@@ -161,30 +161,9 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   cargoReglas: CargoPagoRegla[] = [];
   cargosPagoHabilitado = false;
 
-  /** Total que el POS va a guardar. Con e-CF el ITBIS entra aquí, no después del cobro. */
+  /** El POS ya trae el total con ITBIS si el botón está ON. El comprobante no lo cambia. */
   get totalVenta(): number {
-    if (!this.cobraItbisEcf) return Number(this.TotalFactura) || 0;
-
-    const tasa = Number(this.TasaItbis) || 0.18;
-    let sub = 0;
-    let itbis = 0;
-    for (const item of this.Items || []) {
-      const base = Number(item?.precioBase ?? item?.precio) || 0;
-      const qty = Number(item?.cantidad) || 0;
-      const itbisUnit = Math.round(base * tasa * 100) / 100;
-      sub += base * qty;
-      itbis += itbisUnit * qty;
-    }
-    sub = Math.round(sub * 100) / 100;
-    itbis = Math.round(itbis * 100) / 100;
-    const desc = Number(this.MontoDescuento) || 0;
-    const prop = Number(this.MontoPropina) || 0;
-    return Math.round((sub + itbis + prop - desc) * 100) / 100;
-  }
-
-  /** e-CF enciende el ITBIS al confirmar. El monto a cobrar tiene que verlo antes. */
-  get cobraItbisEcf(): boolean {
-    return this.FacturarItbis && this.tipoEcfDgii != null;
+    return Number(this.TotalFactura) || 0;
   }
 
   /** Total de la venta sin cargo por método de pago. */
