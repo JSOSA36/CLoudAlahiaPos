@@ -988,7 +988,11 @@ async openModalCobro(imprimirCotizacion = false) {
             this.nombreFiscal = nombreFiscalSnap;
             this.tipoEcfDgii = ecfTipoSnap;
 
-            const impresa = await this.procesarEcfYPreview(idFactura, loadingDgii);
+            const impresa = await this.procesarEcfYPreview(
+              idFactura,
+              loadingDgii,
+              !!data?.imprimir
+            );
 
             this.resetPOS();
             if (impresa) {
@@ -999,11 +1003,13 @@ async openModalCobro(imprimirCotizacion = false) {
               ticketSnap.idFacturaHeader = idFactura;
               ticketSnap.numeroDocumento =
                 resp?.numeroDocumento || idFactura;
-              void this.imprimirTicketDocumento(
-                idFactura,
-                1,
-                ticketSnap
-              );
+              if (data?.imprimir) {
+                void this.imprimirTicketDocumento(
+                  idFactura,
+                  1,
+                  ticketSnap
+                );
+              }
               this.enviarTicketLavadorSiAplica(Number(idFactura));
             }
           } else {
@@ -1689,7 +1695,11 @@ private async cerrarLoadingDgii(loading?: HTMLIonLoadingElement | null) {
   }
 }
 
-private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonLoadingElement): Promise<boolean> {
+private async procesarEcfYPreview(
+  idFactura: number,
+  loadingExistente?: HTMLIonLoadingElement,
+  imprimirTicket = true
+): Promise<boolean> {
   if (!this.tipoEcfDgii) return false;
 
   const request: EmisionEcfRequest = {
@@ -1764,7 +1774,9 @@ private async procesarEcfYPreview(idFactura: number, loadingExistente?: HTMLIonL
       return false;
     }
 
-    await this.imprimirTicketDocumento(idFactura, 1);
+    if (imprimirTicket) {
+      await this.imprimirTicketDocumento(idFactura, 1);
+    }
     await abrirModalFiscal(resultado);
     return true;
 
