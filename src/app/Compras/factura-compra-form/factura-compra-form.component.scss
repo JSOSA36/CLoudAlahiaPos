@@ -789,3 +789,53 @@
 .fc-retencion-box .fc-grid {
   margin-top: 14px;
 }
+
+.fc-ocr {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px dashed var(--fc-border);
+  border-radius: var(--fc-radius);
+  background: #f8fafc;
+}
+
+.fc-ocr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #0f2744;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fc-ocr-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.fc-ocr-preview {
+  max-width: 220px;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.fc-ocr-aviso,
+.fc-ocr-pdf {
+  margin: 0;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.fc-ocr-faltan {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #9a3412;
+}

@@ -1,8 +1,11 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import {
   FacturaCompraDetalle,
+  FacturaCompraImagenLinea,
+  FacturaCompraImagenResultado,
   GuardarFacturaCompraRequest
 } from 'src/app/models/compras.models';
 import { Proveedor } from 'src/app/models/proveedores';
@@ -133,9 +136,15 @@ export class FacturaCompraFormComponent implements OnInit {
   readonly tasaItbisCompra = TASA_ITBIS_RD;
 
   procesando = false;
+  interpretandoImagen = false;
+  previewImagen: string | null = null;
+  previewPdfNombre: string | null = null;
+  avisoOcr = '';
+  lineasOcrSinProducto: FacturaCompraImagenLinea[] = [];
 
   @ViewChild(ProductoLineaBusquedaComponent) busquedaProducto?: ProductoLineaBusquedaComponent;
   @ViewChild('inputCantidad') inputCantidad?: ElementRef<HTMLIonInputElement>;
+  @ViewChild('inputImagenFactura') inputImagenFactura?: ElementRef<HTMLInputElement>;
 
   constructor(
     private route: ActivatedRoute,
@@ -477,6 +486,147 @@ export class FacturaCompraFormComponent implements OnInit {
 
   get esBorrador(): boolean {
     return this.estado === 'BORRADOR';
+  }
+
+  abrirSelectorImagen(): void {
+    if (!this.esBorrador || this.esOrdenCompra) {
+      this.toast('La lectura de archivo solo aplica a facturas en borrador.');
+      return;
+    }
+    this.inputImagenFactura?.nativeElement.click();
+  }
+
+  async onImagenFacturaSeleccionada(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!archivo) return;
+
+    const esPdf = this.esPdfFactura(archivo);
+    const esImagen = (archivo.type || '').startsWith('image/');
+    if (!esPdf && !esImagen) {
+      this.toast('Use una foto JPG/PNG o un PDF de la factura.');
+      return;
+    }
+    if (archivo.size > 12 * 1024 * 1024) {
+      this.toast('El archivo no puede superar 12 MB.');
+      return;
+    }
+    if (!this.detalles.length) {
+      await this.interpretarImagen(archivo);
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Reemplazar líneas',
+      message: 'Ya hay productos en el documento. ¿Desea reemplazarlos con lo leído del archivo?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Reemplazar', handler: () => { void this.interpretarImagen(archivo); } }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async interpretarImagen(archivo: File): Promise<void> {
+    this.interpretandoImagen = true;
+    this.avisoOcr = 'Leyendo la factura…';
+    this.limpiarPreviewArchivo();
+    try {
+      if (this.esPdfFactura(archivo)) {
+        this.previewPdfNombre = archivo.name;
+      } else {
+        this.previewImagen = URL.createObjectURL(archivo);
+      }
+      const resultado = await firstValueFrom(
+        this.comprasService.interpretarImagen(
+          this.parametro.GetIdEmpresa(),
+          this.parametro.IdUsuario || 0,
+          archivo
+        )
+      );
+      if (!resultado?.success) {
+        const msg = resultado?.message || 'No se pudo leer la factura.';
+        this.avisoOcr = msg;
+        this.toast(msg);
+        return;
+      }
+      this.aplicarResultadoImagen(resultado);
+    } catch (e) {
+      const msg = this.mensajeErrorHttp(e, 'No se pudo leer la factura. Revise el archivo e intente de nuevo.');
+      this.avisoOcr = msg;
+      this.toast(msg);
+    } finally {
+      this.interpretandoImagen = false;
+    }
+  }
+
+  private esPdfFactura(archivo: File): boolean {
+    const nombre = (archivo.name || '').toLowerCase();
+    return archivo.type === 'application/pdf'
+      || archivo.type === 'application/x-pdf'
+      || nombre.endsWith('.pdf');
+  }
+
+  private limpiarPreviewArchivo(): void {
+    if (this.previewImagen) URL.revokeObjectURL(this.previewImagen);
+    this.previewImagen = null;
+    this.previewPdfNombre = null;
+  }
+
+  private aplicarResultadoImagen(resultado: FacturaCompraImagenResultado): void {
+    const idProveedor = Number(resultado.idProveedor || 0);
+    if (idProveedor > 0) this.idProveedor = idProveedor;
+    if (resultado.ncf) this.numeroComprobante = resultado.ncf;
+    if (resultado.fecha) this.fechaDocumento = String(resultado.fecha).substring(0, 10);
+    this.onCondicionPagoChange(resultado.condicionPago === 'Credito' ? 'Credito' : 'Contado');
+    if (resultado.fechaVencimiento) {
+      this.fechaVencimiento = String(resultado.fechaVencimiento).substring(0, 10);
+    }
+
+    const lineas = resultado.lineas || [];
+    this.lineasOcrSinProducto = lineas.filter(l => this.idProductoLinea(l) <= 0);
+    this.detalles = lineas
+      .filter(l => this.idProductoLinea(l) > 0)
+      .map(l => this.detalleDesdeLineaOcr(l));
+    if (this.autoMontosDgii) this.recalcularMontosDgii();
+
+    const avisos: string[] = [];
+    if (!resultado.proveedorEncontrado) {
+      avisos.push(resultado.nombreEmisor
+        ? `Proveedor no encontrado (${resultado.nombreEmisor}${resultado.rncEmisor ? ', RNC ' + resultado.rncEmisor : ''}). Selecciónelo.`
+        : 'Seleccione el proveedor: no coincidió con el catálogo.');
+    }
+    if (this.lineasOcrSinProducto.length) {
+      avisos.push(`${this.lineasOcrSinProducto.length} línea(s) no se emparejaron con el catálogo. Agréguelas a mano.`);
+    }
+    if (this.detalles.length) {
+      avisos.push(`${this.detalles.length} línea(s) cargadas. Revise cantidades, costos y NCF antes de guardar.`);
+    } else if (!lineas.length) {
+      avisos.push('Se leyó el encabezado, pero no las líneas. Adjunte el PDF digital del e-CF o agregue los productos a mano.');
+    }
+    this.avisoOcr = avisos.join(' ') || resultado.message || 'Factura leída. Revise y guarde el borrador.';
+    this.toast(this.avisoOcr);
+  }
+
+  private idProductoLinea(linea: FacturaCompraImagenLinea): number {
+    return Number(linea.idProducto || 0);
+  }
+
+  private detalleDesdeLineaOcr(linea: FacturaCompraImagenLinea): FacturaCompraDetalle {
+    const cantidad = Number(linea.cantidad || 0) || 1;
+    const precio = Number(linea.precioUnitario || 0);
+    const itbis = Number(linea.itbis || 0);
+    return {
+      idProducto: this.idProductoLinea(linea),
+      cantidad,
+      precioCompra: precio,
+      descuento: 0,
+      itbis,
+      subTotal: cantidad * precio + itbis,
+      nombreProducto: linea.nombreProducto || linea.descripcion,
+      tipoComportamientoLinea: normalizarTipoComportamiento(linea.tipoComportamiento)
+    };
   }
 
   get esOrdenEmitida(): boolean {

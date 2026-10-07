@@ -25,6 +25,30 @@ export interface FacturaCompraDetalle {
   requiereRecepcionFisica?: boolean;
 }
 
+export interface FacturaCompraImagenLinea {
+  descripcion?: string;
+  cantidad?: number;
+  precioUnitario?: number;
+  itbis?: number;
+  idProducto?: number;
+  nombreProducto?: string;
+  tipoComportamiento?: string;
+}
+
+export interface FacturaCompraImagenResultado {
+  success?: boolean;
+  message?: string;
+  rncEmisor?: string;
+  nombreEmisor?: string;
+  idProveedor?: number;
+  proveedorEncontrado?: boolean;
+  ncf?: string;
+  fecha?: string;
+  condicionPago?: string;
+  fechaVencimiento?: string;
+  lineas?: FacturaCompraImagenLinea[];
+}
+
 export interface FacturaCompra {
   idOrdenCompraHeader: number;
   idEmpresa: number;

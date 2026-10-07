@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { AppConfigService } from './app-config.service';
 import {
   FacturaCompra,
+  FacturaCompraImagenResultado,
   GuardarFacturaCompraRequest,
   ConfirmarFacturaCompraRequest,
   RegistrarPagoProveedorRequest,
@@ -184,5 +185,17 @@ export class ComprasService {
       params.push(`periodo=${encodeURIComponent(periodo)}`);
     }
     return this.http.get<Reporte606>(`${this.baseUrl}/Reporte606/${idEmpresa}?${params.join('&')}`);
+  }
+
+  interpretarImagen(
+    idEmpresa: number,
+    idUsuario: number,
+    archivo: File
+  ): Observable<FacturaCompraImagenResultado> {
+    const fd = new FormData();
+    fd.append('idEmpresa', String(idEmpresa));
+    fd.append('idUsuario', String(idUsuario));
+    fd.append('archivo', archivo, archivo.name);
+    return this.http.post<FacturaCompraImagenResultado>(`${this.baseUrl}/InterpretarImagen`, fd);
   }
 }

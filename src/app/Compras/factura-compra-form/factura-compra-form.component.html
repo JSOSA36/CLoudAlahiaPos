@@ -103,6 +103,28 @@
         </div>
       </div>
 
+      <div class="fc-ocr" *ngIf="esBorrador && !esOrdenCompra">
+        <input
+          #inputImagenFactura
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf"
+          hidden
+          (change)="onImagenFacturaSeleccionada($event)" />
+        <button type="button" class="fc-ocr-btn" (click)="abrirSelectorImagen()" [disabled]="interpretandoImagen">
+          <ion-spinner *ngIf="interpretandoImagen" name="crescent"></ion-spinner>
+          <ion-icon *ngIf="!interpretandoImagen" name="cloud-upload-outline"></ion-icon>
+          {{ interpretandoImagen ? 'Leyendo…' : 'Adjuntar imagen o PDF' }}
+        </button>
+        <img *ngIf="previewImagen" class="fc-ocr-preview" [src]="previewImagen" alt="Factura adjunta" />
+        <p class="fc-ocr-pdf" *ngIf="previewPdfNombre">{{ previewPdfNombre }}</p>
+        <p class="fc-ocr-aviso" *ngIf="avisoOcr">{{ avisoOcr }}</p>
+        <ul class="fc-ocr-faltan" *ngIf="lineasOcrSinProducto.length">
+          <li *ngFor="let l of lineasOcrSinProducto">
+            {{ l.descripcion || l.nombreProducto }} · {{ l.cantidad || 0 }} × {{ l.precioUnitario || 0 }}
+          </li>
+        </ul>
+      </div>
+
       <!-- Proveedor -->
       <div class="fc-section">
         <div class="fc-section-head">
