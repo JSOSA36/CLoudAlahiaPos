@@ -1824,7 +1824,8 @@ tieneComprobanteFiscal(): boolean {
 }
 
 debeAplicarITBIS(): boolean {
-  return this.tieneComprobanteFiscal() || (this.facturarITBIS && this.aplicarITBIS);
+  if (!this.facturarITBIS) return false;
+  return this.tieneComprobanteFiscal() || this.aplicarITBIS;
 }
 
 mostrarSelectorCliente(): boolean {

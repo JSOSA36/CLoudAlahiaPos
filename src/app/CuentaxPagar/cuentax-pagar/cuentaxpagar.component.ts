@@ -171,7 +171,7 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   }
 
   get cobraItbisComprobante(): boolean {
-    return this.tipoEcfDgii != null;
+    return this.FacturarItbis && this.tipoEcfDgii != null;
   }
 
   get itbisForzadoComprobante(): number {
