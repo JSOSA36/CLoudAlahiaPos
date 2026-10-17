@@ -27,6 +27,18 @@
           placeholder="202607">
         </ion-input>
       </div>
+      <div class="r607-field">
+        <label>Tipo de comprobante</label>
+        <ion-select
+          [(ngModel)]="filtroTipo"
+          interface="popover"
+          placeholder="Todos">
+          <ion-select-option value="TODOS">Todos</ion-select-option>
+          <ion-select-option value="E31">E31 — Crédito fiscal</ion-select-option>
+          <ion-select-option value="E32">E32 — Consumo</ion-select-option>
+          <ion-select-option value="NC">Notas de crédito</ion-select-option>
+        </ion-select>
+      </div>
       <div class="r607-actions">
         <ion-button (click)="cargarReporte()" [disabled]="cargando">
           <ion-icon slot="start" name="search-outline"></ion-icon>
@@ -35,14 +47,14 @@
         <ion-button
           color="warning"
           fill="solid"
-          [disabled]="!data?.cantidadRegistros"
+          [disabled]="!lineasExportables.length"
           (click)="descargarTxt()">
           <ion-icon slot="start" name="download-outline"></ion-icon>
           Descargar TXT DGII
         </ion-button>
         <ion-button
           color="medium"
-          [disabled]="!lineasDetalle.length"
+          [disabled]="!lineasExportables.length"
           (click)="exportarPdf()">
           <ion-icon slot="start" name="document-outline"></ion-icon>
           Exportar PDF
@@ -89,9 +101,9 @@
       </section>
 
       <p class="r607-hint">
-        Incluye facturas de venta y notas de crédito con NCF/e-CF del rango.
-        Las facturas de consumo (B02/E32) menores a RD$250,000 van al resumen OFV, no al TXT.
-        Complete RNC del cliente y NCF modificado en NC para envío limpio.
+        Puede consultar E31, E32 y notas de crédito. El TXT y el PDF solo exportan
+        E31 (crédito fiscal) y notas de crédito (E33/E34). El E32 de consumo queda
+        en consulta / resumen OFV si es menor a RD$250,000.
       </p>
 
       <div class="r607-table-wrap" *ngIf="lineasDetalle.length; else vacio">
@@ -118,10 +130,11 @@
           <tbody>
             <tr
               *ngFor="let l of lineasDetalle"
-              [class.row-alert]="!l.esValidaParaEnvio"
-              [class.row-nc]="l.tipoDocumentoAlahia === 'NotaCredito'">
+              [class.row-alert]="esExportableTxt(l) && !l.esValidaParaEnvio"
+              [class.row-nc]="esNotaCredito(l)"
+              [class.row-e32]="prefijoNcf(l) === 'E32'">
               <td>{{ l.fechaComprobante | date:'dd/MM/yyyy' }}</td>
-              <td>{{ etiquetaTipoDoc(l.tipoDocumentoAlahia) }}</td>
+              <td>{{ etiquetaTipoDoc(l) }}</td>
               <td>{{ l.clienteNombre || '—' }}</td>
               <td>
                 {{ l.rncCedulaComprador || '—' }}
@@ -138,8 +151,12 @@
               <td class="num">{{ l.ventaCredito | number:'1.2-2' }}</td>
               <td class="num">{{ l.otrasFormasVenta | number:'1.2-2' }}</td>
               <td>
-                <span class="ok" *ngIf="l.esValidaParaEnvio">OK</span>
-                <span class="bad" *ngIf="!l.esValidaParaEnvio" [title]="l.alertas?.join(' · ')">
+                <span class="ok" *ngIf="esExportableTxt(l) && l.esValidaParaEnvio">OK</span>
+                <span class="muted" *ngIf="!esExportableTxt(l)">{{ etiquetaEstadoTxt(l) }}</span>
+                <span
+                  class="bad"
+                  *ngIf="esExportableTxt(l) && !l.esValidaParaEnvio"
+                  [title]="l.alertas?.join(' · ')">
                   {{ l.alertas?.[0] || 'Revisar' }}
                 </span>
               </td>
@@ -150,9 +167,9 @@
 
       <ng-template #vacio>
         <div class="r607-empty">
-          No hay comprobantes fiscales para el detalle TXT en este rango
-          <span *ngIf="r.resumenFcCantidad">
-            (sí hay {{ r.resumenFcCantidad }} facturas de consumo &lt; 250K para el resumen OFV).
+          No hay comprobantes para este filtro
+          <span *ngIf="r.resumenFcCantidad && filtroTipo !== 'E31'">
+            ({{ r.resumenFcCantidad }} facturas de consumo &lt; 250K en el resumen OFV).
           </span>
         </div>
       </ng-template>

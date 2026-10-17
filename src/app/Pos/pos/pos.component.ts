@@ -248,6 +248,11 @@ private esClienteAlPortador(): boolean {
   this.carritoModal = true;
 }
 setITBIS(valor: boolean) {
+  if (!valor && this.tieneComprobanteFiscal()) {
+    this.aplicarITBIS = true;
+    this.recalcularTotales();
+    return;
+  }
   this.aplicarITBIS = valor;
   this.recalcularTotales();
 }
@@ -887,6 +892,9 @@ async openModalCobro(imprimirCotizacion = false) {
     } else {
       this.tipoComprobante = 'Crédito Fiscal';
     }
+  }
+  if (this.tieneComprobanteFiscal()) {
+    this.aplicarITBIS = true;
   }
   if (data?.tipoFactura) {
     this.tipoPago =
@@ -1573,11 +1581,15 @@ private pagosCubrenTotalSiNoHuboAbono(tipoFactura: string, dataModal: any, pagos
 }
 onTipoComprobanteChange() {
 
+  if (this.tieneComprobanteFiscal()) {
+    this.aplicarITBIS = true;
+  }
+
   if (!this.requiereDatosFiscales()) {
     this.rncFiscal = '';
     this.nombreFiscal = '';
-    this.mensajeRnc = '';
     this.estadoRnc = '';
+    this.mensajeRnc = '';
   }
 
   // 🔥 RECALCULAR
@@ -1629,6 +1641,10 @@ onTipoEcfChange() {
     this.tipoComprobante = 'Gubernamental';
   } else {
     this.tipoComprobante = 'Crédito Fiscal';
+  }
+
+  if (this.tieneComprobanteFiscal()) {
+    this.aplicarITBIS = true;
   }
 
   if (!this.requiereDatosFiscales()) {
@@ -1802,14 +1818,21 @@ requiereDatosFiscales(): boolean {
   );
 }
 
+/** Consumo, crédito fiscal o gubernamental: el ITBIS no se puede apagar. */
+tieneComprobanteFiscal(): boolean {
+  return this.tipoEcfDgii != null;
+}
+
+debeAplicarITBIS(): boolean {
+  return this.tieneComprobanteFiscal() || (this.facturarITBIS && this.aplicarITBIS);
+}
+
 mostrarSelectorCliente(): boolean {
   return true;
 }
 recalcularTotales() {
 
-  const usarITBIS =
-    this.facturarITBIS &&
-    this.aplicarITBIS;
+  const usarITBIS = this.debeAplicarITBIS();
 
   // =====================================
   // 🔥 RECALCULAR CADA ITEM
@@ -2319,8 +2342,7 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
 
   const usarITBIS =
     productoTieneITBIS &&
-    this.facturarITBIS &&
-    this.aplicarITBIS;
+    this.debeAplicarITBIS();
 
   // =====================================
   // 🔥 PRECIO BASE
@@ -2519,9 +2541,7 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
 
   getPrecioUnitarioItem(item: ItemCarrito): number {
     const base = item.precioBase ?? item.precio;
-    const usarITBIS =
-      this.facturarITBIS &&
-      this.aplicarITBIS;
+    const usarITBIS = this.debeAplicarITBIS();
 
     if (usarITBIS) {
       return +(
@@ -2606,9 +2626,7 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
     nuevoPrecioUnitario: number
   ) {
 
-    const usarITBIS =
-      this.facturarITBIS &&
-      this.aplicarITBIS;
+    const usarITBIS = this.debeAplicarITBIS();
 
     if (usarITBIS) {
 

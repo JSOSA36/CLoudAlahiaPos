@@ -15,6 +15,7 @@ export class Reporte607Component implements OnInit {
   desde = '';
   hasta = '';
   periodo = '';
+  filtroTipo: 'TODOS' | 'E31' | 'E32' | 'NC' = 'TODOS';
   cargando = false;
   data: Reporte607 | null = null;
 
@@ -34,7 +35,29 @@ export class Reporte607Component implements OnInit {
   }
 
   get lineasDetalle(): Reporte607Linea[] {
-    return (this.data?.lineas || []).filter(l => !l.esResumenFacturaConsumo);
+    const lineas = this.data?.lineas || [];
+    if (this.filtroTipo === 'TODOS') return lineas;
+    return lineas.filter(l => this.prefijoNcf(l) === this.filtroTipo
+      || (this.filtroTipo === 'NC' && this.esNotaCredito(l)));
+  }
+
+  get lineasExportables(): Reporte607Linea[] {
+    return (this.data?.lineas || []).filter(l => this.esExportableTxt(l));
+  }
+
+  prefijoNcf(l: Reporte607Linea): string {
+    return (l.ncf || '').trim().toUpperCase().slice(0, 3);
+  }
+
+  esNotaCredito(l: Reporte607Linea): boolean {
+    const p = this.prefijoNcf(l);
+    return l.tipoDocumentoAlahia === 'NotaCredito' || p === 'E33' || p === 'E34';
+  }
+
+  esExportableTxt(l: Reporte607Linea): boolean {
+    const p = this.prefijoNcf(l);
+    if (this.esNotaCredito(l)) return p === 'E33' || p === 'E34';
+    return p === 'E31';
   }
 
   cargarReporte(): void {
@@ -67,8 +90,20 @@ export class Reporte607Component implements OnInit {
       });
   }
 
-  etiquetaTipoDoc(tipo: string): string {
-    return tipo === 'NotaCredito' ? 'NC' : 'Venta';
+  etiquetaTipoDoc(l: Reporte607Linea): string {
+    const p = this.prefijoNcf(l);
+    if (p === 'E31') return 'E31';
+    if (p === 'E32') return 'E32';
+    if (p === 'E33' || p === 'E34' || l.tipoDocumentoAlahia === 'NotaCredito') return 'NC';
+    return p || (l.tipoDocumentoAlahia === 'NotaCredito' ? 'NC' : 'Venta');
+  }
+
+  etiquetaEstadoTxt(l: Reporte607Linea): string {
+    if (this.esExportableTxt(l)) {
+      return l.esValidaParaEnvio ? 'OK' : (l.alertas?.[0] || 'Revisar');
+    }
+    if (this.prefijoNcf(l) === 'E32') return 'Consulta';
+    return 'No TXT';
   }
 
   etiquetaTipoId(codigo: number): string {
@@ -81,7 +116,7 @@ export class Reporte607Component implements OnInit {
   }
 
   descargarTxt(): void {
-    if (!this.data?.contenidoTxt) {
+    if (!this.data?.contenidoTxt || !this.lineasExportables.length) {
       return;
     }
     const rnc = (this.data.rncEmpresa || 'SINRNC').replace(/\D/g, '');
@@ -96,7 +131,7 @@ export class Reporte607Component implements OnInit {
   }
 
   exportarPdf(): void {
-    if (!this.lineasDetalle.length) {
+    if (!this.lineasExportables.length) {
       return;
     }
     const r = this.data;
@@ -127,9 +162,9 @@ export class Reporte607Component implements OnInit {
           { header: 'Crédito', width: 52, align: 'right' },
           { header: 'TXT', width: 55 }
         ],
-        filas: this.lineasDetalle.map(l => [
+        filas: this.lineasExportables.map(l => [
           pdfFecha(l.fechaComprobante),
-          this.etiquetaTipoDoc(l.tipoDocumentoAlahia),
+          this.etiquetaTipoDoc(l),
           l.clienteNombre || '—',
           l.rncCedulaComprador || '—',
           l.ncf || '—',
@@ -140,7 +175,7 @@ export class Reporte607Component implements OnInit {
           pdfNumero(l.chequeTransferenciaDeposito),
           pdfNumero(l.tarjetaDebitoCredito),
           pdfNumero(l.ventaCredito),
-          l.esValidaParaEnvio ? 'OK' : (l.alertas?.[0] || 'Revisar')
+          this.etiquetaEstadoTxt(l)
         ])
       }],
       nombreArchivo: `607_${r?.periodo || this.periodo}.pdf`

@@ -161,9 +161,34 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   cargoReglas: CargoPagoRegla[] = [];
   cargosPagoHabilitado = false;
 
-  /** El POS ya trae el total con ITBIS si el botón está ON. El comprobante no lo cambia. */
+  /** El POS ya trae el total con ITBIS si el botón está ON. Con comprobante se fuerza. */
   get totalVenta(): number {
-    return Number(this.TotalFactura) || 0;
+    const base = Number(this.TotalFactura) || 0;
+    if (!this.cobraItbisComprobante) return base;
+    const itbisOrig = Number(this.Itbis) || 0;
+    if (itbisOrig > 0.009) return base;
+    return Math.round((base + this.itbisForzadoComprobante) * 100) / 100;
+  }
+
+  get cobraItbisComprobante(): boolean {
+    return this.tipoEcfDgii != null;
+  }
+
+  get itbisForzadoComprobante(): number {
+    const tasa = Number(this.TasaItbis) > 0 ? Number(this.TasaItbis) : 0.18;
+    const items = this.Items || [];
+    if (items.length) {
+      const suma = items.reduce((s, it) => {
+        const qty = Number(it.cantidad) || 0;
+        const unitario = Number(it.itbisProducto) > 0.009
+          ? Number(it.itbisProducto)
+          : (Number(it.precioBase ?? it.precio) || 0) * tasa;
+        return s + unitario * qty;
+      }, 0);
+      return Math.round(suma * 100) / 100;
+    }
+    const sub = Number(this.Subtotal) || 0;
+    return Math.round(sub * tasa * 100) / 100;
   }
 
   /** Total de la venta sin cargo por método de pago. */
