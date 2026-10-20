@@ -44,7 +44,7 @@ import {
   politicaFiscalActiva,
   TIPO_COMPROBANTE_CONSUMO,
   TIPO_ECF_CONSUMO
-} from './politica-fiscal';
+} from '../politica-fiscal';
 type ItemCarrito = {
   idProducto: number;
   nombre: string;
