@@ -124,6 +124,9 @@
             </ion-select-option>
           </ion-select>
         </ion-item>
+        <p class="facturacion-hint" *ngIf="politicaFiscalAutomatica && FacturacionElectronica">
+          Tarjeta y Billet BHD emiten factura de consumo (E32). El ITBIS del producto gravado se mantiene.
+        </p>
         <p class="facturacion-hint" *ngIf="cobraItbisComprobante">
           El comprobante fiscal siempre incluye ITBIS. No se puede emitir sin impuesto.
         </p>

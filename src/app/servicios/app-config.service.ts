@@ -10,9 +10,13 @@ export class AppConfigService {
 
 //public readonly apiUrl: string = 'http://localhost:5000/api';
 
-  //api de desarrollo (Alahia AI y features nuevas locales)
-  public readonly apiUrl: string = 'http://localhost:5039/api';
-  // public readonly apiUrl: string = 'https://alahiaposapidemo.alahiapos.com/api';
+  // El ERP es un sitio IIS aparte. La API sigue en https://192.168.100.169.
+  get apiUrl(): string {
+    if (typeof location === 'undefined') return 'https://192.168.100.169/api';
+    if (location.port === '4200') return `http://${location.hostname}:5039/api`;
+    if (location.hostname === '192.168.100.169') return 'https://192.168.100.169/api';
+    return `${location.origin}/api`;
+  }
 
   /**
    * Token de sesión + claim de PC (cupo POS).

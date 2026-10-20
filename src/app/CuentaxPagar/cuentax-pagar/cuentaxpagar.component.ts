@@ -26,6 +26,7 @@ import {
 } from 'src/app/servicios/cargo-pago.service';
 import { ArsAseguradoraService } from 'src/app/servicios/ars-aseguradora.service';
 import { ArsAseguradora } from 'src/app/models/ars-aseguradora';
+import { debeForzarComprobanteConsumo } from 'src/app/Pos/politica-fiscal';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -48,6 +49,8 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   @Input() Itbis!: number;
   @Input() Items: any[] = [];
   @Input() FacturarItbis = false;
+  /** Con la política activa el POS no deja apagar el ITBIS. */
+  @Input() politicaFiscalAutomatica = false;
   @Input() TasaItbis = 0.18;
   @Input() MontoDescuento = 0;
   @Input() MontoPropina = 0;
@@ -180,9 +183,11 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
     if (items.length) {
       const suma = items.reduce((s, it) => {
         const qty = Number(it.cantidad) || 0;
-        const unitario = Number(it.itbisProducto) > 0.009
+        const unitario = this.politicaFiscalAutomatica && it.gravaItbis === false
+          ? 0
+          : (Number(it.itbisProducto) > 0.009
           ? Number(it.itbisProducto)
-          : (Number(it.precioBase ?? it.precio) || 0) * tasa;
+          : (Number(it.precioBase ?? it.precio) || 0) * tasa);
         return s + unitario * qty;
       }, 0);
       return Math.round(suma * 100) / 100;
@@ -1191,6 +1196,19 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
             : { ...p, monto: Math.min(Number(p.monto) || 0, this.restanteCliente) }
         );
       }
+    }
+
+    if (debeForzarComprobanteConsumo({
+      politicaActiva: this.politicaFiscalAutomatica,
+      facturacionElectronica: this.FacturacionElectronica,
+      metodos: pagos.map(p => p.metodo),
+      montos: pagos.map(p => Number(p.monto) || 0),
+      tipoEcfDgii: this.tipoEcfDgii,
+      tipoComprobante: this._TipoComprobante,
+      rnc: this.rncFiscal
+    })) {
+      this.tipoEcfDgii = 32;
+      this._TipoComprobante = 'Consumidor Final';
     }
 
     const dataSalida = {

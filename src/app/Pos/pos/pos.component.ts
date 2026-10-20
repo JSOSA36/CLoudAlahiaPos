@@ -38,6 +38,13 @@ import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { GuarnicionesService } from 'src/app/servicios/guarniciones.service';
 import { Guarnicion } from 'src/app/models/guarnicion.model';
 import { SecuenciaEcfDisponible, TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
+import {
+  CLAVE_POLITICA_FISCAL,
+  debeForzarComprobanteConsumo,
+  politicaFiscalActiva,
+  TIPO_COMPROBANTE_CONSUMO,
+  TIPO_ECF_CONSUMO
+} from './politica-fiscal';
 type ItemCarrito = {
   idProducto: number;
   nombre: string;
@@ -49,6 +56,8 @@ type ItemCarrito = {
   itbisProducto?: number;
   precioVentaOriginal?: number;
   descuentoUnitario?: number;
+  /** true solo si el producto está gravado. Con la política activa, el exento queda en cero. */
+  gravaItbis?: boolean;
   
   idEmpleadoComision?: number;
   guarnicion?: string;
@@ -72,6 +81,7 @@ export class PosComponent implements OnInit, OnDestroy {
   productos: productos[] = [];
   productosFiltrados: productos[] = [];
 facturarITBIS: boolean = false;
+politicaFiscalAutomatica: boolean = false;
 precioIncluyeITBIS: boolean = false;
 descuentoTipo: 'PORCENTAJE' | 'MONTO' = 'MONTO';
 
@@ -248,7 +258,7 @@ private esClienteAlPortador(): boolean {
   this.carritoModal = true;
 }
 setITBIS(valor: boolean) {
-  if (!valor && this.tieneComprobanteFiscal()) {
+  if (this.politicaFiscalAutomatica || (!valor && this.tieneComprobanteFiscal())) {
     this.aplicarITBIS = true;
     this.recalcularTotales();
     return;
@@ -367,7 +377,11 @@ cargarParametrosPOS() {
       // =====================================
 
       const facturar = params.find(
-        x => x.clave === 'FACTURAR_CON_ITBIS'
+        (x: any) => (x.clave ?? x.Clave) === 'FACTURAR_CON_ITBIS'
+      );
+
+      const politicaFiscal = params.find(
+        (x: any) => (x.clave ?? x.Clave) === CLAVE_POLITICA_FISCAL
       );
 
       const incluye = params.find(
@@ -423,7 +437,14 @@ cargarParametrosPOS() {
       // =====================================
 
       this.facturarITBIS =
-        facturar?.valor === 'true';
+        (facturar?.valor ?? facturar?.Valor) === 'true';
+
+      this.politicaFiscalAutomatica =
+        politicaFiscalActiva(politicaFiscal?.valor ?? politicaFiscal?.Valor);
+
+      if (this.politicaFiscalAutomatica && this.facturarITBIS) {
+        this.aplicarITBIS = true;
+      }
 
       this.precioIncluyeITBIS =
         incluye?.valor === 'true';
@@ -488,6 +509,10 @@ cargarParametrosPOS() {
       console.log('Cantidad Copias Orden:', this.cantidadCopiasOrden);
 
       console.log('PrintTicketLavador:', this.printTicketLavador);
+
+      if (this.politicaFiscalAutomatica && this.facturarITBIS) {
+        this.recalcularTotales();
+      }
 
     });
 }
@@ -812,6 +837,8 @@ async openModalCobro(imprimirCotizacion = false) {
 
       FacturarItbis: this.facturarITBIS,
 
+      politicaFiscalAutomatica: this.politicaFiscalAutomatica,
+
       TasaItbis: this.tasaITBIS,
 
       MontoDescuento: this.montoDescuento,
@@ -893,7 +920,8 @@ async openModalCobro(imprimirCotizacion = false) {
       this.tipoComprobante = 'Crédito Fiscal';
     }
   }
-  if (this.tieneComprobanteFiscal()) {
+  this.aplicarPoliticaSobrePagos(data);
+  if (this.tieneComprobanteFiscal() || (this.politicaFiscalAutomatica && this.facturarITBIS)) {
     this.aplicarITBIS = true;
   }
   if (data?.tipoFactura) {
@@ -1265,6 +1293,7 @@ this.parametro.IdFacturaHeader =
       precio: d.precioOferta || d.precio,
       precioBase: d.precioOferta || d.precio,
       itbisProducto: d.itbis,
+      gravaItbis: this.productoGravaItbis(d.idProducto, d.itbis),
       idEmpleadoComision: d.idEmpleadoComision || 0,
       subtotal: d.subTotal,
       descuentoUnitario: d.descuento > 0 ? d.descuento : undefined,
@@ -1824,8 +1853,36 @@ tieneComprobanteFiscal(): boolean {
 }
 
 debeAplicarITBIS(): boolean {
+  if (this.politicaFiscalAutomatica && this.facturarITBIS) return true;
   if (!this.facturarITBIS) return false;
   return this.tieneComprobanteFiscal() || this.aplicarITBIS;
+}
+
+private productoGravaItbis(idProducto: number, itbisLinea?: number): boolean {
+  const prod = this.productos.find(p => p.idProducto === idProducto);
+  if (prod) return prod.itbis === true;
+  return Number(itbisLinea) > 0.009;
+}
+
+private aplicarPoliticaSobrePagos(data: any): void {
+  const pagos = data?.pagos || [];
+  if (!debeForzarComprobanteConsumo({
+    politicaActiva: this.politicaFiscalAutomatica,
+    facturacionElectronica: this.facturacionElectronica,
+    metodos: pagos.map((p: any) => p?.metodo),
+    montos: pagos.map((p: any) => Number(p?.monto) || 0),
+    tipoEcfDgii: this.tipoEcfDgii,
+    tipoComprobante: this.tipoComprobante,
+    rnc: this.rncFiscal
+  })) {
+    return;
+  }
+
+  this.tipoEcfDgii = TIPO_ECF_CONSUMO;
+  this.tipoComprobante = TIPO_COMPROBANTE_CONSUMO;
+  if (this.facturarITBIS) {
+    this.aplicarITBIS = true;
+  }
 }
 
 mostrarSelectorCliente(): boolean {
@@ -1844,7 +1901,10 @@ recalcularTotales() {
     const precioBase =
       item.precioBase ?? item.precio;
 
-    if (usarITBIS) {
+    const exento =
+      this.politicaFiscalAutomatica && item.gravaItbis === false;
+
+    if (usarITBIS && !exento) {
 
       item.itbisProducto =
         +(precioBase * this.tasaITBIS).toFixed(2);
@@ -2429,6 +2489,8 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
 
     itbisProducto: itbisProducto,
 
+    gravaItbis: productoTieneITBIS,
+
     precioVentaOriginal:
       descuentoUnitario > 0 ? precioVentaOriginal : undefined,
 
@@ -2627,7 +2689,8 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
     nuevoPrecioUnitario: number
   ) {
 
-    const usarITBIS = this.debeAplicarITBIS();
+    const usarITBIS = this.debeAplicarITBIS()
+      && !(this.politicaFiscalAutomatica && item.gravaItbis === false);
 
     if (usarITBIS) {
 

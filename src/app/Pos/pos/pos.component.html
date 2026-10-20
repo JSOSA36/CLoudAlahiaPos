@@ -45,7 +45,7 @@
       </ion-button>
 
       <ion-button
-        *ngIf="facturarITBIS"
+        *ngIf="facturarITBIS && !politicaFiscalAutomatica"
         class="btn-header-pos"
         [class.btn-amarillo]="aplicarITBIS"
         [class.btn-itbis-off]="!aplicarITBIS"

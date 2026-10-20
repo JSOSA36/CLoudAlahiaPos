@@ -21,6 +21,7 @@ export class ParametrosConfigComponent implements OnInit {
 
   cargando = false;
   datosCargados = false;
+  private ignorarTogglePolitica = true;
 
   constructor(
     private parametroService: ParametroConfigService,
@@ -44,6 +45,7 @@ export class ParametrosConfigComponent implements OnInit {
 
     this.cargando = true;
     this.datosCargados = false;
+    this.ignorarTogglePolitica = true;
 
     forkJoin({
       empresa: this.parametroService.getParametrosEmpresa(idEmpresa),
@@ -54,6 +56,7 @@ export class ParametrosConfigComponent implements OnInit {
         this.parametrosPOS = this.normalizarLista(pos);
         this.cargando = false;
         this.datosCargados = true;
+        setTimeout(() => { this.ignorarTogglePolitica = false; }, 400);
 
         console.log('Parámetros empresa:', this.parametrosEmpresa);
         console.log('Parámetros POS:', this.parametrosPOS);
@@ -173,6 +176,40 @@ export class ParametrosConfigComponent implements OnInit {
     });
 
     await toast.present();
+  }
+
+  readonly clavePoliticaFiscal = 'AplicarPoliticaFiscalAutomatica';
+
+  get politicaFiscalAutomatica(): boolean {
+    const p = this.parametroPolitica();
+    const v = (p?.valor || '').trim().toLowerCase();
+    return v === 'true' || v === '1';
+  }
+
+  setPoliticaFiscal(ev: any): void {
+    if (this.ignorarTogglePolitica) return;
+    const activo = !!ev?.detail?.checked;
+    let p = this.parametroPolitica();
+    if (!p) {
+      p = {
+        idEmpresa: this.idEmpresa,
+        codigoPOS: null,
+        clave: this.clavePoliticaFiscal,
+        valor: 'false',
+        descripcion: 'Comprobante de consumo en tarjeta y Billet BHD. El POS no apaga el ITBIS.'
+      };
+      this.parametrosEmpresa.push(p);
+    }
+    p.valor = activo ? 'true' : 'false';
+    if (!p.descripcion) {
+      p.descripcion = 'Comprobante de consumo en tarjeta y Billet BHD. El POS no apaga el ITBIS.';
+    }
+  }
+
+  private parametroPolitica(): Parametros | undefined {
+    return this.parametrosEmpresa.find(
+      x => (x.clave || '').trim().toUpperCase() === this.clavePoliticaFiscal.toUpperCase()
+    );
   }
 
 }
