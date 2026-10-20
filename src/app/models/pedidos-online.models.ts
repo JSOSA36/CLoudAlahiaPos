@@ -45,6 +45,7 @@ export interface PedidoOnlineCheckout {
   idempotencyKey?: string;
   latitud?: number;
   longitud?: number;
+  pagarDeliveryAlRecibir?: boolean;
   lineas: { idProducto: number; cantidad: number; observacion?: string }[];
 }
 
@@ -53,6 +54,10 @@ export interface PedidoOnlineConfirmacion {
   idFacturaHeader: number;
   numeroPedido: string;
   total: number;
+  costoDelivery?: number;
+  distanciaDeliveryKm?: number;
+  deliveryCobrarAlEntregar?: boolean;
+  montoTransferir?: number;
   tipoEntrega: string;
   estado: string;
   estadoUnificado?: string;
@@ -81,6 +86,7 @@ export interface PedidoOnlinePerfil {
   latitud?: number | null;
   longitud?: number | null;
   pedidos: number;
+  direcciones?: ClienteDireccionPublica[];
 }
 
 export interface PedidoOnlineHistorialItem {
@@ -120,6 +126,9 @@ export interface PedidoDeliveryListado {
   enviadoCocina?: boolean;
   observacion?: string | null;
   total: number;
+  costoDelivery?: number;
+  distanciaDeliveryKm?: number;
+  deliveryCobrarAlEntregar?: boolean;
   estadoCocina: string;
   estadoLogistico: string;
   estadoUnificado: string;
@@ -146,6 +155,56 @@ export interface PedidoOnlineCanalEmpresa {
   nombrePublico: string;
   whatsApp?: string | null;
   activo: boolean;
+}
+
+export interface ClienteDireccionPublica {
+  idClienteDireccion: number;
+  direccion: string;
+  referencia?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  nombreDestinatario?: string | null;
+  telefono?: string | null;
+}
+
+export interface DeliveryCotizacion {
+  distanciaKm: number;
+  duracionSegundos?: number | null;
+  costoDelivery: number;
+  proveedor?: string | null;
+  fueraDeZona: boolean;
+  puedeConfirmar: boolean;
+  calculoAutomatico: boolean;
+  mensaje?: string | null;
+}
+
+export interface DeliverySucursalOpcion {
+  idSucursal: number;
+  nombre: string;
+  esPrincipal: boolean;
+  tieneCoordenadas: boolean;
+}
+
+export interface DeliveryConfigPantalla {
+  existe: boolean;
+  alcance: string;
+  deliveryHabilitado: boolean;
+  calculoPorDistancia: boolean;
+  tarifaBase: number;
+  precioPorKilometro: number;
+  costoMinimoDelivery: number;
+  redondeoDelivery: number;
+  distanciaMaximaKm?: number | null;
+  accionFueraDeZona: string;
+  proveedor: string;
+  minutosCache: number;
+  exigirGps: boolean;
+  idSucursalSesion: number;
+  idSucursalCanal?: number | null;
+  nombreSucursalCanal?: string | null;
+  sucursalTieneCoordenadas: boolean;
+  empresaTieneCoordenadas: boolean;
+  sucursales: DeliverySucursalOpcion[];
 }
 
 export function urlMapaPedido(p: {

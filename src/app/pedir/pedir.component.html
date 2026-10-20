@@ -135,6 +135,12 @@
             <input type="text" [(ngModel)]="referencia" placeholder="Portón negro, al lado de…" />
           </label>
         </ng-container>
+        <div class="direcciones" *ngIf="tipoEntrega === 'Delivery' && direcciones.length">
+          <p class="hint">Direcciones guardadas</p>
+          <button type="button" class="dir-chip" *ngFor="let d of direcciones" (click)="usarDireccion(d)">
+            {{ d.direccion }}
+          </button>
+        </div>
         <div class="geo-box" *ngIf="tipoEntrega === 'Delivery'">
           <button type="button" class="geo-btn" [disabled]="ubicacionEstado === 'pidiendo'" (click)="pedirUbicacion()">
             {{ etiquetaUbicacion }}
@@ -161,12 +167,35 @@
             <button type="button" class="link danger" (click)="eliminarLinea(l.idProducto)">Quitar</button>
           </div>
         </div>
-        <div class="total-bar">
-          <span>{{ itemsCount }} ítems</span>
-          <strong>{{ money(total) }}</strong>
+        <div class="resumen">
+          <div class="total-bar">
+            <span>Productos</span>
+            <strong>{{ money(total) }}</strong>
+          </div>
+          <div class="total-bar" *ngIf="tipoEntrega === 'Delivery' && cotizacion?.calculoAutomatico">
+            <span>Delivery<span *ngIf="cotizacion?.distanciaKm"> ({{ cotizacion?.distanciaKm | number:'1.1-1' }} km)</span></span>
+            <strong>{{ money(costoDelivery) }}</strong>
+          </div>
+          <p class="hint aviso" *ngIf="cotizando">Calculando delivery…</p>
+          <p class="hint aviso" *ngIf="cotizacion?.mensaje">{{ cotizacion?.mensaje }}</p>
+          <div class="total-bar total-final">
+            <span>Total</span>
+            <strong>{{ money(totalConDelivery) }}</strong>
+          </div>
+          <div class="pago-delivery" *ngIf="muestraOpcionDeliveryTransferencia">
+            <p>La transferencia</p>
+            <label>
+              <input type="radio" name="pagoDelivery" [checked]="pagarDeliveryAlRecibir === false" (change)="pagarDeliveryAlRecibir = false" />
+              Incluir el delivery. Transfiero {{ money(totalConDelivery) }}
+            </label>
+            <label>
+              <input type="radio" name="pagoDelivery" [checked]="pagarDeliveryAlRecibir === true" (change)="pagarDeliveryAlRecibir = true" />
+              Pagar el delivery al recibir. Transfiero {{ money(total) }} y el delivery ({{ money(costoDelivery) }}) va en efectivo
+            </label>
+          </div>
         </div>
         <p class="hint">Paga contra entrega / al recoger. El comprobante fiscal se emite en el local.</p>
-        <button type="button" class="primary" [disabled]="enviando" (click)="enviar()">
+        <button type="button" class="primary" [disabled]="enviando || cotizando || entregaBloqueada" (click)="enviar()">
           {{ enviando ? 'Enviando…' : 'Confirmar pedido' }}
         </button>
         <button type="button" class="ghost danger" [disabled]="enviando" (click)="anularPedido()">Anular pedido</button>
@@ -190,6 +219,10 @@
         </ol>
         <p>Gracias, {{ nombre }}. {{ (seguimiento?.tipoEntrega || confirmacion?.tipoEntrega) === 'Llevar' ? 'Pásalo a recoger cuando esté listo.' : 'Te lo llevamos.' }}</p>
         <p class="total">{{ money(confirmacion?.total || 0) }} · {{ metodoPago }}</p>
+        <p class="hint" *ngIf="confirmacion?.montoTransferir">
+          Transfiere {{ money(confirmacion?.montoTransferir || 0) }}.
+          <span *ngIf="confirmacion?.deliveryCobrarAlEntregar">El delivery de {{ money(confirmacion?.costoDelivery || 0) }} se paga al recibir.</span>
+        </p>
         <a *ngIf="waHref()" class="primary" [href]="waHref()" target="_blank" rel="noopener">Escribir por WhatsApp</a>
         <button type="button" class="ghost" (click)="nuevoPedido()">Seguir pidiendo</button>
       </section>

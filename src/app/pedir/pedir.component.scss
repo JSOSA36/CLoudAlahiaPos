@@ -596,3 +596,22 @@ label {
   cursor: pointer;
   font-weight: 700;
 }
+
+.resumen { margin: 0.75rem 0; }
+.total-final { border-top: 1px solid #e5e7eb; padding-top: 0.4rem; }
+.aviso { color: #92400e; }
+.direcciones { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.8rem; }
+.dir-chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.pago-delivery {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+  label { display: flex; gap: 0.45rem; align-items: flex-start; font-weight: 600; }
+}

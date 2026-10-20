@@ -322,3 +322,11 @@
 }
 .obs { color: #475569; font-style: italic; margin: 6px 0 0; }
 .cliente { margin: 10px 0 2px; font-weight: 700; color: #0f172a; }
+.pd-tarifa {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin-top: 12px;
+  label { display: grid; gap: 4px; font-weight: 700; }
+  input, select { font: inherit; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+}

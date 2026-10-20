@@ -72,13 +72,79 @@
       <button type="button" [class.active]="tab === 'repartidores'" (click)="tab = 'repartidores'; cargarUsuarios()">
         Repartidores
       </button>
+      <button type="button" [class.active]="tab === 'tarifa'" (click)="abrirTarifa()">
+        Tarifa
+      </button>
     </div>
 
     <p class="pd-error" *ngIf="error">{{ error }}</p>
     <p class="pd-state" *ngIf="loading">Cargando…</p>
 
     <ng-container *ngIf="!loading">
-      <ng-container *ngIf="tab !== 'repartidores'">
+      <section class="pd-tarifa" *ngIf="tab === 'tarifa'">
+        <h2>Configuración de delivery</h2>
+        <p class="pd-hint" *ngIf="config && !config.existe">Todavía no hay tarifa guardada. El delivery sigue en RD$0 hasta que guarde.</p>
+        <p class="pd-hint" *ngIf="config?.existe && config?.alcance === 'sucursal'">Esta tarifa es de la sucursal activa.</p>
+        <p class="pd-hint" *ngIf="config?.existe && config?.alcance === 'empresa'">Esta tarifa aplica a la empresa cuando la sucursal no tiene la suya.</p>
+        <label class="pd-check"><input type="checkbox" [(ngModel)]="tarifa.deliveryHabilitado" /> Activar delivery con tarifa</label>
+        <label class="pd-check"><input type="checkbox" [(ngModel)]="tarifa.calculoPorDistancia" /> Calcular por distancia</label>
+        <label class="pd-check"><input type="checkbox" [(ngModel)]="tarifa.exigirGps" /> Exigir ubicación del cliente</label>
+        <label>Alcance
+          <select [(ngModel)]="tarifa.alcance">
+            <option value="sucursal" *ngIf="config?.idSucursalSesion">Esta sucursal</option>
+            <option value="empresa">Toda la empresa</option>
+          </select>
+        </label>
+        <label>Tarifa base
+          <input type="number" min="0" step="1" [(ngModel)]="tarifa.tarifaBase" />
+        </label>
+        <label>Precio por km
+          <input type="number" min="0" step="1" [(ngModel)]="tarifa.precioPorKilometro" />
+        </label>
+        <label>Delivery mínimo
+          <input type="number" min="0" step="1" [(ngModel)]="tarifa.costoMinimoDelivery" />
+        </label>
+        <label>Redondeo
+          <select [(ngModel)]="tarifa.redondeoDelivery">
+            <option [ngValue]="0">Sin redondeo</option>
+            <option [ngValue]="5">RD$5</option>
+            <option [ngValue]="10">RD$10</option>
+          </select>
+        </label>
+        <label>Distancia máxima (km, vacío = sin límite)
+          <input type="number" min="0" step="0.1" [(ngModel)]="tarifa.distanciaMaximaKm" />
+        </label>
+        <label>Fuera de zona
+          <select [(ngModel)]="tarifa.accionFueraDeZona">
+            <option value="RECHAZAR">Rechazar</option>
+            <option value="AVISAR_Y_PERMITIR">Avisar y permitir</option>
+            <option value="SIN_LIMITE">Sin límite</option>
+          </select>
+        </label>
+        <label>Proveedor de rutas
+          <select [(ngModel)]="tarifa.proveedor">
+            <option value="OSRM">OSRM (ruta por carretera)</option>
+          </select>
+        </label>
+        <label>Caché de la ruta (minutos)
+          <input type="number" min="0" max="10080" [(ngModel)]="tarifa.minutosCache" />
+        </label>
+        <label>Sucursal que recibe Pedir
+          <select [(ngModel)]="tarifa.idSucursalCanal">
+            <option [ngValue]="null">Sucursal principal</option>
+            <option *ngFor="let s of config?.sucursales || []" [ngValue]="s.idSucursal">
+              {{ s.nombre }}{{ s.tieneCoordenadas ? '' : ' · sin GPS' }}
+            </option>
+          </select>
+        </label>
+        <p class="pd-hint" *ngIf="config && !config.sucursalTieneCoordenadas && !config.empresaTieneCoordenadas">
+          Ni la sucursal ni la empresa tienen coordenadas. El cálculo automático no podrá confirmar hasta que las cargue.
+        </p>
+        <button type="button" class="pd-btn pd-btn-gold" [disabled]="guardandoConfig" (click)="guardarConfig()">
+          {{ guardandoConfig ? 'Guardando…' : 'Guardar configuración' }}
+        </button>
+      </section>
+      <ng-container *ngIf="tab !== 'repartidores' && tab !== 'tarifa'">
         <article
           class="pd-card"
           *ngFor="let p of listaActual()">
@@ -103,6 +169,8 @@
           <p *ngIf="p.observacion" class="obs">{{ p.observacion }}</p>
           <footer>
             <strong class="pd-total">{{ money(p.total) }}</strong>
+            <span class="chip chip-tipo" *ngIf="p.costoDelivery">Delivery {{ money(p.costoDelivery) }}<span *ngIf="p.distanciaDeliveryKm"> · {{ p.distanciaDeliveryKm | number:'1.1-1' }} km</span></span>
+            <span class="chip" *ngIf="p.deliveryCobrarAlEntregar">Delivery al recibir</span>
             <span class="chip chip-tipo">{{ p.metodoPago }}</span>
             <ng-container *ngIf="esTransferencia(p)">
               <span class="chip" [class.chip-ok]="p.pagoValidado" [class.chip-pend]="!p.pagoValidado">

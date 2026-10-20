@@ -643,7 +643,8 @@ getPendiente(iten: any): number {
     });
     await loading.present();
 
-    this.printService.printFacturaCliente(IdFact).subscribe({
+    const idEmpresa = Number(this._Parametro.IdEmpresa || this._Parametro.GetIdEmpresa());
+    this.printService.printFacturaCliente(IdFact, idEmpresa).subscribe({
       next: async (resp: any) => {
         await loading.dismiss();
         if (resp && resp.success === false) {

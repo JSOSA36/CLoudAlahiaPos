@@ -77,7 +77,7 @@
                         (click)="confirmarReprocesar(item)" [disabled]="reprocesando[item.idEcf]">
               <ion-spinner name="dots" *ngIf="reprocesando[item.idEcf]" slot="start"></ion-spinner>
               <ion-icon name="reload-outline" slot="start" *ngIf="!reprocesando[item.idEcf]"></ion-icon>
-              Reenviar
+              {{ secuenciaUsada(item) ? 'Siguiente' : 'Reenviar' }}
             </ion-button>
           </td>
         </tr>

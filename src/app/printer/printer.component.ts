@@ -77,7 +77,15 @@ export class PrinterComponent implements OnInit {
     if (api && id > 0) {
       this.imprimiendo = true;
       try {
-        await firstValueFrom(this.printService.printFacturaCliente(id));
+        const idEmpresa = Number(
+          this.factura?.idEmpresa || this.parametros.IdEmpresa
+        );
+        const resp = await firstValueFrom(
+          this.printService.printFacturaCliente(id, idEmpresa)
+        );
+        if (resp && resp.success === false) {
+          throw new Error(resp.message || 'No se imprime');
+        }
         (
           await this.toastCtrl.create({
             message: 'Ticket enviado a la impresora',
@@ -98,6 +106,7 @@ export class PrinterComponent implements OnInit {
             position: 'top'
           })
         ).present();
+        return;
       } finally {
         this.imprimiendo = false;
       }

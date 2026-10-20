@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { PedidosOnlineService } from '../servicios/pedidos-online.service';
 import { aplicarManifestPwa } from '../servicios/pwa-shell-manifest';
 import {
+  ClienteDireccionPublica,
+  DeliveryCotizacion,
   PedidoOnlineConfirmacion,
   PedidoOnlineHistorialItem,
   PedidoOnlineLineaCarrito,
@@ -43,9 +45,13 @@ export class PedirComponent implements OnInit, OnDestroy {
   confirmacion: PedidoOnlineConfirmacion | null = null;
   seguimiento: PedidoOnlineSeguimiento | null = null;
   metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
+  pagarDeliveryAlRecibir = false;
   latitud: number | null = null;
   longitud: number | null = null;
   ubicacionEstado: 'idle' | 'pidiendo' | 'ok' | 'denegado' | 'error' = 'idle';
+  cotizacion: DeliveryCotizacion | null = null;
+  cotizando = false;
+  direcciones: ClienteDireccionPublica[] = [];
   editandoDatos = false;
   historial: PedidoOnlineHistorialItem[] = [];
   cargandoCuenta = false;
@@ -114,6 +120,32 @@ export class PedirComponent implements OnInit, OnDestroy {
 
   get total(): number {
     return this.carrito.reduce((s, l) => s + l.precioConItbis * l.cantidad, 0);
+  }
+
+  get costoDelivery(): number {
+    return this.cotizacion?.calculoAutomatico ? Number(this.cotizacion.costoDelivery || 0) : 0;
+  }
+
+  get totalConDelivery(): number {
+    return this.total + this.costoDelivery;
+  }
+
+  get entregaBloqueada(): boolean {
+    return this.tipoEntrega === 'Delivery'
+      && !!this.cotizacion?.calculoAutomatico
+      && this.cotizacion.puedeConfirmar === false;
+  }
+
+  get muestraOpcionDeliveryTransferencia(): boolean {
+    return this.tipoEntrega === 'Delivery'
+      && this.metodoPago === 'Transferencia'
+      && this.costoDelivery > 0;
+  }
+
+  get montoATransferir(): number {
+    return this.muestraOpcionDeliveryTransferencia && this.pagarDeliveryAlRecibir
+      ? this.total
+      : this.totalConDelivery;
   }
 
   seleccionarCategoria(id: number | null): void {
@@ -193,6 +225,7 @@ export class PedirComponent implements OnInit, OnDestroy {
     if (this.tipoEntrega === 'Delivery' && this.ubicacionEstado !== 'ok') {
       void this.pedirUbicacion();
     }
+    void this.refrescarCotizacion();
   }
 
   setTipoEntrega(tipo: 'Delivery' | 'Recoger'): void {
@@ -200,6 +233,7 @@ export class PedirComponent implements OnInit, OnDestroy {
     if (tipo === 'Delivery' && this.ubicacionEstado !== 'ok') {
       void this.pedirUbicacion();
     }
+    void this.refrescarCotizacion();
   }
 
   get etiquetaUbicacion(): string {
@@ -220,6 +254,7 @@ export class PedirComponent implements OnInit, OnDestroy {
           this.latitud = pos.coords.latitude;
           this.longitud = pos.coords.longitude;
           this.ubicacionEstado = 'ok';
+          void this.refrescarCotizacion();
           resolve();
         },
         err => {
@@ -393,6 +428,47 @@ export class PedirComponent implements OnInit, OnDestroy {
     return `${Number(items[0].cantidad)}× ${items[0].nombre}${extra}`;
   }
 
+  usarDireccion(dir: ClienteDireccionPublica): void {
+    this.direccion = dir.direccion || '';
+    this.referencia = dir.referencia || '';
+    if (dir.latitud && dir.longitud) {
+      this.latitud = Number(dir.latitud);
+      this.longitud = Number(dir.longitud);
+      this.ubicacionEstado = 'ok';
+    }
+    void this.refrescarCotizacion();
+  }
+
+  async quitarDireccion(dir: ClienteDireccionPublica): Promise<void> {
+    try {
+      await firstValueFrom(this.api.eliminarDireccion(this.slug, dir.idClienteDireccion, this.telefono));
+      this.direcciones = this.direcciones.filter(d => d.idClienteDireccion !== dir.idClienteDireccion);
+    } catch (err: any) {
+      this.error = err?.error?.message || 'No se pudo quitar la dirección.';
+    }
+  }
+
+  private async refrescarCotizacion(): Promise<void> {
+    if (!this.slug || this.paso !== 'checkout') return;
+    if (this.tipoEntrega !== 'Delivery') {
+      this.cotizacion = null;
+      return;
+    }
+    this.cotizando = true;
+    try {
+      this.cotizacion = await firstValueFrom(this.api.cotizarDelivery(this.slug, {
+        tipoEntrega: 'Delivery',
+        latitud: this.latitud ?? undefined,
+        longitud: this.longitud ?? undefined
+      }));
+    } catch (err: any) {
+      this.cotizacion = null;
+      this.error = err?.error?.message || 'No se pudo calcular el delivery.';
+    } finally {
+      this.cotizando = false;
+    }
+  }
+
   private async sincronizarPerfil(): Promise<void> {
     if (!this.telefonoVinculado) return;
     try {
@@ -406,6 +482,7 @@ export class PedirComponent implements OnInit, OnDestroy {
         this.longitud = Number(perfil.longitud);
         this.ubicacionEstado = 'ok';
       }
+      this.direcciones = perfil.direcciones || [];
       this.guardarCliente();
     } catch { /* teléfono nuevo en este negocio */ }
   }
@@ -438,6 +515,10 @@ export class PedirComponent implements OnInit, OnDestroy {
       this.error = 'La dirección es obligatoria para delivery.';
       return;
     }
+    if (this.entregaBloqueada) {
+      this.error = this.cotizacion?.mensaje || 'No se puede confirmar el delivery.';
+      return;
+    }
     if (!this.carrito.length) {
       this.error = 'Agregue al menos un producto.';
       return;
@@ -458,6 +539,7 @@ export class PedirComponent implements OnInit, OnDestroy {
         idempotencyKey: this.idempotencyKey,
         latitud: this.tipoEntrega === 'Delivery' ? this.latitud ?? undefined : undefined,
         longitud: this.tipoEntrega === 'Delivery' ? this.longitud ?? undefined : undefined,
+        pagarDeliveryAlRecibir: this.muestraOpcionDeliveryTransferencia && this.pagarDeliveryAlRecibir,
         lineas: this.carrito.map(l => ({
           idProducto: l.idProducto,
           cantidad: l.cantidad,

@@ -1120,7 +1120,10 @@ async openModalCobro(imprimirCotizacion = false) {
                     idDocumento,
                     this.parametro.IdEmpresa
                   )
-                : this._printService.printFacturaCliente(idDocumento);
+                : this._printService.printFacturaCliente(
+                    idDocumento,
+                    this.parametro.IdEmpresa
+                  );
 
             req$.subscribe({
               next: (resp: any) => {
@@ -1901,10 +1904,7 @@ recalcularTotales() {
     const precioBase =
       item.precioBase ?? item.precio;
 
-    const exento =
-      this.politicaFiscalAutomatica && item.gravaItbis === false;
-
-    if (usarITBIS && !exento) {
+    if (usarITBIS) {
 
       item.itbisProducto =
         +(precioBase * this.tasaITBIS).toFixed(2);
@@ -2689,8 +2689,7 @@ private agregarLineaCarrito(prod: productos, guarnicion: string) {
     nuevoPrecioUnitario: number
   ) {
 
-    const usarITBIS = this.debeAplicarITBIS()
-      && !(this.politicaFiscalAutomatica && item.gravaItbis === false);
+    const usarITBIS = this.debeAplicarITBIS();
 
     if (usarITBIS) {
 

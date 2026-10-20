@@ -115,13 +115,25 @@ export class FeHistorialComponent implements OnInit {
     return e === 'error' || e === 'rechazado';
   }
 
+  secuenciaUsada(item: EcfHistorialItem): boolean {
+    const t = (item.mensajeRespuesta || '').toLowerCase();
+    return t.includes('ya ha sido utilizado')
+      || t.includes('secuencia ya')
+      || t.includes('secuencia utilizada')
+      || t.includes('dgii ya tenía')
+      || t.includes('dgii ya tenia');
+  }
+
   async confirmarReprocesar(item: EcfHistorialItem) {
+    const usada = this.secuenciaUsada(item);
     const alert = await this.alertCtrl.create({
-      header: 'Reprocesar documento',
-      message: `¿Reenviar ${item.encf} al proveedor?`,
+      header: usada ? 'Siguiente secuencia' : 'Reprocesar documento',
+      message: usada
+        ? `${item.encf} ya lo usó DGII. Se toma el último número más uno.`
+        : `¿Reenviar ${item.encf} al proveedor?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Reprocesar', handler: () => this.reprocesar(item) }
+        { text: usada ? 'Emitir siguiente' : 'Reprocesar', handler: () => this.reprocesar(item) }
       ]
     });
     await alert.present();
@@ -130,14 +142,21 @@ export class FeHistorialComponent implements OnInit {
   reprocesar(item: EcfHistorialItem) {
     this.reprocesando[item.idEcf] = true;
     this.feService.reprocesar(item.idEcf).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.reprocesando[item.idEcf] = false;
-        this.showToast(`${item.encf} reenviado`);
+        const nuevo = String(res?.encf || '').trim();
+        if (res && res.exitoso === false) {
+          this.showToast(res.mensajeError || 'DGII rechazó el comprobante', 'danger');
+        } else if (nuevo && nuevo !== item.encf) {
+          this.showToast(`${item.encf} ya estaba usado. La factura quedó en ${nuevo}.`);
+        } else {
+          this.showToast(`${nuevo || item.encf} enviado`);
+        }
         this.buscar();
       },
       error: (err) => {
         this.reprocesando[item.idEcf] = false;
-        this.showToast(err?.error?.mensajeError || 'Error al reprocesar', 'danger');
+        this.showToast(err?.error?.mensajeError || err?.error || 'Error al reprocesar', 'danger');
       }
     });
   }

@@ -150,9 +150,21 @@ printCierreEncargos(
     );
   }
 
-  /** Ticket térmico factura cliente (TOTAL / PAGADO / PENDIENTE). */
-  printFacturaCliente(idFactura: number): Observable<any> {
-    return this.agentGet(`/api/Printer/factura/${idFactura}`);
+  /**
+   * Ticket térmico factura cliente (TOTAL / PAGADO / PENDIENTE).
+   * idEmpresa va aparte: el número de factura se repite entre empresas.
+   */
+  printFacturaCliente(idFactura: number, idEmpresa: number): Observable<any> {
+    const empresa = Number(idEmpresa);
+    if (!idFactura || !Number.isFinite(empresa) || empresa <= 0) {
+      return of({
+        success: false,
+        message: 'Falta la empresa de la sesión. No se imprime.'
+      });
+    }
+    return this.agentGet(
+      `/api/Printer/factura/${idFactura}?idEmpresa=${empresa}`
+    );
   }
 
   /** Recibo de abono CxC para el cliente. */

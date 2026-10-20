@@ -11,7 +11,9 @@ import {
   PedidoOnlineHistorialItem,
   PedidoOnlineMenu,
   PedidoOnlinePerfil,
-  PedidoOnlineSeguimiento
+  PedidoOnlineSeguimiento,
+  DeliveryConfigPantalla,
+  DeliveryCotizacion
 } from '../models/pedidos-online.models';
 
 @Injectable({ providedIn: 'root' })
@@ -32,6 +34,24 @@ export class PedidosOnlineService {
     return this.http.post<PedidoOnlineConfirmacion>(
       `${this.publicUrl}/${encodeURIComponent(slug)}`,
       body
+    );
+  }
+
+  cotizarDelivery(slug: string, body: {
+    tipoEntrega: string;
+    latitud?: number;
+    longitud?: number;
+  }): Observable<DeliveryCotizacion> {
+    return this.http.post<DeliveryCotizacion>(
+      `${this.publicUrl}/${encodeURIComponent(slug)}/cotizar-delivery`,
+      body
+    );
+  }
+
+  eliminarDireccion(slug: string, idClienteDireccion: number, telefono: string): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(
+      `${this.publicUrl}/${encodeURIComponent(slug)}/direcciones/${idClienteDireccion}`,
+      { params: new HttpParams().set('telefono', telefono) }
     );
   }
 
@@ -76,6 +96,32 @@ export class PedidosOnlineService {
 
   canal(idEmpresa: number): Observable<PedidoOnlineCanalEmpresa> {
     return this.http.get<PedidoOnlineCanalEmpresa>(`${this.deliveryUrl}/canal`, {
+      params: this.empresa(idEmpresa)
+    });
+  }
+
+  configDelivery(idEmpresa: number): Observable<DeliveryConfigPantalla> {
+    return this.http.get<DeliveryConfigPantalla>(`${this.deliveryUrl}/config`, {
+      params: this.empresa(idEmpresa)
+    });
+  }
+
+  guardarConfigDelivery(idEmpresa: number, body: {
+    alcance: string;
+    deliveryHabilitado: boolean;
+    calculoPorDistancia: boolean;
+    tarifaBase: number;
+    precioPorKilometro: number;
+    costoMinimoDelivery: number;
+    redondeoDelivery: number;
+    distanciaMaximaKm?: number | null;
+    accionFueraDeZona: string;
+    proveedor: string;
+    minutosCache: number;
+    exigirGps: boolean;
+    idSucursalCanal?: number | null;
+  }): Observable<DeliveryConfigPantalla> {
+    return this.http.put<DeliveryConfigPantalla>(`${this.deliveryUrl}/config`, body, {
       params: this.empresa(idEmpresa)
     });
   }

@@ -9,10 +9,11 @@ import {
   DeliveryRepartidor,
   PedidoDeliveryListado,
   PedidoOnlineCanalEmpresa,
+  DeliveryConfigPantalla,
   urlMapaPedido
 } from '../models/pedidos-online.models';
 
-type Tab = 'cola' | 'recoger' | 'curso' | 'entregados' | 'todos' | 'repartidores';
+type Tab = 'cola' | 'recoger' | 'curso' | 'entregados' | 'todos' | 'repartidores' | 'tarifa';
 
 @Component({
   selector: 'app-pedidos-delivery',
@@ -35,13 +36,30 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
   enviandoTodo = false;
   voucherUrl: string | null = null;
   voucherTitulo = '';
+  config: DeliveryConfigPantalla | null = null;
+  guardandoConfig = false;
+  tarifa = {
+    alcance: 'empresa',
+    deliveryHabilitado: false,
+    calculoPorDistancia: false,
+    tarifaBase: 50,
+    precioPorKilometro: 25,
+    costoMinimoDelivery: 100,
+    redondeoDelivery: 10,
+    distanciaMaximaKm: null as number | null,
+    accionFueraDeZona: 'RECHAZAR',
+    proveedor: 'OSRM',
+    minutosCache: 30,
+    exigirGps: true,
+    idSucursalCanal: null as number | null
+  };
   private timer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private api: PedidosOnlineService,
     private usuariosApi: UsuariosService,
     private parametros: ParametrosService,
-    private config: AppConfigService,
+    private appConfig: AppConfigService,
     private toastCtrl: ToastController
   ) {}
 
@@ -62,13 +80,13 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
   get urlPedir(): string {
     const codigo = this.codigoPublico;
     if (!codigo) return '';
-    return `${this.config.pedirPublicUrl.replace(/\/$/, '')}/${codigo}`;
+    return `${this.appConfig.pedirPublicUrl.replace(/\/$/, '')}/${codigo}`;
   }
 
   get urlReparto(): string {
     const codigo = this.codigoPublico;
     if (!codigo) return '';
-    return `${this.config.repartoPublicUrl.replace(/\/$/, '')}/${codigo}`;
+    return `${this.appConfig.repartoPublicUrl.replace(/\/$/, '')}/${codigo}`;
   }
 
   get hintPedir(): string {
@@ -340,6 +358,55 @@ export class PedidosDeliveryComponent implements OnInit, OnDestroy {
 
   idUsuarioDe(u: { idusuario?: number; idUsuario?: number }): number {
     return Number(u.idusuario ?? u.idUsuario ?? 0);
+  }
+
+  async abrirTarifa(): Promise<void> {
+    this.tab = 'tarifa';
+    await this.cargarConfig();
+  }
+
+  async cargarConfig(): Promise<void> {
+    this.error = '';
+    try {
+      this.config = await firstValueFrom(this.api.configDelivery(this.idEmpresa));
+      if (this.config.existe) {
+        this.tarifa = {
+          alcance: this.config.alcance === 'sucursal' ? 'sucursal' : 'empresa',
+          deliveryHabilitado: this.config.deliveryHabilitado,
+          calculoPorDistancia: this.config.calculoPorDistancia,
+          tarifaBase: this.config.tarifaBase,
+          precioPorKilometro: this.config.precioPorKilometro,
+          costoMinimoDelivery: this.config.costoMinimoDelivery,
+          redondeoDelivery: this.config.redondeoDelivery,
+          distanciaMaximaKm: this.config.distanciaMaximaKm ?? null,
+          accionFueraDeZona: this.config.accionFueraDeZona || 'SIN_LIMITE',
+          proveedor: this.config.proveedor || 'OSRM',
+          minutosCache: this.config.minutosCache || 30,
+          exigirGps: this.config.exigirGps,
+          idSucursalCanal: this.config.idSucursalCanal ?? null
+        };
+      } else {
+        this.tarifa.idSucursalCanal = this.config.idSucursalCanal ?? null;
+      }
+    } catch (err: any) {
+      this.error = err?.error?.message || 'No se pudo leer la configuración de delivery.';
+    }
+  }
+
+  async guardarConfig(): Promise<void> {
+    this.guardandoConfig = true;
+    this.error = '';
+    try {
+      this.config = await firstValueFrom(this.api.guardarConfigDelivery(this.idEmpresa, {
+        ...this.tarifa,
+        distanciaMaximaKm: this.tarifa.distanciaMaximaKm || null
+      }));
+      await this.toast('Configuración de delivery guardada');
+    } catch (err: any) {
+      this.error = err?.error?.message || 'No se pudo guardar la configuración.';
+    } finally {
+      this.guardandoConfig = false;
+    }
   }
 
   private async toast(message: string, color: string = 'success'): Promise<void> {

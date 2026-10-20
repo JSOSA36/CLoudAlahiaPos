@@ -46,6 +46,8 @@
           <div>
             <span class="chip" *ngIf="p.latitud && p.longitud">GPS</span>
             <strong>{{ money(p.total) }}</strong>
+            <span class="chip" *ngIf="p.costoDelivery">Delivery {{ money(p.costoDelivery) }}</span>
+            <span class="chip" *ngIf="p.deliveryCobrarAlEntregar">Delivery al recibir</span>
           </div>
           <span class="ver">Ver detalle →</span>
         </footer>
@@ -81,6 +83,8 @@
           <div>
             <span class="chip" *ngIf="p.latitud && p.longitud">GPS</span>
             <strong>{{ money(p.total) }}</strong>
+            <span class="chip" *ngIf="p.costoDelivery">Delivery {{ money(p.costoDelivery) }}</span>
+            <span class="chip" *ngIf="p.deliveryCobrarAlEntregar">Delivery al recibir</span>
           </div>
           <span class="ver">Ver detalle →</span>
         </footer>
@@ -116,6 +120,8 @@
       </ul>
       <p *ngIf="detalle.observacion" class="muted">{{ detalle.observacion }}</p>
       <p><strong>{{ money(detalle.total) }}</strong> · {{ detalle.metodoPago }}</p>
+      <p *ngIf="detalle.costoDelivery">Delivery {{ money(detalle.costoDelivery) }}<span *ngIf="detalle.distanciaDeliveryKm"> · {{ detalle.distanciaDeliveryKm | number:'1.1-1' }} km</span></p>
+      <p *ngIf="detalle.deliveryCobrarAlEntregar">El delivery se paga en efectivo al recibir.</p>
       <p class="hint-accion" *ngIf="hintAccion(detalle)">{{ hintAccion(detalle) }}</p>
       <div class="acciones">
         <button

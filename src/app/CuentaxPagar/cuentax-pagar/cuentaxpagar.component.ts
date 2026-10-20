@@ -183,11 +183,9 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
     if (items.length) {
       const suma = items.reduce((s, it) => {
         const qty = Number(it.cantidad) || 0;
-        const unitario = this.politicaFiscalAutomatica && it.gravaItbis === false
-          ? 0
-          : (Number(it.itbisProducto) > 0.009
+        const unitario = Number(it.itbisProducto) > 0.009
           ? Number(it.itbisProducto)
-          : (Number(it.precioBase ?? it.precio) || 0) * tasa);
+          : (Number(it.precioBase ?? it.precio) || 0) * tasa;
         return s + unitario * qty;
       }, 0);
       return Math.round(suma * 100) / 100;
