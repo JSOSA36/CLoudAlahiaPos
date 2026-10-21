@@ -112,9 +112,9 @@
             </span>
           </div>
 
-          <div *ngIf="$any(iten.clientes)?.celular">
+          <div *ngIf="telefonoOrden(iten) as tel">
             <ion-icon name="call-outline"></ion-icon>
-            {{ $any(iten.clientes).celular }}
+            {{ tel }}
           </div>
 
           <div>

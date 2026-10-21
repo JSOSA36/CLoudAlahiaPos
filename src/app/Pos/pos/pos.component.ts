@@ -235,9 +235,12 @@ cerrarPanel() {
   console.log("✅ Cliente seleccionado:", cliente);
 
   // 🔥 AQUÍ ES LO IMPORTANTE
+  const tel = String(cliente.celular || cliente.telefono || '').trim();
   this.clienteSeleccionado = {
-    id: cliente.idCliente,
-    nombre: cliente.nombreComercial
+    id: cliente.idCliente || cliente.id,
+    nombre: cliente.nombreComercial || cliente.nombre,
+    telefono: tel,
+    celular: tel
   };
 
 }

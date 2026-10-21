@@ -26,6 +26,15 @@ telefonoCliente: string = "";
     // porque eliminamos la voz
   }
 
+  onTelefono(ev: any): void {
+    const valor = ev?.detail?.value ?? ev?.target?.value ?? '';
+    this.telefonoCliente = String(valor);
+  }
+
+  telefonoDe(c: any): string {
+    return String(c?.celular || c?.Celular || c?.telefono || c?.Telefono || '').trim();
+  }
+
   // 🔍 Buscar clientes por nombre
 buscarCliente() {
 
@@ -65,12 +74,13 @@ buscarCliente() {
   crearCliente() {
     if (!this.nombreCliente.trim()) return;
 
+    const tel = (this.telefonoCliente || '').trim();
     const dto: any = {
       idCliente: 0,
       nombreComercial: this.nombreCliente.trim(),
       cedulaRNC: "",
-      telefono: this.telefonoCliente.trim(),
-celular: this.telefonoCliente.trim(),
+      telefono: tel,
+      celular: tel,
       fechaNacimiento: null,
       email: "",
       direccion: "",

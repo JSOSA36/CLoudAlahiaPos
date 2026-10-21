@@ -18,25 +18,15 @@
     </ion-input>
   </ion-item>
 <ion-item
-  *ngIf="
-    nombreCliente.trim() !== ''
-    &&
-    !cargando
-    &&
-    clientesEncontrados.length === 0">
+  *ngIf="nombreCliente.trim() !== '' && clientesEncontrados.length === 0">
 
-  <ion-label position="floating">
-
-    Teléfono
-
-  </ion-label>
+  <ion-label position="floating">Teléfono</ion-label>
 
   <ion-input
-
     type="tel"
-
-    [(ngModel)]="telefonoCliente">
-
+    inputmode="tel"
+    [value]="telefonoCliente"
+    (ionInput)="onTelefono($event)">
   </ion-input>
 
 </ion-item>
@@ -61,7 +51,7 @@
 
         <div class="cliente-info">
           <h2 class="cliente-nombre">{{ c.nombreComercial }}</h2>
-          <p class="cliente-telefono">{{ c.telefono || 'Sin teléfono' }}</p>
+          <p class="cliente-telefono">{{ telefonoDe(c) || 'Sin teléfono' }}</p>
         </div>
 
         <ion-button 

@@ -78,6 +78,14 @@ procesandoPago = false;
     return (this._Parametro.sucursales || []).filter(s => s?.activa !== false).length > 1;
   }
 
+  telefonoOrden(orden: any): string {
+    const c = orden?.clientes || {};
+    return String(
+      c.celular || c.Celular || c.telefono || c.Telefono
+      || orden?.celular || orden?.telefono || ''
+    ).trim();
+  }
+
   nombreSucursalDe(orden: any): string {
     const directo = String(orden?.nombreSucursal || orden?.NombreSucursal || '').trim();
     if (directo) return directo;
