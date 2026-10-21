@@ -55,7 +55,8 @@ procesandoPago = false;
 
   get ordenesFiltradas(): facturaheader[] {
     const q = (this.filtroCliente || '').trim().toLowerCase();
-    const list = this._Parametro.ListadoOrdenes || [];
+    const list = [...(this._Parametro.ListadoOrdenes || [])]
+      .sort((a, b) => this.compararOrdenReciente(a, b));
     if (!q) return list;
     return list.filter(o => {
       const nombre = (
@@ -91,6 +92,22 @@ procesandoPago = false;
     if (next === this.idSucursalFiltro) return;
     this.idSucursalFiltro = next;
     this.RefreshOrdenes();
+  }
+
+  private momentoOrden(o: any): number {
+    const cruda = o?.fechaInseccion ?? o?.FechaInseccion;
+    const creada = cruda ? Date.parse(String(cruda)) : NaN;
+    if (Number.isFinite(creada) && creada > 0) return creada;
+    const fecha = o?.fechaBencimiento ?? o?.FechaBencimiento;
+    const dia = fecha ? Date.parse(String(fecha)) : NaN;
+    if (Number.isFinite(dia) && dia > 0) return dia;
+    return 0;
+  }
+
+  private compararOrdenReciente(a: any, b: any): number {
+    const diff = this.momentoOrden(b) - this.momentoOrden(a);
+    if (diff !== 0) return diff;
+    return (Number(b?.idFacturaHeader) || 0) - (Number(a?.idFacturaHeader) || 0);
   }
 
   indiceOrden(item: facturaheader): number {
