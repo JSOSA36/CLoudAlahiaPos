@@ -1,0 +1,64 @@
+<div class="pub-page">
+  <div *ngIf="cargando" class="state">Cargando factura…</div>
+  <div *ngIf="!cargando && error" class="state error">{{ error }}</div>
+
+  <article *ngIf="vista" class="quote">
+    <header class="quote-head">
+      <div class="empresa">
+        <h1>{{ vista.nombreEmpresa }}</h1>
+        <p *ngIf="vista.direccionEmpresa">{{ vista.direccionEmpresa }}</p>
+        <p *ngIf="vista.telefonoEmpresa">Tel: {{ vista.telefonoEmpresa }}</p>
+        <p *ngIf="vista.rncEmpresa">RNC: {{ vista.rncEmpresa }}</p>
+      </div>
+      <div class="meta">
+        <h2>FACTURA</h2>
+        <p><strong>No.:</strong> {{ vista.numeroDocumento }}</p>
+        <p *ngIf="vista.ncf"><strong>e-NCF:</strong> {{ vista.ncf }}</p>
+        <p><strong>Fecha:</strong> {{ vista.fecha | date:'dd/MM/yyyy' }}</p>
+      </div>
+    </header>
+
+    <section class="cliente">
+      <h3>Cliente</h3>
+      <p><strong>{{ vista.clienteNombre }}</strong></p>
+      <p *ngIf="vista.clienteTelefono"><strong>Teléfono:</strong> {{ vista.clienteTelefono }}</p>
+      <p *ngIf="vista.clienteRnc"><strong>RNC / Cédula:</strong> {{ vista.clienteRnc }}</p>
+      <p *ngIf="vista.clienteCorreo"><strong>Correo:</strong> {{ vista.clienteCorreo }}</p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cant.</th>
+          <th>Descripción</th>
+          <th>Precio</th>
+          <th>Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of vista.lineas">
+          <td>{{ l.cantidad | number:'1.0-2' }}</td>
+          <td>{{ l.descripcion }}</td>
+          <td>{{ l.precioUnitario | number:'1.2-2' }}</td>
+          <td>{{ l.subTotal | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totales">
+      <div><span>Subtotal</span><strong>{{ vista.subTotal | number:'1.2-2' }}</strong></div>
+      <div *ngIf="vista.totalDescuento > 0.009">
+        <span>Descuento</span>
+        <strong>-{{ vista.totalDescuento | number:'1.2-2' }}</strong>
+      </div>
+      <div *ngIf="vista.totalItbis > 0.009">
+        <span>ITBIS</span>
+        <strong>{{ vista.totalItbis | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total">
+        <span>Total {{ vista.moneda || 'DOP' }}</span>
+        <strong>{{ vista.total | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+  </article>
+</div>

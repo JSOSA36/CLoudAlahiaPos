@@ -36,6 +36,7 @@ import {
 import { FacturacionElectronicaService } from 'src/app/servicios/facturacion-electronica.service';
 import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { GuarnicionesService } from 'src/app/servicios/guarniciones.service';
+import { EnviarFacturaModalComponent } from 'src/app/Modales/enviar-factura.modal';
 import { Guarnicion } from 'src/app/models/guarnicion.model';
 import { SecuenciaEcfDisponible, TipoComprobanteOption } from 'src/app/models/facturacion-electronica.models';
 import {
@@ -156,6 +157,7 @@ clienteSeleccionado: any = null;
 ===================================== */
 
 usaCotizaciones: boolean = false;
+enviarFacturaCliente = false;
 
 usaOrdenes: boolean = false;
 
@@ -432,6 +434,10 @@ cargarParametrosPOS() {
         x => x.clave === 'USAR_GUARNICIONES'
       );
 
+      const enviarFactura = params.find(
+        (x: any) => String(x.clave ?? x.Clave ?? '').toUpperCase() === 'ENVIAR_FACTURA_CLIENTE'
+      );
+
       // =====================================
       // 🔥 ASIGNAR
       // =====================================
@@ -473,6 +479,9 @@ cargarParametrosPOS() {
 
       this.imprimirOrden =
         imprimirOrden?.valor === 'true';
+
+      const enviarValor = String(enviarFactura?.valor ?? enviarFactura?.Valor ?? '').toLowerCase();
+      this.enviarFacturaCliente = enviarValor === 'true' || enviarValor === '1';
 
       this.cantidadCopiasOrden =
         Number(cantidadCopiasOrden?.valor ?? 1);
@@ -1053,6 +1062,16 @@ async openModalCobro(imprimirCotizacion = false) {
           }
 
           this.parametro.IdFacturaHeader = 0;
+          if (idFactura && this.enviarFacturaCliente) {
+            void this.abrirEnvioFactura(
+              Number(idFactura),
+              resp?.numeroDocumento || String(idFactura),
+              totalSnap,
+              nombreFiscalSnap || clienteSnap?.nombreComercial || '',
+              clienteSnap?.celular || clienteSnap?.telefono || '',
+              clienteSnap?.email || ''
+            );
+          }
 
         } finally {
           await this.liberarGuardado();
@@ -1076,6 +1095,30 @@ async openModalCobro(imprimirCotizacion = false) {
       });
 
 }
+
+  private async abrirEnvioFactura(
+    idFactura: number,
+    numeroDocumento: string,
+    total: number,
+    nombreCliente: string,
+    telefono: string,
+    correo: string
+  ): Promise<void> {
+    if (!idFactura) return;
+    const modal = await this.modal.create({
+      component: EnviarFacturaModalComponent,
+      cssClass: 'modal-enviar-factura',
+      componentProps: {
+        idFactura,
+        numeroDocumento,
+        total,
+        nombreCliente,
+        telefono,
+        correo
+      }
+    });
+    await modal.present();
+  }
 
   private enviarTicketLavadorSiAplica(idFactura: number): void {
     if (!idFactura || !this.printTicketLavador) {

@@ -28,6 +28,18 @@
 
   <ion-item *ngIf="datosCargados && !cargando" lines="full">
     <ion-label class="ion-text-wrap">
+      Enviar factura al cliente
+      <p>Al facturar, pide WhatsApp o correo y envía el enlace de la factura.</p>
+    </ion-label>
+    <ion-toggle
+      slot="end"
+      [checked]="enviarFacturaCliente"
+      (ionChange)="setEnviarFactura($event)">
+    </ion-toggle>
+  </ion-item>
+
+  <ion-item *ngIf="datosCargados && !cargando" lines="full">
+    <ion-label class="ion-text-wrap">
       Política fiscal automática
       <p>Tarjeta y Billet BHD usan factura de consumo. El ITBIS del POS queda encendido y no se puede apagar.</p>
     </ion-label>

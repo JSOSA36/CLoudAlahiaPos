@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Enviar factura</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p class="doc">
+    <strong>{{ numeroDocumento || idFactura }}</strong>
+    <span *ngIf="nombreCliente"> · {{ nombreCliente }}</span>
+  </p>
+  <p class="total">RD$ {{ total | number:'1.2-2' }}</p>
+
+  <ion-item>
+    <ion-label position="stacked">WhatsApp</ion-label>
+    <ion-input [(ngModel)]="telefono" inputmode="tel" placeholder="8090000000"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" (click)="enviarWhatsapp()">Enviar por WhatsApp</ion-button>
+
+  <ion-item>
+    <ion-label position="stacked">Correo</ion-label>
+    <ion-input [(ngModel)]="correo" type="email" placeholder="cliente@correo.com"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" fill="outline" [disabled]="enviandoCorreo" (click)="enviarCorreo()">
+    {{ enviandoCorreo ? 'Enviando…' : 'Enviar por correo' }}
+  </ion-button>
+
+  <ion-note *ngIf="mensaje" class="mensaje">{{ mensaje }}</ion-note>
+</ion-content>

@@ -33,6 +33,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { PosComponent } from './Pos/pos/pos.component';
+import { EnviarFacturaModalComponent } from './Modales/enviar-factura.modal';
 import { LoginComponent } from './login/login/login.component';
 import { CajasComponent } from './cajas/cajas/cajas.component';
 import { ProductosAddComponent } from './ProductosAdd/productos-add/productosadd.component';
@@ -302,6 +303,7 @@ import { FiltroSucursalConsultaComponent } from './shared/filtro-sucursal-consul
     CartComponent,
     ClientesComponent,
     PosComponent,
+    EnviarFacturaModalComponent,
     LoginkdsComponent,
     ListadoMesasComponent,
     CategoriasComponent,

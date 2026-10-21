@@ -179,6 +179,36 @@ export class ParametrosConfigComponent implements OnInit {
   }
 
   readonly clavePoliticaFiscal = 'AplicarPoliticaFiscalAutomatica';
+  readonly claveEnviarFactura = 'ENVIAR_FACTURA_CLIENTE';
+
+  get enviarFacturaCliente(): boolean {
+    const p = this.parametroEnviarFactura();
+    const v = (p?.valor || '').trim().toLowerCase();
+    return v === 'true' || v === '1';
+  }
+
+  setEnviarFactura(ev: any): void {
+    if (this.ignorarTogglePolitica) return;
+    const activo = !!ev?.detail?.checked;
+    let p = this.parametroEnviarFactura();
+    if (!p) {
+      p = {
+        idEmpresa: this.idEmpresa,
+        codigoPOS: null,
+        clave: this.claveEnviarFactura,
+        valor: 'false',
+        descripcion: 'Al facturar, pide WhatsApp o correo para enviar la factura al cliente.'
+      };
+      this.parametrosEmpresa.push(p);
+    }
+    p.valor = activo ? 'true' : 'false';
+  }
+
+  private parametroEnviarFactura(): Parametros | undefined {
+    return this.parametrosEmpresa.find(
+      x => (x.clave || '').trim().toUpperCase() === this.claveEnviarFactura
+    );
+  }
 
   get politicaFiscalAutomatica(): boolean {
     const p = this.parametroPolitica();

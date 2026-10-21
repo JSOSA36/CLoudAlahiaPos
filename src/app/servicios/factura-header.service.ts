@@ -268,14 +268,83 @@ GenerarOrdenDesdeCita(idCita: number): Observable<any> {
     return `${origin}/cotizacion/ver/${link.token}`;
   }
 
+  crearLinkFacturaPublica(
+    idFacturaHeader: number,
+    idEmpresa: number,
+    publicBaseUrl?: string
+  ): Observable<CotizacionPublicaLink> {
+    const base =
+      publicBaseUrl ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+    return this.httpClient.post<CotizacionPublicaLink>(
+      `${this.baseUrl}/factura/${idFacturaHeader}/compartir?idEmpresa=${idEmpresa}`,
+      { publicBaseUrl: base }
+    );
+  }
+
+  obtenerFacturaPublica(token: string): Observable<FacturaPublicaVista> {
+    return this.httpClient.get<FacturaPublicaVista>(
+      `${this.baseUrl}/factura-publica/${encodeURIComponent(token)}`
+    );
+  }
+
+  enviarFacturaCorreo(idFacturaHeader: number, idEmpresa: number, correo: string): Observable<{ enviado: boolean }> {
+    const base = typeof window !== 'undefined' ? window.location.origin : '';
+    return this.httpClient.post<{ enviado: boolean }>(
+      `${this.baseUrl}/factura/${idFacturaHeader}/enviar-correo?idEmpresa=${idEmpresa}`,
+      { correo, publicBaseUrl: base }
+    );
+  }
+
+  buildLinkFacturaPublica(link: CotizacionPublicaLink | string): string {
+    if (typeof link === 'string') {
+      const origin = typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : '';
+      return `${origin}/factura/ver/${link}`;
+    }
+    const corta = (link.urlCorta || link.UrlCorta || '').trim();
+    if (corta) return corta;
+    const larga = (link.url || link.Url || '').trim();
+    if (larga) return larga;
+    const origin = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : '';
+    return `${origin}/factura/ver/${link.token || link.Token}`;
+  }
+
 }
 
 export interface CotizacionPublicaLink {
   token: string;
   idFacturaHeader: number;
   numeroDocumento: string;
+  NumeroDocumento?: string;
   url?: string;
   urlCorta?: string;
+  Token?: string;
+  Url?: string;
+  UrlCorta?: string;
+}
+
+export interface FacturaPublicaVista {
+  numeroDocumento: string;
+  ncf?: string;
+  fecha: string;
+  nombreEmpresa: string;
+  telefonoEmpresa?: string;
+  direccionEmpresa?: string;
+  rncEmpresa?: string;
+  clienteNombre: string;
+  clienteTelefono?: string;
+  clienteRnc?: string;
+  clienteCorreo?: string;
+  subTotal: number;
+  totalItbis: number;
+  totalDescuento: number;
+  total: number;
+  moneda?: string;
+  lineas: CotizacionPublicaLinea[];
 }
 
 export interface CotizacionPublicaLinea {

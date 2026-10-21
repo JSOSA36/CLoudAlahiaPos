@@ -451,6 +451,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'factura',
+    loadChildren: () =>
+      import('./factura-publica/factura-publica.module').then(
+        (m) => m.FacturaPublicaModule
+      ),
+  },
+  {
   path: 'usuarios',
   loadChildren: () => import('./listado-usuarios/listado-usuarios.module')
                         .then(m => m.ListadoUsuariosModule),

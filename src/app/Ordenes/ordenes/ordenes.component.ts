@@ -20,6 +20,7 @@ import { EmpleadosService } from 'src/app/servicios/empleados.service';
 import { PrintService } from 'src/app/servicios/print.services';
 import { PrinterComponent } from 'src/app/printer/printer.component';
 import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { EnviarFacturaModalComponent } from 'src/app/Modales/enviar-factura.modal';
 import { ProduccionService } from 'src/app/servicios/produccion.service';
 import { SucursalService } from 'src/app/servicios/sucursal.service';
 import { firstValueFrom } from 'rxjs';
@@ -49,6 +50,7 @@ procesandoPago = false;
   /** Parámetro ESTATUS_ORDENES: muestra estado del Centro de Producción (HTTP, sin SignalR). */
   mostrarEstatusOrdenes = false;
   printTicketLavador = false;
+  enviarFacturaCliente = false;
   private estatusPorOrigen = new Map<number, { codigo: string; nombre: string }>();
 
   get ordenesFiltradas(): facturaheader[] {
@@ -190,6 +192,11 @@ actualizarPrecio(idDetalle:number, precio:number){
         const p = (params || []).find(x => x.clave === 'PrintTicketLavador');
         const valor = String(p?.valor ?? '').toLowerCase();
         this.printTicketLavador = valor === 'true' || valor === '1';
+        const envio = (params || []).find(
+          (x: any) => String(x.clave ?? x.Clave ?? '').toUpperCase() === 'ENVIAR_FACTURA_CLIENTE'
+        );
+        const envioValor = String((envio as any)?.valor ?? (envio as any)?.Valor ?? '').toLowerCase();
+        this.enviarFacturaCliente = envioValor === 'true' || envioValor === '1';
         this._Parametro.PrintTicketLavador = this.printTicketLavador;
       },
       error: () => {
@@ -830,6 +837,23 @@ private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise
           });
 
           await toast.present();
+
+          if (this.enviarFacturaCliente && dto.idFactura) {
+            const cli = factura?.clientes;
+            const modalEnvio = await this.modal.create({
+              component: EnviarFacturaModalComponent,
+              cssClass: 'modal-enviar-factura',
+              componentProps: {
+                idFactura: dto.idFactura,
+                numeroDocumento: factura?.numeroDocumento || String(dto.idFactura),
+                total: Number(factura?.total || 0),
+                nombreCliente: factura?.nombreCuenta || cli?.nombreComercial || '',
+                telefono: cli?.celular || cli?.telefono || '',
+                correo: cli?.email || ''
+              }
+            });
+            await modalEnvio.present();
+          }
 
           this.procesandoPago = false;
         },
