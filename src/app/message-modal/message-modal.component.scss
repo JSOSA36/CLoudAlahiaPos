@@ -96,6 +96,20 @@ ion-toolbar {
   white-space: pre-line;
 }
 
+.mm-cerrar {
+  --background: #1454B8;
+  --background-hover: #1148A2;
+  --background-activated: #0B419B;
+  --color: #ffffff;
+  --border-radius: 12px;
+  margin: 0.4rem 0 0.6rem;
+  height: 56px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
 .mm-deadline {
   display: flex;
   flex-wrap: wrap;

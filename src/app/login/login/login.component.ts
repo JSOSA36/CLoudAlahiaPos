@@ -102,7 +102,7 @@ async abrirPlanesWhatsApp() {
   icon: string = 'alert-circle-outline',
   mostrarCambioPlan: boolean = false,
   mostrarPago: boolean = false,
-  extras: { diaCobro?: number; diasRestantes?: number } = {}
+  extras: { diaCobro?: number; diasRestantes?: number; botonCerrar?: boolean } = {}
 ): Promise<boolean> {
   const modal = await this.modalCtrl.create({
     component: MessageModalComponent,
@@ -113,6 +113,7 @@ async abrirPlanesWhatsApp() {
       icon,
       mostrarCambioPlan,
       mostrarPago,
+      mostrarBotonCerrar: !!extras.botonCerrar,
       diaCobro: extras.diaCobro,
       diasRestantes: extras.diasRestantes
     }
@@ -584,7 +585,8 @@ private async redirigirSegunModulos(modulos: any[]) {
         'Puede continuar. Este aviso no limita el uso del sistema.',
       'desktop-outline',
       false,
-      false
+      false,
+      { botonCerrar: true }
     );
   }
 

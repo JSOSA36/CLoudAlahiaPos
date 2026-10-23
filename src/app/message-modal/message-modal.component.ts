@@ -27,6 +27,7 @@ export class MessageModalComponent {
   @Input() icon: string = 'alert-circle-outline';
   @Input() diaCobro: number | null = null;
   @Input() diasRestantes: number | null = null;
+  @Input() mostrarBotonCerrar: boolean = false;
 
   planSeleccionado: number | null = null;
   planes: PlanCloud[] = [];

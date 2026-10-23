@@ -29,6 +29,14 @@
       </div>
     </section>
 
+    <ion-button
+      *ngIf="mostrarBotonCerrar"
+      expand="block"
+      class="mm-cerrar"
+      (click)="cerrar()">
+      Cerrar
+    </ion-button>
+
     <!-- Pago -->
     <div *ngIf="mostrarPago" class="mm-pago">
 
