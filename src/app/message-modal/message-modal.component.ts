@@ -28,6 +28,8 @@ export class MessageModalComponent {
   @Input() diaCobro: number | null = null;
   @Input() diasRestantes: number | null = null;
   @Input() mostrarBotonCerrar: boolean = false;
+  @Input() costoActivacion: string = '';
+  @Input() plazoActivacion: string = '';
 
   planSeleccionado: number | null = null;
   planes: PlanCloud[] = [];

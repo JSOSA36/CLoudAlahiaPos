@@ -22,6 +22,12 @@
         <h2 class="mm-title">{{ title }}</h2>
         <p class="mm-message">{{ mensajeMostrado }}</p>
 
+        <div class="mm-costo" *ngIf="costoActivacion">
+          <span class="mm-costo-label">Costo de activación</span>
+          <strong class="mm-costo-valor">{{ costoActivacion }}</strong>
+          <p class="mm-costo-plazo" *ngIf="plazoActivacion">{{ plazoActivacion }}</p>
+        </div>
+
         <div class="mm-deadline" *ngIf="mostrarPago">
           <span class="mm-deadline-badge">Fecha límite: Día 3</span>
           <span class="mm-deadline-vence" *ngIf="textoVence">{{ textoVence }}</span>

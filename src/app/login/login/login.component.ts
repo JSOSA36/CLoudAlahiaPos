@@ -102,7 +102,7 @@ async abrirPlanesWhatsApp() {
   icon: string = 'alert-circle-outline',
   mostrarCambioPlan: boolean = false,
   mostrarPago: boolean = false,
-  extras: { diaCobro?: number; diasRestantes?: number; botonCerrar?: boolean } = {}
+  extras: { diaCobro?: number; diasRestantes?: number; botonCerrar?: boolean; costoActivacion?: string; plazoActivacion?: string } = {}
 ): Promise<boolean> {
   const modal = await this.modalCtrl.create({
     component: MessageModalComponent,
@@ -114,6 +114,8 @@ async abrirPlanesWhatsApp() {
       mostrarCambioPlan,
       mostrarPago,
       mostrarBotonCerrar: !!extras.botonCerrar,
+      costoActivacion: extras.costoActivacion || '',
+      plazoActivacion: extras.plazoActivacion || '',
       diaCobro: extras.diaCobro,
       diasRestantes: extras.diasRestantes
     }
@@ -581,12 +583,16 @@ private async redirigirSegunModulos(modulos: any[]) {
       'Licencia de Windows',
       'Ya no será posible trabajar en este equipo con una licencia de Windows que no esté validada por Alahia y Microsoft.\n\n' +
         'Esto no cambia la licencia del sistema. Por nuestro convenio con Microsoft, las licencias validadas ofrecen mejor rendimiento y soporte ante cualquier eventualidad.\n\n' +
-        'Para seguir operando, valide la licencia de Windows con nosotros. El costo de activación es de US$100.\n\n' +
+        'Para seguir operando, valide la licencia de Windows con nosotros.\n\n' +
         'Puede continuar. Este aviso no limita el uso del sistema.',
       'desktop-outline',
       false,
       false,
-      { botonCerrar: true }
+      {
+        botonCerrar: true,
+        costoActivacion: 'US$100',
+        plazoActivacion: 'Tiene hasta el 31 de octubre para activarla.'
+      }
     );
   }
 
