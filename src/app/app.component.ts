@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AlertController, Platform, ToastController } from '@ionic/angular';
 import { ParametrosService } from './servicios/parametros.service';
 import { ParametroConfigService } from './servicios/parametrosconfig.service';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate } from '@angular/service-worker';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { PerfilRolesService } from './perfil-roles.service';
 import { filter } from 'rxjs/operators';
@@ -392,23 +392,53 @@ export class AppComponent implements OnInit, OnDestroy {
   private async buscarActualizacion(): Promise<void> {
     if (!this.updates.isEnabled || this.actualizando) return;
     try {
-      const hayNueva = await this.updates.checkForUpdate();
-      const activada = await this.updates.activateUpdate();
-      if (hayNueva || activada) {
-        await this.aplicarActualizacion();
-      }
+      const lista = await this.updates.checkForUpdate();
+      if (lista) await this.aplicarActualizacion();
     } catch (err) {
       console.error('Error buscando update', err);
     }
   }
 
+  /** Activa la versión ya descargada y recarga. Si el cliente ya está en esa versión, no recarga. */
   private async aplicarActualizacion(): Promise<void> {
     if (this.actualizando) return;
     this.actualizando = true;
     try {
-      await this.updates.activateUpdate();
+      const activada = await this.updates.activateUpdate();
+      if (!activada) {
+        this.actualizando = false;
+        return;
+      }
     } catch (err) {
       console.error('No se pudo activar la versión nueva', err);
+      this.actualizando = false;
+      await this.soltarVersionVieja();
+      return;
+    }
+    document.location.reload();
+  }
+
+  /**
+   * La instalación falló (un archivo del manifiesto no respondió o el hash no coincidió).
+   * Angular deja la versión anterior en control. Se borra ese cache y se carga la del servidor.
+   */
+  private async soltarVersionVieja(): Promise<void> {
+    if (this.actualizando) return;
+    const clave = 'alahia_sw_reinstalado';
+    try {
+      if (sessionStorage.getItem(clave) === '1') return;
+      sessionStorage.setItem(clave, '1');
+    } catch { /* modo privado */ }
+    this.actualizando = true;
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (err) {
+      console.error('No se pudo soltar la versión vieja del service worker', err);
     }
     document.location.reload();
   }
@@ -450,12 +480,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
 if (this.updates.isEnabled) {
   this.updates.versionUpdates
-    .pipe(
-      filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'),
-      takeUntil(this.destroy$)
-    )
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(event => {
+      if (event.type === 'VERSION_READY') void this.aplicarActualizacion();
+      if (event.type === 'VERSION_INSTALLATION_FAILED') void this.soltarVersionVieja();
+    });
+  this.updates.unrecoverable
+    .pipe(takeUntil(this.destroy$))
     .subscribe(() => {
-      void this.aplicarActualizacion();
+      void this.soltarVersionVieja();
     });
 
   void this.buscarActualizacion();

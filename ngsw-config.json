@@ -8,25 +8,27 @@
     "!/**/*__*/**",
     "!/pedir/**",
     "!/reparto/**",
-    "!/citas/**"
+    "!/citas/**",
+    "!/api/**"
   ],
 
   "assetGroups": [
     {
       "name": "app",
-      "installMode": "lazy",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
         "files": [
           "/index.html",
-          "/manifest.webmanifest",
           "/manifest.json",
           "/icon-192.png",
           "/icon-512.png",
           "/web-app-manifest-192x192.png",
           "/web-app-manifest-512x512.png",
           "/*.css",
-          "/*.js"
+          "/*.js",
+          "!/**/*.webmanifest",
+          "!/manifest.webmanifest"
         ]
       }
     },
@@ -37,7 +39,8 @@
       "resources": {
         "files": [
           "/assets/**",
-          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)",
+          "!/**/*.webmanifest"
         ]
       }
     }
