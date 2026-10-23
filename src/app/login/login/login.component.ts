@@ -564,7 +564,7 @@ private async redirigirSegunModulos(modulos: any[]) {
   }
 
   /**
-   * Aviso de licencia de Windows. No bloquea la sesión.
+   * Aviso de licencia MacroBits. No bloquea la sesión.
    * Parametro de empresa `licenciawindows` en true = ya validada, sin modal.
    */
   private async avisarLicenciaWindows(idEmpresa: number): Promise<void> {
@@ -580,10 +580,10 @@ private async redirigirSegunModulos(modulos: any[]) {
     }
 
     await this.mostrarMensaje(
-      'Licencia de Windows',
-      'Ya no será posible trabajar en este equipo con una licencia de Windows que no esté validada por Alahia y Microsoft.\n\n' +
-        'Esto no cambia la licencia del sistema. Por nuestro convenio con Microsoft, las licencias validadas ofrecen mejor rendimiento y soporte ante cualquier eventualidad.\n\n' +
-        'Para seguir operando, valide la licencia de Windows con nosotros.\n\n' +
+      'Licencia MacroBits',
+      'Ya no será posible trabajar en este equipo con una licencia MacroBits que no esté validada.\n\n' +
+        'Las licencias validadas ofrecen mejor rendimiento y soporte ante cualquier eventualidad.\n\n' +
+        'Para seguir operando, valide la licencia MacroBits con nosotros.\n\n' +
         'Puede continuar. Este aviso no limita el uso del sistema.',
       'desktop-outline',
       false,

@@ -259,13 +259,13 @@ export class ParametrosConfigComponent implements OnInit {
         codigoPOS: null,
         clave: this.claveLicenciaWindows,
         valor: 'false',
-        descripcion: 'Licencia de Windows validada. Si está activa, no se muestra el aviso al iniciar sesión.'
+        descripcion: 'Licencia MacroBits validada. Si está activa, no se muestra el aviso al iniciar sesión.'
       };
       this.parametrosEmpresa.push(p);
     }
     p.valor = activo ? 'true' : 'false';
     if (!p.descripcion) {
-      p.descripcion = 'Licencia de Windows validada. Si está activa, no se muestra el aviso al iniciar sesión.';
+      p.descripcion = 'Licencia MacroBits validada. Si está activa, no se muestra el aviso al iniciar sesión.';
     }
   }
 
