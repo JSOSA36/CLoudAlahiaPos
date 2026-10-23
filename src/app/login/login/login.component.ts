@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ModalController,
-  LoadingController,
-  Platform
+  LoadingController
 } from '@ionic/angular';
 
 import { ParametrosService } from 'src/app/servicios/parametros.service';
@@ -40,7 +39,6 @@ export class LoginComponent implements OnInit {
     private dgiiConfig: DgiiConfigService,
     private loadingCtrl: LoadingController,
     private modalCtrl: ModalController,
-    private platform: Platform,
     private politicasGate: PoliticasGateService,
     private notificaciones: NotificacionesService,
     private posDevice: PosDeviceService,
@@ -542,19 +540,13 @@ private async redirigirSegunModulos(modulos: any[]) {
   );
   await this.router.navigateByUrl('/login', { replaceUrl: true });
 }
-  /** PC con Windows. No aplica en teléfono, tablet, Mac ni Linux. */
+  /** Cualquier Windows (PC o caja). No aplica en Android, iPhone, Mac ni Linux. */
   private esPcWindows(): boolean {
     const ua = navigator.userAgent || '';
     const plataforma = `${navigator.platform || ''} ${(navigator as any).userAgentData?.platform || ''}`;
     const esWindows = /Win/i.test(plataforma) || /Windows/i.test(ua);
-    const esMovil =
-      /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
-      (navigator as any).userAgentData?.mobile === true ||
-      this.platform.is('android') ||
-      this.platform.is('ios') ||
-      this.platform.is('mobile') ||
-      this.platform.is('phablet');
-    return esWindows && !esMovil;
+    if (!esWindows) return false;
+    return !/Android|iPhone|iPad|iPod/i.test(ua);
   }
 
   private licenciaWindowsValidada(p: any): boolean {
@@ -575,17 +567,14 @@ private async redirigirSegunModulos(modulos: any[]) {
   private async avisarLicenciaWindows(idEmpresa: number): Promise<void> {
     if (!idEmpresa || !this.esPcWindows()) return;
 
-    let validada = false;
     try {
       const p = await firstValueFrom(
         this.parametrosConfig.getParametro(idEmpresa, 'licenciawindows')
       );
-      validada = this.licenciaWindowsValidada(p);
-    } catch (err: any) {
-      if (err?.status !== 404) return;
+      if (this.licenciaWindowsValidada(p)) return;
+    } catch {
+      // Sin el parámetro, o si la consulta falla, el aviso se muestra igual.
     }
-
-    if (validada) return;
 
     await this.mostrarMensaje(
       'Licencia de Windows',
