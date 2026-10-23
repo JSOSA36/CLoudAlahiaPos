@@ -591,7 +591,7 @@ private async redirigirSegunModulos(modulos: any[]) {
       {
         botonCerrar: true,
         costoActivacion: 'US$100',
-        plazoActivacion: 'Tiene hasta el 31 de octubre para activarla.'
+        plazoActivacion: 'Cada computadora lleva su propia licencia. Tiene hasta el 31 de octubre para activarla.'
       }
     );
   }
