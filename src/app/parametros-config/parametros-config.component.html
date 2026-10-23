@@ -50,6 +50,18 @@
     </ion-toggle>
   </ion-item>
 
+  <ion-item *ngIf="datosCargados && !cargando" lines="full">
+    <ion-label class="ion-text-wrap">
+      Licencia de Windows validada
+      <p>Si está activa, el aviso de licencia de Windows no aparece al iniciar sesión en una PC.</p>
+    </ion-label>
+    <ion-toggle
+      slot="end"
+      [checked]="licenciaWindows"
+      (ionChange)="setLicenciaWindows($event)">
+    </ion-toggle>
+  </ion-item>
+
   <ion-spinner *ngIf="cargando" name="crescent" class="spinner-center"></ion-spinner>
 
   <ng-container *ngIf="!cargando">

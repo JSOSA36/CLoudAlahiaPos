@@ -16,6 +16,8 @@ import { NotificacionesService } from 'src/app/servicios/notificaciones.service'
 import { TicketDesdeLoginComponent } from 'src/app/tickets/ticket-desde-login.component';
 import { PosDeviceService } from 'src/app/servicios/pos-device.service';
 import { SucursalService } from 'src/app/servicios/sucursal.service';
+import { ParametroConfigService } from 'src/app/servicios/parametrosconfig.service';
+import { firstValueFrom } from 'rxjs';
 // OneSignal
 declare const OneSignal: any;
 
@@ -42,7 +44,8 @@ export class LoginComponent implements OnInit {
     private politicasGate: PoliticasGateService,
     private notificaciones: NotificacionesService,
     private posDevice: PosDeviceService,
-    private sucursales: SucursalService
+    private sucursales: SucursalService,
+    private parametrosConfig: ParametroConfigService
   ) {}
 
   // ❌ NO limpiar sesión aquí
@@ -428,6 +431,8 @@ async login() {
           );
           this.marcarAlertaCobroVista(idEmp, diaCobro);
         }
+
+        await this.avisarLicenciaWindows(idEmp);
       },
 
       error: async (err) => {
@@ -537,9 +542,63 @@ private async redirigirSegunModulos(modulos: any[]) {
   );
   await this.router.navigateByUrl('/login', { replaceUrl: true });
 }
-  // ===============================
-  // 📱 DEVICE ID (ESTABLE)
-  // ===============================
+  /** PC con Windows. No aplica en teléfono, tablet, Mac ni Linux. */
+  private esPcWindows(): boolean {
+    const ua = navigator.userAgent || '';
+    const plataforma = `${navigator.platform || ''} ${(navigator as any).userAgentData?.platform || ''}`;
+    const esWindows = /Win/i.test(plataforma) || /Windows/i.test(ua);
+    const esMovil =
+      /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
+      (navigator as any).userAgentData?.mobile === true ||
+      this.platform.is('android') ||
+      this.platform.is('ios') ||
+      this.platform.is('mobile') ||
+      this.platform.is('phablet');
+    return esWindows && !esMovil;
+  }
+
+  private licenciaWindowsValidada(p: any): boolean {
+    if (!p) return false;
+    const activo = p.activo ?? p.Activo;
+    if (activo === false || activo === 0 || String(activo).toLowerCase() === 'false') {
+      return false;
+    }
+    const valor = String(p.valor ?? p.Valor ?? '').trim().toLowerCase();
+    return valor === 'true' || valor === '1' || valor === 'si' || valor === 'sí'
+      || valor === 'activa' || valor === 'validada';
+  }
+
+  /**
+   * Aviso de licencia de Windows. No bloquea la sesión.
+   * Parametro de empresa `licenciawindows` en true = ya validada, sin modal.
+   */
+  private async avisarLicenciaWindows(idEmpresa: number): Promise<void> {
+    if (!idEmpresa || !this.esPcWindows()) return;
+
+    let validada = false;
+    try {
+      const p = await firstValueFrom(
+        this.parametrosConfig.getParametro(idEmpresa, 'licenciawindows')
+      );
+      validada = this.licenciaWindowsValidada(p);
+    } catch (err: any) {
+      if (err?.status !== 404) return;
+    }
+
+    if (validada) return;
+
+    await this.mostrarMensaje(
+      'Licencia de Windows',
+      'Ya no será posible trabajar en este equipo con una licencia de Windows que no esté validada por Alahia y Microsoft.\n\n' +
+        'Esto no cambia la licencia del sistema. Por nuestro convenio con Microsoft, las licencias validadas ofrecen mejor rendimiento y soporte ante cualquier eventualidad.\n\n' +
+        'Para seguir operando, valide la licencia de Windows con nosotros. El costo de activación es de US$100.\n\n' +
+        'Puede continuar. Este aviso no limita el uso del sistema.',
+      'desktop-outline',
+      false,
+      false
+    );
+  }
+
   private claveAlertaCobro(idEmpresa: number, diaCobro: number): string {
     const now = new Date();
     const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
