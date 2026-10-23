@@ -10,11 +10,14 @@ export class AppConfigService {
 
 //public readonly apiUrl: string = 'http://localhost:5000/api';
 
-  // El ERP es un sitio IIS aparte. La API sigue en https://192.168.100.169.
+  // Local :4200 y la LAN usan su API. El ERP vivo no tiene API en el mismo sitio:
+  // si se usa location.origin, IIS devuelve el 404 en HTML y el login lo pinta en el modal.
   get apiUrl(): string {
     if (typeof location === 'undefined') return 'https://192.168.100.169/api';
-    if (location.port === '4200') return `http://${location.hostname}:5039/api`;
-    if (location.hostname === '192.168.100.169') return 'https://192.168.100.169/api';
+    const host = (location.hostname || '').toLowerCase();
+    if (location.port === '4200') return `http://${host}:5039/api`;
+    if (host === '192.168.100.169') return 'https://192.168.100.169/api';
+    if (host === 'erp.alahiapos.com') return 'https://alahiaposapidemo.alahiapos.com/api';
     return `${location.origin}/api`;
   }
 
