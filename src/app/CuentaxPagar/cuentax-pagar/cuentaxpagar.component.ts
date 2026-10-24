@@ -51,7 +51,7 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   @Input() FacturarItbis = false;
   /** Con la política activa el POS no deja apagar el ITBIS. */
   @Input() politicaFiscalAutomatica = false;
-  /** Terraza y quien tenga el parámetro: el POS puede cobrar sin ITBIS. */
+  /** El POS puede cobrar sin ITBIS. La factura de consumo igual lo desglosa. */
   @Input() permitirApagarItbisPos = false;
   @Input() TasaItbis = 0.18;
   @Input() MontoDescuento = 0;
@@ -178,6 +178,36 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   get cobraItbisComprobante(): boolean {
     if (this.permitirApagarItbisPos && Number(this.Itbis) <= 0.009) return false;
     return this.FacturarItbis && this.tipoEcfDgii != null;
+  }
+
+  /** E32 elegido o forzado por tarjeta / Billet. El ITBIS sale en el comprobante. */
+  get consumoLlevaItbis(): boolean {
+    if (!this.FacturarItbis) return false;
+    if (this.tipoEcfDgii === 32) return true;
+    const metodos: string[] = [];
+    const montos: number[] = [];
+    if (this._PagoMixto) {
+      if (this._MetodoPago1) {
+        metodos.push(this._MetodoPago1);
+        montos.push(Number(this._MontoPago1) || 1);
+      }
+      if (this._MetodoPago2) {
+        metodos.push(this._MetodoPago2);
+        montos.push(Number(this._MontoPago2) || 1);
+      }
+    } else if (this._FormaPago) {
+      metodos.push(this._FormaPago);
+      montos.push(1);
+    }
+    return debeForzarComprobanteConsumo({
+      politicaActiva: this.politicaFiscalAutomatica,
+      facturacionElectronica: this.FacturacionElectronica,
+      metodos,
+      montos,
+      tipoEcfDgii: this.tipoEcfDgii,
+      tipoComprobante: this._TipoComprobante,
+      rnc: this.rncFiscal
+    });
   }
 
   get itbisForzadoComprobante(): number {
