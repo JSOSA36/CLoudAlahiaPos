@@ -389,6 +389,18 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** La app instalada no navega: al volver a abrirla pide la versión del servidor. */
+  private vigilarAperturaInstalada(): void {
+    if (!('serviceWorker' in navigator)) return;
+    const pedir = () => {
+      void navigator.serviceWorker.getRegistration().then(reg => reg?.update());
+      void this.buscarActualizacion();
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') pedir();
+    });
+  }
+
   private async buscarActualizacion(): Promise<void> {
     if (!this.updates.isEnabled || this.actualizando) return;
     try {
@@ -492,6 +504,7 @@ if (this.updates.isEnabled) {
     });
 
   void this.buscarActualizacion();
+  this.vigilarAperturaInstalada();
   setInterval(() => {
     void this.buscarActualizacion();
   }, 60000);

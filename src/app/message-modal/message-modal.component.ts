@@ -11,6 +11,15 @@ import {
 import { SuscripcionCobrosService, SuscripcionCuentaCobro } from '../servicios/suscripcion-cobros.service';
 import { mensajeMontoInsuficiente } from '../suscripciones/monto-insuficiente.util';
 
+/** IIS a veces responde el 404 como página HTML. Eso no se muestra en el aviso. */
+function textoVisible(message: string | null | undefined): string {
+  const texto = message ?? '';
+  if (/<!doctype|<html[\s>]|file or directory not found/i.test(texto)) {
+    return 'No se pudo conectar con Alahia. Cierre la aplicación y vuelva a abrirla.';
+  }
+  return texto;
+}
+
 @Component({
   selector: 'app-message-modal',
   templateUrl: './message-modal.component.html',
@@ -70,7 +79,7 @@ export class MessageModalComponent {
     if (this.mostrarPago) {
       return this.mensajePagoCorporativo;
     }
-    return this.message;
+    return textoVisible(this.message);
   }
 
   get textoVence(): string {
