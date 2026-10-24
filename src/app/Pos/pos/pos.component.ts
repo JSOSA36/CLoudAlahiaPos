@@ -42,6 +42,7 @@ import { SecuenciaEcfDisponible, TipoComprobanteOption } from 'src/app/models/fa
 import {
   CLAVE_POLITICA_FISCAL,
   debeForzarComprobanteConsumo,
+  CLAVE_PERMITIR_APAGAR_ITBIS_POS,
   politicaFiscalActiva,
   TIPO_COMPROBANTE_CONSUMO,
   TIPO_ECF_CONSUMO
@@ -83,6 +84,7 @@ export class PosComponent implements OnInit, OnDestroy {
   productosFiltrados: productos[] = [];
 facturarITBIS: boolean = false;
 politicaFiscalAutomatica: boolean = false;
+permitirApagarItbisPos: boolean = false;
 precioIncluyeITBIS: boolean = false;
 descuentoTipo: 'PORCENTAJE' | 'MONTO' = 'MONTO';
 
@@ -263,7 +265,9 @@ private esClienteAlPortador(): boolean {
   this.carritoModal = true;
 }
 setITBIS(valor: boolean) {
-  if (this.politicaFiscalAutomatica || (!valor && this.tieneComprobanteFiscal())) {
+  const bloqueado = !this.permitirApagarItbisPos
+    && (this.politicaFiscalAutomatica || this.tieneComprobanteFiscal());
+  if (!valor && bloqueado) {
     this.aplicarITBIS = true;
     this.recalcularTotales();
     return;
@@ -451,7 +455,13 @@ cargarParametrosPOS() {
       this.politicaFiscalAutomatica =
         politicaFiscalActiva(politicaFiscal?.valor ?? politicaFiscal?.Valor);
 
-      if (this.politicaFiscalAutomatica && this.facturarITBIS) {
+      const apagarItbis = params.find(
+        (x: any) => (x.clave ?? x.Clave) === CLAVE_PERMITIR_APAGAR_ITBIS_POS
+      );
+      this.permitirApagarItbisPos =
+        politicaFiscalActiva(apagarItbis?.valor ?? apagarItbis?.Valor);
+
+      if (this.politicaFiscalAutomatica && this.facturarITBIS && !this.permitirApagarItbisPos) {
         this.aplicarITBIS = true;
       }
 
@@ -851,6 +861,8 @@ async openModalCobro(imprimirCotizacion = false) {
 
       politicaFiscalAutomatica: this.politicaFiscalAutomatica,
 
+      permitirApagarItbisPos: this.permitirApagarItbisPos,
+
       TasaItbis: this.tasaITBIS,
 
       MontoDescuento: this.montoDescuento,
@@ -933,7 +945,8 @@ async openModalCobro(imprimirCotizacion = false) {
     }
   }
   this.aplicarPoliticaSobrePagos(data);
-  if (this.tieneComprobanteFiscal() || (this.politicaFiscalAutomatica && this.facturarITBIS)) {
+  if (!this.permitirApagarItbisPos
+    && (this.tieneComprobanteFiscal() || (this.politicaFiscalAutomatica && this.facturarITBIS))) {
     this.aplicarITBIS = true;
   }
   if (data?.tipoFactura) {
@@ -1902,6 +1915,7 @@ tieneComprobanteFiscal(): boolean {
 }
 
 debeAplicarITBIS(): boolean {
+  if (this.permitirApagarItbisPos && !this.aplicarITBIS) return false;
   if (this.politicaFiscalAutomatica && this.facturarITBIS) return true;
   if (!this.facturarITBIS) return false;
   return this.tieneComprobanteFiscal() || this.aplicarITBIS;
@@ -1929,7 +1943,7 @@ private aplicarPoliticaSobrePagos(data: any): void {
 
   this.tipoEcfDgii = TIPO_ECF_CONSUMO;
   this.tipoComprobante = TIPO_COMPROBANTE_CONSUMO;
-  if (this.facturarITBIS) {
+  if (this.facturarITBIS && !this.permitirApagarItbisPos) {
     this.aplicarITBIS = true;
   }
 }

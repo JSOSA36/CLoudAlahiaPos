@@ -1,6 +1,7 @@
 /** Misma regla que PoliticaFiscalAutomatica en el API. */
 
 export const CLAVE_POLITICA_FISCAL = 'AplicarPoliticaFiscalAutomatica';
+export const CLAVE_PERMITIR_APAGAR_ITBIS_POS = 'PermitirApagarItbisPos';
 export const TIPO_ECF_CONSUMO = 32;
 export const TIPO_COMPROBANTE_CONSUMO = 'Consumidor Final';
 

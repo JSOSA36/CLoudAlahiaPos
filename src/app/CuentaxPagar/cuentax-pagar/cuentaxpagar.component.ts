@@ -51,6 +51,8 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   @Input() FacturarItbis = false;
   /** Con la política activa el POS no deja apagar el ITBIS. */
   @Input() politicaFiscalAutomatica = false;
+  /** Terraza y quien tenga el parámetro: el POS puede cobrar sin ITBIS. */
+  @Input() permitirApagarItbisPos = false;
   @Input() TasaItbis = 0.18;
   @Input() MontoDescuento = 0;
   @Input() MontoPropina = 0;
@@ -174,6 +176,7 @@ export class CuentaxPagarComponent implements OnInit, OnDestroy {
   }
 
   get cobraItbisComprobante(): boolean {
+    if (this.permitirApagarItbisPos && Number(this.Itbis) <= 0.009) return false;
     return this.FacturarItbis && this.tipoEcfDgii != null;
   }
 
