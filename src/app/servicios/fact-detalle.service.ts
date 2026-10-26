@@ -72,7 +72,8 @@ actualizarPrecioDetalle(
   // ================================
  ActualizarCantidad(idDetalle: number, cantidadNueva: number): Observable<any> {
   return this.httpClient.get<any>(
-    `${this.baseUrl}/ActualizarCantidad/${idDetalle}/${cantidadNueva}`
+    `${this.baseUrl}/ActualizarCantidad/${idDetalle}/${cantidadNueva}?_=${Date.now()}`,
+    { headers: new HttpHeaders({ 'Cache-Control': 'no-cache', Pragma: 'no-cache' }) }
   );
 }
 

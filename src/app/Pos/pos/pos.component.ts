@@ -802,6 +802,7 @@ async openModalCobro(imprimirCotizacion = false) {
             );
           }
 
+          this.parametro.LoadListaFactura();
           this.resetPOS();
           } finally {
             await this.liberarGuardado(loading);

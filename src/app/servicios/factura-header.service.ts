@@ -71,13 +71,15 @@ export class FacturaHeaderService {
   }
   GetListadoOrdenes(IdEmpresa: number, idSucursalFiltro = 0): Observable<facturaheader[]> {
   return this.httpClient.get<facturaheader[]>(
-    `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}`
+    `${this.baseUrl}/GetAllOrdenes?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}&_=${Date.now()}`,
+    { headers: new HttpHeaders({ 'Cache-Control': 'no-cache', Pragma: 'no-cache' }) }
   );
 }
 
   GetListadoCotizaciones(IdEmpresa: number, idSucursalFiltro = 0): Observable<facturaheader[]> {
     return this.httpClient.get<facturaheader[]>(
-    `${this.baseUrl}/GetAllCotizaciones?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}`
+    `${this.baseUrl}/GetAllCotizaciones?IdEmpresa=${IdEmpresa}&idSucursalFiltro=${idSucursalFiltro || 0}&_=${Date.now()}`,
+    { headers: new HttpHeaders({ 'Cache-Control': 'no-cache', Pragma: 'no-cache' }) }
     );
   }
  GetListadoFacturas(IdEmpresa: number): Observable<facturaheader[]> {

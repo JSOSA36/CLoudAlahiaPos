@@ -2,7 +2,8 @@
 // LISTADO DE ÓRDENES / COTIZACIONES
 // =========================================
 
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { IonModal, ModalController,AlertController,ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { facturaheader, idClienteDeFactura, normalizarIdClienteFactura } from 'src/app/models/facturaheader';
@@ -31,7 +32,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrls: ['./ordenes.component.scss'],
 })
 
-export class OrdenesComponent implements OnInit {
+export class OrdenesComponent implements OnInit, OnDestroy {
 
   @ViewChild(IonModal) _modal!: IonModal;
   @Input() modo: 'editar' | 'seleccionar' = 'editar';
@@ -52,6 +53,9 @@ procesandoPago = false;
   printTicketLavador = false;
   enviarFacturaCliente = false;
   private estatusPorOrigen = new Map<number, { codigo: string; nombre: string }>();
+  private enVuelo: Promise<unknown>[] = [];
+  private cargaSeq = 0;
+  private ordenesSub?: Subscription;
 
   get ordenesFiltradas(): facturaheader[] {
     const q = (this.filtroCliente || '').trim().toLowerCase();
@@ -163,28 +167,35 @@ cargarEmpleadosEmpresa() {
 }
 actualizarPrecio(idDetalle:number, precio:number){
 
-  this._FactDetalle
-      .actualizarPrecioDetalle(idDetalle, precio)
-      .subscribe({
-
-        next: () => {
-          this.LoadListaFactura(); // 🔥 refresca orden
-        },
-
-        error: err => {
-          console.log(err);
-          alert("Error actualizando precio");
-        }
-
-      });
+  this.rastrear(
+    firstValueFrom(this._FactDetalle.actualizarPrecioDetalle(idDetalle, precio))
+      .then(() => this.RefreshOrdenes(true))
+      .catch(err => {
+        console.log(err);
+        alert("Error actualizando precio");
+      })
+  );
 
 }
+  ngOnDestroy(): void {
+    this.ordenesSub?.unsubscribe();
+  }
+
+  /** Al volver a Órdenes, no seguir con la lista que quedó al entrar la sesión. */
+  ionViewWillEnter(): void {
+    if (this.cargando) return;
+    void this.RefreshOrdenes(true);
+  }
+
   ngOnInit() {
     if (!this._Parametro.esAdministrador) {
       this.idSucursalFiltro = Number(this._Parametro.IdSucursal) || 0;
     }
     this.asegurarCatalogoSucursales();
     this.RefreshOrdenes();
+    this.ordenesSub = this._Parametro.OrdenesActualizadas$.subscribe(() => {
+      this.cdr.markForCheck();
+    });
     this.cargarEmpleadosEmpresa();
      this.puedeEliminarOrden =
     this._Parametro.puedeEliminarOrden || this._Parametro.esAdministrador;
@@ -453,9 +464,10 @@ CargarListaFactura() {
   
 }
 
-imprimirOrden(idFactura: number, event?: Event) {
+async imprimirOrden(idFactura: number, event?: Event) {
 
   event?.stopPropagation();
+  await this.prepararOrdenVigente();
 
   if (this.tipoDocumento === 'Cotizacion') {
     const cotizacion =
@@ -511,12 +523,47 @@ imprimirOrden(idFactura: number, event?: Event) {
       }
     });
 }
-  RefreshOrdenes() {
-  this.accordionActivo = null;
-  this.cargando = true;
-  this._Parametro.ListadoOrdenes = [];
+  private rastrear(trabajo: Promise<unknown>): void {
+    let hecho: Promise<unknown>;
+    hecho = trabajo.catch(() => undefined).finally(() => {
+      this.enVuelo = this.enVuelo.filter(x => x !== hecho);
+    });
+    this.enVuelo.push(hecho);
+  }
+
+  private async esperarGuardados(): Promise<void> {
+    while (this.enVuelo.length > 0) {
+      await Promise.allSettled(this.enVuelo.slice());
+    }
+  }
+
+  /** Espera el cambio en curso y vuelve a leer la orden antes de imprimir o facturar. */
+  private async prepararOrdenVigente(): Promise<void> {
+    await this.esperarGuardados();
+    await this.RefreshOrdenes(true);
+  }
+
+  RefreshOrdenes(silencioso = false): Promise<void> {
+  const seq = ++this.cargaSeq;
+  if (!silencioso) {
+    this.accordionActivo = null;
+    this.cargando = true;
+    this._Parametro.ListadoOrdenes = [];
+  }
+
+  return new Promise((resolve) => {
+  let cerrado = false;
+  const terminar = () => {
+    if (cerrado) return;
+    cerrado = true;
+    resolve();
+  };
 
   const aplicar = async (servidor: facturaheader[]) => {
+    if (seq !== this.cargaSeq) {
+      terminar();
+      return;
+    }
     let locales: facturaheader[] = [];
     try {
       locales = this._Parametro.documentosDeMiSucursal(
@@ -561,6 +608,7 @@ imprimirOrden(idFactura: number, event?: Event) {
     }
     this.cargando = false;
     this.cdr.markForCheck();
+    terminar();
   };
 
   const peticion =
@@ -570,11 +618,15 @@ imprimirOrden(idFactura: number, event?: Event) {
 
   peticion.subscribe({
       next: c => {
-        void aplicar(c || []);
+        void aplicar(c || []).catch(() => terminar());
       },
       error: (err) => {
+        if (seq !== this.cargaSeq) {
+          terminar();
+          return;
+        }
         if (esErrorRedCobro(err)) {
-          void aplicar([]);
+          void aplicar([]).catch(() => terminar());
           return;
         }
         const tipo = this.tipoDocumento === 'Cotizacion' ? 'cotizaciones' : 'órdenes';
@@ -585,8 +637,10 @@ imprimirOrden(idFactura: number, event?: Event) {
           `Error cargando ${tipo}` +
           (err?.status ? ` (${err.status} ${err.statusText || ''})`.trim() : '')
         );
+        terminar();
       }
     });
+  });
 }
 
 
@@ -743,6 +797,8 @@ private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise
 
   if (this.procesandoPago) return;
   this.procesandoPago = true;
+
+  await this.prepararOrdenVigente();
 
   this.NombreCliente = "";
 
@@ -982,7 +1038,9 @@ private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise
   const detalle = this._Parametro.ListadoOrdenes[indexHeader].facturaDetalles[indexdetalle];
   detalle.cantidad++;
   this.GetAmount(indexHeader, indexdetalle);
-  this._FactDetalle.ActualizarCantidad(IdFactDetalle, detalle.cantidad);
+  this.rastrear(firstValueFrom(
+    this._FactDetalle.ActualizarCantidad(IdFactDetalle, detalle.cantidad)
+  ));
 }
 
  DisminuirCantidad(indexHeader: number, indexdetalle: number, IdFactDetalle: number) {
@@ -994,7 +1052,9 @@ private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise
   if (detalle.cantidad > 1) {
     detalle.cantidad--;
      this.GetAmount(indexHeader, indexdetalle);// 🔥 FIX
-    this._FactDetalle.ActualizarCantidad(IdFactDetalle, detalle.cantidad);
+    this.rastrear(firstValueFrom(
+      this._FactDetalle.ActualizarCantidad(IdFactDetalle, detalle.cantidad)
+    ));
   }
 }
 
@@ -1010,9 +1070,18 @@ private async cobrarOrdenLocal(factura: any, data: any, IdFact: number): Promise
       return;
     }
     this._Parametro.ListadoOrdenes[IndexHeader].facturaDetalles.splice(IndexDetalle, 1);
-    this._FactDetalle.DeleteIten(idFacturaDetalle).subscribe(() => {
-      this._Parametro.LoadListaFactura();
-    });
+    this.rastrear(
+      firstValueFrom(this._FactDetalle.DeleteIten(idFacturaDetalle))
+        .then(() => this.RefreshOrdenes(true))
+        .catch(err => {
+          const raw = err?.error;
+          const mensaje = typeof raw === 'string'
+            ? raw
+            : (raw?.message || 'No se pudo quitar el artículo');
+          void this.toast(String(mensaje));
+          return this.RefreshOrdenes(true);
+        })
+    );
   }
 
   CallCategorias() {

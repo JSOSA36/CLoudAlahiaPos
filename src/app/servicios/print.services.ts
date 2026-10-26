@@ -112,10 +112,19 @@ export class PrintService {
   private agentGet(path: string): Observable<any> {
     const api = this.ensureApiPrint();
     const url = `${api}${path.startsWith('/') ? path : `/${path}`}`;
+    const fresco = url.includes('?')
+      ? `${url}&_=${Date.now()}`
+      : `${url}?_=${Date.now()}`;
     if (this.needsNavPrint(api)) {
-      return this.printViaNavigation(url);
+      return this.printViaNavigation(fresco);
     }
-    return this.http.get(url, { withCredentials: false });
+    return this.http.get(fresco, {
+      withCredentials: false,
+      headers: new HttpHeaders({
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache'
+      })
+    });
   }
 
 // =========================================
