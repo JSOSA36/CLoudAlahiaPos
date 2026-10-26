@@ -533,7 +533,8 @@ async imprimirOrden(idFactura: number, event?: Event) {
 
   private async esperarGuardados(): Promise<void> {
     while (this.enVuelo.length > 0) {
-      await Promise.allSettled(this.enVuelo.slice());
+      const lote = this.enVuelo.slice();
+      await Promise.all(lote);
     }
   }
 
